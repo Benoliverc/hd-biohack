@@ -14,6 +14,12 @@ class BirthDataIn(BaseModel):
     save: bool = False
     lat: float | None = None
     lon: float | None = None
+    label: str | None = Field(None, description="Display name, e.g. Me or a friend")
+    slot_kind: Literal["self", "friend"] = "self"
+
+
+class ChartLabelPatch(BaseModel):
+    label: str = Field(..., min_length=1, max_length=128)
 
 
 class ChartResponse(BaseModel):
@@ -76,3 +82,9 @@ class GeocodeOut(BaseModel):
     lat: float
     lon: float
     cached: bool
+    source: str | None = None
+    timezone: str | None = None
+
+
+class GeocodeSuggestOut(BaseModel):
+    results: list[GeocodeOut]

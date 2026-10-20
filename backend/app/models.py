@@ -55,6 +55,8 @@ class NatalChart(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    label: Mapped[str] = mapped_column(String(128), default="Me")
+    slot_kind: Mapped[str] = mapped_column(String(32), default="self")  # self | friend
     birth_date: Mapped[str] = mapped_column(String(32))
     birth_time: Mapped[str] = mapped_column(String(32))
     birth_city: Mapped[str] = mapped_column(String(255))

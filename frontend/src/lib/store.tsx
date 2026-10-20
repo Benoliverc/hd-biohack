@@ -1,45 +1,233 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { api, User } from "./api";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { api, SavedChartRow, User } from "./api";
+
+export type NatalChartSummary = {
+  id: number;
+  label?: string;
+  birth_city: string;
+  birth_date?: string;
+  birth_time?: string;
+  timezone?: string | null;
+};
 
 type AppState = {
   users: User[];
   user: User | null;
+  usersLoading: boolean;
+  usersError: string | null;
   setUserId: (id: number) => void;
   enforcePaywall: boolean;
   setEnforcePaywall: (v: boolean) => void;
   previewAsFree: boolean;
   setPreviewAsFree: (v: boolean) => void;
   natalChartId: number | null;
+  natalChart: NatalChartSummary | null;
+  natalBindingLoading: boolean;
   setNatalChartId: (id: number | null) => void;
-  refreshUsers: () => Promise<void>;
+  setNatalChart: (chart: NatalChartSummary | null) => void;
+  refreshUsers: () => Promise<User[]>;
+  ensureUser: () => Promise<User>;
   biohackingUnlocked: boolean;
 };
 
 const Ctx = createContext<AppState | null>(null);
 
+const FALLBACK_USER: User = {
+  id: 1,
+  email: "dev.free@example.com",
+  display_name: "Dev Free",
+  auth_provider: "dev",
+  subscription_tier: "free",
+  stripe_customer_id: null,
+  biohacking_enabled: false,
+};
+
+function summaryFromRow(row: SavedChartRow): NatalChartSummary {
+  return {
+    id: row.id,
+    label: row.label || "Me",
+    birth_city: row.birth_city || "",
+    birth_date: row.birth_date,
+    birth_time: row.birth_time,
+    timezone: row.timezone ?? null,
+  };
+}
+
+function selectedKey(userId: number) {
+  return `hd-biohack:selected-chart:${userId}`;
+}
+
+function readSelectedId(userId: number): number | null {
+  try {
+    const raw = localStorage.getItem(selectedKey(userId));
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSelectedId(userId: number, id: number | null) {
+  try {
+    if (id == null) localStorage.removeItem(selectedKey(userId));
+    else localStorage.setItem(selectedKey(userId), String(id));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Human-readable overlay label: city · date (#id). */
+export function formatNatalOverlayLabel(chart: NatalChartSummary | null | undefined): string {
+  if (!chart) return "";
+  const who = chart.label?.trim();
+  const city = chart.birth_city?.trim();
+  const date = chart.birth_date?.trim();
+  const parts: string[] = [];
+  if (who) parts.push(who);
+  if (city) parts.push(city);
+  if (date) parts.push(date);
+  if (parts.length) return `${parts.join(" · ")} (#${chart.id})`;
+  return `natal chart #${chart.id}`;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState<string | null>(null);
   const [enforcePaywall, setEnforcePaywall] = useState(
     process.env.NEXT_PUBLIC_ENFORCE_PAYWALL === "true"
   );
   const [previewAsFree, setPreviewAsFree] = useState(false);
-  const [natalChartId, setNatalChartId] = useState<number | null>(null);
+  const [natalChart, setNatalChart] = useState<NatalChartSummary | null>(null);
+  // Start true so /transits and /biohack never flash the empty-natal CTA before first bind.
+  const [natalBindingLoading, setNatalBindingLoading] = useState(true);
 
-  const refreshUsers = async () => {
-    const list = await api.users();
-    setUsers(list);
-    if (!userId && list.length) setUserId(list[0].id);
-  };
+  const natalChartId = natalChart?.id ?? null;
+
+  const setNatalChartId = useCallback((id: number | null) => {
+    if (id == null) {
+      setNatalChart(null);
+      return;
+    }
+    setNatalChart((prev) => (prev?.id === id ? prev : { id, birth_city: "" }));
+  }, []);
+
+  const refreshUsers = useCallback(async () => {
+    setUsersLoading(true);
+    setUsersError(null);
+    try {
+      const list = await api.users();
+      setUsers(list);
+      setUserId((prev) => {
+        if (prev && list.some((u) => u.id === prev)) return prev;
+        return list[0]?.id ?? null;
+      });
+      return list;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setUsersError(msg);
+      // Keep UI usable offline / if API blips
+      setUsers((prev) => (prev.length ? prev : [FALLBACK_USER]));
+      setUserId((prev) => prev ?? FALLBACK_USER.id);
+      return [];
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  const ensureUser = useCallback(async () => {
+    let list = users;
+    if (!list.length) {
+      list = await refreshUsers();
+    }
+    const current = list.find((u) => u.id === userId) || list[0];
+    if (current) {
+      setUserId(current.id);
+      return current;
+    }
+    // Create a guest via API if DB has no users
+    try {
+      const created = await fetch("/api/backend/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: `guest-${Date.now()}@local.dev`,
+          display_name: "Guest",
+          auth_provider: "dev",
+          subscription_tier: "free",
+        }),
+        cache: "no-store",
+      }).then(async (r) => {
+        if (!r.ok) throw new Error(await r.text());
+        return r.json() as Promise<User>;
+      });
+      setUsers((prev) => [...prev, created]);
+      setUserId(created.id);
+      return created;
+    } catch {
+      setUsers([FALLBACK_USER]);
+      setUserId(FALLBACK_USER.id);
+      return FALLBACK_USER;
+    }
+  }, [users, userId, refreshUsers]);
 
   useEffect(() => {
     refreshUsers().catch(console.error);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshUsers]);
 
-  const user = useMemo(() => users.find((u) => u.id === userId) || null, [users, userId]);
+  const user = useMemo(() => {
+    if (!users.length) return null;
+    return users.find((u) => u.id === userId) || users[0] || null;
+  }, [users, userId]);
+
+  // While users are still resolving, keep binding-loading so pages never flash the empty CTA.
+  useEffect(() => {
+    if (user) return;
+    setNatalChart(null);
+    setNatalBindingLoading(usersLoading);
+  }, [user, usersLoading]);
+
+  // Auto-attach preferred saved natal (localStorage) or latest on load / Dev user switch.
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) return;
+    setNatalChart(null);
+    setNatalBindingLoading(true);
+    api
+      .charts(user.id)
+      .then((rows) => {
+        if (cancelled) return;
+        if (!rows.length) {
+          setNatalChart(null);
+          writeSelectedId(user.id, null);
+          return;
+        }
+        const preferred = readSelectedId(user.id);
+        const match = preferred != null ? rows.find((r) => r.id === preferred) : null;
+        const row = match || rows[0];
+        setNatalChart(summaryFromRow(row));
+        writeSelectedId(user.id, row.id);
+      })
+      .catch(() => {
+        if (!cancelled) setNatalChart(null);
+      })
+      .finally(() => {
+        if (!cancelled) setNatalBindingLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  // Persist selected chart id for Protocols / Today across reloads.
+  useEffect(() => {
+    if (!user?.id) return;
+    writeSelectedId(user.id, natalChart?.id ?? null);
+  }, [user?.id, natalChart?.id]);
 
   const biohackingUnlocked = useMemo(() => {
     if (!enforcePaywall) return true;
@@ -52,14 +240,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         users,
         user,
-        setUserId: (id) => setUserId(id),
+        usersLoading,
+        usersError,
+        setUserId: (id) => {
+          // Clear synchronously so the next paint never shows the previous user's natal.
+          setNatalChart(null);
+          setNatalBindingLoading(true);
+          setUserId(id);
+        },
         enforcePaywall,
         setEnforcePaywall,
         previewAsFree,
         setPreviewAsFree,
         natalChartId,
+        natalChart,
+        natalBindingLoading,
         setNatalChartId,
+        setNatalChart,
         refreshUsers,
+        ensureUser,
         biohackingUnlocked,
       }}
     >

@@ -1,7 +1,7 @@
 """36 Human Design channels and 9-center topology."""
 from __future__ import annotations
 
-# (gate_a, gate_b, name)
+# Exact 36-channel bodygraph (gate_a, gate_b, name)
 CHANNELS: list[tuple[int, int, str]] = [
     (1, 8, "Inspiration"),
     (2, 14, "The Beat"),
@@ -33,6 +33,7 @@ CHANNELS: list[tuple[int, int, str]] = [
     (29, 46, "Discovery"),
     (30, 41, "Recognition"),
     (32, 54, "Transformation"),
+    (34, 57, "Power"),  # Integration — Sacral–Spleen
     (35, 36, "Transitoriness"),
     (37, 40, "Community"),
     (39, 55, "Emoting"),
@@ -40,15 +41,14 @@ CHANNELS: list[tuple[int, int, str]] = [
     (47, 64, "Abstraction"),
 ]
 
-# Unique channel keys as frozensets (canonical 35 bodygraph channels;
-# HD literature often says "36" — this set matches standard calculators).
 _CHANNEL_SET: dict[frozenset[int], str] = {}
 for a, b, name in CHANNELS:
     key = frozenset({a, b})
     _CHANNEL_SET.setdefault(key, name)
 
 CHANNEL_KEYS: list[frozenset[int]] = list(_CHANNEL_SET.keys())
-assert len(CHANNEL_KEYS) == 35, f"Expected 35 unique channels, got {len(CHANNEL_KEYS)}"
+assert len(CHANNEL_KEYS) == 36, f"Expected 36 unique channels, got {len(CHANNEL_KEYS)}"
+assert len(CHANNELS) == 36, f"Expected 36 channel rows, got {len(CHANNELS)}"
 
 # Gate → Center membership
 GATE_TO_CENTER: dict[int, str] = {}

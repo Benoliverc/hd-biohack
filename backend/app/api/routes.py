@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..biohack import build_protocol, maybe_synthesize
 from ..database import get_db
-from ..geocode import geocode_city
+from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
 from ..models import (
     NatalChart,
@@ -18,8 +19,10 @@ from ..models import (
 )
 from ..schemas import (
     BirthDataIn,
+    ChartLabelPatch,
     ChartResponse,
     GeocodeOut,
+    GeocodeSuggestOut,
     InventoryItemIn,
     ProtocolRequest,
     TelemetryIn,
@@ -27,6 +30,8 @@ from ..schemas import (
     UserCreate,
     UserOut,
 )
+
+MAX_CHARTS_PER_USER = 10
 
 router = APIRouter()
 
@@ -83,11 +88,23 @@ def set_tier(user_id: int, tier: str = Query(...), db: Session = Depends(get_db)
 
 
 @router.get("/geocode", response_model=GeocodeOut)
-def geocode(q: str = Query(..., min_length=2), db: Session = Depends(get_db)):
+def geocode(q: str = Query(..., min_length=1), db: Session = Depends(get_db)):
     try:
         return geocode_city(q, db)
     except ValueError as e:
         raise HTTPException(404, str(e)) from e
+
+
+@router.get("/geocode/suggest", response_model=GeocodeSuggestOut)
+def geocode_suggest(q: str = Query(..., min_length=1), db: Session = Depends(get_db)):
+    """Autocomplete birth cities (seed/cache first, Open-Meteo for free-text)."""
+    return {"results": suggest_cities(q, db)}
+
+
+@router.get("/geocode/seeds", response_model=list[GeocodeOut])
+def geocode_seeds():
+    """Quick-pick seeded cities that never need live geocoding."""
+    return list_seed_cities()
 
 
 @router.post("/chart/calculate", response_model=ChartResponse)
@@ -119,8 +136,19 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
         user = db.get(User, body.user_id)
         if not user:
             raise HTTPException(404, "User not found")
+        count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
+        if count >= MAX_CHARTS_PER_USER:
+            raise HTTPException(
+                400,
+                f"Chart limit reached ({MAX_CHARTS_PER_USER}/user). "
+                "Delete a saved person before adding another.",
+            )
+        label = (body.label or "").strip() or ("Me" if body.slot_kind == "self" else "Friend")
+        slot_kind = body.slot_kind if body.slot_kind in ("self", "friend") else "self"
         row = NatalChart(
             user_id=body.user_id,
+            label=label[:128],
+            slot_kind=slot_kind,
             birth_date=body.birth_date,
             birth_time=body.birth_time,
             birth_city=body.birth_city,
@@ -143,15 +171,54 @@ def get_user_charts(user_id: int, db: Session = Depends(get_db)):
     return [
         {
             "id": r.id,
+            "label": getattr(r, "label", None) or "Me",
+            "slot_kind": getattr(r, "slot_kind", None) or "self",
             "birth_date": r.birth_date,
             "birth_time": r.birth_time,
             "birth_city": r.birth_city,
-            "type": r.chart_json.get("type"),
-            "profile": r.chart_json.get("profile"),
+            "lat": r.lat,
+            "lon": r.lon,
+            "timezone": r.timezone or (r.chart_json or {}).get("timezone"),
+            "type": (r.chart_json or {}).get("type"),
+            "profile": (r.chart_json or {}).get("profile"),
+            "authority": (r.chart_json or {}).get("authority"),
+            "strategy": (r.chart_json or {}).get("strategy"),
             "chart": r.chart_json,
         }
         for r in rows
     ]
+
+
+@router.patch("/charts/{chart_id}")
+def rename_chart(chart_id: int, body: ChartLabelPatch, db: Session = Depends(get_db)):
+    row = db.get(NatalChart, chart_id)
+    if not row:
+        raise HTTPException(404, "Chart not found")
+    label = body.label.strip()
+    if not label:
+        raise HTTPException(400, "Label is required")
+    row.label = label[:128]
+    db.commit()
+    db.refresh(row)
+    return {
+        "id": row.id,
+        "label": row.label,
+        "slot_kind": row.slot_kind,
+    }
+
+
+@router.delete("/charts/{chart_id}")
+def delete_chart(
+    chart_id: int,
+    user_id: int = Query(..., description="Owner user id"),
+    db: Session = Depends(get_db),
+):
+    row = db.get(NatalChart, chart_id)
+    if not row or row.user_id != user_id:
+        raise HTTPException(404, "Chart not found")
+    db.delete(row)
+    db.commit()
+    return {"ok": True, "id": chart_id}
 
 
 @router.get("/transits/today", response_model=TransitResponse)
@@ -174,13 +241,73 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
     user = db.get(User, body.user_id)
     if not user:
         raise HTTPException(404, "User not found")
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "Name is required")
+
+    # Case-insensitive dedupe among active items — return existing (no duplicate row).
+    existing = (
+        db.query(SupplementInventory)
+        .filter(
+            SupplementInventory.user_id == body.user_id,
+            func.lower(SupplementInventory.name) == name.lower(),
+            SupplementInventory.active.is_(True),
+        )
+        .first()
+    )
+    if existing:
+        return {
+            "id": existing.id,
+            "name": existing.name,
+            "active": existing.active,
+            "duplicate": True,
+        }
+
+    # Re-activate a soft-deleted match instead of inserting another row.
+    inactive = (
+        db.query(SupplementInventory)
+        .filter(
+            SupplementInventory.user_id == body.user_id,
+            func.lower(SupplementInventory.name) == name.lower(),
+            SupplementInventory.active.is_(False),
+        )
+        .first()
+    )
+    if inactive:
+        inactive.active = True
+        inactive.name = name
+        if body.notes:
+            inactive.notes = body.notes
+        db.commit()
+        db.refresh(inactive)
+        return {
+            "id": inactive.id,
+            "name": inactive.name,
+            "active": inactive.active,
+            "duplicate": False,
+        }
+
     item = SupplementInventory(
-        user_id=body.user_id, name=body.name, notes=body.notes, active=body.active
+        user_id=body.user_id, name=name, notes=body.notes, active=body.active
     )
     db.add(item)
     db.commit()
     db.refresh(item)
-    return {"id": item.id, "name": item.name, "active": item.active}
+    return {"id": item.id, "name": item.name, "active": item.active, "duplicate": False}
+
+
+@router.delete("/inventory/{item_id}")
+def delete_inventory(
+    item_id: int,
+    user_id: int = Query(..., description="Owner user id"),
+    db: Session = Depends(get_db),
+):
+    item = db.get(SupplementInventory, item_id)
+    if not item or item.user_id != user_id:
+        raise HTTPException(404, "Inventory item not found")
+    item.active = False
+    db.commit()
+    return {"ok": True, "id": item_id}
 
 
 @router.get("/inventory/{user_id}")

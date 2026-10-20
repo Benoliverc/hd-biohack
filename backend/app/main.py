@@ -42,9 +42,11 @@ def seed_dev_users() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    settings = get_settings()
     init_ephemeris()
     init_db()
-    seed_dev_users()
+    if settings.seed_dev_users:
+        seed_dev_users()
     db = SessionLocal()
     try:
         seed_geocode_cache(db)

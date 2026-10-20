@@ -2,11 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Grounded Vitality — organic earth tones.
+  Light (Linen) is the default experience; html.dark / .dark unlocks Basalt/Ink.
+*/
+
 :root {
+  color-scheme: light;
+
+  --canvas: #f7f6f2;
+  --elevated: #efece4;
+  --sunken: #e8e4da;
+  --border: #ddd8ce;
+
+  --fg: #1c201d;
+  --fg-secondary: #5e645c;
+  --fg-muted: #82877e;
+  --fg-inverse: #f7f6f2;
+
+  --growth: #4a6b53;
+  --growth-ink: #2f4636;
+  --growth-deep: #3a5642;
+  --growth-soft: #dce5de;
+
+  --energy: #c87d55;
+  --energy-ink: #a86640;
+
+  --recovery: #d4a373;
+  --danger: #8f4a3a;
+  --focus: #3a5642;
+}
+
+html.dark,
+.dark {
   color-scheme: dark;
+
+  --canvas: #121513;
+  --elevated: #202522;
+  --sunken: #151816;
+  --border: #2c322e;
+
+  --fg: #f7f6f2;
+  --fg-secondary: #82877e;
+  --fg-muted: #5e645c;
+  --fg-inverse: #f7f6f2;
+
+  --growth: #4a6b53;
+  --growth-ink: #dce5de;
+  --growth-deep: #3a5642;
+  --growth-soft: #1a241e;
+
+  --energy: #c87d55;
+  --energy-ink: #e0a882;
+
+  --recovery: #d4a373;
+  --danger: #c47a6a;
+  --focus: #4a6b53;
+}
+
+html {
+  overflow-x: clip;
 }
 
 body {
-  background: radial-gradient(1200px 600px at 10% -10%, #2e1065 0%, transparent 50%),
-    radial-gradient(900px 500px at 100% 0%, #0f172a 0%, #020617 60%);
+  overflow-x: clip;
+  background-color: var(--canvas);
+  color: var(--fg);
+  position: relative;
+}
+
+/* 2% mineral/paper noise — canvas only, never on text */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }

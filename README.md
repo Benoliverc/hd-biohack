@@ -6,6 +6,12 @@ Monorepo:
 - `backend/` — FastAPI + `pyswisseph` calculation engine
 - `frontend/` — Next.js 14 + Tailwind + Lucide
 
+## Production deploy
+
+For always-on public hosting (Vercel frontend + Railway API), see **[DEPLOY.md](./DEPLOY.md)**.
+
+Do not use Cloudflare quick tunnels (`*.trycloudflare.com`) for real users — the URL changes and dies when the tunnel process stops.
+
 ## Quick start
 
 ### 1. Backend
