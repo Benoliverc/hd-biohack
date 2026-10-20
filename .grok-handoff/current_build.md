@@ -2,7 +2,7 @@
 
 ## Branch & commit
 - **Branch:** `feat/chart-sticky-deepdive-nav`
-- **SHA:** 9b8d3d6619b9230db3afaf93c7b04c245182bebe (short `9b8d3d6`)
+- **SHA:** c5b5b4bf4c09e2c7856449cd4d5f8209ab268b90 (short `c5b5b4b`)
 - **Base:** `main` @ `2cfa3eb` (chart-nav merged)
 
 ## What changed
