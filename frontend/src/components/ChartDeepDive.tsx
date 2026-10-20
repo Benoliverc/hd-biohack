@@ -8,6 +8,7 @@ import {
   DEFINITION_COPY,
   STRATEGY_COPY,
   TYPE_COPY,
+  channelMeaning,
   displayCenter,
   profileLearnMore,
   type CenterKey,
@@ -142,6 +143,9 @@ export function ChartDeepDive({ chart }: { chart: Chart }) {
                       {g.join("–")} — {String(ch.name)}
                     </div>
                     <div className="text-xs text-fg-muted">{centers}</div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary">
+                      {channelMeaning(g, String(ch.name || ""))}
+                    </p>
                   </li>
                 );
               })}

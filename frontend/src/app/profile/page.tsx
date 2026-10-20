@@ -602,7 +602,7 @@ export default function ProfilePage() {
                 <div className="rounded-xl border border-border bg-elevated p-4">
                   <div className="text-xs uppercase tracking-wide text-fg-muted">Profile</div>
                   <div className="mt-1 font-semibold text-growth">{profileStr}</div>
-                  <p className="mt-2 text-sm text-fg-secondary">{profilePlainLine(profileStr)}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-elevated p-4">
                   <div className="text-xs uppercase tracking-wide text-fg-muted">How you decide</div>
