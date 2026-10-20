@@ -50,7 +50,6 @@ function Accordion({
 
 export function ChartDeepDive({ chart }: { chart: Chart }) {
   const defined = new Set((chart.defined_centers as string[]) || []);
-  const undefinedCenters = new Set((chart.undefined_centers as string[]) || []);
   const channels = (chart.channels as Array<Record<string, unknown>>) || [];
   const hanging = (chart.hanging_gates as Array<Record<string, unknown>>) || [];
   const gates = ((chart.activated_gates as number[]) || []).slice().sort((a, b) => a - b);
