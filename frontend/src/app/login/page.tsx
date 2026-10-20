@@ -1,23 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, FlaskConical, Orbit, Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
-
-const DEMO_USERS: { username: string; password: string; tier: "Pro" | "Free" }[] = [
-  { username: "Benjamin", password: "Wolkje", tier: "Pro" },
-  { username: "Achi", password: "Kengnai", tier: "Pro" },
-  { username: "Katherine", password: "Max", tier: "Pro" },
-  { username: "Sam", password: "sam123", tier: "Free" },
-  { username: "Alex", password: "alex123", tier: "Free" },
-  { username: "Jordan", password: "jordan123", tier: "Pro" },
-  { username: "Riley", password: "riley123", tier: "Free" },
-  { username: "Casey", password: "casey123", tier: "Free" },
-  { username: "Morgan", password: "morgan123", tier: "Pro" },
-  { username: "Taylor", password: "taylor123", tier: "Free" },
-];
 
 const PILLARS = [
   {
@@ -45,9 +32,6 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [demoOpen, setDemoOpen] = useState(false);
-
-  const hintNames = useMemo(() => DEMO_USERS.map((u) => u.username).join(" · "), []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -70,13 +54,6 @@ export default function LoginPage() {
     }
   }
 
-  function fillDemo(name: string, pw: string) {
-    setUsername(name);
-    setPassword(pw);
-    setError(null);
-    setDemoOpen(true);
-  }
-
   return (
     <div className="relative min-h-[calc(100dvh-0px)] overflow-x-clip bg-canvas">
       <div
@@ -88,8 +65,8 @@ export default function LoginPage() {
         }}
       />
 
-      <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-10 lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-16">
-        <section className="space-y-6 lg:pr-4">
+      <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
+        <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
           <p className="text-sm font-medium uppercase tracking-[0.14em] text-growth">HD Biohack</p>
           <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
             Chart. Today. Protocols.
@@ -119,10 +96,10 @@ export default function LoginPage() {
           </ul>
         </section>
 
-        <section className="w-full max-w-md justify-self-center lg:justify-self-end">
+        <section className="order-1 w-full max-w-md justify-self-center lg:order-2 lg:justify-self-end">
           <div className="rounded-2xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
             <h2 className="text-xl font-semibold text-fg">Sign in</h2>
-            <p className="mt-1 text-sm text-fg-muted">Use a test account to explore the product.</p>
+            <p className="mt-1 text-sm text-fg-muted">Enter your username and password.</p>
 
             <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
               <label className="block space-y-1.5">
@@ -130,7 +107,7 @@ export default function LoginPage() {
                 <input
                   autoComplete="username"
                   className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
-                  placeholder="e.g. Benjamin"
+                  placeholder="Your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -201,49 +178,7 @@ export default function LoginPage() {
             >
               Sign in with Google
             </button>
-
-            <p className="mt-5 text-center text-xs text-fg-muted">
-              Test accounts: <span className="text-fg-secondary">{hintNames}</span>
-            </p>
-
-            <details
-              className="mt-3 rounded-xl border border-border/80 bg-canvas/50 open:pb-2"
-              open={demoOpen}
-              onToggle={(e) => setDemoOpen((e.target as HTMLDetailsElement).open)}
-            >
-              <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-growth [&::-webkit-details-marker]:hidden">
-                Demo users (for testing)
-              </summary>
-              <ul className="max-h-48 space-y-1 overflow-y-auto px-2 pb-2">
-                {DEMO_USERS.map((u) => (
-                  <li key={u.username}>
-                    <button
-                      type="button"
-                      onClick={() => fillDemo(u.username, u.password)}
-                      className="flex w-full min-h-10 items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-growth/10"
-                    >
-                      <span className="min-w-0 truncate">
-                        <span className="font-medium text-fg">{u.username}</span>
-                        <span className="text-fg-muted"> / {u.password}</span>
-                      </span>
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                          u.tier === "Pro"
-                            ? "bg-growth/20 text-growth"
-                            : "bg-sunken text-fg-muted"
-                        }`}
-                      >
-                        {u.tier}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </details>
           </div>
-          <p className="mt-4 text-center text-xs text-fg-muted">
-            Local test login · passwords are for demo only
-          </p>
         </section>
       </div>
     </div>
