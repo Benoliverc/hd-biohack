@@ -10,32 +10,23 @@ from .config import get_settings
 from .database import SessionLocal, init_db
 from .hd.ephemeris import init_ephemeris
 from .geocode.service import seed_geocode_cache
-from .models import User
+from .auth import ensure_dev_users, seed_password_users
 
 
 def seed_dev_users() -> None:
+    """Ensure Dev Free / Dev Pro exist (no wipe)."""
     db = SessionLocal()
     try:
-        if db.query(User).count() == 0:
-            db.add_all(
-                [
-                    User(
-                        email="dev.free@example.com",
-                        display_name="Dev Free",
-                        auth_provider="dev",
-                        subscription_tier="free",
-                        biohacking_enabled=False,
-                    ),
-                    User(
-                        email="dev.pro@example.com",
-                        display_name="Dev Pro",
-                        auth_provider="dev",
-                        subscription_tier="biohacker_pro",
-                        biohacking_enabled=True,
-                    ),
-                ]
-            )
-            db.commit()
+        ensure_dev_users(db)
+    finally:
+        db.close()
+
+
+def seed_test_password_users() -> None:
+    """Upsert the 10 username/password test accounts."""
+    db = SessionLocal()
+    try:
+        seed_password_users(db)
     finally:
         db.close()
 
@@ -47,6 +38,7 @@ async def lifespan(_: FastAPI):
     init_db()
     if settings.seed_dev_users:
         seed_dev_users()
+        seed_test_password_users()
     db = SessionLocal()
     try:
         seed_geocode_cache(db)

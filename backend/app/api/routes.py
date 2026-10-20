@@ -17,6 +17,7 @@ from ..models import (
     UserBiometricsDaily,
     WeeklyProtocol,
 )
+from ..auth import verify_password
 from ..schemas import (
     BirthDataIn,
     ChartLabelPatch,
@@ -24,6 +25,7 @@ from ..schemas import (
     GeocodeOut,
     GeocodeSuggestOut,
     InventoryItemIn,
+    LoginIn,
     ProtocolRequest,
     TelemetryIn,
     TransitResponse,
@@ -49,6 +51,23 @@ def _parse_birth(data: BirthDataIn) -> tuple[int, int, int, int, int, int]:
 def health():
     return {"status": "ok", "service": "hd-biohack"}
 
+
+
+@router.post("/auth/login", response_model=UserOut)
+def login(body: LoginIn, db: Session = Depends(get_db)):
+    """Username + password login for test / demo accounts."""
+    username = body.username.strip()
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        # Case-insensitive fallback for convenience
+        user = (
+            db.query(User)
+            .filter(func.lower(User.username) == username.lower())
+            .first()
+        )
+    if not user or not verify_password(body.password, user.password_hash):
+        raise HTTPException(401, "Invalid username or password")
+    return user
 
 @router.get("/users", response_model=list[UserOut])
 def list_users(db: Session = Depends(get_db)):

@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, SavedChartRow, User } from "./api";
+import { readSessionUserId, writeSessionUserId } from "./session";
 
 export type NatalChartSummary = {
   id: number;
@@ -30,6 +31,9 @@ type AppState = {
   refreshUsers: () => Promise<User[]>;
   ensureUser: () => Promise<User>;
   biohackingUnlocked: boolean;
+  /** True after first users+session resolve (null user = signed out). */
+  sessionReady: boolean;
+  signOut: () => void;
 };
 
 const Ctx = createContext<AppState | null>(null);
@@ -37,6 +41,7 @@ const Ctx = createContext<AppState | null>(null);
 const FALLBACK_USER: User = {
   id: 1,
   email: "dev.free@example.com",
+  username: null,
   display_name: "Dev Free",
   auth_provider: "dev",
   subscription_tier: "free",
@@ -124,15 +129,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUsers(list);
       setUserId((prev) => {
         if (prev && list.some((u) => u.id === prev)) return prev;
-        return list[0]?.id ?? null;
+        const sessionId = readSessionUserId();
+        if (sessionId != null && list.some((u) => u.id === sessionId)) return sessionId;
+        // Stale or missing session → signed out
+        if (sessionId != null) writeSessionUserId(null);
+        return null;
       });
       return list;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setUsersError(msg);
-      // Keep UI usable offline / if API blips
-      setUsers((prev) => (prev.length ? prev : [FALLBACK_USER]));
-      setUserId((prev) => prev ?? FALLBACK_USER.id);
+      const sessionId = readSessionUserId();
+      // Keep UI usable offline only if we already had a session
+      if (sessionId != null) {
+        setUsers((prev) => (prev.length ? prev : [FALLBACK_USER]));
+        setUserId((prev) => prev ?? sessionId);
+      } else {
+        setUsers((prev) => prev);
+        setUserId(null);
+      }
       return [];
     } finally {
       setUsersLoading(false);
@@ -144,35 +159,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!list.length) {
       list = await refreshUsers();
     }
-    const current = list.find((u) => u.id === userId) || list[0];
+    const sessionId = readSessionUserId();
+    const current =
+      list.find((u) => u.id === userId) ||
+      (sessionId != null ? list.find((u) => u.id === sessionId) : undefined);
     if (current) {
+      writeSessionUserId(current.id);
       setUserId(current.id);
       return current;
     }
-    // Create a guest via API if DB has no users
-    try {
-      const created = await fetch("/api/backend/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: `guest-${Date.now()}@local.dev`,
-          display_name: "Guest",
-          auth_provider: "dev",
-          subscription_tier: "free",
-        }),
-        cache: "no-store",
-      }).then(async (r) => {
-        if (!r.ok) throw new Error(await r.text());
-        return r.json() as Promise<User>;
-      });
-      setUsers((prev) => [...prev, created]);
-      setUserId(created.id);
-      return created;
-    } catch {
-      setUsers([FALLBACK_USER]);
-      setUserId(FALLBACK_USER.id);
-      return FALLBACK_USER;
-    }
+    throw new Error("Not signed in — go to /login");
   }, [users, userId, refreshUsers]);
 
   useEffect(() => {
@@ -180,9 +176,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUsers]);
 
   const user = useMemo(() => {
+    if (userId == null) return null;
     if (!users.length) return null;
-    return users.find((u) => u.id === userId) || users[0] || null;
+    return users.find((u) => u.id === userId) || null;
   }, [users, userId]);
+
+  const sessionReady = !usersLoading;
 
   // While users are still resolving, keep binding-loading so pages never flash the empty CTA.
   useEffect(() => {
@@ -246,7 +245,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // Clear synchronously so the next paint never shows the previous user's natal.
           setNatalChart(null);
           setNatalBindingLoading(true);
+          writeSessionUserId(id);
           setUserId(id);
+        },
+        sessionReady,
+        signOut: () => {
+          writeSessionUserId(null);
+          setNatalChart(null);
+          setNatalBindingLoading(false);
+          setUserId(null);
         },
         enforcePaywall,
         setEnforcePaywall,

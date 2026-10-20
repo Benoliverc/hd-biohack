@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Activity, FlaskConical, Orbit, UserRound } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Activity, FlaskConical, LogOut, Orbit, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 
 const nav = [
@@ -67,7 +67,10 @@ function DevChrome() {
 
 export function Header() {
   const pathname = usePathname();
-  const { biohackingUnlocked } = useApp();
+  const router = useRouter();
+  const { biohackingUnlocked, user, signOut } = useApp();
+
+  if (pathname === "/login") return null;
 
   return (
     <header className="sticky top-0 z-40 overflow-x-clip border-b border-border bg-canvas/80 backdrop-blur">
@@ -91,16 +94,36 @@ export function Header() {
                 </div>
               </details>
             )}
-            <button
-              type="button"
-              className="min-h-10 rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
-              onClick={() =>
-                alert("Google OAuth via Supabase Auth — stub UI. Wire SUPABASE_* keys to enable.")
-              }
-            >
-              <span className="sm:hidden">Sign in</span>
-              <span className="hidden sm:inline">Sign in with Google</span>
-            </button>
+            {user ? (
+              <>
+                <span className="hidden max-w-[7rem] truncate text-fg-secondary sm:inline" title={user.display_name}>
+                  {user.display_name}
+                </span>
+                <button
+                  type="button"
+                  data-testid="sign-out"
+                  className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
+                  onClick={() => {
+                    signOut();
+                    router.replace("/login");
+                  }}
+                >
+                  <LogOut className="h-3.5 w-3.5" aria-hidden />
+                  <span>Sign out</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="min-h-10 rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
+                onClick={() =>
+                  alert("Google OAuth via Supabase Auth — stub UI. Wire SUPABASE_* keys to enable.")
+                }
+              >
+                <span className="sm:hidden">Sign in</span>
+                <span className="hidden sm:inline">Sign in with Google</span>
+              </button>
+            )}
             <span
               className={`rounded-full px-2 py-1 ${
                 biohackingUnlocked

@@ -43,6 +43,7 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     id: int
     email: str
+    username: str | None = None
     display_name: str
     auth_provider: str
     subscription_tier: str
@@ -51,6 +52,11 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LoginIn(BaseModel):
+    username: str = Field(..., min_length=1, max_length=64)
+    password: str = Field(..., min_length=1, max_length=128)
 
 
 class InventoryItemIn(BaseModel):

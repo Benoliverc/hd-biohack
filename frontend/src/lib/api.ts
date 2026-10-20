@@ -51,6 +51,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 export type User = {
   id: number;
   email: string;
+  username?: string | null;
   display_name: string;
   auth_provider: string;
   subscription_tier: "free" | "biohacker_pro" | string;
@@ -86,6 +87,11 @@ export type SavedChartRow = {
 
 export const api = {
   health: () => req<{ status: string }>("/health"),
+  login: (username: string, password: string) =>
+    req<User>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
   users: () => req<User[]>("/users"),
   setTier: (id: number, tier: string) =>
     req<User>(`/users/${id}/tier?tier=${encodeURIComponent(tier)}`, { method: "PATCH" }),
