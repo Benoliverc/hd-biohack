@@ -105,9 +105,13 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
             Your blueprint
           </h2>
-          <p className="flex-1 text-sm text-fg-muted">
-            Type, authority, centers, gates — the map everything else uses.
-          </p>
+          <div className="flex-1 text-sm text-fg-muted">
+            <p>Type, authority, centers, and gates — the map everything else uses.</p>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4">
+              <li>Shows how you’re designed to decide and recover</li>
+              <li>Why: Today and Protocols read this first</li>
+            </ul>
+          </div>
           <p className="mt-3 text-xs font-medium text-fg-muted">
             {!ready
               ? "…"
@@ -132,9 +136,13 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
             What’s active now
           </h2>
-          <p className="flex-1 text-sm text-fg-muted">
-            Today’s gates in your natal timezone.
-          </p>
+          <div className="flex-1 text-sm text-fg-muted">
+            <p>Today’s planetary gates in your natal timezone.</p>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4">
+              <li>Highlights what’s conditioning you today</li>
+              <li>Why: catch pressure and openings before you plan</li>
+            </ul>
+          </div>
         </Link>
 
         <Link
@@ -148,9 +156,13 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
             Your plan
           </h2>
-          <p className="flex-1 text-sm text-fg-muted">
-            Day + week plan from your chart and inventory.
-          </p>
+          <div className="flex-1 text-sm text-fg-muted">
+            <p>Day and week stacks from your chart, sky, and inventory.</p>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4">
+              <li>Turns design + transits into concrete next steps</li>
+              <li>Why: less guessing what to do with the chart</li>
+            </ul>
+          </div>
           <p className="mt-3 text-xs font-medium text-fg-muted">
             {!ready
               ? "…"
