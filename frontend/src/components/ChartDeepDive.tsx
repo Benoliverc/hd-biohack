@@ -300,12 +300,17 @@ export function ChartDeepDive({
 
   return (
     <section id="deep-dive" className="relative space-y-4">
-      {/* Stable hash targets for sticky nav / deep-links */}
-      <div id="core" className="pointer-events-none absolute" aria-hidden />
-      <div id="centers" className="pointer-events-none absolute" aria-hidden />
-      <div id="channels" className="pointer-events-none absolute" aria-hidden />
-      <div id="planets" className="pointer-events-none absolute" aria-hidden />
-      <div id="activations" className="pointer-events-none absolute" aria-hidden />
+      {/* Legacy hash targets — pinned to section top (avoid space-y offset on absolute siblings). */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden"
+        aria-hidden
+      >
+        <div id="core" />
+        <div id="centers" />
+        <div id="channels" />
+        <div id="planets" />
+        <div id="activations" />
+      </div>
 
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
