@@ -2,7 +2,7 @@
 
 ## Branch & commit
 - **Branch:** `feat/chart-page-nav`
-- **SHA:** `7391c8b3586ee51db5a19cc17bcf136e22a8c562` (short `7391c8b`)
+- **SHA:** `a51f381441b7d0592684e47d996ef2b4f29c6cc7` (short `a51f381`)
 - **Base:** prior `c4c1c15` on same branch
 
 ## What changed (this pass)
