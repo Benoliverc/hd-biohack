@@ -62,15 +62,11 @@ const SECTION_NAV: {
   id: string;
   label: string;
   shortLabel?: string;
-  domain?: DeepDiveDomain;
 }[] = [
   { id: "people-form", label: "People & form", shortLabel: "People" },
   { id: "bodygraph", label: "Bodygraph" },
   { id: "snapshot", label: "Snapshot" },
-  { id: "core", label: "Core", domain: "core" },
-  { id: "centers", label: "Centers", domain: "centers" },
-  { id: "channels", label: "Channels & gates", shortLabel: "Channels", domain: "channels" },
-  { id: "planets", label: "Planets", domain: "planets" },
+  { id: "deep-dive", label: "Deep dive" },
 ];
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
@@ -122,7 +118,7 @@ function ChartSectionNav({
               href={`#${item.id}`}
               onClick={(e) => {
                 e.preventDefault();
-                onJump(item.id, item.domain);
+                onJump(item.id);
               }}
               className="inline-flex min-h-9 items-center rounded-full border border-transparent px-3 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg sm:text-sm"
             >
@@ -434,7 +430,14 @@ export default function ProfilePage() {
     if (!raw) return;
     const fromHash = domainFromHash(raw);
     if (fromHash) setDeepDiveDomain(fromHash);
-    const deepIds = new Set(["centers", "channels", "activations", "core", "planets"]);
+    const deepIds = new Set([
+      "deep-dive",
+      "centers",
+      "channels",
+      "activations",
+      "core",
+      "planets",
+    ]);
     const targetId = deepIds.has(raw) ? "deep-dive" : raw;
     const t = window.setTimeout(() => {
       document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -580,7 +583,14 @@ export default function ProfilePage() {
     window.history.replaceState(null, "", url);
     // Defer scroll so tab panel can mount when jumping into Deep dive.
     requestAnimationFrame(() => {
-      const deepIds = new Set(["core", "centers", "channels", "activations", "planets"]);
+      const deepIds = new Set([
+        "deep-dive",
+        "core",
+        "centers",
+        "channels",
+        "activations",
+        "planets",
+      ]);
       const el = document.getElementById(deepIds.has(id) ? "deep-dive" : id);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
