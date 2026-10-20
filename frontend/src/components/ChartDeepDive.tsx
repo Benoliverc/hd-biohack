@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 import {
   AUTHORITY_COPY,
   CENTER_COPY,
-  CENTER_ORDER,
   DEFINITION_COPY,
   STRATEGY_COPY,
   TYPE_COPY,
@@ -23,7 +22,7 @@ const DOMAIN_TABS: { id: DeepDiveDomain; label: string; hash: string }[] = [
   { id: "core", label: "Core", hash: "core" },
   { id: "centers", label: "Centers", hash: "centers" },
   { id: "channels", label: "Channels", hash: "channels" },
-  { id: "planets", label: "Planets", hash: "activations" },
+  { id: "planets", label: "Planets", hash: "planets" },
 ];
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
@@ -102,17 +101,31 @@ function ActivationTable({
 
 type CenterFilter = "all" | "defined" | "open";
 
+/** CSS grid slots mapped to bodygraph spatial layout (spine + side motors). */
+const CENTER_SLOTS: { key: CenterKey; style: CSSProperties }[] = [
+  { key: "Head", style: { gridColumn: 2, gridRow: 1 } },
+  { key: "Ajna", style: { gridColumn: 2, gridRow: 2 } },
+  { key: "Throat", style: { gridColumn: 2, gridRow: 3 } },
+  { key: "G", style: { gridColumn: 2, gridRow: 4 } },
+  { key: "Heart", style: { gridColumn: 3, gridRow: 4 } },
+  { key: "Spleen", style: { gridColumn: 1, gridRow: 5 } },
+  { key: "Sacral", style: { gridColumn: 2, gridRow: 5 } },
+  { key: "Solar_Plexus", style: { gridColumn: 3, gridRow: 5 } },
+  { key: "Root", style: { gridColumn: 2, gridRow: 6 } },
+];
+
 function CentersMatrix({ defined }: { defined: Set<string> }) {
   const [filter, setFilter] = useState<CenterFilter>("all");
   const [expanded, setExpanded] = useState<CenterKey | null>(null);
 
-  const visible = CENTER_ORDER.filter((key) => {
+  const matchesFilter = (key: CenterKey) => {
     const isDefined = defined.has(key);
     if (filter === "defined") return isDefined;
     if (filter === "open") return !isDefined;
     return true;
-  });
+  };
 
+  const visibleCount = CENTER_SLOTS.filter((s) => matchesFilter(s.key)).length;
   const expandedCopy = expanded ? CENTER_COPY[expanded] : null;
   const expandedDefined = expanded ? defined.has(expanded) : false;
 
@@ -120,7 +133,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
     <div className="space-y-3">
       <p className="text-xs text-fg-muted">
         Defined = consistent energy. Open = where you take in and amplify life (wisdom potential +
-        conditioning). Tap a cell for detail.
+        conditioning). Tap a cell for detail. Layout mirrors the bodygraph.
       </p>
 
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter centers">
@@ -149,44 +162,63 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        {visible.map((key) => {
+      <div
+        className="mx-auto grid max-w-md grid-cols-3 gap-2"
+        style={{ gridTemplateRows: "repeat(6, minmax(0, auto))" }}
+        role="list"
+        aria-label="Centers bodygraph matrix"
+      >
+        {CENTER_SLOTS.map(({ key, style }) => {
           const isDefined = defined.has(key);
           const isOpen = expanded === key;
+          const match = matchesFilter(key);
           return (
-            <button
+            <div
               key={key}
-              type="button"
-              aria-pressed={isOpen}
-              onClick={() => setExpanded(isOpen ? null : key)}
-              className={`min-h-[4.5rem] rounded-xl border px-2 py-2.5 text-left transition ${
-                isOpen
-                  ? "border-growth bg-growth-soft ring-2 ring-growth/30"
-                  : isDefined
-                    ? "border-growth/40 bg-elevated hover:border-growth/70"
-                    : "border-border bg-sunken/80 hover:border-border"
+              role="listitem"
+              style={style}
+              className={`min-h-[4.5rem] transition ${
+                match ? "opacity-100" : "pointer-events-none opacity-0"
               }`}
+              aria-hidden={!match}
             >
-              <div className="text-xs font-semibold leading-snug text-fg sm:text-sm">
-                {displayCenter(key)}
-              </div>
-              <div
-                className={`mt-1 text-[10px] uppercase tracking-wide sm:text-xs ${
-                  isDefined ? "text-growth" : "text-fg-muted"
-                }`}
-              >
-                {isDefined ? "Defined" : "Open"}
-              </div>
-            </button>
+              {match ? (
+                <button
+                  type="button"
+                  aria-pressed={isOpen}
+                  onClick={() => setExpanded(isOpen ? null : key)}
+                  className={`h-full w-full min-h-[4.5rem] rounded-xl border px-2 py-2.5 text-left transition ${
+                    isOpen
+                      ? "border-growth bg-growth-soft ring-2 ring-growth/30"
+                      : isDefined
+                        ? "border-growth/40 bg-elevated hover:border-growth/70"
+                        : "border-border bg-sunken/80 hover:border-border"
+                  }`}
+                >
+                  <div className="text-xs font-semibold leading-snug text-fg sm:text-sm">
+                    {displayCenter(key)}
+                  </div>
+                  <div
+                    className={`mt-1 text-[10px] uppercase tracking-wide sm:text-xs ${
+                      isDefined ? "text-growth" : "text-fg-muted"
+                    }`}
+                  >
+                    {isDefined ? "Defined" : "Open"}
+                  </div>
+                </button>
+              ) : (
+                <div className="h-full min-h-[4.5rem]" aria-hidden />
+              )}
+            </div>
           );
         })}
       </div>
 
-      {visible.length === 0 && (
+      {visibleCount === 0 && (
         <p className="text-sm text-fg-muted">No centers match this filter.</p>
       )}
 
-      {expanded && expandedCopy && (
+      {expanded && expandedCopy && matchesFilter(expanded) && (
         <div
           className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm leading-relaxed text-fg-secondary"
           role="region"
@@ -267,11 +299,12 @@ export function ChartDeepDive({
   };
 
   return (
-    <section id="deep-dive" className="relative scroll-mt-36 space-y-4">
+    <section id="deep-dive" className="relative space-y-4">
       {/* Stable hash targets for sticky nav / deep-links */}
       <div id="core" className="pointer-events-none absolute" aria-hidden />
       <div id="centers" className="pointer-events-none absolute" aria-hidden />
       <div id="channels" className="pointer-events-none absolute" aria-hidden />
+      <div id="planets" className="pointer-events-none absolute" aria-hidden />
       <div id="activations" className="pointer-events-none absolute" aria-hidden />
 
       <div className="flex flex-wrap items-end justify-between gap-2">

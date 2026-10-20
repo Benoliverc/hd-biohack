@@ -58,13 +58,19 @@ const DEMO_BIRTH = {
 
 const MAX_PEOPLE = 10;
 
-const SECTION_NAV: { id: string; label: string; domain?: DeepDiveDomain }[] = [
-  { id: "people-form", label: "People & form" },
+const SECTION_NAV: {
+  id: string;
+  label: string;
+  shortLabel?: string;
+  domain?: DeepDiveDomain;
+}[] = [
+  { id: "people-form", label: "People & form", shortLabel: "People" },
   { id: "bodygraph", label: "Bodygraph" },
   { id: "snapshot", label: "Snapshot" },
+  { id: "core", label: "Core", domain: "core" },
   { id: "centers", label: "Centers", domain: "centers" },
-  { id: "channels", label: "Channels & gates", domain: "channels" },
-  { id: "activations", label: "Activations", domain: "planets" },
+  { id: "channels", label: "Channels & gates", shortLabel: "Channels", domain: "channels" },
+  { id: "planets", label: "Planets", domain: "planets" },
 ];
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
@@ -81,14 +87,37 @@ function ChartSectionNav({
 }: {
   onJump: (id: string, domain?: DeepDiveDomain) => void;
 }) {
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        "--chart-section-nav-h",
+        `${el.getBoundingClientRect().height}px`
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    window.addEventListener("resize", publish);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+    };
+  }, []);
+
   return (
     <nav
+      ref={navRef}
       aria-label="Chart sections"
-      className="sticky top-[5.75rem] z-30 -mx-1 overflow-x-auto rounded-xl border border-border bg-canvas/95 px-2 py-2 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 sm:top-[6.25rem]"
+      className="sticky z-30 -mx-1 overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-canvas/95 px-2 py-2 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 [scrollbar-width:thin]"
+      style={{ top: "var(--app-header-h)" }}
     >
-      <ul className="flex min-w-max gap-1">
+      <ul className="flex w-max flex-nowrap gap-1">
         {SECTION_NAV.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className="shrink-0">
             <a
               href={`#${item.id}`}
               onClick={(e) => {
@@ -97,7 +126,14 @@ function ChartSectionNav({
               }}
               className="inline-flex min-h-9 items-center rounded-full border border-transparent px-3 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg sm:text-sm"
             >
-              {item.label}
+              {item.shortLabel ? (
+                <>
+                  <span className="sm:hidden">{item.shortLabel}</span>
+                  <span className="hidden sm:inline">{item.label}</span>
+                </>
+              ) : (
+                item.label
+              )}
             </a>
           </li>
         ))}
@@ -289,14 +325,8 @@ export default function ProfilePage() {
     if (!raw) return;
     const fromHash = domainFromHash(raw);
     if (fromHash) setDeepDiveDomain(fromHash);
-    const targetId =
-      raw === "centers" ||
-      raw === "channels" ||
-      raw === "activations" ||
-      raw === "core" ||
-      raw === "planets"
-        ? "deep-dive"
-        : raw;
+    const deepIds = new Set(["centers", "channels", "activations", "core", "planets"]);
+    const targetId = deepIds.has(raw) ? "deep-dive" : raw;
     const t = window.setTimeout(() => {
       document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -327,7 +357,9 @@ export default function ProfilePage() {
       const activeUser = user ?? (await ensureUser());
       if (!activeUser?.id) throw new Error("No user account loaded — tap Retry user, then try again.");
 
-      if (save && savedPeople.length >= MAX_PEOPLE) {
+      // Cap only blocks *new* people. Recalculating a selected saved chart updates in place.
+      const updatingExisting = Boolean(save && viewMode === "saved" && natalChartId);
+      if (save && !updatingExisting && savedPeople.length >= MAX_PEOPLE) {
         throw new Error(
           `Chart limit reached (${MAX_PEOPLE}/10). Delete a saved person before adding another.`
         );
@@ -361,6 +393,7 @@ export default function ProfilePage() {
         lon: useLon,
         label: save ? label : undefined,
         slot_kind: save ? kind : undefined,
+        natal_chart_id: updatingExisting ? natalChartId ?? undefined : undefined,
       });
       setChart(res.chart);
       const chartTz =
@@ -435,7 +468,8 @@ export default function ProfilePage() {
     window.history.replaceState(null, "", url);
     // Defer scroll so tab panel can mount when jumping into Deep dive.
     requestAnimationFrame(() => {
-      const el = document.getElementById(id === "centers" || id === "channels" || id === "activations" ? "deep-dive" : id);
+      const deepIds = new Set(["core", "centers", "channels", "activations", "planets"]);
+      const el = document.getElementById(deepIds.has(id) ? "deep-dive" : id);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
@@ -496,7 +530,10 @@ export default function ProfilePage() {
                         {" "}
                         · {row.type || "—"} · {row.profile || "—"}
                       </span>
-                      <span className="block text-[10px] text-fg-muted">{row.birth_city}</span>
+                      <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
+                        {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") || "—"}
+                        {row.slot_kind === "friend" ? " · friend" : ""}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -514,7 +551,8 @@ export default function ProfilePage() {
           )}
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
-              At the {MAX_PEOPLE}-person limit — delete someone to save another.
+              At the {MAX_PEOPLE}-person limit ({savedPeople.length}/{MAX_PEOPLE}) — delete someone
+              to add a new person. Recalculating the selected person still updates in place.
             </p>
           )}
         </div>
@@ -609,7 +647,7 @@ export default function ProfilePage() {
             <button
               type="button"
               data-testid="calculate-save"
-              disabled={busy || !formReady || atCap}
+              disabled={busy || !formReady || (atCap && !(viewMode === "saved" && natalChartId))}
               onClick={() => void submit(true, saveAs)}
               className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
             >
@@ -684,7 +722,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div id="people-form" className="scroll-mt-36 space-y-4">
+      <div id="people-form" className="space-y-4">
         {chart ? (
           <details
             className="group rounded-2xl border border-border bg-elevated open:bg-elevated"
@@ -718,7 +756,7 @@ export default function ProfilePage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div
               id="bodygraph"
-              className="scroll-mt-36 rounded-2xl border border-border bg-elevated p-4"
+              className="rounded-2xl border border-border bg-elevated p-4"
             >
               <h2 className="mb-2 text-sm font-semibold text-fg">Bodygraph</h2>
               <BodyGraph
@@ -735,7 +773,7 @@ export default function ProfilePage() {
               />
             </div>
 
-            <div id="snapshot" className="scroll-mt-36 space-y-4">
+            <div id="snapshot" className="space-y-4">
               <div className="rounded-2xl border border-growth/30 bg-growth-soft px-5 py-4">
                 <p className="text-lg font-semibold text-growth-ink">
                   You&apos;re a {typeKey}

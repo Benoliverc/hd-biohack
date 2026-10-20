@@ -16,6 +16,10 @@ class BirthDataIn(BaseModel):
     lon: float | None = None
     label: str | None = Field(None, description="Display name, e.g. Me or a friend")
     slot_kind: Literal["self", "friend"] = "self"
+    natal_chart_id: int | None = Field(
+        None,
+        description="When set with save=true, update this existing chart instead of inserting",
+    )
 
 
 class ChartLabelPatch(BaseModel):

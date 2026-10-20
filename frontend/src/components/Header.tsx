@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, FlaskConical, LogOut, Orbit, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
@@ -69,11 +70,34 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { biohackingUnlocked, user, signOut } = useApp();
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        "--app-header-h",
+        `${el.getBoundingClientRect().height}px`
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    window.addEventListener("resize", publish);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+    };
+  }, [pathname, user, biohackingUnlocked]);
 
   if (pathname === "/login") return null;
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-clip border-b border-border bg-canvas/80 backdrop-blur">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-40 overflow-x-clip border-b border-border bg-canvas/80 backdrop-blur"
+    >
       <div className="mx-auto max-w-6xl px-4 py-2.5 sm:py-3">
         <div className="flex items-center justify-between gap-2">
           <Link

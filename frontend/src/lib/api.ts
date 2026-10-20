@@ -110,6 +110,7 @@ export const api = {
     lon?: number | null;
     label?: string | null;
     slot_kind?: "self" | "friend";
+    natal_chart_id?: number | null;
   }) =>
     req<{ chart: Record<string, unknown>; natal_chart_id: number | null }>("/chart/calculate", {
       method: "POST",
