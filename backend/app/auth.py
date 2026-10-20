@@ -12,6 +12,7 @@ PASSWORD_USERS: list[tuple[str, str, str]] = [
     ("Benjamin", "Wolkje", "biohacker_pro"),
     ("Achi", "Kengnai", "biohacker_pro"),
     ("Katherine", "Max", "biohacker_pro"),
+    ("Liesa", "Jean", "biohacker_pro"),
     ("Sam", "sam123", "free"),
     ("Alex", "alex123", "free"),
     ("Jordan", "jordan123", "biohacker_pro"),
@@ -36,7 +37,7 @@ def verify_password(plain: str, password_hash: str | None) -> bool:
 
 
 def seed_password_users(db: Session) -> None:
-    """Idempotent upsert of the 10 username/password test users. Does not wipe charts."""
+    """Idempotent upsert of username/password test users. Does not wipe charts."""
     for username, password, tier in PASSWORD_USERS:
         email = f"{username.lower()}@test.hd-biohack.local"
         existing = (
