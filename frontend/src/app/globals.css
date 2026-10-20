@@ -93,3 +93,23 @@ body > * {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* App header height — Header.tsx measures and updates this. */
+:root {
+  --app-header-h: 7rem;
+  --chart-section-nav-h: 3.25rem;
+  --chart-scroll-mt: calc(var(--app-header-h) + var(--chart-section-nav-h) + 0.5rem);
+}
+
+/* Deep-link / sticky-nav offset for chart page sections */
+#people-form,
+#bodygraph,
+#snapshot,
+#deep-dive,
+#core,
+#centers,
+#channels,
+#activations,
+#planets {
+  scroll-margin-top: var(--chart-scroll-mt);
+}

@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, SavedChartRow } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
-import { ChartDeepDive } from "@/components/ChartDeepDive";
+import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import {
@@ -58,6 +58,90 @@ const DEMO_BIRTH = {
 
 const MAX_PEOPLE = 10;
 
+const SECTION_NAV: {
+  id: string;
+  label: string;
+  shortLabel?: string;
+  domain?: DeepDiveDomain;
+}[] = [
+  { id: "people-form", label: "People & form", shortLabel: "People" },
+  { id: "bodygraph", label: "Bodygraph" },
+  { id: "snapshot", label: "Snapshot" },
+  { id: "core", label: "Core", domain: "core" },
+  { id: "centers", label: "Centers", domain: "centers" },
+  { id: "channels", label: "Channels & gates", shortLabel: "Channels", domain: "channels" },
+  { id: "planets", label: "Planets", domain: "planets" },
+];
+
+function domainFromHash(hash: string): DeepDiveDomain | null {
+  const h = hash.replace(/^#/, "");
+  if (h === "core") return "core";
+  if (h === "centers") return "centers";
+  if (h === "channels") return "channels";
+  if (h === "activations" || h === "planets") return "planets";
+  return null;
+}
+
+function ChartSectionNav({
+  onJump,
+}: {
+  onJump: (id: string, domain?: DeepDiveDomain) => void;
+}) {
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        "--chart-section-nav-h",
+        `${el.getBoundingClientRect().height}px`
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    window.addEventListener("resize", publish);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publish);
+    };
+  }, []);
+
+  return (
+    <nav
+      ref={navRef}
+      aria-label="Chart sections"
+      className="sticky z-30 -mx-1 overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-canvas/95 px-2 py-2 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 [scrollbar-width:thin]"
+      style={{ top: "var(--app-header-h)" }}
+    >
+      <ul className="flex w-max flex-nowrap gap-1">
+        {SECTION_NAV.map((item) => (
+          <li key={item.id} className="shrink-0">
+            <a
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                onJump(item.id, item.domain);
+              }}
+              className="inline-flex min-h-9 items-center rounded-full border border-transparent px-3 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg sm:text-sm"
+            >
+              {item.shortLabel ? (
+                <>
+                  <span className="sm:hidden">{item.shortLabel}</span>
+                  <span className="hidden sm:inline">{item.label}</span>
+                </>
+              ) : (
+                item.label
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 export default function ProfilePage() {
   const {
     user,
@@ -67,6 +151,7 @@ export default function ProfilePage() {
     refreshUsers,
     setNatalChart,
     natalChartId,
+    natalBindingLoading,
   } = useApp();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -81,16 +166,35 @@ export default function ProfilePage() {
   const [savedForm, setSavedForm] = useState<FormSnapshot | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<number | null>(null);
   const [savedPeople, setSavedPeople] = useState<SavedChartRow[]>([]);
+  /** Local selection used for upsert — independent of store race/clear. */
+  const [editingChartId, setEditingChartId] = useState<number | null>(null);
   const [friendName, setFriendName] = useState("");
   const [saveAs, setSaveAs] = useState<SaveAs>("self");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [personEditorOpen, setPersonEditorOpen] = useState(true);
+  const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
+  const hadChartRef = useRef(false);
+  const peopleFetchGen = useRef(0);
 
-  const formReady = Boolean(user && hydratedUserId === user.id);
+  const formReady = Boolean(user && hydratedUserId === user.id && !natalBindingLoading);
 
   const refreshPeople = useCallback(async (userId: number) => {
     const rows = await api.charts(userId);
     setSavedPeople(rows);
     return rows;
+  }, []);
+
+  const applyDemoBirth = useCallback(() => {
+    setBirthDate(DEMO_BIRTH.birthDate);
+    setBirthTime(DEMO_BIRTH.birthTime);
+    setBirthCity(DEMO_BIRTH.birthCity);
+    setLat(DEMO_BIRTH.lat);
+    setLon(DEMO_BIRTH.lon);
+    setTimezone(DEMO_BIRTH.timezone);
+    setChart(null);
+    setViewMode(null);
+    setSavedForm(null);
+    setEditingChartId(null);
   }, []);
 
   const applyRow = useCallback(
@@ -122,6 +226,7 @@ export default function ProfilePage() {
       setLon(nextLon);
       setTimezone(nextTz);
       setChart(c);
+      setEditingChartId(latest.id);
       setNatalChart({
         id: latest.id,
         label: latest.label || "Me",
@@ -144,15 +249,31 @@ export default function ProfilePage() {
     [setNatalChart]
   );
 
+  const pickPreferredRow = useCallback(
+    (rows: SavedChartRow[], preferId: number | null) => {
+      if (preferId != null) {
+        const match = rows.find((r) => r.id === preferId);
+        if (match) return match;
+      }
+      return rows[0] ?? null;
+    },
+    []
+  );
+
+  // Hydrate form + people list once store natal bind has settled for this user.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!user) {
         setHydratedUserId(null);
+        setEditingChartId(null);
         return;
       }
+      // Wait so we do not lock in DEMO/empty while /charts is still in flight in the store.
+      if (natalBindingLoading) return;
       if (hydratedUserId === user.id) return;
 
+      const gen = ++peopleFetchGen.current;
       setBirthDate("");
       setBirthTime("");
       setBirthCity("");
@@ -164,36 +285,122 @@ export default function ProfilePage() {
       setSavedForm(null);
       setError(null);
       setSavedPeople([]);
+      setEditingChartId(null);
 
       try {
         const rows = await refreshPeople(user.id);
-        if (cancelled) return;
+        if (cancelled || peopleFetchGen.current !== gen) return;
         if (!rows.length) {
-          setBirthDate(DEMO_BIRTH.birthDate);
-          setBirthTime(DEMO_BIRTH.birthTime);
-          setBirthCity(DEMO_BIRTH.birthCity);
-          setLat(DEMO_BIRTH.lat);
-          setLon(DEMO_BIRTH.lon);
-          setTimezone(DEMO_BIRTH.timezone);
-          setChart(null);
-          setViewMode(null);
-          setSavedForm(null);
+          applyDemoBirth();
           setHydratedUserId(user.id);
           return;
         }
-        const preferred =
-          natalChartId != null ? rows.find((r) => r.id === natalChartId) : null;
-        applyRow(preferred || rows[0]);
+        const preferred = pickPreferredRow(rows, natalChartId);
+        if (preferred) applyRow(preferred);
         setHydratedUserId(user.id);
       } catch {
-        if (!cancelled) setHydratedUserId(user.id);
+        if (!cancelled && peopleFetchGen.current === gen) {
+          setHydratedUserId(user.id);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per user
-  }, [user, hydratedUserId, refreshPeople, applyRow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per user after natal bind
+  }, [
+    user,
+    hydratedUserId,
+    natalBindingLoading,
+    refreshPeople,
+    applyRow,
+    applyDemoBirth,
+    pickPreferredRow,
+  ]);
+
+  const hasNatalInList =
+    natalChartId != null && savedPeople.some((r) => r.id === natalChartId);
+  const resyncAttemptRef = useRef<string | null>(null);
+
+  // If store bound a natal the people list missed (stale empty hydrate), pull once.
+  useEffect(() => {
+    if (!user) {
+      resyncAttemptRef.current = null;
+      return;
+    }
+    if (!formReady || natalBindingLoading || natalChartId == null) return;
+    if (hasNatalInList) {
+      resyncAttemptRef.current = null;
+      return;
+    }
+    const token = `${user.id}:${natalChartId}`;
+    if (resyncAttemptRef.current === token) return;
+    resyncAttemptRef.current = token;
+
+    let cancelled = false;
+    const gen = ++peopleFetchGen.current;
+    (async () => {
+      try {
+        const rows = await refreshPeople(user.id);
+        if (cancelled || peopleFetchGen.current !== gen) return;
+        if (!rows.length) return;
+        const preferred = pickPreferredRow(rows, natalChartId);
+        // Only auto-apply when we had no saved selection yet (DEMO / empty).
+        if (preferred && editingChartId == null) applyRow(preferred);
+      } catch {
+        /* keep current UI */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    user,
+    formReady,
+    natalBindingLoading,
+    natalChartId,
+    hasNatalInList,
+    editingChartId,
+    refreshPeople,
+    applyRow,
+    pickPreferredRow,
+  ]);
+
+  const refreshPeopleOnOpen = useCallback(async () => {
+    if (!user) return;
+    try {
+      const rows = await refreshPeople(user.id);
+      if (!rows.length) return;
+      // Recover from a stale empty/DEMO hydrate without clobbering an in-progress edit.
+      if (editingChartId == null || !rows.some((r) => r.id === editingChartId)) {
+        const preferred = pickPreferredRow(rows, natalChartId ?? editingChartId);
+        if (preferred && (editingChartId == null || viewMode !== "saved")) {
+          applyRow(preferred);
+        }
+      }
+    } catch {
+      /* keep current UI */
+    }
+  }, [
+    user,
+    refreshPeople,
+    editingChartId,
+    natalChartId,
+    viewMode,
+    pickPreferredRow,
+    applyRow,
+  ]);
+
+  // Reading mode: collapse birth tooling once a chart first appears; reopen if cleared.
+  useEffect(() => {
+    if (chart && !hadChartRef.current) {
+      setPersonEditorOpen(false);
+    }
+    if (!chart) {
+      setPersonEditorOpen(true);
+    }
+    hadChartRef.current = Boolean(chart);
+  }, [chart]);
 
   const formNow: FormSnapshot = {
     birthDate,
@@ -204,6 +411,36 @@ export default function ProfilePage() {
   };
 
   const formDirtyVsSaved = Boolean(savedForm && !snapshotsEqual(formNow, savedForm));
+
+  // Surface the editor when something needs attention.
+  useEffect(() => {
+    if (error || formDirtyVsSaved) setPersonEditorOpen(true);
+  }, [error, formDirtyVsSaved]);
+
+  useEffect(() => {
+    const apply = () => {
+      const fromHash = domainFromHash(window.location.hash);
+      if (fromHash) setDeepDiveDomain(fromHash);
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
+
+  // After chart hydrates, honor deep-link hash (element may not exist on first paint).
+  useEffect(() => {
+    if (!chart) return;
+    const raw = window.location.hash.replace(/^#/, "");
+    if (!raw) return;
+    const fromHash = domainFromHash(raw);
+    if (fromHash) setDeepDiveDomain(fromHash);
+    const deepIds = new Set(["centers", "channels", "activations", "core", "planets"]);
+    const targetId = deepIds.has(raw) ? "deep-dive" : raw;
+    const t = window.setTimeout(() => {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [chart]);
 
   const onCityChange = (
     city: string,
@@ -229,7 +466,10 @@ export default function ProfilePage() {
       const activeUser = user ?? (await ensureUser());
       if (!activeUser?.id) throw new Error("No user account loaded — tap Retry user, then try again.");
 
-      if (save && savedPeople.length >= MAX_PEOPLE) {
+      // Cap only blocks *new* people. Recalculating a selected saved chart updates in place.
+      // Prefer local editingChartId so upsert still works if store natal cleared mid-flight.
+      const updatingExisting = Boolean(save && editingChartId != null);
+      if (save && !updatingExisting && savedPeople.length >= MAX_PEOPLE) {
         throw new Error(
           `Chart limit reached (${MAX_PEOPLE}/10). Delete a saved person before adding another.`
         );
@@ -263,6 +503,7 @@ export default function ProfilePage() {
         lon: useLon,
         label: save ? label : undefined,
         slot_kind: save ? kind : undefined,
+        natal_chart_id: updatingExisting ? editingChartId ?? undefined : undefined,
       });
       setChart(res.chart);
       const chartTz =
@@ -271,6 +512,7 @@ export default function ProfilePage() {
 
       if (save) {
         if (res.natal_chart_id) {
+          setEditingChartId(res.natal_chart_id);
           setNatalChart({
             id: res.natal_chart_id,
             label,
@@ -315,13 +557,14 @@ export default function ProfilePage() {
     try {
       await api.deleteChart(row.id, user.id);
       const rows = await refreshPeople(user.id);
-      if (natalChartId === row.id) {
+      if (editingChartId === row.id || natalChartId === row.id) {
         if (rows[0]) applyRow(rows[0]);
         else {
           setChart(null);
           setNatalChart(null);
           setViewMode(null);
           setSavedForm(null);
+          setEditingChartId(null);
         }
       }
     } catch (e) {
@@ -329,6 +572,18 @@ export default function ProfilePage() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const jumpToSection = (id: string, domain?: DeepDiveDomain) => {
+    if (domain) setDeepDiveDomain(domain);
+    const url = `${window.location.pathname}${window.location.search}#${id}`;
+    window.history.replaceState(null, "", url);
+    // Defer scroll so tab panel can mount when jumping into Deep dive.
+    requestAnimationFrame(() => {
+      const deepIds = new Set(["core", "centers", "channels", "activations", "planets"]);
+      const el = document.getElementById(deepIds.has(id) ? "deep-dive" : id);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const personality = (chart?.personality as Array<Record<string, unknown>>) || [];
@@ -350,32 +605,16 @@ export default function ProfilePage() {
   const tzBesideTime = formatTimezoneLabel(timezone, birthDate, birthTime);
   const atCap = savedPeople.length >= MAX_PEOPLE;
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Chart — your energy map</h1>
-      <p className="text-sm text-fg-muted">
-        Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + friends).
-        Plain language — how your battery and decisions work.
-      </p>
+  const activePersonLabel =
+    savedPeople.find((r) => r.id === editingChartId)?.label ||
+    savedPeople.find((r) => r.id === natalChartId)?.label ||
+    friendName.trim() ||
+    (viewMode === "preview" ? "Preview" : "Me");
 
-      {(usersLoading || usersError || (!usersLoading && !user)) && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-energy/50 bg-energy/10 px-4 py-3 text-sm text-energy-ink">
-          {usersLoading && <span>Loading account…</span>}
-          {usersError && <span>Account load issue: {usersError}</span>}
-          {!usersLoading && !user && <span>No Dev user selected yet.</span>}
-          {(usersError || (!usersLoading && !user)) && (
-            <button
-              type="button"
-              className="min-h-10 rounded-lg border border-energy-ink px-3 py-2.5 text-sm hover:bg-energy/15"
-              onClick={() => refreshUsers()}
-            >
-              Retry user
-            </button>
-          )}
-        </div>
-      )}
+  const updatingExistingUi = editingChartId != null && viewMode === "saved";
 
-      {/* Saved people */}
+  const peopleAndForm = (
+    <>
       {user && formReady && (
         <div className="rounded-2xl border border-border bg-elevated p-4">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -389,7 +628,7 @@ export default function ProfilePage() {
           ) : (
             <ul className="flex flex-wrap gap-2">
               {savedPeople.map((row) => {
-                const active = natalChartId === row.id && viewMode === "saved";
+                const active = editingChartId === row.id && viewMode === "saved";
                 return (
                   <li key={row.id} className="inline-flex items-center gap-1">
                     <button
@@ -406,7 +645,10 @@ export default function ProfilePage() {
                         {" "}
                         · {row.type || "—"} · {row.profile || "—"}
                       </span>
-                      <span className="block text-[10px] text-fg-muted">{row.birth_city}</span>
+                      <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
+                        {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") || "—"}
+                        {row.slot_kind === "friend" ? " · friend" : ""}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -424,7 +666,8 @@ export default function ProfilePage() {
           )}
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
-              At the {MAX_PEOPLE}-person limit — delete someone to save another.
+              At the {MAX_PEOPLE}-person limit ({savedPeople.length}/{MAX_PEOPLE}) — delete someone
+              to add a new person. Recalculating the selected person still updates in place.
             </p>
           )}
         </div>
@@ -519,7 +762,7 @@ export default function ProfilePage() {
             <button
               type="button"
               data-testid="calculate-save"
-              disabled={busy || !formReady || atCap}
+              disabled={busy || !formReady || (atCap && !updatingExistingUi)}
               onClick={() => void submit(true, saveAs)}
               className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
             >
@@ -527,7 +770,9 @@ export default function ProfilePage() {
                 ? "Saving…"
                 : saveAs === "friend"
                   ? "Calculate & save friend"
-                  : "Calculate & Save"}
+                  : updatingExistingUi
+                    ? "Update chart"
+                    : "Calculate & Save"}
             </button>
             <button
               type="button"
@@ -548,8 +793,8 @@ export default function ProfilePage() {
                 {natalChartId ? ` · prior saved #${natalChartId}` : ""}
               </span>
             )}
-            {viewMode === "saved" && natalChartId && (
-              <span className="self-center text-xs text-growth">Saved chart #{natalChartId}</span>
+            {viewMode === "saved" && editingChartId && (
+              <span className="self-center text-xs text-growth">Saved chart #{editingChartId}</span>
             )}
           </div>
         </div>
@@ -566,11 +811,74 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Chart — your energy map</h1>
+      <p className="text-sm text-fg-muted">
+        Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + friends).
+        Plain language — how your battery and decisions work.
+      </p>
+
+      {(usersLoading || usersError || (!usersLoading && !user)) && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-energy/50 bg-energy/10 px-4 py-3 text-sm text-energy-ink">
+          {usersLoading && <span>Loading account…</span>}
+          {usersError && <span>Account load issue: {usersError}</span>}
+          {!usersLoading && !user && <span>No Dev user selected yet.</span>}
+          {(usersError || (!usersLoading && !user)) && (
+            <button
+              type="button"
+              className="min-h-10 rounded-lg border border-energy-ink px-3 py-2.5 text-sm hover:bg-energy/15"
+              onClick={() => refreshUsers()}
+            >
+              Retry user
+            </button>
+          )}
+        </div>
+      )}
+
+      <div id="people-form" className="space-y-4">
+        {chart ? (
+          <details
+            className="group rounded-2xl border border-border bg-elevated open:bg-elevated"
+            open={personEditorOpen}
+            onToggle={(e) => {
+              const open = (e.target as HTMLDetailsElement).open;
+              setPersonEditorOpen(open);
+              if (open) void refreshPeopleOnOpen();
+            }}
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-fg">Edit / switch person</div>
+                <div className="mt-0.5 truncate text-xs text-fg-muted">
+                  {activePersonLabel}
+                  {typeKey ? ` · ${typeKey}` : ""}
+                  {profileStr ? ` · ${profileStr}` : ""}
+                  {viewMode === "preview" ? " · preview" : ""}
+                </div>
+              </div>
+              <span className="shrink-0 text-xs text-fg-muted group-open:hidden">Show</span>
+              <span className="hidden shrink-0 text-xs text-fg-muted group-open:inline">Hide</span>
+            </summary>
+            <div className="space-y-4 border-t border-border px-4 py-4">{peopleAndForm}</div>
+          </details>
+        ) : (
+          peopleAndForm
+        )}
+      </div>
 
       {chart && (
         <>
+          <ChartSectionNav onJump={jumpToSection} />
+
           <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
-            <div className="rounded-2xl border border-border bg-elevated p-4">
+            <div
+              id="bodygraph"
+              className="rounded-2xl border border-border bg-elevated p-4"
+            >
               <h2 className="mb-2 text-sm font-semibold text-fg">Bodygraph</h2>
               <BodyGraph
                 definedCenters={defined}
@@ -586,7 +894,7 @@ export default function ProfilePage() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div id="snapshot" className="space-y-4">
               <div className="rounded-2xl border border-growth/30 bg-growth-soft px-5 py-4">
                 <p className="text-lg font-semibold text-growth-ink">
                   You&apos;re a {typeKey}
@@ -657,46 +965,15 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <ChartDeepDive chart={chart} />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <ActivationTable title="Personality (Black)" rows={personality} />
-            <ActivationTable title="Design (Red)" rows={design} />
-          </div>
+          <ChartDeepDive
+            chart={chart}
+            personality={personality}
+            design={design}
+            domain={deepDiveDomain}
+            onDomainChange={setDeepDiveDomain}
+          />
         </>
       )}
-    </div>
-  );
-}
-
-function ActivationTable({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: Array<Record<string, unknown>>;
-}) {
-  return (
-    <div className="overflow-x-auto overflow-hidden rounded-2xl border border-border">
-      <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">{title}</div>
-      <table className="w-full text-left text-sm">
-        <thead className="text-xs text-fg-muted">
-          <tr>
-            <th className="px-4 py-2">Planet</th>
-            <th className="px-4 py-2">Gate.Line</th>
-            <th className="px-4 py-2">Lon°</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={String(r.planet)} className="border-t border-border">
-              <td className="px-4 py-1.5">{String(r.planet)}</td>
-              <td className="px-4 py-1.5 text-growth">{String(r.label)}</td>
-              <td className="px-4 py-1.5 text-fg-muted">{Number(r.longitude).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

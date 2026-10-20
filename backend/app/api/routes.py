@@ -155,31 +155,50 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
         user = db.get(User, body.user_id)
         if not user:
             raise HTTPException(404, "User not found")
-        count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
-        if count >= MAX_CHARTS_PER_USER:
-            raise HTTPException(
-                400,
-                f"Chart limit reached ({MAX_CHARTS_PER_USER}/user). "
-                "Delete a saved person before adding another.",
-            )
         label = (body.label or "").strip() or ("Me" if body.slot_kind == "self" else "Friend")
         slot_kind = body.slot_kind if body.slot_kind in ("self", "friend") else "self"
-        row = NatalChart(
-            user_id=body.user_id,
-            label=label[:128],
-            slot_kind=slot_kind,
-            birth_date=body.birth_date,
-            birth_time=body.birth_time,
-            birth_city=body.birth_city,
-            lat=geo["lat"],
-            lon=geo["lon"],
-            timezone=chart.get("timezone"),
-            chart_json=chart,
-        )
-        db.add(row)
-        db.commit()
-        db.refresh(row)
-        natal_id = row.id
+
+        row = None
+        if body.natal_chart_id is not None:
+            row = db.get(NatalChart, body.natal_chart_id)
+            if not row or row.user_id != body.user_id:
+                raise HTTPException(404, "Chart not found")
+            row.label = label[:128]
+            row.slot_kind = slot_kind
+            row.birth_date = body.birth_date
+            row.birth_time = body.birth_time
+            row.birth_city = body.birth_city
+            row.lat = geo["lat"]
+            row.lon = geo["lon"]
+            row.timezone = chart.get("timezone")
+            row.chart_json = chart
+            db.commit()
+            db.refresh(row)
+            natal_id = row.id
+        else:
+            count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
+            if count >= MAX_CHARTS_PER_USER:
+                raise HTTPException(
+                    400,
+                    f"Chart limit reached ({MAX_CHARTS_PER_USER}/user). "
+                    "Delete a saved person before adding another.",
+                )
+            row = NatalChart(
+                user_id=body.user_id,
+                label=label[:128],
+                slot_kind=slot_kind,
+                birth_date=body.birth_date,
+                birth_time=body.birth_time,
+                birth_city=body.birth_city,
+                lat=geo["lat"],
+                lon=geo["lon"],
+                timezone=chart.get("timezone"),
+                chart_json=chart,
+            )
+            db.add(row)
+            db.commit()
+            db.refresh(row)
+            natal_id = row.id
 
     return ChartResponse(chart=chart, natal_chart_id=natal_id)
 
