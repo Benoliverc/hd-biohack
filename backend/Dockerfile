@@ -11,12 +11,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get install -y --no-install-recommends \
+        curl ca-certificates \
+        build-essential gcc pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
+
+# Optional: drop compilers to shrink image (keep runtime libs)
+RUN apt-get purge -y --auto-remove build-essential gcc pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
@@ -24,10 +30,8 @@ COPY . .
 RUN chmod +x scripts/download_ephemeris.sh \
     && ./scripts/download_ephemeris.sh
 
-# Persist SQLite (and optional uploads) on a Railway volume mounted at /data
 RUN mkdir -p /data
 
 EXPOSE 8000
 
-# Railway injects PORT; healthcheck path is /health
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

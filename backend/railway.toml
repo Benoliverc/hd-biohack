@@ -1,8 +1,8 @@
 # Root Directory must be `backend` in Railway.
-# Prefer Dockerfile when the platform supports it; Railpack uses startCommand below.
 
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
