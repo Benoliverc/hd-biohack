@@ -64,10 +64,19 @@ const SECTION_NAV: {
   shortLabel?: string;
 }[] = [
   { id: "people-form", label: "People & form", shortLabel: "People" },
-  { id: "bodygraph", label: "Bodygraph" },
-  { id: "snapshot", label: "Snapshot" },
-  { id: "deep-dive", label: "Deep dive" },
+  { id: "bodygraph", label: "Bodygraph", shortLabel: "Body" },
+  { id: "snapshot", label: "Snapshot", shortLabel: "Snap" },
+  { id: "deep-dive", label: "Deep dive", shortLabel: "Deep" },
 ];
+
+const DEEP_SECTION_IDS = new Set([
+  "deep-dive",
+  "core",
+  "centers",
+  "channels",
+  "activations",
+  "planets",
+]);
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
   const h = hash.replace(/^#/, "");
@@ -76,6 +85,79 @@ function domainFromHash(hash: string): DeepDiveDomain | null {
   if (h === "channels") return "channels";
   if (h === "activations" || h === "planets") return "planets";
   return null;
+}
+
+/** True once Header + ChartSectionNav have published measured heights via inline CSS vars. */
+function chartScrollMtMeasured(): boolean {
+  const root = document.documentElement.style;
+  return Boolean(root.getPropertyValue("--app-header-h").trim() && root.getPropertyValue("--chart-section-nav-h").trim());
+}
+
+function waitTwoFrames(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+}
+
+/** Wait until sticky stack heights are published and stable (avoids hash scroll race). */
+async function waitForChartScrollMt(timeoutMs = 2500): Promise<void> {
+  const start = performance.now();
+  let lastNav = "";
+  let stable = 0;
+  while (performance.now() - start < timeoutMs) {
+    const nav = document.documentElement.style.getPropertyValue("--chart-section-nav-h").trim();
+    if (chartScrollMtMeasured()) {
+      if (nav === lastNav && nav) stable += 1;
+      else {
+        lastNav = nav;
+        stable = 0;
+      }
+      if (stable >= 2) {
+        await waitTwoFrames();
+        return;
+      }
+    }
+    await waitTwoFrames();
+  }
+}
+
+async function scrollChartSectionIntoView(
+  targetId: string,
+  behavior: ScrollBehavior = "smooth",
+  opts?: { correctAfterSettle?: boolean; signal?: { cancelled: boolean } }
+): Promise<void> {
+  const alive = () => !opts?.signal?.cancelled;
+  try {
+    if (document.fonts?.ready) await document.fonts.ready;
+  } catch {
+    /* ignore */
+  }
+  if (!alive()) return;
+  await waitForChartScrollMt();
+  if (!alive()) return;
+  await waitTwoFrames();
+  if (!alive()) return;
+  const go = (b: ScrollBehavior) => {
+    document.getElementById(targetId)?.scrollIntoView({ behavior: b, block: "start" });
+  };
+  // Hash path: auto-only. Smooth + later auto-correct races (smooth finishes last, undershoots).
+  if (opts?.correctAfterSettle) {
+    go("auto");
+    await new Promise((r) => window.setTimeout(r, 100));
+    if (!alive()) return;
+    await waitForChartScrollMt(800);
+    if (!alive()) return;
+    await waitTwoFrames();
+    if (!alive()) return;
+    go("auto");
+    await new Promise((r) => window.setTimeout(r, 200));
+    if (!alive()) return;
+    go("auto");
+    return;
+  }
+  go(behavior);
 }
 
 function ChartSectionNav({
@@ -108,23 +190,23 @@ function ChartSectionNav({
     <nav
       ref={navRef}
       aria-label="Chart sections"
-      className="sticky z-30 -mx-1 overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-canvas/95 px-2 py-2 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 [scrollbar-width:thin]"
+      className="sticky z-30 -mx-1 overflow-x-clip rounded-xl border border-border bg-canvas/95 px-1.5 py-1.5 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 sm:px-2 sm:py-2"
       style={{ top: "var(--app-header-h)" }}
     >
-      <ul className="flex w-max flex-nowrap gap-1">
+      <ul className="flex w-full min-w-0 flex-nowrap gap-0.5 sm:w-max sm:gap-1">
         {SECTION_NAV.map((item) => (
-          <li key={item.id} className="shrink-0">
+          <li key={item.id} className="min-w-0 flex-1 sm:flex-none sm:shrink-0">
             <a
               href={`#${item.id}`}
               onClick={(e) => {
                 e.preventDefault();
                 onJump(item.id);
               }}
-              className="inline-flex min-h-9 items-center rounded-full border border-transparent px-3 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg sm:text-sm"
+              className="inline-flex h-9 w-full min-w-0 items-center justify-center rounded-full border border-transparent px-2 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg focus-visible:relative sm:w-auto sm:px-3 sm:text-sm"
             >
               {item.shortLabel ? (
                 <>
-                  <span className="sm:hidden">{item.shortLabel}</span>
+                  <span className="truncate sm:hidden">{item.shortLabel}</span>
                   <span className="hidden sm:inline">{item.label}</span>
                 </>
               ) : (
@@ -423,26 +505,37 @@ export default function ProfilePage() {
     return () => window.removeEventListener("hashchange", apply);
   }, []);
 
-  // After chart hydrates, honor deep-link hash (element may not exist on first paint).
+  // Avoid bfcache restoring a mid-page scroll before sticky heights exist.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("scrollRestoration" in history)) return;
+    const prev = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    return () => {
+      history.scrollRestoration = prev;
+    };
+  }, []);
+
+  // After chart hydrates, honor deep-link hash once sticky stack heights are measured.
+  // Always scroll to #deep-dive for domain hashes (legacy #centers stubs can native-scroll early).
   useEffect(() => {
     if (!chart) return;
     const raw = window.location.hash.replace(/^#/, "");
     if (!raw) return;
     const fromHash = domainFromHash(raw);
     if (fromHash) setDeepDiveDomain(fromHash);
-    const deepIds = new Set([
-      "deep-dive",
-      "centers",
-      "channels",
-      "activations",
-      "core",
-      "planets",
-    ]);
-    const targetId = deepIds.has(raw) ? "deep-dive" : raw;
-    const t = window.setTimeout(() => {
-      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-    return () => window.clearTimeout(t);
+    const targetId = DEEP_SECTION_IDS.has(raw) ? "deep-dive" : raw;
+    let cancelled = false;
+    void (async () => {
+      await waitTwoFrames();
+      if (cancelled) return;
+      await scrollChartSectionIntoView(targetId, "auto", {
+        correctAfterSettle: true,
+        signal: { get cancelled() { return cancelled; } },
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [chart]);
 
   const onCityChange = (
@@ -581,19 +674,8 @@ export default function ProfilePage() {
     if (domain) setDeepDiveDomain(domain);
     const url = `${window.location.pathname}${window.location.search}#${id}`;
     window.history.replaceState(null, "", url);
-    // Defer scroll so tab panel can mount when jumping into Deep dive.
-    requestAnimationFrame(() => {
-      const deepIds = new Set([
-        "deep-dive",
-        "core",
-        "centers",
-        "channels",
-        "activations",
-        "planets",
-      ]);
-      const el = document.getElementById(deepIds.has(id) ? "deep-dive" : id);
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    const targetId = DEEP_SECTION_IDS.has(id) ? "deep-dive" : id;
+    void scrollChartSectionIntoView(targetId, "smooth");
   };
 
   const personality = (chart?.personality as Array<Record<string, unknown>>) || [];
