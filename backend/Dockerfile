@@ -1,4 +1,4 @@
-# HD Biohack API — Railway / container image
+# Baseline API — Railway / container image
 # Build context: backend/ (set Railway Root Directory to `backend`)
 FROM python:3.12-slim-bookworm
 

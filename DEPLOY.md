@@ -1,4 +1,6 @@
-# Deploy HD Biohack (Vercel + Railway)
+# Deploy Baseline (Vercel + Railway)
+
+> Repo / project paths may still say `hd-biohack`; product display name is **Baseline**.
 
 Stable public hosting for real users. Replaces `*.trycloudflare.com` quick tunnels.
 

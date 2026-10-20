@@ -81,7 +81,7 @@ export function Header() {
             title="Home"
             className="min-w-0 shrink truncate text-base font-semibold tracking-tight text-growth sm:text-lg"
           >
-            HD Biohack
+            Baseline
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted sm:gap-2">
             {showDevControls && (

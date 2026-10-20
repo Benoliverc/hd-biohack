@@ -67,7 +67,7 @@ export default function LoginPage() {
 
       <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
         <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
-          <p className="text-sm font-medium uppercase tracking-[0.14em] text-growth">HD Biohack</p>
+          <p className="text-sm font-medium uppercase tracking-[0.14em] text-growth">Baseline</p>
           <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
             Chart. Today. Protocols.
             <span className="mt-2 block text-xl font-normal text-fg-secondary sm:text-2xl">
@@ -75,8 +75,8 @@ export default function LoginPage() {
             </span>
           </h1>
           <p className="max-w-md text-sm leading-relaxed text-fg-secondary sm:text-base">
-            Sign in to calculate your natal chart, see what the sky is doing today, and get a
-            grounded biohacking plan — no mysticism, just next steps.
+            Sign in to calculate your natal chart, see what the sky is doing today, and get
+            grounded protocols — no mysticism, just next steps.
           </p>
           <ul className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             {PILLARS.map(({ icon: Icon, title, body }) => (

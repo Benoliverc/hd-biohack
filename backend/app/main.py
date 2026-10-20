@@ -48,9 +48,9 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="HD Biohack API",
+    title="Baseline API",
     version="1.0.0",
-    description="Human Design chart + transit + biohacking protocol engine (V1)",
+    description="Baseline — Human Design chart, transit overlay, and protocol engine (V1)",
     lifespan=lifespan,
 )
 

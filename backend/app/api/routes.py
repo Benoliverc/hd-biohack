@@ -49,7 +49,7 @@ def _parse_birth(data: BirthDataIn) -> tuple[int, int, int, int, int, int]:
 
 @router.get("/health")
 def health():
-    return {"status": "ok", "service": "hd-biohack"}
+    return {"status": "ok", "service": "baseline"}
 
 
 

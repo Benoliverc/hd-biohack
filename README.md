@@ -1,6 +1,8 @@
-# HD Biohack V1
+# Baseline V1
 
-Human Design natal chart + live planetary transit overlay + deterministic (optional LLM) biohacking / supplement protocols.
+Human Design natal chart + live planetary transit overlay + deterministic (optional LLM) protocols / supplement stacks.
+
+> Repo folder may still be `hd-biohack`; product display name is **Baseline**.
 
 Monorepo:
 - `backend/` — FastAPI + `pyswisseph` calculation engine
@@ -73,7 +75,7 @@ Reference validation: **Ra Uru Hu** (1948-04-09 00:05 Montreal) → Manifestor /
 
 ## Compliance
 
-Biohack UI shows: *For informational and energetic optimization purposes only; not medical advice.*
+Protocols UI shows: *For informational and energetic optimization purposes only; not medical advice.*
 
 ## Stubbed / later
 

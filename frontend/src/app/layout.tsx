@@ -8,8 +8,8 @@ import { AppShell } from "@/components/AppShell";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HD Biohack — Human Design + Protocols",
-  description: "V1 Human Design chart, daily transits, and biohacking protocols",
+  title: "Baseline — chart, today’s sky, grounded protocols",
+  description: "Your natal chart, today’s sky, and grounded protocols you can follow — informational, not medical advice.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
