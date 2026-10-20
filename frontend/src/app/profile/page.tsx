@@ -151,6 +151,7 @@ export default function ProfilePage() {
     refreshUsers,
     setNatalChart,
     natalChartId,
+    natalBindingLoading,
   } = useApp();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -165,19 +166,35 @@ export default function ProfilePage() {
   const [savedForm, setSavedForm] = useState<FormSnapshot | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<number | null>(null);
   const [savedPeople, setSavedPeople] = useState<SavedChartRow[]>([]);
+  /** Local selection used for upsert — independent of store race/clear. */
+  const [editingChartId, setEditingChartId] = useState<number | null>(null);
   const [friendName, setFriendName] = useState("");
   const [saveAs, setSaveAs] = useState<SaveAs>("self");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [personEditorOpen, setPersonEditorOpen] = useState(true);
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
   const hadChartRef = useRef(false);
+  const peopleFetchGen = useRef(0);
 
-  const formReady = Boolean(user && hydratedUserId === user.id);
+  const formReady = Boolean(user && hydratedUserId === user.id && !natalBindingLoading);
 
   const refreshPeople = useCallback(async (userId: number) => {
     const rows = await api.charts(userId);
     setSavedPeople(rows);
     return rows;
+  }, []);
+
+  const applyDemoBirth = useCallback(() => {
+    setBirthDate(DEMO_BIRTH.birthDate);
+    setBirthTime(DEMO_BIRTH.birthTime);
+    setBirthCity(DEMO_BIRTH.birthCity);
+    setLat(DEMO_BIRTH.lat);
+    setLon(DEMO_BIRTH.lon);
+    setTimezone(DEMO_BIRTH.timezone);
+    setChart(null);
+    setViewMode(null);
+    setSavedForm(null);
+    setEditingChartId(null);
   }, []);
 
   const applyRow = useCallback(
@@ -209,6 +226,7 @@ export default function ProfilePage() {
       setLon(nextLon);
       setTimezone(nextTz);
       setChart(c);
+      setEditingChartId(latest.id);
       setNatalChart({
         id: latest.id,
         label: latest.label || "Me",
@@ -231,15 +249,31 @@ export default function ProfilePage() {
     [setNatalChart]
   );
 
+  const pickPreferredRow = useCallback(
+    (rows: SavedChartRow[], preferId: number | null) => {
+      if (preferId != null) {
+        const match = rows.find((r) => r.id === preferId);
+        if (match) return match;
+      }
+      return rows[0] ?? null;
+    },
+    []
+  );
+
+  // Hydrate form + people list once store natal bind has settled for this user.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!user) {
         setHydratedUserId(null);
+        setEditingChartId(null);
         return;
       }
+      // Wait so we do not lock in DEMO/empty while /charts is still in flight in the store.
+      if (natalBindingLoading) return;
       if (hydratedUserId === user.id) return;
 
+      const gen = ++peopleFetchGen.current;
       setBirthDate("");
       setBirthTime("");
       setBirthCity("");
@@ -251,36 +285,111 @@ export default function ProfilePage() {
       setSavedForm(null);
       setError(null);
       setSavedPeople([]);
+      setEditingChartId(null);
 
       try {
         const rows = await refreshPeople(user.id);
-        if (cancelled) return;
+        if (cancelled || peopleFetchGen.current !== gen) return;
         if (!rows.length) {
-          setBirthDate(DEMO_BIRTH.birthDate);
-          setBirthTime(DEMO_BIRTH.birthTime);
-          setBirthCity(DEMO_BIRTH.birthCity);
-          setLat(DEMO_BIRTH.lat);
-          setLon(DEMO_BIRTH.lon);
-          setTimezone(DEMO_BIRTH.timezone);
-          setChart(null);
-          setViewMode(null);
-          setSavedForm(null);
+          applyDemoBirth();
           setHydratedUserId(user.id);
           return;
         }
-        const preferred =
-          natalChartId != null ? rows.find((r) => r.id === natalChartId) : null;
-        applyRow(preferred || rows[0]);
+        const preferred = pickPreferredRow(rows, natalChartId);
+        if (preferred) applyRow(preferred);
         setHydratedUserId(user.id);
       } catch {
-        if (!cancelled) setHydratedUserId(user.id);
+        if (!cancelled && peopleFetchGen.current === gen) {
+          setHydratedUserId(user.id);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per user
-  }, [user, hydratedUserId, refreshPeople, applyRow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per user after natal bind
+  }, [
+    user,
+    hydratedUserId,
+    natalBindingLoading,
+    refreshPeople,
+    applyRow,
+    applyDemoBirth,
+    pickPreferredRow,
+  ]);
+
+  const hasNatalInList =
+    natalChartId != null && savedPeople.some((r) => r.id === natalChartId);
+  const resyncAttemptRef = useRef<string | null>(null);
+
+  // If store bound a natal the people list missed (stale empty hydrate), pull once.
+  useEffect(() => {
+    if (!user) {
+      resyncAttemptRef.current = null;
+      return;
+    }
+    if (!formReady || natalBindingLoading || natalChartId == null) return;
+    if (hasNatalInList) {
+      resyncAttemptRef.current = null;
+      return;
+    }
+    const token = `${user.id}:${natalChartId}`;
+    if (resyncAttemptRef.current === token) return;
+    resyncAttemptRef.current = token;
+
+    let cancelled = false;
+    const gen = ++peopleFetchGen.current;
+    (async () => {
+      try {
+        const rows = await refreshPeople(user.id);
+        if (cancelled || peopleFetchGen.current !== gen) return;
+        if (!rows.length) return;
+        const preferred = pickPreferredRow(rows, natalChartId);
+        // Only auto-apply when we had no saved selection yet (DEMO / empty).
+        if (preferred && editingChartId == null) applyRow(preferred);
+      } catch {
+        /* keep current UI */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    user,
+    formReady,
+    natalBindingLoading,
+    natalChartId,
+    hasNatalInList,
+    editingChartId,
+    refreshPeople,
+    applyRow,
+    pickPreferredRow,
+  ]);
+
+  const refreshPeopleOnOpen = useCallback(async () => {
+    if (!user) return;
+    try {
+      const rows = await refreshPeople(user.id);
+      if (!rows.length) return;
+      // Recover from a stale empty/DEMO hydrate without clobbering an in-progress edit.
+      if (editingChartId == null || !rows.some((r) => r.id === editingChartId)) {
+        const preferred = pickPreferredRow(rows, natalChartId ?? editingChartId);
+        if (preferred && (editingChartId == null || viewMode !== "saved")) {
+          applyRow(preferred);
+        }
+      }
+    } catch {
+      /* keep current UI */
+    }
+  }, [
+    user,
+    refreshPeople,
+    editingChartId,
+    natalChartId,
+    viewMode,
+    pickPreferredRow,
+    applyRow,
+  ]);
 
   // Reading mode: collapse birth tooling once a chart first appears; reopen if cleared.
   useEffect(() => {
@@ -358,7 +467,8 @@ export default function ProfilePage() {
       if (!activeUser?.id) throw new Error("No user account loaded — tap Retry user, then try again.");
 
       // Cap only blocks *new* people. Recalculating a selected saved chart updates in place.
-      const updatingExisting = Boolean(save && viewMode === "saved" && natalChartId);
+      // Prefer local editingChartId so upsert still works if store natal cleared mid-flight.
+      const updatingExisting = Boolean(save && editingChartId != null);
       if (save && !updatingExisting && savedPeople.length >= MAX_PEOPLE) {
         throw new Error(
           `Chart limit reached (${MAX_PEOPLE}/10). Delete a saved person before adding another.`
@@ -393,7 +503,7 @@ export default function ProfilePage() {
         lon: useLon,
         label: save ? label : undefined,
         slot_kind: save ? kind : undefined,
-        natal_chart_id: updatingExisting ? natalChartId ?? undefined : undefined,
+        natal_chart_id: updatingExisting ? editingChartId ?? undefined : undefined,
       });
       setChart(res.chart);
       const chartTz =
@@ -402,6 +512,7 @@ export default function ProfilePage() {
 
       if (save) {
         if (res.natal_chart_id) {
+          setEditingChartId(res.natal_chart_id);
           setNatalChart({
             id: res.natal_chart_id,
             label,
@@ -446,13 +557,14 @@ export default function ProfilePage() {
     try {
       await api.deleteChart(row.id, user.id);
       const rows = await refreshPeople(user.id);
-      if (natalChartId === row.id) {
+      if (editingChartId === row.id || natalChartId === row.id) {
         if (rows[0]) applyRow(rows[0]);
         else {
           setChart(null);
           setNatalChart(null);
           setViewMode(null);
           setSavedForm(null);
+          setEditingChartId(null);
         }
       }
     } catch (e) {
@@ -494,9 +606,12 @@ export default function ProfilePage() {
   const atCap = savedPeople.length >= MAX_PEOPLE;
 
   const activePersonLabel =
+    savedPeople.find((r) => r.id === editingChartId)?.label ||
     savedPeople.find((r) => r.id === natalChartId)?.label ||
     friendName.trim() ||
     (viewMode === "preview" ? "Preview" : "Me");
+
+  const updatingExistingUi = editingChartId != null && viewMode === "saved";
 
   const peopleAndForm = (
     <>
@@ -513,7 +628,7 @@ export default function ProfilePage() {
           ) : (
             <ul className="flex flex-wrap gap-2">
               {savedPeople.map((row) => {
-                const active = natalChartId === row.id && viewMode === "saved";
+                const active = editingChartId === row.id && viewMode === "saved";
                 return (
                   <li key={row.id} className="inline-flex items-center gap-1">
                     <button
@@ -647,7 +762,7 @@ export default function ProfilePage() {
             <button
               type="button"
               data-testid="calculate-save"
-              disabled={busy || !formReady || (atCap && !(viewMode === "saved" && natalChartId))}
+              disabled={busy || !formReady || (atCap && !updatingExistingUi)}
               onClick={() => void submit(true, saveAs)}
               className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
             >
@@ -655,7 +770,9 @@ export default function ProfilePage() {
                 ? "Saving…"
                 : saveAs === "friend"
                   ? "Calculate & save friend"
-                  : "Calculate & Save"}
+                  : updatingExistingUi
+                    ? "Update chart"
+                    : "Calculate & Save"}
             </button>
             <button
               type="button"
@@ -676,8 +793,8 @@ export default function ProfilePage() {
                 {natalChartId ? ` · prior saved #${natalChartId}` : ""}
               </span>
             )}
-            {viewMode === "saved" && natalChartId && (
-              <span className="self-center text-xs text-growth">Saved chart #{natalChartId}</span>
+            {viewMode === "saved" && editingChartId && (
+              <span className="self-center text-xs text-growth">Saved chart #{editingChartId}</span>
             )}
           </div>
         </div>
@@ -727,7 +844,11 @@ export default function ProfilePage() {
           <details
             className="group rounded-2xl border border-border bg-elevated open:bg-elevated"
             open={personEditorOpen}
-            onToggle={(e) => setPersonEditorOpen((e.target as HTMLDetailsElement).open)}
+            onToggle={(e) => {
+              const open = (e.target as HTMLDetailsElement).open;
+              setPersonEditorOpen(open);
+              if (open) void refreshPeopleOnOpen();
+            }}
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
               <div className="min-w-0">

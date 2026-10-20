@@ -49,3 +49,19 @@ Collapse/summary OK. Opened list **13/10** with near-duplicate “Me · MG · 2/
 
 ## Sign-off
 **Conditional** — unblock after High #1–3. Medium can follow in same PR or fast follow.
+
+---
+
+## Re-review 2026-10-20 (feat/chart-page-nav @ 3cb7487)
+
+**High #1–3: PASS** — cleared for Ship Gate handoff.
+
+| Item | Result |
+|------|--------|
+| 1 Sticky vs header | PASS — flush under header; `--app-header-h` + `--chart-section-nav-h` |
+| 2 Deep-link scroll-mt | PASS — `#activations` / `#centers` titles clear both stickies |
+| 3 Centers bodygraph + no reflow | PASS — fixed slots; Defined hides in place |
+
+Med remaining (non-blocking): 375 section nav still horizontal-scrolls last chips; sticky `bg-canvas/95` lets snapshot ghost under while scrolling.
+
+Shots: `ux-review-2026-10-20/chart-nav/rereview/`

@@ -1,31 +1,28 @@
-# Handoff — Chart page navigation (High UX fixes)
+# Handoff — Chart page navigation (Ship Gate hydrate/upsert fix)
 
 ## Branch & commit
 - **Branch:** `feat/chart-page-nav`
-- **SHA:** `a51f381441b7d0592684e47d996ef2b4f29c6cc7` (short `a51f381`)
-- **Base:** prior `c4c1c15` on same branch
+- **SHA:** 4c2f40b36e0e079fae5462016f66760b5469853c (short `4c2f40b`)
+- **Base:** `3cb7487` on same branch
 
 ## What changed (this pass)
-Fixes for UI/UX review High blockers (+ Med items) on `/profile`:
+Ship Gate FAIL fixes for people-list hydrate + UI upsert on `/profile`:
 
-### High
-1. **Sticky section nav under header** — `Header` publishes measured `--app-header-h`; section nav uses `top: var(--app-header-h)` (no hardcoded 5.75/6.25rem). Section nav publishes `--chart-section-nav-h`.
-2. **Deep-link scroll offset** — `--chart-scroll-mt: calc(var(--app-header-h) + var(--chart-section-nav-h) + 0.5rem)` applied via globals to `#people-form`, `#bodygraph`, `#snapshot`, `#deep-dive`, `#core`, `#centers`, `#channels`, `#planets`, `#activations`.
-3. **Centers bodygraph slots** — fixed CSS grid: spine Head→Ajna→Throat→G→Sacral→Root; Heart right of G; Spleen left / Solar Plexus right of Sacral. Defined/Open filter **hides in place** (`opacity-0` + placeholder) — no reflow.
+### Root causes
+1. **Stale empty hydrate** — Profile hydrated once and could lock in DEMO / `0/10 None yet` if `/charts` was empty at first paint (or raced ahead of store natal bind). Later charts (or store bind) did not re-populate the people list because `hydratedUserId` blocked re-fetch. Opening Edit/switch kept the stale empty state.
+2. **Upsert never armed** — Client only sent `natal_chart_id` when `viewMode === "saved" && natalChartId`. Empty/DEMO hydrate left `viewMode` null, so Calculate & Save always INSERTed (e.g. Montreal #36 beside existing HK #35).
 
-### Medium (same PR)
-4. Mobile chip nav: `overflow-x-auto` + `flex-nowrap` + shorter mobile labels (People / Channels).
-5. Naming: sticky chip **Planets** (was Activations); added **Core**; tab hash `#planets` ( `#activations` still aliases).
-6. People list: rows show **city · date** (+ friend tag). **Root cause of duplicate Me rows:** every Calculate & Save INSERTed a new chart. Fix: pass `natal_chart_id` when updating a selected saved chart; backend updates in place; cap only blocks *new* inserts. Existing over-cap rows (e.g. Dev Pro 13/10) remain until the user deletes them — no auto-wipe.
+### Fixes
+1. Wait for `natalBindingLoading === false` before hydrating the form/people list (avoid DEMO lock-in while store `/charts` is in flight).
+2. Local `editingChartId` drives upsert + selection UI (independent of store clear races).
+3. Resync once when store has `natalChartId` missing from `savedPeople`.
+4. Re-fetch people when opening **Edit / switch person**.
+5. Button label **Update chart** when a saved person is selected; save sends `natal_chart_id: editingChartId`.
 
 ## Changed files
-- `frontend/src/app/globals.css` — sticky/scroll CSS vars + section scroll-margin
-- `frontend/src/components/Header.tsx` — ResizeObserver → `--app-header-h`
-- `frontend/src/app/profile/page.tsx` — section nav top/measure, labels, people rows, upsert client
-- `frontend/src/components/ChartDeepDive.tsx` — bodygraph CentersMatrix; planets hash
-- `frontend/src/lib/api.ts` — `natal_chart_id` on calculateChart
-- `backend/app/schemas.py` — `BirthDataIn.natal_chart_id`
-- `backend/app/api/routes.py` — update-in-place when `natal_chart_id` set
+- `frontend/src/app/profile/page.tsx` — hydrate gate, editingChartId upsert, open-editor refresh, Update label
+- `.grok-handoff/current_build.md` — this handoff
+- `.grok-handoff/ship-gate-chart-nav.md` — prior FAIL report (reference)
 
 ## Local preview
 - Chart: **http://127.0.0.1:3000/profile**
@@ -34,21 +31,20 @@ Fixes for UI/UX review High blockers (+ Med items) on `/profile`:
 ## Test / build summary
 - `npx tsc --noEmit` — pass
 - `npm run lint` — pass (pre-existing `store.tsx` exhaustive-deps warning only)
-- `npx next build` — pass; `/profile` ~15.4 kB
-- API smoke: upsert with `natal_chart_id` returns same id; chart count unchanged
+- backend `pytest` — **8 passed**
+- API: delete stray Montreal #36; upsert `#35` → same id, count **1**; proxy `GET /api/backend/charts/3` returns [#35]
+- Browser smoke (Playwright/Chrome): login Benjamin → `/profile` → Edit/switch shows **1/10** + Hong Kong · 1990-06-15 + **Update chart** + Saved chart #35 → click Update → still single id **35**
 
-## Verify for UI/UX
-1. Sticky section chips sit **fully below** primary header (no tuck under Baseline / Home row).
-2. `/profile#planets` or `#activations` — “Deep dive” title not clipped under subnav.
-3. Centers tab: Head top-center, Root bottom-center; Defined/Open keeps slot positions.
-4. Sticky chips: Planets (not Activations); Core present; mobile short labels scroll horizontally.
-5. Edit/switch person: city · date on each row; recalculate selected person does not add a new Me.
+## Verify hydrate + upsert (re-gate)
+1. Ensure `GET /charts/3` has ≥1 row (Benjamin).
+2. Hard refresh `/profile` after login — Edit/switch must show people (not 0/10 + DEMO) on first open.
+3. Select saved person → **Update chart** → same `natal_chart_id`, chart count unchanged.
 
 ## Open / leftover
-- Existing DB rows over the 10-cap (Dev Pro) are historical; user must delete to get under cap.
-- Low items from prior review (current-section chip state, North_Node display, Snapshot vs Core duplication) not in this pass.
-- Definition still chip-row only (brainstorm #8 out of scope).
+- Med chip overflow-x / sticky ghosting — non-blocking (prior UX).
+- Dead trycloudflare — non-blocking for local preview.
+- Historical over-cap DB rows still need manual delete if present.
 
 ## Routing
-- Ready for **@ui-ux** re-review of High #1–3.
-- After sign-off → **@qa** Ship Gate.
+- Ready for **@qa** Ship Gate re-gate (scoped chart-nav hydrate + upsert).
+- No need for UI/UX re-review unless QA finds visual regressions.
