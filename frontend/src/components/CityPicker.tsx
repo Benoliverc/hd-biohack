@@ -20,8 +20,6 @@ type Props = {
   ) => void;
 };
 
-const QUICK = ["Hong Kong", "Ghent, Belgium", "Wetteren, Belgium", "Montreal, Canada", "Bangkok, Thailand"];
-
 export function CityPicker({
   value,
   lat,
@@ -143,7 +141,7 @@ export function CityPicker({
       setGeoError(
         looksNetwork
           ? msg
-          : "No matches for that place. Try a city chip, a fuller name, or enter lat/lon."
+          : "No matches for that place. Try a fuller name, or enter lat/lon."
       );
     } finally {
       setLoading(false);
@@ -151,11 +149,6 @@ export function CityPicker({
   };
 
   const tzLabel = formatTimezoneLabel(timezone, birthDate, birthTime);
-
-  // Always show preset chips when the field is editable so users can switch
-  // cities even after DEMO/hydrate already resolved lat/lon (otherwise only
-  // "Enter lat/lon" remained visible under the box).
-  const showChips = !disabled;
 
   return (
     <div className="relative z-20 space-y-2 md:col-span-2" ref={boxRef}>
@@ -169,7 +162,7 @@ export function CityPicker({
             onFocus={() => {
               if (results.length) setOpen(true);
             }}
-            placeholder={disabled ? "Loading…" : "Type city — Hong Kong, Ghent, Wetteren…"}
+            placeholder={disabled ? "Loading…" : "Type a city or place name"}
             autoComplete="off"
             disabled={disabled}
           />
@@ -198,7 +191,7 @@ export function CityPicker({
             <li className="px-3 py-2 text-fg-muted">
               {geoError
                 ? "Geocoder unavailable — try again or enter lat/lon."
-                : "No matches yet — try a seeded city chip or enter lat/lon."}
+                : "No matches yet — try a fuller name or enter lat/lon."}
             </li>
           )}
           {results.map((r) => (
@@ -219,37 +212,8 @@ export function CityPicker({
         </ul>
       )}
 
-      {showChips && (
+      {!disabled && (
         <div className="flex flex-wrap gap-1.5">
-          {QUICK.map((name) => (
-            <button
-              key={name}
-              type="button"
-              disabled={disabled}
-              className="min-h-10 rounded-full border border-border px-3 py-2 text-xs text-fg-secondary hover:border-growth hover:text-growth disabled:cursor-wait disabled:opacity-50"
-              onClick={async () => {
-                setQ(name);
-                setLoading(true);
-                setGeoError(null);
-                try {
-                  const place = await api.geocode(name);
-                  pick(place);
-                } catch (e) {
-                  onChange(name, null, null, null);
-                  const msg = e instanceof Error ? e.message : String(e);
-                  setGeoError(
-                    /can't reach|failed to fetch|network/i.test(msg)
-                      ? msg
-                      : "Couldn't resolve that city. Try another chip or enter lat/lon."
-                  );
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
-              {name}
-            </button>
-          ))}
           <button
             type="button"
             disabled={disabled}
@@ -260,7 +224,6 @@ export function CityPicker({
           </button>
         </div>
       )}
-
 
       {manual && (
         <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-sunken/80 p-3">
@@ -304,11 +267,11 @@ export function CityPicker({
         </p>
       ) : q.trim() ? (
         <p className="text-xs text-energy-ink">
-          Tip: pick a suggestion or city chip to pin coordinates. Calculate &amp; Save needs a city
+          Tip: pick a suggestion to pin coordinates. Calculate &amp; Save needs a city
           (or lat/lon).
         </p>
       ) : (
-        <p className="text-xs text-energy-ink">
+        <p className="text-xs text-fg-muted">
           Enter a birth city (or lat/lon) before Calculate &amp; Save.
         </p>
       )}

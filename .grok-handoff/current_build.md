@@ -1,30 +1,32 @@
-# Handoff — CityPicker preset chips visible again
+# Handoff — Remove birth-city preset chips
 
 ## Branch & commit
-- **Branch:** `fix/city-picker-presets`
-- **SHA (fix):** 22bb71eb3cb66ca05e008c8f8a0f7c0b5acf5c56 (short `22bb71e`)
-- **Branch tip:** `6c8a144` (handoff stamp)
-- **Base:** `main` @ `d109715`
+- **Branch:** `fix/remove-city-presets`
+- **SHA (fix):** ef00c5f83cd813c5ce7ca949293097f5b968d261 (short `ef00c5f`)
+- **Base:** `main` @ `9cc5b0f` (Merge PR #4 city-picker-presets)
 
-## Root cause
-Not geocode/API/CSS/flag. `CityPicker` hid the `QUICK` chips (Hong Kong, Ghent, Wetteren, Montreal, Bangkok) whenever `lat`/`lon` were already set (`isResolved`), except when the input was focused *and* empty.
+## Request
+Remove the 5 quick-select city buttons under **Birth city / place**:
+Hong Kong · Ghent, Belgium · Wetteren, Belgium · Montreal, Canada · Bangkok, Thailand.
 
-After DEMO defaults or saved-chart hydrate, coords are almost always present, so the UI fell through to the fallback row that only rendered **Enter lat/lon**. Geocode `/geocode` and `/geocode/suggest` remain healthy (seed/cache hits for those cities).
+Keep **Enter lat/lon** under the input. Leave backend geocode seeds alone.
 
 ## Fix
-- `showChips = !disabled` — presets always under the city field when editable.
-- Removed unused `focused` state and the resolved-only “Enter lat/lon” fallback (toggle stays in the chip row).
+- Deleted hardcoded `QUICK` array and the chip `.map` from `CityPicker.tsx`.
+- Kept a single **Enter lat/lon** / **Hide lat/lon** control under the field.
+- Updated placeholder, empty-results, error, and tip copy that mentioned city chips / seeded chips / Hong Kong–Ghent examples.
 
 ## Changed files
 - `frontend/src/components/CityPicker.tsx`
+- `.grok-handoff/current_build.md`
 
 ## Local preview
-- http://127.0.0.1:3000/profile (Next already on :3000; hot-reload should pick up)
+- http://127.0.0.1:3000/profile
 
 ## Test / verify
-- `./node_modules/.bin/tsc --noEmit` — clean
-- `npm run lint -- --file src/components/CityPicker.tsx` — clean
-- `curl` production + local geocode for Hong Kong / Wetteren / Bangkok suggest — OK (seed/cache)
+- `rg QUICK frontend/src/components/CityPicker.tsx` — no matches
+- `./node_modules/.bin/tsc --noEmit` / `next lint --file CityPicker.tsx` — run after npm install
+- `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/profile` — expect 200
 
 ## Open questions
-- None. Ready for UI/UX or Ship Gate if you want a formal pass before merge.
+- None for this slice. Ready for UI/UX then Ship Gate when asked.
