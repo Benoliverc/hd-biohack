@@ -37,7 +37,6 @@ export function CityPicker({
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<GeoPlace[]>([]);
   const [manual, setManual] = useState(false);
-  const [focused, setFocused] = useState(false);
   const [latStr, setLatStr] = useState(lat != null ? String(lat) : "");
   const [lonStr, setLonStr] = useState(lon != null ? String(lon) : "");
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -60,7 +59,6 @@ export function CityPicker({
     const onDoc = (e: MouseEvent) => {
       if (!boxRef.current?.contains(e.target as Node)) {
         setOpen(false);
-        setFocused(false);
       }
     };
     document.addEventListener("mousedown", onDoc);
@@ -109,7 +107,6 @@ export function CityPicker({
     onChange(place.display_name, place.lat, place.lon, place.timezone ?? null);
     setGeoError(null);
     setOpen(false);
-    setFocused(false);
   };
 
   const applyManual = async () => {
@@ -155,10 +152,10 @@ export function CityPicker({
 
   const tzLabel = formatTimezoneLabel(timezone, birthDate, birthTime);
 
-  // Chips only when unresolved, or focused with empty/unresolved query
-  const showChips =
-    !disabled &&
-    (!isResolved || (focused && !isResolved) || (focused && q.trim().length === 0));
+  // Always show preset chips when the field is editable so users can switch
+  // cities even after DEMO/hydrate already resolved lat/lon (otherwise only
+  // "Enter lat/lon" remained visible under the box).
+  const showChips = !disabled;
 
   return (
     <div className="relative z-20 space-y-2 md:col-span-2" ref={boxRef}>
@@ -170,7 +167,6 @@ export function CityPicker({
             value={q}
             onChange={(e) => search(e.target.value)}
             onFocus={() => {
-              setFocused(true);
               if (results.length) setOpen(true);
             }}
             placeholder={disabled ? "Loading…" : "Type city — Hong Kong, Ghent, Wetteren…"}
@@ -265,18 +261,6 @@ export function CityPicker({
         </div>
       )}
 
-      {!showChips && !manual && (
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            disabled={disabled}
-            className="min-h-10 rounded-full border border-dashed border-border px-3 py-2 text-xs text-fg-muted hover:text-fg-secondary disabled:cursor-wait disabled:opacity-50"
-            onClick={() => setManual((v) => !v)}
-          >
-            Enter lat/lon
-          </button>
-        </div>
-      )}
 
       {manual && (
         <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-sunken/80 p-3">

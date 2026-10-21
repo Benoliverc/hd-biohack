@@ -1,39 +1,30 @@
-# Handoff — Sticky nav: single Deep dive chip (Medium UX fixes)
+# Handoff — CityPicker preset chips visible again
 
 ## Branch & commit
-- **Branch:** `feat/chart-sticky-deepdive-nav`
-- **SHA:** 00587472ee004ec9180754212c3d378d89a12a79 (short `0058747`)
-- **Base:** `main` @ `2cfa3eb` (chart-nav merged)
+- **Branch:** `fix/city-picker-presets`
+- **SHA (fix):** 22bb71eb3cb66ca05e008c8f8a0f7c0b5acf5c56 (short `22bb71e`)
+- **Branch tip:** `6c8a144` (handoff stamp)
+- **Base:** `main` @ `d109715`
 
-## What changed (this tip)
-Fix UX Mediums from `chart-sticky-deepdive-nav-ux-review.md` before Ship Gate:
+## Root cause
+Not geocode/API/CSS/flag. `CityPicker` hid the `QUICK` chips (Hong Kong, Ghent, Wetteren, Montreal, Bangkok) whenever `lat`/`lon` were already set (`isResolved`), except when the input was focused *and* empty.
 
-1. **375 chip overflow** — short labels (People / Body / Snap / Deep), `flex w-full` equal chips, tighter padding, `overflow-x-clip` (no horizontal scrollbar; nav height stable ~50px).
-2. **Hash scroll race** — wait for ResizeObserver-published `--app-header-h` / `--chart-section-nav-h` (stable frames + fonts) before scrolling; hash path uses `behavior: "auto"` + settle re-scroll. Legacy domain stubs (`#centers` etc.) pinned to `#deep-dive` top so `space-y-4` no longer offsets native hash scroll by 16px.
+After DEMO defaults or saved-chart hydrate, coords are almost always present, so the UI fell through to the fallback row that only rendered **Enter lat/lon**. Geocode `/geocode` and `/geocode/suggest` remain healthy (seed/cache hits for those cities).
 
-Chip set unchanged: People & form · Bodygraph · Snapshot · Deep dive (domains stay in DeepDive tabs).
+## Fix
+- `showChips = !disabled` — presets always under the city field when editable.
+- Removed unused `focused` state and the resolved-only “Enter lat/lon” fallback (toggle stays in the chip row).
 
 ## Changed files
-- `frontend/src/app/profile/page.tsx` — SECTION_NAV shortLabels, overflow layout, `waitForChartScrollMt` / `scrollChartSectionIntoView`, hash hydrate
-- `frontend/src/components/ChartDeepDive.tsx` — hash stub anchors at `top-0`
-- `.grok-handoff/current_build.md` — this handoff
+- `frontend/src/components/CityPicker.tsx`
 
 ## Local preview
-- Chart: **http://127.0.0.1:3000/profile**
-- API: **http://127.0.0.1:8000**
+- http://127.0.0.1:3000/profile (Next already on :3000; hot-reload should pick up)
 
-## Test / build summary
-- `npx tsc --noEmit` — pass
-- `npm run lint` — pass (pre-existing `store.tsx` exhaustive-deps warning only)
-- Headless Chrome (puppeteer-core) @ 375 & 1280:
-  - overflowX **0**, no h-scroll, navHeight **50**
-  - `#centers` / `#activations` deep-dive h2 clearance **+8px** under sticky stack (was **−8**)
-  - Deep dive chip click clearance **+8px**
+## Test / verify
+- `./node_modules/.bin/tsc --noEmit` — clean
+- `npm run lint -- --file src/components/CityPicker.tsx` — clean
+- `curl` production + local geocode for Hong Kong / Wetteren / Bangkok suggest — OK (seed/cache)
 
-## How to verify
-1. `/profile` @ 375 — sticky chips fit with no horizontal scrollbar; height ~50px.
-2. `/profile#centers` and `/profile#activations` — Deep dive heading clears sticky stack (~8px gap); Centers / Planets tab selected.
-3. Deep dive chip click still scrolls cleanly.
-
-## Open / leftover
-- None for these Mediums. Ready for UX re-verify / Ship Gate when tagged.
+## Open questions
+- None. Ready for UI/UX or Ship Gate if you want a formal pass before merge.
