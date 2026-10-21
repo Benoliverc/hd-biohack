@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 import {
   AUTHORITY_COPY,
@@ -322,25 +328,46 @@ export function ChartDeepDive({
       <div
         role="tablist"
         aria-label="Deep dive domains"
-        className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-sunken/80 p-1"
+        className="flex w-full gap-1 rounded-xl border border-border bg-sunken p-1"
       >
-        {DOMAIN_TABS.map((tab) => {
+        {DOMAIN_TABS.map((tab, index) => {
           const selected = active === tab.id;
+          const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+            let next = -1;
+            if (e.key === "ArrowRight") next = (index + 1) % DOMAIN_TABS.length;
+            else if (e.key === "ArrowLeft")
+              next = (index - 1 + DOMAIN_TABS.length) % DOMAIN_TABS.length;
+            else if (e.key === "Home") next = 0;
+            else if (e.key === "End") next = DOMAIN_TABS.length - 1;
+            else return;
+            e.preventDefault();
+            const nextTab = DOMAIN_TABS[next];
+            selectTab(nextTab);
+            document.getElementById(`deep-dive-tab-${nextTab.id}`)?.focus();
+          };
           return (
             <button
               key={tab.id}
               type="button"
               role="tab"
               aria-selected={selected}
+              tabIndex={selected ? 0 : -1}
               id={`deep-dive-tab-${tab.id}`}
               onClick={() => selectTab(tab)}
-              className={`min-h-10 shrink-0 rounded-lg px-3 py-2 text-sm transition ${
+              onKeyDown={onTabKeyDown}
+              className={`relative flex min-h-11 flex-1 basis-0 items-center justify-center rounded-lg px-2 py-2 text-center text-xs transition sm:px-3 sm:text-sm outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-sunken ${
                 selected
-                  ? "bg-growth/25 font-medium text-growth-ink shadow-soft"
-                  : "text-fg-muted hover:text-fg"
+                  ? "bg-elevated font-semibold text-fg shadow-soft ring-1 ring-border"
+                  : "text-fg-secondary hover:bg-elevated/80 hover:text-fg"
               }`}
             >
               {tab.label}
+              {selected && (
+                <span
+                  className="pointer-events-none absolute inset-x-2 bottom-0.5 h-0.5 rounded-full bg-growth"
+                  aria-hidden
+                />
+              )}
             </button>
           );
         })}
