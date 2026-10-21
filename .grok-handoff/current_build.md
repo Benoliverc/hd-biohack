@@ -1,8 +1,16 @@
-# Handoff — Deep dive domain tab clarity
+# Handoff — Deep dive domain tab clarity (SHIPPED)
 
-## Branch & commit
-- **Branch:** `feat/deep-dive-domain-tabs`
-- **SHA:** 3aa08c5a83d73e2e12106de8d6154808f0f09a8a (short `3aa08c5`)
+## Production
+- **Status:** SHIPPED 2026-10-21 ~17:38 Asia/Hong_Kong (HKT)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/6 (merged)
+- **Merge SHA:** `a21138a7957395196422468d21a1adb8a4ec8fec` (short `a21138a`)
+- **Impl SHA:** `3aa08c5` (branch tip before docs stamp: `dc1ab81` / `b147c6c`)
+- **Production frontend:** https://hd-biohack.vercel.app
+- **Vercel deploy:** `dpl_EWJWw1fyZF4LmKLE3ZmBhsm8J67n` — Ready; aliased to production
+- **API / Railway:** unchanged (frontend-only)
+
+## Branch & commit (pre-merge)
+- **Branch:** `feat/deep-dive-domain-tabs` (deleted after merge)
 - **Base:** `main` @ `2678a3d` (Merge PR #5 remove-city-presets)
 
 ## Request
@@ -21,14 +29,8 @@ Work from UX write-up: `.grok-handoff/deep-dive-domain-tabs-ux.md`.
 - `frontend/src/components/ChartDeepDive.tsx`
 - `.grok-handoff/current_build.md`
 - `.grok-handoff/deep-dive-domain-tabs-ux.md` (UX guidance, tracked)
+- `.grok-handoff/ship-gate-deep-dive-domain-tabs.md`
 
-## Local preview
-- http://127.0.0.1:3000/profile
-
-## Test / verify
-- `./node_modules/.bin/tsc --noEmit`
-- `./node_modules/.bin/next lint --file src/components/ChartDeepDive.tsx`
-- Keyboard arrows on tablist; hash `#centers` / `#activations` still select correct domain.
-
-## Open questions
-- None. Ready for UX re-verify → Ship Gate.
+## Verify
+- Ship Gate PASS — `.grok-handoff/ship-gate-deep-dive-domain-tabs.md`
+- Spot-check: https://hd-biohack.vercel.app/profile → Deep dive segmented tabs
