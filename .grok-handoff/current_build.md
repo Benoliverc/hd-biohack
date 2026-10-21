@@ -2,7 +2,8 @@
 
 ## Branch & commit
 - **Branch:** `fix/city-picker-presets`
-- **SHA:** d57e287a6add7936d8d4c9aac529a2e0dede27af (short `d57e287`)
+- **SHA (fix):** 22bb71eb3cb66ca05e008c8f8a0f7c0b5acf5c56 (short `22bb71e`)
+- **Branch tip:** `6c8a144` (handoff stamp)
 - **Base:** `main` @ `d109715`
 
 ## Root cause
