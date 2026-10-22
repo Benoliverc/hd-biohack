@@ -2,8 +2,9 @@
 
 ## Status
 - **READY FOR @qa Ship Gate** (PR open; not yet merged)
+- PR: https://github.com/Benoliverc/hd-biohack/pull/15
+- Tip SHA: `9872235` (`feat/soul-biosync`)
 - Spec: `.grok-handoff/soul-biosync-spec.md` — AC 1–13
-- Branch: `feat/soul-biosync`
 - Independent of Admin / Today Railway redeploy
 
 ## What to gate
