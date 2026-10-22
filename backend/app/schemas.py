@@ -98,30 +98,3 @@ class GeocodeOut(BaseModel):
 
 class GeocodeSuggestOut(BaseModel):
     results: list[GeocodeOut]
-
-
-
-class CheckinUpsert(BaseModel):
-    user_id: int
-    local_date: date
-    energy_level: int = Field(..., ge=1, le=5)
-    preferred_space: Literal["people", "alone", "nature", "focus", "out"]
-    timezone: str | None = None
-    natal_chart_id: int | None = None
-
-
-class CheckinOut(BaseModel):
-    id: int
-    user_id: int
-    local_date: date
-    energy_level: int
-    preferred_space: str
-    main_action_text: str
-    main_action_micro: str = ""
-    main_action_why: str
-    timezone: str | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-
-    class Config:
-        from_attributes = True
