@@ -1,36 +1,85 @@
-# Handoff — Deep dive domain tab clarity (SHIPPED)
+# Handoff — Today check-in (Energy + Preferred space → Main action)
 
-## Production
-- **Status:** SHIPPED 2026-10-21 ~17:38 Asia/Hong_Kong (HKT)
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/6 (merged)
-- **Merge SHA:** `a21138a7957395196422468d21a1adb8a4ec8fec` (short `a21138a`)
-- **Impl SHA:** `3aa08c5` (branch tip before docs stamp: `dc1ab81` / `b147c6c`)
-- **Production frontend:** https://hd-biohack.vercel.app
-- **Vercel deploy:** `dpl_EWJWw1fyZF4LmKLE3ZmBhsm8J67n` — Ready; aliased to production
-- **API / Railway:** unchanged (frontend-only)
-
-## Branch & commit (pre-merge)
-- **Branch:** `feat/deep-dive-domain-tabs` (deleted after merge)
-- **Base:** `main` @ `2678a3d` (Merge PR #5 remove-city-presets)
+## Status
+- **Ready for:** `@qa` Ship Gate (UX Medium polish applied; do **not** treat as shipped)
+- **Spec:** `.grok-handoff/current_spec.md` (P0 Today check-in)
+- **Branch:** `feat/today-checkin`
+- **SHA:** `975e99e`
+- **UX:** PASS + Medium polish applied (micro-move own line). Review: `.grok-handoff/today-checkin-ux-review.md`
 
 ## Request
-Make Core | Centers | Channels | Planets under Deep dive read clearly as clickable tabs.
-Work from UX write-up: `.grok-handoff/deep-dive-domain-tabs-ux.md`.
+On `/transits` (nav Today), above “What to do today”, add Check-in: Energy (1–5) + Preferred space → one Main action + why. Free tier. Deterministic. No LLM. No Protocol generate side effect.
 
-## Fix
-- Opaque sunken track (`bg-sunken` + `border-border`), four equal `flex-1` segments, `min-h-11`.
-- Selected: elevated surface, semibold fg, soft shadow, ring, 2px growth bottom accent.
-- Unselected: fg-secondary + hover elevated/80.
-- Focus-visible ring with sunken offset.
-- Roving tabindex: ArrowLeft/Right (wrap), Home/End; only selected is tabIndex 0; keyboard updates domain + hash same as click.
-- Kept `role="tablist"/"tab"/"tabpanel"`; full labels; `text-xs sm:text-sm` for 375 fit.
+## Implementation
+### Backend
+- New table `daily_checkins` (`DailyCheckin` model) — dedicated, not `user_biometrics_daily`
+- `PUT /checkin` upsert by `(user_id, local_date)`; `GET /checkin/today`
+- Server computes Main action via `backend/app/checkin/rules.py`:
+  - Energy 1–2 → Type recover / protect (no push framing)
+  - Energy 3 → sky bullet #1, else last cached Protocol `summary.top_actions[0]` (read-only), else Strategy
+  - Energy 4–5 → Type surplus + Strategy; Hyper appends anti-stim / anti-stack note
+  - Preferred space → **`main_action_micro`** (own field / own UI line — not appended with ` · ` into title)
+- Optional `natal_chart_id`; no chart → generic battery + space micro
+- SQLite ALTER: `_ensure_checkin_columns` adds `main_action_micro` on existing DBs
+
+### Frontend
+- `TodayCheckIn` on `/transits` **above** sky “What to do today”
+- Both chip groups required before Main action; Saving…; inline Retry
+- Main action card: **title** → **micro-move line** → why
+- Chips `min-h-11` (~44px); selected space chip `bg-energy/30` (contrast bump)
+- Sky section demoted (secondary copy + text link “Open Protocols”)
+- Soft session `user.id`; free users OK (no entitlement gate)
+
+## UX Medium polish (this commit)
+- Stop concatenating space micro into `main_action_text`
+- API/model add `main_action_micro`
+- Low: chip height, space wash contrast, Drained MG battery copy (“likes speed” removed)
 
 ## Changed files
-- `frontend/src/components/ChartDeepDive.tsx`
+- `backend/app/models.py`
+- `backend/app/schemas.py`
+- `backend/app/database.py`
+- `backend/app/api/routes.py`
+- `backend/app/checkin/__init__.py`
+- `backend/app/checkin/rules.py`
+- `backend/tests/test_checkin.py`
+- `frontend/src/lib/api.ts`
+- `frontend/src/components/TodayCheckIn.tsx`
+- `frontend/src/app/transits/page.tsx`
 - `.grok-handoff/current_build.md`
-- `.grok-handoff/deep-dive-domain-tabs-ux.md` (UX guidance, tracked)
-- `.grok-handoff/ship-gate-deep-dive-domain-tabs.md`
+- `.grok-handoff/current_spec.md`
+- `.grok-handoff/today-checkin-ux-review.md` *(tracked if present)*
 
-## Verify
-- Ship Gate PASS — `.grok-handoff/ship-gate-deep-dive-domain-tabs.md`
-- Spot-check: https://hd-biohack.vercel.app/profile → Deep dive segmented tabs
+## Preview
+- Frontend: http://127.0.0.1:3000/transits
+- API: http://127.0.0.1:8000 (Next rewrite `/api/backend`)
+
+## Verify locally
+1. Open http://127.0.0.1:3000/transits (signed-in free user)
+2. Tap **Steady** + **Alone** → Main action title + micro on **own line**; reload → restore
+3. Tap **Drained** → protect/recover; MG why has no “likes speed”
+4. Change space to **Nature** → micro line updates
+5. Confirm no call to `POST /biohack/protocol` during check-in
+6. Hyper → anti-stimulant / no stacked-commitments language
+
+```bash
+cd backend && .venv/bin/python -m pytest tests/test_checkin.py -q
+curl -s -X PUT http://127.0.0.1:8000/checkin -H 'Content-Type: application/json' \
+  -d '{"user_id":1,"local_date":"2026-10-22","energy_level":3,"preferred_space":"alone","timezone":"Asia/Hong_Kong"}'
+```
+
+## Tests
+- `pytest tests/test_checkin.py` → **8 passed** (incl. micro separate + MG drained copy)
+- `npx tsc --noEmit` → clean
+
+## AC checklist (for @qa)
+1. Steady + Alone → one Main action; persists after reload — implementable
+2. Drained → recovery/protect, not push — implementable
+3. Change space → updates in-session — implementable
+4. No Protocol generated → still works (sky/type rules) — implementable
+5. Free user → no Pro unlock — implementable
+6. Hyper → no more stimulation / stacked commitments — implementable
+7. Micro-move on its own line under title (not ` · ` in title) — polish
+
+## Open questions for @po
+- None. Prior open Q (micro-move own line) resolved in this polish.

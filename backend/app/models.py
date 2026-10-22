@@ -37,6 +37,7 @@ class User(Base):
     inventory: Mapped[list[SupplementInventory]] = relationship(back_populates="user")
     protocols: Mapped[list[WeeklyProtocol]] = relationship(back_populates="user")
     biometrics: Mapped[list[UserBiometricsDaily]] = relationship(back_populates="user")
+    daily_checkins: Mapped[list[DailyCheckin]] = relationship(back_populates="user")
 
 
 class GeocodeCache(Base):
@@ -111,3 +112,26 @@ class UserBiometricsDaily(Base):
     source_device: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="biometrics")
+
+
+class DailyCheckin(Base):
+    """Today check-in: energy + preferred space → Main action (not wearable biometrics)."""
+
+    __tablename__ = "daily_checkins"
+    __table_args__ = (UniqueConstraint("user_id", "local_date", name="uq_checkin_user_local_date"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    local_date: Mapped[date] = mapped_column(Date)
+    energy_level: Mapped[int] = mapped_column(Integer)  # 1–5
+    preferred_space: Mapped[str] = mapped_column(String(32))  # people|alone|nature|focus|out
+    main_action_text: Mapped[str] = mapped_column(Text)
+    main_action_micro: Mapped[str] = mapped_column(Text, default="")
+    main_action_why: Mapped[str] = mapped_column(Text)
+    timezone: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    user: Mapped[User] = relationship(back_populates="daily_checkins")
