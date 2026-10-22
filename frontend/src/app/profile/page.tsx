@@ -253,6 +253,9 @@ export default function ProfilePage() {
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
   const hadChartRef = useRef(false);
   const peopleFetchGen = useRef(0);
+  /** Imperative selection for async refreshPeopleOnOpen (avoid stale Me overwrite after create). */
+  const editingChartIdRef = useRef<number | null>(null);
+  const viewModeRef = useRef<ViewMode>(null);
 
   const formReady = Boolean(user && hydratedUserId === user.id && !natalBindingLoading);
 
@@ -273,6 +276,8 @@ export default function ProfilePage() {
     setViewMode(null);
     setSavedForm(null);
     setEditingChartId(null);
+    editingChartIdRef.current = null;
+    viewModeRef.current = null;
   }, []);
 
   const applyRow = useCallback(
@@ -307,6 +312,8 @@ export default function ProfilePage() {
       setTimezone(nextTz);
       setChart(c);
       setEditingChartId(latest.id);
+      editingChartIdRef.current = latest.id;
+      viewModeRef.current = "saved";
       if (bindStore) {
         setNatalChart({
           id: latest.id,
@@ -349,6 +356,8 @@ export default function ProfilePage() {
       if (!user) {
         setHydratedUserId(null);
         setEditingChartId(null);
+        editingChartIdRef.current = null;
+        viewModeRef.current = null;
         return;
       }
       // Wait so we do not lock in DEMO/empty while /charts is still in flight in the store.
@@ -368,6 +377,8 @@ export default function ProfilePage() {
       setError(null);
       setSavedPeople([]);
       setEditingChartId(null);
+      editingChartIdRef.current = null;
+      viewModeRef.current = null;
 
       try {
         const rows = await refreshPeople(user.id);
@@ -428,7 +439,8 @@ export default function ProfilePage() {
         if (!rows.length) return;
         const preferred = pickPreferredRow(rows, natalChartId);
         // Only auto-apply when we had no saved selection yet (DEMO / empty).
-        if (preferred && editingChartId == null) applyRow(preferred);
+        // Use ref so a mid-flight create pin is respected across await.
+        if (preferred && editingChartIdRef.current == null) applyRow(preferred);
       } catch {
         /* keep current UI */
       }
@@ -453,25 +465,19 @@ export default function ProfilePage() {
     try {
       const rows = await refreshPeople(user.id);
       if (!rows.length) return;
-      // Recover from a stale empty/DEMO hydrate without clobbering an in-progress edit.
-      if (editingChartId == null || !rows.some((r) => r.id === editingChartId)) {
-        const preferred = pickPreferredRow(rows, natalChartId ?? editingChartId);
-        if (preferred && (editingChartId == null || viewMode !== "saved")) {
+      // Use refs so a mid-flight create applyRow is not clobbered by stale Me preferred.
+      const currentId = editingChartIdRef.current;
+      const currentView = viewModeRef.current;
+      if (currentId == null || !rows.some((r) => Number(r.id) === Number(currentId))) {
+        const preferred = pickPreferredRow(rows, natalChartId ?? currentId);
+        if (preferred && (currentId == null || currentView !== "saved")) {
           applyRow(preferred);
         }
       }
     } catch {
       /* keep current UI */
     }
-  }, [
-    user,
-    refreshPeople,
-    editingChartId,
-    natalChartId,
-    viewMode,
-    pickPreferredRow,
-    applyRow,
-  ]);
+  }, [user, refreshPeople, natalChartId, pickPreferredRow, applyRow]);
 
   // Reading mode: collapse birth tooling once a chart first appears; reopen if cleared.
   useEffect(() => {
@@ -565,6 +571,8 @@ export default function ProfilePage() {
 
   const startNewPerson = () => {
     setEditingChartId(null);
+    editingChartIdRef.current = null;
+    viewModeRef.current = null;
     setBirthDate("");
     setBirthTime("");
     setBirthCity("");
@@ -669,22 +677,47 @@ export default function ProfilePage() {
         natal_chart_id:
           saveIntent === "update" ? editingChartId ?? undefined : undefined,
       });
-      setChart(res.chart);
       const chartTz =
         typeof res.chart?.timezone === "string" ? (res.chart.timezone as string) : null;
       if (chartTz) setTimezone(chartTz);
+      const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
 
       if (save) {
         if (!res.natal_chart_id) {
           setError("Chart calculated but save did not return an id. Try again.");
           return;
         }
-        const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
+        const newId = Number(res.natal_chart_id);
+        // Pin selection refs before any await flush so refreshPeopleOnOpen cannot re-apply Me.
+        if (saveIntent === "create") {
+          editingChartIdRef.current = newId;
+          viewModeRef.current = "saved";
+        }
         const rows = await refreshPeople(activeUser.id);
-        const createdOrUpdated = rows.find((r) => r.id === res.natal_chart_id) ?? null;
+        let createdOrUpdated =
+          rows.find((r) => Number(r.id) === newId) ?? null;
+        if (!createdOrUpdated) {
+          createdOrUpdated = {
+            id: newId,
+            label,
+            slot_kind: kind,
+            birth_date: birthDate,
+            birth_time: birthTimeFull,
+            birth_city: city,
+            lat: useLat ?? undefined,
+            lon: useLon ?? undefined,
+            timezone: chartTz || timezone,
+            type: String((res.chart as Chart)?.type ?? ""),
+            profile: String((res.chart as Chart)?.profile ?? ""),
+            chart: res.chart as Record<string, unknown>,
+          };
+        }
 
         if (saveIntent === "update") {
-          setEditingChartId(res.natal_chart_id);
+          setChart(res.chart);
+          setEditingChartId(newId);
+          editingChartIdRef.current = newId;
+          viewModeRef.current = "saved";
           setViewMode("saved");
           setSavedForm({
             birthDate,
@@ -695,9 +728,9 @@ export default function ProfilePage() {
           });
           setSaveAs(kind);
           setFriendName(label);
-          if (natalChartId != null && res.natal_chart_id === natalChartId) {
+          if (natalChartId != null && newId === natalChartId) {
             setNatalChart({
-              id: res.natal_chart_id,
+              id: newId,
               label,
               birth_city: city,
               birth_date: birthDate,
@@ -706,36 +739,13 @@ export default function ProfilePage() {
             });
           }
         } else {
-          // create: select new row; bind store Me only when saving self with no prior self / unbound
+          // create-friend / create-self: always applyRow the new id (never fall back to store Me)
           const bindStore =
             kind === "self" && (!hasSelfSaved || natalChartId == null);
-          if (createdOrUpdated) {
-            applyRow(createdOrUpdated, { bindStore });
-          } else {
-            setEditingChartId(res.natal_chart_id);
-            setViewMode("saved");
-            setSavedForm({
-              birthDate,
-              birthTime: toTimeInputValue(birthTime),
-              birthCity: city,
-              lat: useLat,
-              lon: useLon,
-            });
-            setSaveAs(kind);
-            setFriendName(label);
-            if (bindStore) {
-              setNatalChart({
-                id: res.natal_chart_id,
-                label,
-                birth_city: city,
-                birth_date: birthDate,
-                birth_time: birthTimeFull,
-                timezone: chartTz || timezone,
-              });
-            }
-          }
+          applyRow(createdOrUpdated, { bindStore });
         }
       } else {
+        setChart(res.chart);
         setViewMode("preview");
       }
     } catch (e) {
@@ -769,6 +779,8 @@ export default function ProfilePage() {
           setViewMode(null);
           setSavedForm(null);
           setEditingChartId(null);
+          editingChartIdRef.current = null;
+          viewModeRef.current = null;
         }
       }
     } catch (e) {

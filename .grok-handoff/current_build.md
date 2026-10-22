@@ -1,14 +1,17 @@
 # Handoff — Chart save UX (Me/Friend no silent overwrite)
 
 ## Status
-- **READY FOR @qa Ship Gate** (PR open; not yet merged)
+- **PASS @qa Ship Gate** (2026-10-23 00:21 HKT) — not merged; awaiting ship call
 - PR: https://github.com/Benoliverc/hd-biohack/pull/16
-- Tip SHA: `4f5af57` (`feat/chart-save-ux`)
+- Tip SHA: `26789df` (`feat/chart-save-ux`) — polish after Ship Gate PASS*
 - Spec: `.grok-handoff/chart-save-ux-spec.md` — AC 1–10
 - Independent of Railway Hobby pause for pure FE create/update split (API already inserts when `natal_chart_id` omitted). Optional BE `slot_kind` freeze needs API redeploy when builds resume.
 
+## Polish (post Ship Gate)
+- **After Save as new friend / create:** always `applyRow` the new chart id (synthesize row if list lag). Pin `editingChartIdRef` before `refreshPeople` await so `refreshPeopleOnOpen` cannot re-apply store Me (#33). `bindStore` still only when create-self with no prior self / unbound natal.
+
 ## What to gate
-Run AC 1–10 from `chart-save-ux-spec.md` against this PR (local stack preferred).
+Run AC 1–10 from `chart-save-ux-spec.md` against this PR (local stack preferred). Confirm after create-friend the editor chip/banner selects the **new** friend, not Me.
 
 ## Local smoke
 ```bash
@@ -21,10 +24,10 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 cd frontend && npm run dev   # http://localhost:3000/profile
 ```
 1. Sign in with ≥1 saved chart (Me).
-2. Select Me → change birth city → **Save as new friend** with a name → new friend row; Me unchanged (same id/birth).
+2. Select Me → change birth city → **Save as new friend** with a name → new friend row; Me unchanged (same id/birth); **editor selects the new friend**.
 3. Select Me → change city → **Update “Me”** → confirm → Me updates in place; cancel confirm → no save.
-4. Select Friend A → **Save as new friend** “B” → A unchanged; B appears.
-5. **Add new person** → banner “New person (not saved yet)”; form cleared; Calculate & save does not send `natal_chart_id`.
+4. Select Friend A → **Save as new friend** “B” → A unchanged; B appears and is selected.
+5. **Add new person** → banner “New person (not saved yet)”; form cleared; Calculate & save does not send `natal_chart_id`; after save, new row selected (not Me).
 6. At 10 people: create disabled with limit copy; Update still works.
 7. Update path: role badge frozen (no Me↔Friend toggle).
 8. Empty friend name on create-friend → inline error.
