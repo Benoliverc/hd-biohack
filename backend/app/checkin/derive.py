@@ -191,10 +191,10 @@ def _no_natal_indication(transit: dict[str, Any] | None) -> dict[str, Any]:
     motor_hit = transit_defined & {"Sacral", "Heart"}
     if motor_hit:
         energy = 4
-        drivers = [f"sky motors active ({', '.join(sorted(motor_hit))}) — save a chart for personal overlay"]
+        drivers = [f"sky motors active ({', '.join(sorted(motor_hit))}) — personal overlay needs a natal chart"]
     else:
         energy = 3
-        drivers = ["sky-only reading — save a natal chart for personal Energy + Space"]
+        drivers = ["sky-only reading — personal Energy + Space needs a natal chart"]
 
     space: PreferredSpace = "focus"
     text, why, micro = compute_main_action(
@@ -206,7 +206,7 @@ def _no_natal_indication(transit: dict[str, Any] | None) -> dict[str, Any]:
     )
     why = (
         f"{why.rstrip('.')} · Chart weather only (no natal) — "
-        "not biometric or medical. Save a natal chart for personal bridges."
+        "not biometric or medical; personal bridges need a saved chart."
     )
     return {
         "energy_level": energy,

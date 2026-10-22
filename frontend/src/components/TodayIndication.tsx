@@ -44,7 +44,7 @@ export default function TodayIndication({
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
           Today&apos;s indication
         </h2>
-        <p className="text-sm text-fg-muted">Reading your chart weather…</p>
+        <p className="text-sm text-fg-secondary">Reading your chart weather…</p>
       </div>
     );
   }
@@ -80,7 +80,10 @@ export default function TodayIndication({
           <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
             Today&apos;s indication
           </h2>
-          <p className="mt-1 text-xs text-fg-muted" data-testid="indication-disclaimer">
+          <p
+            className="mt-1 text-sm text-fg-secondary"
+            data-testid="indication-disclaimer"
+          >
             {indication.disclaimer ||
               "Chart weather from your design × today's sky — not biometric or medical advice."}
           </p>
@@ -107,7 +110,7 @@ export default function TodayIndication({
                 className={`inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-xs sm:text-sm ${
                   active
                     ? "border-growth bg-growth-soft font-semibold text-growth-ink ring-2 ring-growth/30"
-                    : "border-border bg-sunken text-fg-muted"
+                    : "border-border bg-sunken text-fg-secondary"
                 }`}
               >
                 {c.label}
@@ -136,8 +139,8 @@ export default function TodayIndication({
                 data-active={active ? "true" : "false"}
                 className={`inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-xs sm:text-sm ${
                   active
-                    ? "border-energy bg-energy/30 font-semibold text-energy-ink ring-2 ring-energy/40"
-                    : "border-border bg-sunken text-fg-muted"
+                    ? "border-energy bg-energy-soft font-semibold text-energy-ink ring-2 ring-energy/30"
+                    : "border-border bg-sunken text-fg-secondary"
                 }`}
               >
                 {c.label}
@@ -157,6 +160,9 @@ export default function TodayIndication({
         <p className="text-sm font-medium text-fg" data-testid="main-action-text">
           {indication.main_action_text}
         </p>
+        <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
+          {indication.main_action_why}
+        </p>
         {indication.main_action_micro ? (
           <p
             className="mt-1.5 text-sm text-fg-secondary"
@@ -165,23 +171,22 @@ export default function TodayIndication({
             {indication.main_action_micro}
           </p>
         ) : null}
-        <p className="mt-2 text-xs text-fg-muted" data-testid="main-action-why">
-          {indication.main_action_why}
-        </p>
         {indication.drivers?.length ? (
-          <ul
-            className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-fg-muted"
-            data-testid="indication-drivers"
-          >
-            {indication.drivers.slice(0, 4).map((d) => (
-              <li key={d}>{d}</li>
-            ))}
-          </ul>
+          <div className="mt-2" data-testid="indication-drivers">
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
+              Chart notes
+            </p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
+              {indication.drivers.slice(0, 4).map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+          </div>
         ) : null}
         {indication.save_chart_cta ? (
           <Link
             href="/profile"
-            className="mt-3 inline-flex min-h-10 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
             data-testid="indication-save-chart-cta"
           >
             Save natal chart
@@ -189,7 +194,7 @@ export default function TodayIndication({
         ) : (
           <Link
             href="/biohack"
-            className="mt-3 inline-flex text-xs font-medium text-growth underline-offset-2 hover:underline"
+            className="mt-3 inline-flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium text-growth underline-offset-2 hover:underline"
             data-testid="open-protocols-secondary"
           >
             Open Protocols

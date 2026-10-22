@@ -220,12 +220,29 @@ def test_main_action_micro_separate():
     print("PASS: main_action_micro on own field")
 
 
+
+def test_why_does_not_restate_chips():
+    text, why, micro = compute_main_action(
+        1,
+        "alone",
+        natal={"type": "Projector", "strategy": "Wait for the Invitation"},
+    )
+    low = why.lower()
+    assert "energy is" not in low
+    assert "drained" not in low
+    assert "space:" not in low
+    assert "alone" not in low
+    assert micro == SPACE_MICRO["alone"]
+    print("PASS: why does not restate Energy/Space chips")
+
+
 def test_sky_bullet_helper():
     b = sky_bullet_one(
         {"sun_earth": {"sun": {"gate": 1, "line": 1}, "earth": {}}},
         None,
     )
-    assert b and "1.1" in b
+    assert b and "Gate 1 · line 1" in b
+    assert "1.1" not in b.replace("Gate 1 · line 1", "")
     print("PASS: sky_bullet_one")
 
 
@@ -259,6 +276,7 @@ if __name__ == "__main__":
     test_manifestor_alone()
     test_generator_default_focus()
     test_main_action_micro_separate()
+    test_why_does_not_restate_chips()
     test_sky_bullet_helper()
     test_page_load_shape_has_main()
     print("ALL indication unit tests passed")

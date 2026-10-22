@@ -31,6 +31,7 @@ const config: Config = {
         energy: {
           DEFAULT: "var(--energy)",
           ink: "var(--energy-ink)",
+          soft: "var(--energy-soft)",
         },
         recovery: "var(--recovery)",
         danger: "var(--danger)",

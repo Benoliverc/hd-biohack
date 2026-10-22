@@ -68,9 +68,14 @@ def sky_bullet_one(
         gate = sun.get("gate")
         line = sun.get("line")
         if gate is not None and line is not None:
-            label = f"{gate}.{line}"
+            label = f"Gate {gate} · line {line}"
         else:
-            label = str(sun.get("label") or "").strip() or "today's Sun"
+            raw = str(sun.get("label") or "").strip()
+            if raw and "." in raw and raw.replace(".", "").isdigit():
+                g, ln = raw.split(".", 1)
+                label = f"Gate {g} · line {ln}"
+            else:
+                label = raw or "today's Sun"
         return f"Notice the Sun theme ({label}) — let it color your day without forcing it."
     newly = overlay.get("newly_defined_centers") or []
     if newly:
@@ -112,31 +117,33 @@ def compute_main_action(
 
     if energy_level <= 2:
         primary = TYPE_RECOVER.get(hd_type, GENERIC_RECOVER)
-        why = f"Energy is {['', 'Drained', 'Low'][energy_level]} — protect and recover. {battery}"
+        why = f"Protect and recover — {battery}"
     elif energy_level == 3:
         sky = sky_bullet_one(transit, overlay)
         if sky:
             primary = sky
-            why = "Steady energy — follow today's sky cue as your OS guide."
+            why = "Follow today's sky cue as your OS guide."
         elif cached_top_action:
             primary = cached_top_action.strip()
-            why = "Steady energy — lean on your last protocol focus (read-only)."
+            why = "Lean on your last protocol focus (read-only)."
         elif strategy:
             primary = f"Follow Strategy: {strategy} — one clear focus, then stop."
-            why = f"Steady energy — run your {hd_type or 'chart'} operating system."
+            why = f"Run your {hd_type or 'chart'} operating system."
         else:
             primary = GENERIC_STEADY
-            why = "Steady energy — keep the day simple without a natal overlay yet."
+            why = "Keep the day simple — no natal overlay yet."
     else:
         primary = TYPE_SURPLUS.get(hd_type, GENERIC_SURPLUS)
         if strategy and hd_type:
             primary = f"{primary.rstrip('.')} (Strategy: {strategy})."
         if energy_level == 5:
             primary = f"{primary.rstrip('.')}. {HYPER_NOTE}"
-            why = f"Hyper energy — use surplus carefully; avoid more stimulation. {battery}"
+            why = f"Use surplus carefully; avoid more stimulation. {battery}"
         else:
-            why = f"Charged energy — use surplus carefully, Strategy-aligned. {battery}"
+            why = f"Use surplus carefully, Strategy-aligned. {battery}"
 
     text = primary.rstrip(".") + "."
-    why = f"{why.rstrip('.')} · Space: {preferred_space.replace('focus', 'focus corner').replace('out', 'out & about')}."
+    # Why is one plain "because" — do not restate Energy/Space chip labels
+    # (space micro-move lives on its own UI line).
+    why = why.rstrip(".") + "."
     return text, why, micro
