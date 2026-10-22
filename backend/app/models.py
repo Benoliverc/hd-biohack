@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -37,6 +38,12 @@ class User(Base):
     inventory: Mapped[list[SupplementInventory]] = relationship(back_populates="user")
     protocols: Mapped[list[WeeklyProtocol]] = relationship(back_populates="user")
     biometrics: Mapped[list[UserBiometricsDaily]] = relationship(back_populates="user")
+
+    @property
+    def is_admin(self) -> bool:
+        from .usage import is_admin_email
+
+        return is_admin_email(self.email)
 
 
 class GeocodeCache(Base):
@@ -111,3 +118,20 @@ class UserBiometricsDaily(Base):
     source_device: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="biometrics")
+
+
+class UsageEvent(Base):
+    """Append-only product usage log (login / chart / protocol)."""
+
+    __tablename__ = "usage_events"
+    __table_args__ = (
+        Index("ix_usage_events_type_created", "event_type", "created_at"),
+        Index("ix_usage_events_user_created", "user_id", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True, nullable=True)
+    email: Mapped[str] = mapped_column(String(255), index=True, default="")
+    event_type: Mapped[str] = mapped_column(String(32), index=True)  # login | chart_generated | protocol_generated
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)

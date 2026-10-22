@@ -103,6 +103,7 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 | `ENFORCE_PAYWALL` | No | Backend paywall flag |
 | `NOMINATIM_USER_AGENT` | Recommended | Nominatim ToS |
 | `LLM_*` / `SUPABASE_*` | No | Optional |
+| `ADMIN_EMAILS` | Recommended | Comma-separated admin emails for `/admin` (include `benjaminlammens@gmail.com`; local also `benjamin@test.hd-biohack.local`) |
 
 ### Vercel (frontend)
 

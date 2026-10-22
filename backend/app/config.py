@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     nominatim_user_agent: str = "hd-biohack-v1/1.0 (local-dev; contact@example.com)"
     enforce_paywall: bool = False
     seed_dev_users: bool = True
+    # Comma-separated admin emails (case-insensitive). Prod: include benjaminlammens@gmail.com
+    # Local seed Benjamin: benjamin@test.hd-biohack.local
+    admin_emails: str = "benjaminlammens@gmail.com,benjamin@test.hd-biohack.local"
     cors_origins: str = Field(
         default="http://localhost:3000,http://127.0.0.1:3000",
         validation_alias=AliasChoices("CORS_ORIGINS", "ALLOWED_ORIGINS", "cors_origins"),

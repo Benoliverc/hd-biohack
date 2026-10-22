@@ -19,6 +19,15 @@ from ..models import (
     WeeklyProtocol,
 )
 from ..auth import verify_password
+from ..usage import (
+    backfill_usage_from_history,
+    list_usage_events,
+    record_usage_event,
+    require_admin_user,
+    stats_daily,
+    stats_monthly,
+    stats_weekly,
+)
 from ..schemas import (
     BirthDataIn,
     ChartLabelPatch,
@@ -30,6 +39,10 @@ from ..schemas import (
     ProtocolRequest,
     TelemetryIn,
     TransitResponse,
+    UsageEventsPage,
+    UsageStatsDay,
+    UsageStatsMonth,
+    UsageStatsWeek,
     UserCreate,
     UserOut,
 )
@@ -68,6 +81,7 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
         )
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(401, "Invalid username or password")
+    record_usage_event(user=user, event_type="login")
     return user
 
 @router.get("/users", response_model=list[UserOut])
@@ -201,6 +215,18 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             db.refresh(row)
             natal_id = row.id
 
+    if body.user_id:
+        user_for_event = db.get(User, body.user_id)
+        if user_for_event:
+            record_usage_event(
+                user=user_for_event,
+                event_type="chart_generated",
+                metadata={
+                    "natal_chart_id": natal_id,
+                    "saved": bool(body.save and natal_id),
+                    "slot_kind": body.slot_kind,
+                },
+            )
     return ChartResponse(chart=chart, natal_chart_id=natal_id)
 
 
@@ -391,6 +417,15 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
     snap = WeeklyProtocol(user_id=body.user_id, week_start=week_start, protocol_json=proto)
     db.add(snap)
     db.commit()
+    db.refresh(snap)
+    record_usage_event(
+        user=user,
+        event_type="protocol_generated",
+        metadata={
+            "protocol_id": snap.id,
+            "natal_chart_id": natal_row.id,
+        },
+    )
 
     return {
         "entitlement": {
@@ -401,6 +436,66 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
         "protocol": proto,
     }
 
+
+
+
+@router.get("/admin/usage/events", response_model=UsageEventsPage)
+def admin_usage_events(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    day: str | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
+    event_type: str | None = Query(None, description="login|chart_generated|protocol_generated"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    total, items = list_usage_events(
+        db, limit=limit, offset=offset, day=day, event_type=event_type
+    )
+    return {"total": total, "items": items}
+
+
+@router.get("/admin/usage/stats/daily", response_model=list[UsageStatsDay])
+def admin_usage_stats_daily(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    from_day: str | None = Query(None, alias="from", description="YYYY-MM-DD UTC"),
+    to_day: str | None = Query(None, alias="to", description="YYYY-MM-DD UTC"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    fd = date.fromisoformat(from_day) if from_day else None
+    td = date.fromisoformat(to_day) if to_day else None
+    return stats_daily(db, from_day=fd, to_day=td)
+
+
+@router.get("/admin/usage/stats/weekly", response_model=list[UsageStatsWeek])
+def admin_usage_stats_weekly(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    weeks: int = Query(12, ge=1, le=52),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    return stats_weekly(db, weeks=weeks)
+
+
+@router.get("/admin/usage/stats/monthly", response_model=list[UsageStatsMonth])
+def admin_usage_stats_monthly(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    months: int = Query(12, ge=1, le=36),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    return stats_monthly(db, months=months)
+
+
+@router.post("/admin/usage/backfill")
+def admin_usage_backfill(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    db: Session = Depends(get_db),
+):
+    """Optional idempotent historical backfill from natal_charts / weekly_protocols."""
+    require_admin_user(db, actor_user_id)
+    return backfill_usage_from_history(db)
 
 @router.post("/api/v2/telemetry/ingest")
 @router.post("/v2/telemetry/ingest")

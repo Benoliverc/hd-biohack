@@ -68,6 +68,7 @@ class UserOut(BaseModel):
     subscription_tier: str
     stripe_customer_id: str | None
     biohacking_enabled: bool
+    is_admin: bool = False
 
     class Config:
         from_attributes = True
@@ -113,3 +114,44 @@ class GeocodeOut(BaseModel):
 
 class GeocodeSuggestOut(BaseModel):
     results: list[GeocodeOut]
+
+
+class UsageEventOut(BaseModel):
+    id: int
+    user_id: int | None = None
+    email: str
+    display_name: str = ""
+    username: str | None = None
+    event_type: str
+    created_at: datetime
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class UsageEventsPage(BaseModel):
+    total: int
+    items: list[UsageEventOut]
+
+
+class UsageStatsDay(BaseModel):
+    day: str
+    logins: int
+    unique_users_logged_in: int
+    charts_generated: int
+    protocols_generated: int
+
+
+class UsageStatsWeek(BaseModel):
+    week: str
+    week_start: str
+    logins: int
+    unique_users_logged_in: int
+    charts_generated: int
+    protocols_generated: int
+
+
+class UsageStatsMonth(BaseModel):
+    month: str
+    logins: int
+    unique_users_logged_in: int
+    charts_generated: int
+    protocols_generated: int
