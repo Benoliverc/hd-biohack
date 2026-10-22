@@ -4,7 +4,7 @@
 - **Ready for:** `@qa` Ship Gate (UX Medium polish applied; do **not** treat as shipped)
 - **Spec:** `.grok-handoff/current_spec.md` (P0 Today check-in)
 - **Branch:** `feat/today-checkin`
-- **SHA:** `(pending commit — see git)`
+- **SHA:** `975e99e`
 - **UX:** PASS + Medium polish applied (micro-move own line). Review: `.grok-handoff/today-checkin-ux-review.md`
 
 ## Request
