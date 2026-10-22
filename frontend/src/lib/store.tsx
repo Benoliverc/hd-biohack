@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, SavedChartRow, User } from "./api";
 import { readSessionUserId, writeSessionUserId } from "./session";
+import { isAdminUser } from "./admin";
 
 export type NatalChartSummary = {
   id: number;
@@ -19,6 +20,8 @@ type AppState = {
   usersLoading: boolean;
   usersError: string | null;
   setUserId: (id: number) => void;
+  /** Prefer after login: seed store with API UserOut (incl. is_admin) before/with list refresh. */
+  setSessionUser: (user: User) => void;
   enforcePaywall: boolean;
   setEnforcePaywall: (v: boolean) => void;
   previewAsFree: boolean;
@@ -47,7 +50,16 @@ const FALLBACK_USER: User = {
   subscription_tier: "free",
   stripe_customer_id: null,
   biohacking_enabled: false,
+  is_admin: false,
 };
+
+function hydrateAdminFlag(u: User): User {
+  if (u.is_admin === true) return u;
+  // Older APIs omit is_admin — derive from the same allowlist the Header uses.
+  if (isAdminUser(u)) return { ...u, is_admin: true };
+  return { ...u, is_admin: false };
+}
+
 
 function summaryFromRow(row: SavedChartRow): NatalChartSummary {
   return {
@@ -125,7 +137,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUsersLoading(true);
     setUsersError(null);
     try {
-      const list = await api.users();
+      const list = (await api.users()).map(hydrateAdminFlag);
       setUsers(list);
       setUserId((prev) => {
         if (prev && list.some((u) => u.id === prev)) return prev;
@@ -247,6 +259,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setNatalBindingLoading(true);
           writeSessionUserId(id);
           setUserId(id);
+        },
+        setSessionUser: (incoming) => {
+          const u = hydrateAdminFlag(incoming);
+          setNatalChart(null);
+          setNatalBindingLoading(true);
+          writeSessionUserId(u.id);
+          setUsers((prev) => {
+            const others = prev.filter((x) => x.id !== u.id);
+            return [...others, u];
+          });
+          setUserId(u.id);
         },
         sessionReady,
         signOut: () => {

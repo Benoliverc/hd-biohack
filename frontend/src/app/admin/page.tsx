@@ -11,6 +11,7 @@ import {
   type UsageStatsWeek,
 } from "@/lib/api";
 import { useApp } from "@/lib/store";
+import { isAdminUser } from "@/lib/admin";
 
 type Period = "day" | "week" | "month";
 
@@ -19,17 +20,6 @@ const EVENT_LABELS: Record<string, string> = {
   chart_generated: "Chart",
   protocol_generated: "Protocol",
 };
-
-function isAdminUser(user: { email?: string; is_admin?: boolean } | null): boolean {
-  if (!user) return false;
-  if (user.is_admin) return true;
-  const allow = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (allow.length === 0) return false;
-  return allow.includes((user.email || "").toLowerCase());
-}
 
 function formatWhen(iso: string): string {
   try {

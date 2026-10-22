@@ -26,7 +26,7 @@ const PILLARS = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUserId, refreshUsers } = useApp();
+  const { setSessionUser, refreshUsers } = useApp();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -44,7 +44,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await api.login(u, password);
-      setUserId(user.id); // persists session + selects user
+      // Seed session with login UserOut (is_admin) so Admin link appears even if
+      // a subsequent GET /users is from an older API that omits the field.
+      setSessionUser(user);
       await refreshUsers();
       router.replace("/");
     } catch (err) {
