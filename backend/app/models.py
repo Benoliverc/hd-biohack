@@ -126,6 +126,7 @@ class DailyCheckin(Base):
     energy_level: Mapped[int] = mapped_column(Integer)  # 1–5
     preferred_space: Mapped[str] = mapped_column(String(32))  # people|alone|nature|focus|out
     main_action_text: Mapped[str] = mapped_column(Text)
+    main_action_micro: Mapped[str] = mapped_column(Text, default="")
     main_action_why: Mapped[str] = mapped_column(Text)
     timezone: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

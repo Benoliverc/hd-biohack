@@ -19,7 +19,7 @@ SPACE_MICRO: dict[str, str] = {
 
 TYPE_BATTERY: dict[str, str] = {
     "Generator": "Your battery fills when you respond — not when you push.",
-    "Manifesting Generator": "Your battery likes speed after a Sacral yes, then informing.",
+    "Manifesting Generator": "Your battery needs a Sacral yes first — then inform — not constant acceleration.",
     "Manifestor": "Your battery likes protected initiation windows, not constant availability.",
     "Projector": "Your battery is recognition + rest, not Sacral stamina.",
     "Reflector": "Your battery is the room you're in — change place before forcing output.",
@@ -94,10 +94,11 @@ def compute_main_action(
     transit: dict[str, Any] | None = None,
     overlay: dict[str, Any] | None = None,
     cached_top_action: str | None = None,
-) -> tuple[str, str]:
+) -> tuple[str, str, str]:
     """
-    Return (main_action_text, main_action_why).
+    Return (main_action_text, main_action_why, main_action_micro).
 
+    main_action_text is the title only — space micro-move is separate for its own UI line.
     Deterministic only — never calls Protocol generate or an LLM.
     """
     if energy_level < ENERGY_MIN or energy_level > ENERGY_MAX:
@@ -136,7 +137,6 @@ def compute_main_action(
         else:
             why = f"Charged energy — use surplus carefully, Strategy-aligned. {battery}"
 
-    # Space micro-move sits under / with the main action
-    text = f"{primary.rstrip('.')} · {micro}"
+    text = primary.rstrip(".") + "."
     why = f"{why.rstrip('.')} · Space: {preferred_space.replace('focus', 'focus corner').replace('out', 'out & about')}."
-    return text, why
+    return text, why, micro

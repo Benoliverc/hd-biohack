@@ -117,6 +117,7 @@ class CheckinOut(BaseModel):
     energy_level: int
     preferred_space: str
     main_action_text: str
+    main_action_micro: str = ""
     main_action_why: str
     timezone: str | None = None
     created_at: datetime | None = None

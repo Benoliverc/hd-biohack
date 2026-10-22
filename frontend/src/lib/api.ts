@@ -95,6 +95,7 @@ export type DailyCheckin = {
   energy_level: number;
   preferred_space: PreferredSpace | string;
   main_action_text: string;
+  main_action_micro?: string | null;
   main_action_why: string;
   timezone?: string | null;
   created_at?: string | null;

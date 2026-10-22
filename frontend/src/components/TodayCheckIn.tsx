@@ -197,7 +197,7 @@ export default function TodayCheckIn() {
                 aria-checked={active}
                 data-testid={`energy-${c.level}`}
                 onClick={() => onEnergy(c.level)}
-                className={`min-h-10 rounded-full border px-3 py-2 text-xs transition sm:text-sm ${
+                className={`min-h-11 rounded-full border px-3 py-2 text-xs transition sm:text-sm ${
                   active
                     ? "border-growth bg-growth-soft font-semibold text-growth-ink ring-2 ring-growth/30"
                     : "border-border bg-sunken text-fg-secondary hover:border-growth/50 hover:text-fg"
@@ -223,9 +223,9 @@ export default function TodayCheckIn() {
                 aria-checked={active}
                 data-testid={`space-${c.value}`}
                 onClick={() => onSpace(c.value)}
-                className={`min-h-10 rounded-full border px-3 py-2 text-xs transition sm:text-sm ${
+                className={`min-h-11 rounded-full border px-3 py-2 text-xs transition sm:text-sm ${
                   active
-                    ? "border-energy bg-energy/15 font-semibold text-energy-ink ring-2 ring-energy/30"
+                    ? "border-energy bg-energy/30 font-semibold text-energy-ink ring-2 ring-energy/40"
                     : "border-border bg-sunken text-fg-secondary hover:border-energy/50 hover:text-fg"
                 }`}
               >
@@ -269,7 +269,15 @@ export default function TodayCheckIn() {
           <p className="text-sm font-medium text-fg" data-testid="main-action-text">
             {checkin.main_action_text}
           </p>
-          <p className="mt-2 text-xs text-fg-secondary" data-testid="main-action-why">
+          {checkin.main_action_micro ? (
+            <p
+              className="mt-1.5 text-sm text-fg-secondary"
+              data-testid="main-action-micro"
+            >
+              {checkin.main_action_micro}
+            </p>
+          ) : null}
+          <p className="mt-2 text-xs text-fg-muted" data-testid="main-action-why">
             {checkin.main_action_why}
           </p>
           <Link

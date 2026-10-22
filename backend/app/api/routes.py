@@ -504,7 +504,7 @@ def upsert_checkin(body: CheckinUpsert, db: Session = Depends(get_db)):
     natal, transit, overlay = _natal_and_sky(db, body.user_id, body.natal_chart_id)
     cached = _cached_protocol_top_action(db, body.user_id)
     try:
-        text, why = compute_main_action(
+        text, why, micro = compute_main_action(
             body.energy_level,
             body.preferred_space,
             natal=natal,
@@ -528,6 +528,7 @@ def upsert_checkin(body: CheckinUpsert, db: Session = Depends(get_db)):
         row.energy_level = body.energy_level
         row.preferred_space = body.preferred_space
         row.main_action_text = text
+        row.main_action_micro = micro
         row.main_action_why = why
         row.timezone = body.timezone
         row.updated_at = now
@@ -538,6 +539,7 @@ def upsert_checkin(body: CheckinUpsert, db: Session = Depends(get_db)):
             energy_level=body.energy_level,
             preferred_space=body.preferred_space,
             main_action_text=text,
+            main_action_micro=micro,
             main_action_why=why,
             timezone=body.timezone,
             created_at=now,
