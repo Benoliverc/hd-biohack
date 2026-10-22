@@ -1,7 +1,8 @@
 # Baseline backlog
 
 ## [P0 - Active]
-- Today check-in: Energy (Drained→Hyper) + Preferred space → one Main action on `/transits` — see `current_spec.md`
+- Today HD indication (Energy + Space from natal × transit) — see `current_spec.md` — **FE live; API redeploy blocked on Railway Hobby pause**
+- Admin usage logbook + day/week/month stats — see `admin-usage-spec.md`
 
 ## [P1 - Next]
 - Soft HD Environment hint when Variables exist (vernacular chips stay primary)

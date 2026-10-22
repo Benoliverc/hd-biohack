@@ -11,6 +11,7 @@ from .database import SessionLocal, init_db
 from .hd.ephemeris import init_ephemeris
 from .geocode.service import seed_geocode_cache
 from .auth import ensure_dev_users, seed_password_users
+from .usage import backfill_usage_from_history
 
 
 def seed_dev_users() -> None:
@@ -42,6 +43,10 @@ async def lifespan(_: FastAPI):
     db = SessionLocal()
     try:
         seed_geocode_cache(db)
+        try:
+            backfill_usage_from_history(db)
+        except Exception:
+            pass
     finally:
         db.close()
     yield

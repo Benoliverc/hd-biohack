@@ -57,6 +57,7 @@ export type User = {
   subscription_tier: "free" | "biohacker_pro" | string;
   stripe_customer_id: string | null;
   biohacking_enabled: boolean;
+  is_admin?: boolean;
 };
 
 export type GeoPlace = {
@@ -101,6 +102,36 @@ export type TodayIndicationPayload = {
   save_chart_cta: boolean;
   disclaimer: string;
 };
+
+
+export type UsageEventType = "login" | "chart_generated" | "protocol_generated";
+
+export type UsageEvent = {
+  id: number;
+  user_id: number | null;
+  email: string;
+  display_name: string;
+  username?: string | null;
+  event_type: UsageEventType | string;
+  created_at: string;
+  metadata: Record<string, unknown>;
+};
+
+export type UsageEventsPage = {
+  total: number;
+  items: UsageEvent[];
+};
+
+export type UsageStatsBucket = {
+  logins: number;
+  unique_users_logged_in: number;
+  charts_generated: number;
+  protocols_generated: number;
+};
+
+export type UsageStatsDay = UsageStatsBucket & { day: string };
+export type UsageStatsWeek = UsageStatsBucket & { week: string; week_start: string };
+export type UsageStatsMonth = UsageStatsBucket & { month: string };
 
 export const api = {
   health: () => req<{ status: string }>("/health"),
@@ -168,6 +199,31 @@ export const api = {
     req<{ ok: boolean; id: number }>(`/inventory/${itemId}?user_id=${userId}`, {
       method: "DELETE",
     }),
+  adminUsageEvents: (
+    actorUserId: number,
+    opts?: { limit?: number; offset?: number; day?: string; event_type?: string }
+  ) => {
+    const q = new URLSearchParams({ actor_user_id: String(actorUserId) });
+    if (opts?.limit != null) q.set("limit", String(opts.limit));
+    if (opts?.offset != null) q.set("offset", String(opts.offset));
+    if (opts?.day) q.set("day", opts.day);
+    if (opts?.event_type) q.set("event_type", opts.event_type);
+    return req<UsageEventsPage>(`/admin/usage/events?${q}`);
+  },
+  adminUsageStatsDaily: (actorUserId: number, from?: string, to?: string) => {
+    const q = new URLSearchParams({ actor_user_id: String(actorUserId) });
+    if (from) q.set("from", from);
+    if (to) q.set("to", to);
+    return req<UsageStatsDay[]>(`/admin/usage/stats/daily?${q}`);
+  },
+  adminUsageStatsWeekly: (actorUserId: number, weeks = 12) =>
+    req<UsageStatsWeek[]>(
+      `/admin/usage/stats/weekly?actor_user_id=${actorUserId}&weeks=${weeks}`
+    ),
+  adminUsageStatsMonthly: (actorUserId: number, months = 12) =>
+    req<UsageStatsMonth[]>(
+      `/admin/usage/stats/monthly?actor_user_id=${actorUserId}&months=${months}`
+    ),
 };
 
 export { API_BASE };

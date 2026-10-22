@@ -1,30 +1,34 @@
-# Handoff — Today HD indication (P0)
+# Handoff — Admin usage logbook (P0)
 
 ## Status
-- **SHIPPED** (frontend live; API blocked on Railway)
-- Merge: [PR #12](https://github.com/Benoliverc/hd-biohack/pull/12) → `e03e605` on `main`
-- Feature tip gated: `feat/today-hd-indication` @ `6b43b01` (impl polish `1e100bf`)
-- Ship note: `.grok-handoff/ship-today-hd-indication.md`
-- Spec: `.grok-handoff/current_spec.md` (HD-derived rewrite)
-- Gate: `.grok-handoff/ship_gate_report.md` — PASS AC 1–9
+- **READY FOR QA** on `feat/admin-usage`
+- Spec: `.grok-handoff/admin-usage-spec.md`
+- Do **not** merge until Ship Gate PASS + Benjamin asks
 
-## Production
-- **Vercel:** https://hd-biohack.vercel.app — Ready (`dpl_6a3cy4xwWKHniMWfL8Q3GvncDZUs`) @ ~13:08 HKT 2026-10-22
-- **Railway api:** Online host, but **builds paused** — redeploy failed (“Deploys have been paused temporarily”). Prod OpenAPI has `/transits/today` without `indication` field until builds resume + redeploy.
+## Built
+1. `usage_events` table + `record_usage_event` (best-effort, separate session)
+2. Instrument: login → `login`; chart calculate w/ user_id → `chart_generated`; protocol → `protocol_generated`
+3. Gate: `ADMIN_EMAILS` (default includes `benjaminlammens@gmail.com` + `benjamin@test.hd-biohack.local`)
+4. APIs: `GET /admin/usage/events`, `…/stats/daily|weekly|monthly` (+ optional `POST /admin/usage/backfill`)
+5. Frontend `/admin`: Day/Week/Month cards + logbook; discreet Header Admin link when `is_admin`
+6. Tests: `backend/tests/test_usage_admin.py` (AC 1–9) — 10 passed
+7. Docs: `.env.example`, `DEPLOY.md`
+8. Nice-to-have: idempotent backfill from natal_charts / weekly_protocols on API boot
 
-## What shipped
-Read-only **Today's indication** on `/transits` above “What to do today”:
-- Energy (Drained→Hyper) + preferred space as display chips (no questions, no taps)
-- Main action + why + micro-move (deterministic)
-- Payload on `GET /transits/today` → `indication` (once API redeploys)
-- Free tier; chart-weather disclaimer; no-natal Steady/Charged + one save-chart CTA
+## Local verify
+```bash
+# backend
+cd backend && source .venv/bin/activate
+export ADMIN_EMAILS=benjaminlammens@gmail.com,benjamin@test.hd-biohack.local
+pytest tests/test_usage_admin.py -q
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
-## Hard no (verified at gate)
-- No self-ask chips
-- No `PUT /checkin` from UI
-- No Variables engine / LLM / Protocol generate side effect
-- Copy never claims Type/Authority changes
+# frontend — login as Benjamin / Wolkje → Admin in header → /admin
+cd frontend && npm run dev
+```
 
-## Next
-1. When Railway builds resume: `railway redeploy --from-source -y` on `api`, then smoke `GET /transits/today` for `indication`
-2. Rotate Railway env secrets if not already done (incident notice)
+## Prod note
+Railway builds still paused — merge/PR ok; API redeploy waits. Vercel can ship `/admin` UI earlier but admin APIs 404 until Railway is back.
+
+## Out of scope (held)
+Full analytics, CSV, locking open `GET /users`, JWT rewrite.
