@@ -2,6 +2,8 @@
 
 ## Status
 - **READY FOR @qa Ship Gate** (PR open; not yet merged)
+- PR: https://github.com/Benoliverc/hd-biohack/pull/16
+- Tip SHA: `4f5af57` (`feat/chart-save-ux`)
 - Spec: `.grok-handoff/chart-save-ux-spec.md` — AC 1–10
 - Independent of Railway Hobby pause for pure FE create/update split (API already inserts when `natal_chart_id` omitted). Optional BE `slot_kind` freeze needs API redeploy when builds resume.
 
