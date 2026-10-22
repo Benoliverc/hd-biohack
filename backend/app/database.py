@@ -37,7 +37,6 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_natal_chart_columns()
     _ensure_user_auth_columns()
-    _ensure_checkin_columns()
 
 
 def _ensure_natal_chart_columns() -> None:
@@ -74,18 +73,3 @@ def _ensure_user_auth_columns() -> None:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON users (username)"))
         except Exception:
             pass
-
-
-def _ensure_checkin_columns() -> None:
-    """SQLite-friendly ALTER for main_action_micro when upgrading an existing DB."""
-    from sqlalchemy import inspect, text
-
-    insp = inspect(engine)
-    if "daily_checkins" not in insp.get_table_names():
-        return
-    cols = {c["name"] for c in insp.get_columns("daily_checkins")}
-    with engine.begin() as conn:
-        if "main_action_micro" not in cols:
-            conn.execute(
-                text("ALTER TABLE daily_checkins ADD COLUMN main_action_micro TEXT DEFAULT ''")
-            )

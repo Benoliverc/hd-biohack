@@ -1,9 +1,10 @@
 # P0 — Today check-in: Energy + Preferred space → Main action
 
-**Status:** Active — ready for `@dev`  
-**Route:** `/transits` (nav **Today**)  
-**App:** Baseline (hd-biohack)  
-**Date:** 2026-10-22
+**Status:** SUPERSEDED / REVERTED (2026-10-22)  
+**Do not implement.** Self-report chips removed from Baseline. Future Today feature will **indicate** energy + preferred space from Human Design of today (transits/natal overlay), not ask the user. Await rewritten HD-derived spec from PO.
+
+---
+ARCHIVE (self-report spec — historical only):
 
 ## User story & business goal
 

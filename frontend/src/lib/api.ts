@@ -85,23 +85,6 @@ export type SavedChartRow = {
   chart: Record<string, unknown>;
 };
 
-
-export type PreferredSpace = "people" | "alone" | "nature" | "focus" | "out";
-
-export type DailyCheckin = {
-  id: number;
-  user_id: number;
-  local_date: string;
-  energy_level: number;
-  preferred_space: PreferredSpace | string;
-  main_action_text: string;
-  main_action_micro?: string | null;
-  main_action_why: string;
-  timezone?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
 export const api = {
   health: () => req<{ status: string }>("/health"),
   login: (username: string, password: string) =>
@@ -165,22 +148,6 @@ export const api = {
   removeInventory: (userId: number, itemId: number) =>
     req<{ ok: boolean; id: number }>(`/inventory/${itemId}?user_id=${userId}`, {
       method: "DELETE",
-    }),
-  getCheckinToday: (userId: number, localDate: string) =>
-    req<DailyCheckin | null>(
-      `/checkin/today?user_id=${userId}&local_date=${encodeURIComponent(localDate)}`
-    ),
-  upsertCheckin: (body: {
-    user_id: number;
-    local_date: string;
-    energy_level: number;
-    preferred_space: PreferredSpace;
-    timezone?: string | null;
-    natal_chart_id?: number | null;
-  }) =>
-    req<DailyCheckin>("/checkin", {
-      method: "PUT",
-      body: JSON.stringify(body),
     }),
 };
 
