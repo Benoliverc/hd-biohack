@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, FlaskConical, LogOut, Orbit, Shield, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
+import { isAdminUser } from "@/lib/admin";
 
 const nav = [
   { href: "/", label: "Home", icon: Orbit, testId: "nav-home" },
@@ -16,18 +17,6 @@ const nav = [
 const showDevControls =
   process.env.NODE_ENV === "development" ||
   process.env.NEXT_PUBLIC_SHOW_DEV_CONTROLS === "true";
-
-function userIsAdmin(user: { email?: string; is_admin?: boolean } | null | undefined): boolean {
-  if (!user) return false;
-  if (user.is_admin) return true;
-  const allow = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (!allow.length) return false;
-  return allow.includes((user.email || "").toLowerCase());
-}
-
 
 function DevChrome() {
   const {
@@ -135,7 +124,7 @@ export function Header() {
                 <span className="hidden max-w-[7rem] truncate text-fg-secondary sm:inline" title={user.display_name}>
                   {user.display_name}
                 </span>
-                {userIsAdmin(user) && (
+                {isAdminUser(user) && (
                   <Link
                     href="/admin"
                     data-testid="nav-admin"
@@ -147,7 +136,7 @@ export function Header() {
                     }`}
                   >
                     <Shield className="h-3.5 w-3.5" aria-hidden />
-                    <span className="hidden sm:inline">Admin</span>
+                    <span>Admin</span>
                   </Link>
                 )}
                 <button
