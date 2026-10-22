@@ -7,10 +7,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..biohack import build_protocol, maybe_synthesize
+from ..checkin import compute_main_action
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
 from ..models import (
+    DailyCheckin,
     NatalChart,
     SupplementInventory,
     User,
@@ -22,6 +24,8 @@ from ..schemas import (
     BirthDataIn,
     ChartLabelPatch,
     ChartResponse,
+    CheckinOut,
+    CheckinUpsert,
     GeocodeOut,
     GeocodeSuggestOut,
     InventoryItemIn,
@@ -426,3 +430,120 @@ def telemetry_ingest(body: TelemetryIn, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(row)
     return {"status": "accepted", "id": row.id, "note": "V2 stub — not yet merged into protocols"}
+
+
+def _cached_protocol_top_action(db: Session, user_id: int) -> str | None:
+    """Read-only: last weekly protocol summary.top_actions[0] if present. Never generates."""
+    snap = (
+        db.query(WeeklyProtocol)
+        .filter(WeeklyProtocol.user_id == user_id)
+        .order_by(WeeklyProtocol.created_at.desc(), WeeklyProtocol.id.desc())
+        .first()
+    )
+    if not snap or not isinstance(snap.protocol_json, dict):
+        return None
+    summary = snap.protocol_json.get("summary") or {}
+    if not isinstance(summary, dict):
+        return None
+    tops = summary.get("top_actions") or []
+    if isinstance(tops, list) and tops:
+        first = tops[0]
+        return str(first).strip() or None
+    return None
+
+
+def _natal_and_sky(
+    db: Session, user_id: int, natal_chart_id: int | None
+) -> tuple[dict | None, dict | None, dict | None]:
+    natal: dict | None = None
+    row = None
+    if natal_chart_id is not None:
+        row = db.get(NatalChart, natal_chart_id)
+        if row and row.user_id != user_id:
+            raise HTTPException(404, "Natal chart not found")
+        if not row:
+            raise HTTPException(404, "Natal chart not found")
+    else:
+        row = (
+            db.query(NatalChart)
+            .filter(NatalChart.user_id == user_id)
+            .order_by(NatalChart.id.desc())
+            .first()
+        )
+    if row:
+        natal = row.chart_json if isinstance(row.chart_json, dict) else None
+    transit = calculate_transits()
+    overlay = overlay_transits(natal, transit) if natal else None
+    return natal, transit, overlay
+
+
+@router.get("/checkin/today", response_model=CheckinOut | None)
+def get_checkin_today(
+    user_id: int = Query(...),
+    local_date: date = Query(..., description="YYYY-MM-DD in the user's local zone"),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    row = (
+        db.query(DailyCheckin)
+        .filter(DailyCheckin.user_id == user_id, DailyCheckin.local_date == local_date)
+        .first()
+    )
+    return row
+
+
+@router.put("/checkin", response_model=CheckinOut)
+def upsert_checkin(body: CheckinUpsert, db: Session = Depends(get_db)):
+    """Upsert one daily check-in; computes Main action deterministically (no LLM / no Protocol generate)."""
+    user = db.get(User, body.user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    natal, transit, overlay = _natal_and_sky(db, body.user_id, body.natal_chart_id)
+    cached = _cached_protocol_top_action(db, body.user_id)
+    try:
+        text, why = compute_main_action(
+            body.energy_level,
+            body.preferred_space,
+            natal=natal,
+            transit=transit,
+            overlay=overlay,
+            cached_top_action=cached,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+    now = datetime.utcnow()
+    row = (
+        db.query(DailyCheckin)
+        .filter(
+            DailyCheckin.user_id == body.user_id,
+            DailyCheckin.local_date == body.local_date,
+        )
+        .first()
+    )
+    if row:
+        row.energy_level = body.energy_level
+        row.preferred_space = body.preferred_space
+        row.main_action_text = text
+        row.main_action_why = why
+        row.timezone = body.timezone
+        row.updated_at = now
+    else:
+        row = DailyCheckin(
+            user_id=body.user_id,
+            local_date=body.local_date,
+            energy_level=body.energy_level,
+            preferred_space=body.preferred_space,
+            main_action_text=text,
+            main_action_why=why,
+            timezone=body.timezone,
+            created_at=now,
+            updated_at=now,
+        )
+        db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
