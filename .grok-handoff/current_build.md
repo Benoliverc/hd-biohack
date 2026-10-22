@@ -3,6 +3,7 @@
 ## Status
 - **READY FOR @ui-ux** then **@qa Ship Gate**
 - Branch: `feat/today-hd-indication`
+- SHA: `7577fb6`
 - Spec: `.grok-handoff/current_spec.md` (2026-10-22 HD-derived rewrite; supersedes self-report)
 
 ## What shipped on this branch (not merged)
