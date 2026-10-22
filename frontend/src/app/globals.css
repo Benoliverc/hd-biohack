@@ -26,7 +26,8 @@
   --growth-soft: #dce5de;
 
   --energy: #c87d55;
-  --energy-ink: #a86640;
+  --energy-ink: #7a4528;
+  --energy-soft: #f0e4db;
 
   --recovery: #d4a373;
   --danger: #8f4a3a;
@@ -54,6 +55,7 @@ html.dark,
 
   --energy: #c87d55;
   --energy-ink: #e0a882;
+  --energy-soft: #2a1f18;
 
   --recovery: #d4a373;
   --danger: #c47a6a;

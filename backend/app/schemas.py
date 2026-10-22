@@ -31,9 +31,24 @@ class ChartResponse(BaseModel):
     natal_chart_id: int | None = None
 
 
+class TodayIndication(BaseModel):
+    energy_level: int = Field(..., ge=1, le=5)
+    energy_label: str
+    preferred_space: Literal["people", "alone", "nature", "focus", "out"]
+    preferred_space_label: str
+    main_action_text: str
+    main_action_why: str
+    main_action_micro: str
+    drivers: list[str] = []
+    has_natal: bool = True
+    save_chart_cta: bool = False
+    disclaimer: str = ""
+
+
 class TransitResponse(BaseModel):
     transit: dict[str, Any]
     overlay: dict[str, Any] | None = None
+    indication: TodayIndication | None = None
 
 
 class UserCreate(BaseModel):

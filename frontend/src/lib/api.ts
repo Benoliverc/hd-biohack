@@ -85,6 +85,23 @@ export type SavedChartRow = {
   chart: Record<string, unknown>;
 };
 
+
+export type PreferredSpace = "people" | "alone" | "nature" | "focus" | "out";
+
+export type TodayIndicationPayload = {
+  energy_level: number;
+  energy_label: string;
+  preferred_space: PreferredSpace;
+  preferred_space_label: string;
+  main_action_text: string;
+  main_action_why: string;
+  main_action_micro: string;
+  drivers?: string[];
+  has_natal: boolean;
+  save_chart_cta: boolean;
+  disclaimer: string;
+};
+
 export const api = {
   health: () => req<{ status: string }>("/health"),
   login: (username: string, password: string) =>
@@ -127,9 +144,11 @@ export const api = {
       method: "DELETE",
     }),
   transitsToday: (natalChartId?: number) =>
-    req<{ transit: Record<string, unknown>; overlay: Record<string, unknown> | null }>(
-      `/transits/today${natalChartId ? `?natal_chart_id=${natalChartId}` : ""}`
-    ),
+    req<{
+      transit: Record<string, unknown>;
+      overlay: Record<string, unknown> | null;
+      indication: TodayIndicationPayload | null;
+    }>(`/transits/today${natalChartId ? `?natal_chart_id=${natalChartId}` : ""}`),
   protocol: (userId: number, natalChartId?: number) =>
     req<{ entitlement: Record<string, unknown>; overlay: Record<string, unknown>; protocol: Record<string, unknown> }>(
       "/biohack/protocol",

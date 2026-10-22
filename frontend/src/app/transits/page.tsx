@@ -6,12 +6,15 @@ import { api } from "@/lib/api";
 import { formatNatalOverlayLabel, useApp } from "@/lib/store";
 import { displayCenter, formatGateLine } from "@/lib/hdCopy";
 import { formatAsOfInZone } from "@/lib/timezone";
+import TodayIndication from "@/components/TodayIndication";
+import type { TodayIndicationPayload } from "@/lib/api";
 
 export default function TransitsPage() {
   const { natalChartId, natalChart, natalBindingLoading } = useApp();
   const [data, setData] = useState<{
     transit: Record<string, unknown>;
     overlay: Record<string, unknown> | null;
+    indication: TodayIndicationPayload | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +75,11 @@ export default function TransitsPage() {
     );
   }
   if (todayBullets.length === 0 && !loading) {
-    todayBullets.push("No strong personal overlay yet — save a natal chart for conditioning tips.");
+    todayBullets.push(
+      natalChartId
+        ? "No strong personal overlay spike — skim today's planetary gates below."
+        : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
+    );
     todayBullets.push("Skim today's planetary gates below, then open Protocols for stack tweaks.");
   } else if (todayBullets.length === 1) {
     todayBullets.push("When ready, open Protocols for natal baseline + this week's transit adjustments.");
@@ -102,32 +109,22 @@ export default function TransitsPage() {
         </div>
       )}
 
-      {!natalBindingLoading && !natalChartId && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-growth/30 bg-growth-soft px-4 py-3">
-          <p className="text-sm text-growth-ink">
-            No natal chart selected — planetary gates still load, but personal overlay needs a saved chart.
-          </p>
-          <Link
-            href="/profile"
-            className="inline-flex min-h-10 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
-          >
-            Save natal chart
-          </Link>
-        </div>
-      )}
-
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      {loading && !data && (
-        <p className="text-sm text-fg-muted">Loading today&apos;s gates…</p>
-      )}
+      <TodayIndication
+        indication={data?.indication}
+        loading={loading && !data}
+        error={error}
+        bindingLoading={natalBindingLoading}
+      />
 
       {!loading && todayBullets.length > 0 && (
-        <div className="rounded-2xl border border-growth/40 bg-growth-soft p-5">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-growth">
+        <div className="rounded-2xl border border-border bg-elevated p-5">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
             What to do today
           </h2>
-          <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
+          <p className="mb-2 text-xs text-fg-muted">Sky cues (secondary to today&apos;s indication)</p>
+          <ul className="mb-3 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
             {todayBullets.slice(0, 3).map((b) => (
               <li key={b}>{b}</li>
             ))}
@@ -135,9 +132,9 @@ export default function TransitsPage() {
           <Link
             href="/biohack"
             data-testid="open-protocol-adjustments"
-            className="inline-flex min-h-10 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+            className="inline-flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium text-growth underline-offset-2 hover:underline"
           >
-            Open today&apos;s protocol adjustments
+            Open Protocols
           </Link>
         </div>
       )}

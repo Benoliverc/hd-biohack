@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..biohack import build_protocol, maybe_synthesize
+from ..checkin import derive_today_indication
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
@@ -266,12 +267,15 @@ def transits_today(
 ):
     transit = calculate_transits()
     overlay = None
+    natal = None
     if natal_chart_id:
         row = db.get(NatalChart, natal_chart_id)
         if not row:
             raise HTTPException(404, "Natal chart not found")
-        overlay = overlay_transits(row.chart_json, transit)
-    return TransitResponse(transit=transit, overlay=overlay)
+        natal = row.chart_json
+        overlay = overlay_transits(natal, transit)
+    indication = derive_today_indication(natal, transit, overlay)
+    return TransitResponse(transit=transit, overlay=overlay, indication=indication)
 
 
 @router.post("/inventory")
