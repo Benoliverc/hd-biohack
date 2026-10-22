@@ -1,4 +1,7 @@
-"""Dual-chart Bio-Sync scorer (You ↔ Friend). Pure functions — no I/O."""
+"""Dual-chart Soul Aura Alchemy scorer (You ↔ Friend). Pure functions — no I/O.
+
+Supersedes Bio-Sync Fit % framing. Reuses channel-role classification.
+"""
 from __future__ import annotations
 
 from typing import Any, Iterable, Literal
@@ -6,39 +9,80 @@ from typing import Any, Iterable, Literal
 from .channels import (
     CENTERS,
     CHANNELS,
+    GATE_TO_CENTER,
     MOTORS,
     active_channels,
     defined_centers,
     hanging_gates as compute_hanging_gates,
 )
+from .type_authority import derive_definition
 
 ContextId = Literal["work", "life", "play"]
-ProtocolId = Literal["emotional_wait", "yield_compromise", "solo_buffer"]
 
 CONTEXT_LABELS: dict[str, str] = {
     "work": "Work & Co-Creation",
     "life": "Life & Intimacy",
-    "play": "Play & Performance",
+    "play": "Play & Recovery",
 }
 
-CONTEXT_WEIGHTS: dict[str, dict[str, float]] = {
-    "work": {"voltage": 0.35, "flow": 0.45, "ease": 0.20},
-    "life": {"voltage": 0.25, "flow": 0.35, "ease": 0.40},
-    "play": {"voltage": 0.50, "flow": 0.35, "ease": 0.15},
+# Valid context ids (replaces old CONTEXT_WEIGHTS for route validation)
+CONTEXT_IDS = frozenset(CONTEXT_LABELS.keys())
+
+PLAYBOOK_CARD_ORDER: dict[str, list[str]] = {
+    "life": ["somatic_playbook", "power_dynamics", "circuit_bridge", "spark_glue"],
+    "work": ["circuit_bridge", "spark_glue", "power_dynamics", "somatic_playbook"],
+    "play": ["spark_glue", "somatic_playbook", "circuit_bridge", "power_dynamics"],
 }
 
-ARCHETYPE_BLURBS: dict[str, str] = {
-    "closed_loop": "All nine centers lit together — intense shared field; plan decompression.",
-    "focused_radar": "Eight centers defined — sharp shared focus with one open breath-point.",
-    "dynamic_eq": "High internal chemistry with two open centers left to breathe.",
-    "open_field": "More open than closed in composite — exploratory, flexible, sensitive to setting.",
-}
+SIGNATURES: list[dict[str, str]] = [
+    {
+        "id": "magnetic_alchemy",
+        "label": "Magnetic Alchemy",
+        "emoji": "⚡",
+        "subtext": (
+            "High-voltage auric lock. Deep catalytic spark that amplifies "
+            "vitality and transforms both baselines."
+        ),
+    },
+    {
+        "id": "integrated_flow",
+        "label": "Integrated Flow Circuit",
+        "emoji": "🧬",
+        "subtext": (
+            "Seamless circuit completion. Separate energy islands snap into "
+            "a unified, continuous flow."
+        ),
+    },
+    {
+        "id": "harmonic_sanctuary",
+        "label": "Harmonic Sanctuary",
+        "emoji": "🌿",
+        "subtext": (
+            "Deep tribal or rhythmic familiarity. Low-friction baseline with "
+            "effortless unspoken understanding."
+        ),
+    },
+    {
+        "id": "catalytic_growth",
+        "label": "Catalytic Growth Engine",
+        "emoji": "🔥",
+        "subtext": (
+            "Intense developmental mirror. High momentum pairing designed for "
+            "rapid expansion and conscious pacing."
+        ),
+    },
+    {
+        "id": "spacious_explorers",
+        "label": "Spacious Co-Explorers",
+        "emoji": "🌊",
+        "subtext": (
+            "Breathable, low-conditioning field. Thrives on shared novelty, "
+            "changing environments, and fluidity."
+        ),
+    },
+]
 
-PROTOCOL_LABELS: dict[str, str] = {
-    "emotional_wait": "Apply 24h Emotional Wait Rule",
-    "yield_compromise": "Yield compromise channels to the defined holder",
-    "solo_buffer": "30-min solo decompression buffer",
-}
+_SIG_BY_ID = {s["id"]: s for s in SIGNATURES}
 
 CENTER_HINTS: dict[str, str] = {
     "Head": "Amplifier: their mental pressure can feel like your question. Ask: is this mine?",
@@ -56,6 +100,17 @@ HARMONIC_LINE_PAIRS = {frozenset({1, 4}), frozenset({2, 5}), frozenset({3, 6})}
 
 SACRAL_TYPES = {"Generator", "Manifesting Generator"}
 NON_SACRAL_TYPES = {"Projector", "Manifestor", "Reflector"}
+
+INTIMACY_GATES = frozenset({6, 59})
+SYNTHESIS_GATES = frozenset({19, 49})
+STRUCTURING_GATES = frozenset({23, 43})
+ABSTRACTION_GATES = frozenset({47, 64})
+TRANSITORINESS_GATES = frozenset({35, 36})
+CHARISMA_GATES = frozenset({20, 34})
+STRUGGLE_GATES = frozenset({28, 38})
+RECOGNITION_GATES = frozenset({30, 41})
+AWAKENING_GATES = frozenset({10, 20})
+EXPLORATION_GATES = frozenset({10, 34})
 
 DISCLAIMER = "Chart mechanics for awareness — not medical or relationship advice."
 
@@ -109,7 +164,6 @@ def profile_harmony(profile_a: str | None, profile_b: str | None) -> bool:
         return True
     if d_a is not None and d_b is not None and frozenset({d_a, d_b}) in HARMONIC_LINE_PAIRS:
         return True
-    # Juxtaposition 4/1 does not get the RA/LA complementary bonus
     if profile_a == "4/1" or profile_b == "4/1":
         return False
     ra = {1, 2, 3}
@@ -126,11 +180,32 @@ def _is_emotional(authority: str | None) -> bool:
     return "emotional" in a or "solar plexus" in a
 
 
-def _is_instant(authority: str | None) -> bool:
+def _is_sacral_auth(authority: str | None) -> bool:
+    if not authority:
+        return False
+    return authority.lower().startswith("sacral")
+
+
+def _is_splenic(authority: str | None) -> bool:
     if not authority:
         return False
     a = authority.lower()
-    return a.startswith("sacral") or "splenic" in a or a == "spleen"
+    return "splenic" in a or a == "spleen"
+
+
+def _is_instant(authority: str | None) -> bool:
+    return _is_sacral_auth(authority) or _is_splenic(authority)
+
+
+def shared_authority_class(auth_a: str | None, auth_b: str | None) -> bool:
+    """Both Emotional, both Sacral, or both Splenic."""
+    if _is_emotional(auth_a) and _is_emotional(auth_b):
+        return True
+    if _is_sacral_auth(auth_a) and _is_sacral_auth(auth_b):
+        return True
+    if _is_splenic(auth_a) and _is_splenic(auth_b):
+        return True
+    return False
 
 
 def authority_speed_gap(auth_a: str | None, auth_b: str | None) -> bool:
@@ -147,6 +222,22 @@ def sacral_asymmetry(type_a: str | None, type_b: str | None) -> bool:
     a_non = type_a in NON_SACRAL_TYPES
     b_non = type_b in NON_SACRAL_TYPES
     return (a_sacral and b_non) or (b_sacral and a_non)
+
+
+def is_split_definition(definition: str | None) -> bool:
+    """Split* = Split / Triple Split / Quadruple Split (multi-component)."""
+    if not definition:
+        return False
+    d = definition.strip()
+    if d.startswith("Split"):
+        return True
+    return d in {"Triple Split", "Quadruple Split"}
+
+
+def definition_for_gates(gates: set[int]) -> str:
+    channels = active_channels(gates)
+    defined = defined_centers(channels)
+    return derive_definition(defined, channels)
 
 
 def classify_channel_roles(
@@ -174,12 +265,11 @@ def classify_channel_roles(
             roles["compromise"].append(
                 {**entry, "full": "self" if n_a == 2 else "friend"}
             )
-        # else: both 0, or hanging-only (1+0) — unscored
     return roles
 
 
 def split_bridge_locks(
-    hanging_self: Iterable[dict], gates_friend: set[int]
+    hanging_self: Iterable[dict], gates_friend: set[int], *, held_by: str, missing_for: str
 ) -> list[dict[str, Any]]:
     seen: set[int] = set()
     out: list[dict[str, Any]] = []
@@ -196,8 +286,8 @@ def split_bridge_locks(
                 {
                     "gate": gate,
                     "channel": row.get("channel") or "",
-                    "held_by": "friend",
-                    "missing_for": "self",
+                    "held_by": held_by,
+                    "missing_for": missing_for,
                 }
             )
     return out
@@ -234,72 +324,271 @@ def conditioning_strip(
     return rows
 
 
-def archetype_for(n_defined: int) -> dict[str, Any]:
-    if n_defined == 9:
-        aid, label = "closed_loop", "9-0 · Closed-Loop Reactor"
-    elif n_defined == 8:
-        aid, label = "focused_radar", "8-1 · Focused Radar"
-    elif n_defined == 7:
-        aid, label = "dynamic_eq", "7-2 · Dynamic Equilibrium"
-    else:
-        aid, label = "open_field", "6-3+ · Open-Field Explorers"
-    return {
-        "id": aid,
-        "label": label,
-        "composite_defined_count": n_defined,
-        "blurb": ARCHETYPE_BLURBS[aid],
-    }
+def _channel_has_gates(roles_list: list[dict], gates: frozenset[int]) -> bool:
+    for ch in roles_list:
+        if frozenset(ch.get("gates") or []) == gates:
+            return True
+    return False
 
 
-def _weighted_fit(voltage: int, flow: int, ease: int, context: str) -> int:
-    w = CONTEXT_WEIGHTS[context]
-    raw = w["voltage"] * voltage + w["flow"] * flow + w["ease"] * ease
-    return int(clamp(round(raw)))
+def _roles_involving(
+    roles: dict[str, list[dict[str, Any]]],
+    role_keys: tuple[str, ...],
+    gate_sets: tuple[frozenset[int], ...],
+) -> bool:
+    for key in role_keys:
+        for ch in roles.get(key) or []:
+            g = frozenset(ch.get("gates") or [])
+            if g in gate_sets:
+                return True
+    return False
 
 
-def compute_soul_sync(
-    chart_a: dict[str, Any],
-    chart_b: dict[str, Any],
-    context: str = "work",
-    protocols: list[str] | None = None,
-    *,
-    self_meta: dict[str, Any] | None = None,
-    friend_meta: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Score Bio-Sync between chart A (self) and chart B (friend)."""
-    if context not in CONTEXT_WEIGHTS:
-        raise ValueError(f"invalid context: {context}")
-    enabled = list(protocols or [])
+def detect_integration_triad(
+    gates_a: set[int], gates_b: set[int], composite_gates: set[int]
+) -> tuple[bool, str]:
+    """Return (matched, detail)."""
+    comp_has_awakening = AWAKENING_GATES.issubset(composite_gates)
+    comp_has_exploration = EXPLORATION_GATES.issubset(composite_gates)
+    if not (comp_has_awakening and comp_has_exploration):
+        return False, ""
 
-    gates_a = _gate_set(chart_a)
-    gates_b = _gate_set(chart_b)
-    defined_a = _defined_set(chart_a, gates_a)
-    defined_b = _defined_set(chart_b, gates_b)
-    hanging_a = _hanging(chart_a, gates_a)
-
-    roles = classify_channel_roles(gates_a, gates_b)
-    bridges = split_bridge_locks(hanging_a, gates_b)
-
-    composite_gates = gates_a | gates_b
-    composite_channels = active_channels(composite_gates)
-    composite_defined = defined_centers(composite_channels)
-    newly_motors = sorted(
-        (composite_defined & MOTORS) - defined_a - defined_b
+    cross = (10 in gates_a and {20, 34}.issubset(gates_b)) or (
+        10 in gates_b and {20, 34}.issubset(gates_a)
     )
+    if cross:
+        return True, "Gate 10 meets 20-34 across the pair"
 
-    type_a = (self_meta or {}).get("type") or chart_a.get("type")
-    type_b = (friend_meta or {}).get("type") or chart_b.get("type")
-    profile_a = (self_meta or {}).get("profile") or chart_a.get("profile")
-    profile_b = (friend_meta or {}).get("profile") or chart_b.get("profile")
-    auth_a = (self_meta or {}).get("authority") or chart_a.get("authority")
-    auth_b = (friend_meta or {}).get("authority") or chart_b.get("authority")
+    alone_a = AWAKENING_GATES.issubset(gates_a) and EXPLORATION_GATES.issubset(gates_a)
+    alone_b = AWAKENING_GATES.issubset(gates_b) and EXPLORATION_GATES.issubset(gates_b)
+    if not alone_a and not alone_b:
+        return True, "Composite triad"
 
-    # --- Voltage ---
-    voltage_drivers: list[dict[str, Any]] = []
-    voltage = 0
+    return False, ""
+
+
+def detect_mirror_gates(
+    gates_a: set[int], gates_b: set[int], defined_a: set[str], defined_b: set[str]
+) -> tuple[bool, str, list[int]]:
+    shared = sorted(gates_a & gates_b)
+    mirrored: list[int] = []
+    for g in shared:
+        center = GATE_TO_CENTER.get(g)
+        if not center:
+            continue
+        if center not in defined_a and center not in defined_b:
+            mirrored.append(g)
+    if not mirrored:
+        return False, "", []
+    shown = mirrored[:5]
+    parts = []
+    for g in shown:
+        c = GATE_TO_CENTER.get(g, "?")
+        parts.append(f"{g} ({c})")
+    detail = "Shared hanging: " + ", ".join(parts)
+    return True, detail, mirrored
+
+
+def detect_badges(
+    *,
+    def_a: str,
+    def_b: str,
+    def_comp: str,
+    defined_a: set[str],
+    defined_b: set[str],
+    composite_defined: set[str],
+    gates_a: set[int],
+    gates_b: set[int],
+    composite_gates: set[int],
+    roles: dict[str, list[dict[str, Any]]],
+    bridges_self: list[dict],
+    bridges_friend: list[dict],
+) -> list[dict[str, Any]]:
+    badges: list[dict[str, Any]] = []
+
+    mutual = (
+        is_split_definition(def_a)
+        and is_split_definition(def_b)
+        and def_comp == "Single"
+    )
+    if mutual:
+        detail_parts = []
+        if bridges_self:
+            detail_parts.append(
+                "you←them: " + ", ".join(f"g{b['gate']}" for b in bridges_self[:4])
+            )
+        if bridges_friend:
+            detail_parts.append(
+                "them←you: " + ", ".join(f"g{b['gate']}" for b in bridges_friend[:4])
+            )
+        detail = "Split + Split → Single"
+        if detail_parts:
+            detail = detail + " · " + "; ".join(detail_parts)
+        badges.append(
+            {
+                "id": "mutual_split_bridge",
+                "label": "Mutual Split-Bridge (Single Flow)",
+                "detail": detail,
+            }
+        )
+
+    if (
+        "G" not in defined_a
+        and "G" not in defined_b
+        and "G" in composite_defined
+    ):
+        badges.append(
+            {
+                "id": "shared_compass",
+                "label": "Shared Compass Unlocked (G-Center Defined)",
+                "detail": "Open G + Open G → Defined G together",
+            }
+        )
+
+    if _channel_has_gates(roles["electromagnetic"], INTIMACY_GATES):
+        badges.append(
+            {
+                "id": "intimacy_lock",
+                "label": "Intimacy & Creative Lock (59-6)",
+                "detail": "Electromagnetic Intimacy",
+            }
+        )
+
+    triad_ok, triad_detail = detect_integration_triad(gates_a, gates_b, composite_gates)
+    if triad_ok:
+        badges.append(
+            {
+                "id": "integration_triad",
+                "label": "Integration Triad (10-20-34)",
+                "detail": triad_detail,
+            }
+        )
+
+    if _channel_has_gates(roles["companionship"], SYNTHESIS_GATES):
+        badges.append(
+            {
+                "id": "tribal_bond",
+                "label": "Tribal Bond (Shared 19-49)",
+                "detail": "Companionship Synthesis",
+            }
+        )
+
+    mirror_ok, mirror_detail, _ = detect_mirror_gates(
+        gates_a, gates_b, defined_a, defined_b
+    )
+    if mirror_ok:
+        badges.append(
+            {
+                "id": "mirror_gates",
+                "label": "Mirror Gates (Shared Hanging Gates)",
+                "detail": mirror_detail,
+            }
+        )
+
+    n_defined = len(composite_defined)
+    if n_defined == 8:
+        badges.append(
+            {
+                "id": "composite_8_1",
+                "label": '8-1 "Have Some Fun" Composite',
+                "detail": "8 defined / 1 open",
+            }
+        )
+    elif n_defined == 9:
+        badges.append(
+            {
+                "id": "composite_9_0",
+                "label": '9-0 "Full Circuit" Composite',
+                "detail": "9 defined / 0 open",
+            }
+        )
+
+    return badges
+
+
+def detect_signatures(
+    *,
+    roles: dict[str, list[dict[str, Any]]],
+    badge_ids: set[str],
+    def_a: str,
+    def_b: str,
+    def_comp: str,
+    composite_defined_count: int,
+    auth_a: str | None,
+    auth_b: str | None,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Return (primary, secondary|None) by priority order."""
+    em = roles["electromagnetic"]
+    companionship = roles["companionship"]
+    compromise = roles["compromise"]
+    dominance = roles["dominance"]
+    shared_auth = shared_authority_class(auth_a, auth_b)
+
+    checks: list[tuple[str, bool]] = [
+        (
+            "magnetic_alchemy",
+            len(em) >= 2
+            or _channel_has_gates(em, INTIMACY_GATES)
+            or "mutual_split_bridge" in badge_ids,
+        ),
+        (
+            "integrated_flow",
+            (
+                is_split_definition(def_a)
+                and is_split_definition(def_b)
+                and def_comp == "Single"
+            )
+            or "integration_triad" in badge_ids,
+        ),
+        (
+            "harmonic_sanctuary",
+            len(companionship) >= 2
+            or (
+                len(companionship) >= 1
+                and len(compromise) <= 1
+                and shared_auth
+            ),
+        ),
+        (
+            "catalytic_growth",
+            composite_defined_count in (8, 9)
+            and (len(compromise) >= 2 or len(dominance) >= 3),
+        ),
+        (
+            "spacious_explorers",
+            composite_defined_count <= 6,
+        ),
+    ]
+
+    matched = [sid for sid, ok in checks if ok]
+    if not matched:
+        matched = ["spacious_explorers"]
+
+    primary = dict(_SIG_BY_ID[matched[0]])
+    secondary = dict(_SIG_BY_ID[matched[1]]) if len(matched) > 1 else None
+    return primary, secondary
+
+
+def build_spectrums(
+    *,
+    roles: dict[str, list[dict[str, Any]]],
+    bridges_all_gates: set[int],
+    newly_motors: list[str],
+    badge_ids: set[str],
+    def_a: str,
+    def_b: str,
+    def_comp: str,
+    auth_a: str | None,
+    auth_b: str | None,
+    type_a: str | None,
+    type_b: str | None,
+) -> list[dict[str, Any]]:
+    # --- Auric Charge ---
+    charge_drivers: list[dict[str, Any]] = []
+    charge = 0
     for ch in roles["electromagnetic"]:
-        voltage += 18
-        voltage_drivers.append(
+        charge += 18
+        charge_drivers.append(
             {
                 "kind": "electromagnetic",
                 "channel": ch["channel"],
@@ -307,38 +596,42 @@ def compute_soul_sync(
                 "pts": 18,
             }
         )
-    for br in bridges:
-        voltage += 15
-        voltage_drivers.append(
-            {
-                "kind": "split_bridge",
-                "channel": br["channel"],
-                "gate": br["gate"],
-                "pts": 15,
-            }
-        )
+    for gate in sorted(bridges_all_gates):
+        charge += 15
+        charge_drivers.append({"kind": "hanging_bridge", "gate": gate, "pts": 15})
     for motor in newly_motors:
-        voltage += 8
-        voltage_drivers.append(
-            {"kind": "new_motor", "center": motor, "pts": 8}
+        charge += 8
+        charge_drivers.append({"kind": "new_motor", "center": motor, "pts": 8})
+    if "intimacy_lock" in badge_ids:
+        charge += 12
+        charge_drivers.append({"kind": "intimacy_lock", "pts": 12})
+    if "integration_triad" in badge_ids:
+        charge += 10
+        charge_drivers.append({"kind": "integration_triad", "pts": 10})
+    charge = int(clamp(charge))
+    if charge >= 60:
+        charge_summary = (
+            "High-voltage activation — catalytic spark, shared momentum, "
+            "and amplified nervous system output."
         )
-    voltage = int(clamp(voltage))
+    elif charge >= 30:
+        charge_summary = "Moderate auric charge — noticeable spark with room to breathe."
+    else:
+        charge_summary = "Calmer field — independent baselines with selective ignition points."
 
-    # --- Flow ---
-    flow_drivers: list[dict[str, Any]] = []
-    flow = 0
-    if profile_harmony(profile_a, profile_b):
-        flow += 25
-        flow_drivers.append(
-            {
-                "kind": "profile_harmony",
-                "profiles": [profile_a, profile_b],
-                "pts": 25,
-            }
-        )
+    # --- Circuit Continuity ---
+    cont_drivers: list[dict[str, Any]] = []
+    cont = 0
+    mutual_or_single = "mutual_split_bridge" in badge_ids or (
+        def_comp == "Single"
+        and (is_split_definition(def_a) or is_split_definition(def_b))
+    )
+    if mutual_or_single:
+        cont += 40
+        cont_drivers.append({"kind": "mutual_or_single_flow", "pts": 40})
     for ch in roles["companionship"]:
-        flow += 15
-        flow_drivers.append(
+        cont += 15
+        cont_drivers.append(
             {
                 "kind": "companionship",
                 "channel": ch["channel"],
@@ -347,84 +640,480 @@ def compute_soul_sync(
             }
         )
     for ch in roles["dominance"]:
-        flow += 10
-        flow_drivers.append(
+        cont += 8
+        cont_drivers.append(
             {
                 "kind": "dominance",
                 "channel": ch["channel"],
                 "gates": ch["gates"],
-                "pts": 10,
+                "pts": 8,
             }
         )
-    shared = sorted(defined_a & defined_b)
-    for center in shared:
-        flow += 5
-        flow_drivers.append(
-            {"kind": "shared_center", "center": center, "pts": 5}
+    if shared_authority_class(auth_a, auth_b):
+        cont += 20
+        cont_drivers.append({"kind": "shared_authority", "pts": 20})
+    if "shared_compass" in badge_ids:
+        cont += 15
+        cont_drivers.append({"kind": "shared_compass", "pts": 15})
+    cont = int(clamp(cont))
+    if cont >= 60:
+        cont_summary = (
+            "You complete each other's circuitry — thoughts, emotions, and "
+            "actions wire into a single continuous loop."
         )
-    flow = int(clamp(flow))
+    elif cont >= 30:
+        cont_summary = "Partial circuit completion — some bridges, some islands."
+    else:
+        cont_summary = "Mostly independent islands — connection through choice, not circuitry."
 
-    # --- Ease ---
-    ease_drivers: list[dict[str, Any]] = []
-    ease = 100
-    compromise_count = len(roles["compromise"])
+    # --- Somatic Pacing ---
+    pace_drivers: list[dict[str, Any]] = []
+    pace = 0
+    if sacral_asymmetry(type_a, type_b):
+        pace += 35
+        pace_drivers.append({"kind": "sacral_asymmetry", "pts": 35})
+    if _is_emotional(auth_a) and _is_emotional(auth_b):
+        pace += 30
+        pace_drivers.append({"kind": "double_emotional", "pts": 30})
+    compromise_pts = 0
     for ch in roles["compromise"]:
-        ease -= 18
-        ease_drivers.append(
+        if compromise_pts >= 36:
+            break
+        add = min(12, 36 - compromise_pts)
+        compromise_pts += add
+        pace += add
+        pace_drivers.append(
             {
                 "kind": "compromise",
                 "channel": ch["channel"],
                 "gates": ch["gates"],
-                "pts": -18,
+                "pts": add,
             }
         )
-    gap = authority_speed_gap(auth_a, auth_b)
-    if gap:
-        ease -= 15
-        ease_drivers.append({"kind": "authority_gap", "pts": -15})
-    nine_oh = len(composite_defined) == 9
-    if nine_oh:
-        ease -= 12
-        ease_drivers.append({"kind": "nine_zero", "pts": -12})
-    asym = sacral_asymmetry(type_a, type_b)
-    if asym:
-        ease -= 10
-        ease_drivers.append({"kind": "sacral_asymmetry", "pts": -10})
-    ease = int(clamp(ease))
+    if authority_speed_gap(auth_a, auth_b):
+        pace += 10
+        pace_drivers.append({"kind": "authority_speed_gap", "pts": 10})
+    pace = int(clamp(pace))
+    if pace >= 60:
+        pace_summary = (
+            "High-depth connection that thrives on intentional pacing, "
+            "emotional wave surfing, and solo aura recovery."
+        )
+    elif pace >= 30:
+        pace_summary = "Some co-regulation helps — name pace before pushing decisions."
+    else:
+        pace_summary = "Effortless cruise on paper — still protect solo aura after high-charge days."
 
-    natural_fit = _weighted_fit(voltage, flow, ease, context)
-
-    # --- Regulated ---
-    avail = [
+    return [
         {
-            "id": "emotional_wait",
-            "label": PROTOCOL_LABELS["emotional_wait"],
-            "applicable": gap,
+            "id": "auric_charge",
+            "label": "Auric Charge",
+            "low_label": "Independent Calm",
+            "high_label": "High-Voltage Lock",
+            "position": charge,
+            "summary": charge_summary,
+            "drivers": charge_drivers,
         },
         {
-            "id": "yield_compromise",
-            "label": PROTOCOL_LABELS["yield_compromise"],
-            "applicable": compromise_count >= 1,
+            "id": "circuit_continuity",
+            "label": "Circuit Continuity",
+            "low_label": "Independent Islands",
+            "high_label": "Unified Single Flow",
+            "position": cont,
+            "summary": cont_summary,
+            "drivers": cont_drivers,
         },
         {
-            "id": "solo_buffer",
-            "label": PROTOCOL_LABELS["solo_buffer"],
-            "applicable": voltage >= 60 or nine_oh,
+            "id": "somatic_pacing",
+            "label": "Somatic Pacing Style",
+            "low_label": "Effortless Cruise",
+            "high_label": "Active Co-Regulation",
+            "position": pace,
+            "summary": pace_summary,
+            "drivers": pace_drivers,
         },
     ]
-    applicable_ids = {p["id"] for p in avail if p["applicable"]}
-    regulated_ease = ease
-    for pid in enabled:
-        if pid not in applicable_ids:
-            continue
-        if pid == "emotional_wait":
-            regulated_ease += 10
-        elif pid == "yield_compromise":
-            regulated_ease += min(18, 9 * compromise_count)
-        elif pid == "solo_buffer":
-            regulated_ease += 8
-    regulated_ease = int(clamp(regulated_ease))
-    regulated_fit = _weighted_fit(voltage, flow, regulated_ease, context)
+
+
+def _holder_label(holder: str) -> str:
+    return "Your" if holder == "self" else "Their"
+
+
+def build_cards(
+    *,
+    roles: dict[str, list[dict[str, Any]]],
+    badge_ids: set[str],
+    bridges_self: list[dict],
+    bridges_friend: list[dict],
+    type_a: str | None,
+    type_b: str | None,
+    profile_a: str | None,
+    profile_b: str | None,
+    auth_a: str | None,
+    auth_b: str | None,
+) -> list[dict[str, Any]]:
+    # Card 1 — circuit_bridge
+    bridge_blocks: list[dict[str, str]] = []
+    if _roles_involving(
+        roles, ("dominance", "electromagnetic"), (STRUCTURING_GATES, ABSTRACTION_GATES)
+    ):
+        # Determine who holds structuring/abstraction for swap copy
+        holder_note = ""
+        for key in ("dominance", "electromagnetic"):
+            for ch in roles.get(key) or []:
+                g = frozenset(ch.get("gates") or [])
+                if g in (STRUCTURING_GATES, ABSTRACTION_GATES):
+                    h = ch.get("holder") or ch.get("full")
+                    if h == "self":
+                        holder_note = (
+                            "You help organize and articulate their abstract mental "
+                            "swirls into crisp insights."
+                        )
+                    elif h == "friend":
+                        holder_note = (
+                            "They help organize and articulate your abstract mental "
+                            "swirls into crisp insights."
+                        )
+                    break
+        bridge_blocks.append(
+            {
+                "headline": "Mental Structuring Bridge",
+                "body": holder_note
+                or (
+                    "You help organize and articulate their abstract mental swirls "
+                    "into crisp insights."
+                ),
+            }
+        )
+    if _roles_involving(
+        roles, ("dominance", "electromagnetic"), (TRANSITORINESS_GATES, CHARISMA_GATES)
+    ):
+        bridge_blocks.append(
+            {
+                "headline": "Kinetic Execution Bridge",
+                "body": "They wire deep intuition into physical action and experience.",
+            }
+        )
+    if "shared_compass" in badge_ids:
+        bridge_blocks.append(
+            {
+                "headline": "True North Lock",
+                "body": (
+                    "Together you generate a defined sense of direction and presence "
+                    "that neither of you holds solo."
+                ),
+            }
+        )
+    if "mutual_split_bridge" in badge_ids:
+        bridge_blocks.append(
+            {
+                "headline": "Split → Single Flow",
+                "body": (
+                    "Separately you run split circuitry; together the field resolves "
+                    "into one continuous definition."
+                ),
+            }
+        )
+    bridge_blocks = bridge_blocks[:4]
+    all_bridges = bridges_self + bridges_friend
+    circuit_card: dict[str, Any] = {
+        "id": "circuit_bridge",
+        "title": "How You Wire Together",
+        "body_blocks": bridge_blocks
+        or [
+            {
+                "headline": "Quiet wiring",
+                "body": (
+                    "No dramatic bridge theme on this pair — look at Spark & Glue "
+                    "and pacing instead."
+                ),
+            }
+        ],
+        "bridges": all_bridges,
+    }
+    if not bridge_blocks:
+        circuit_card["empty_body"] = (
+            "No dramatic bridge theme on this pair — look at Spark & Glue and pacing instead."
+        )
+
+    # Card 2 — spark_glue
+    spark_blocks: list[dict[str, str]] = []
+    if roles["electromagnetic"]:
+        lines = ", ".join(
+            f"{c['channel']} ({'-'.join(str(g) for g in c['gates'])})"
+            for c in roles["electromagnetic"]
+        )
+        spark_blocks.append(
+            {
+                "headline": "Spark (Electromagnetic)",
+                "body": lines,
+            }
+        )
+    if roles["companionship"]:
+        lines = ", ".join(
+            f"{c['channel']} ({'-'.join(str(g) for g in c['gates'])})"
+            for c in roles["companionship"]
+        )
+        spark_blocks.append(
+            {
+                "headline": "Bedrock (Companionship)",
+                "body": lines,
+            }
+        )
+    if roles["dominance"]:
+        lines = ", ".join(
+            f"{_holder_label(c.get('holder', 'self'))} {c['channel']}"
+            for c in roles["dominance"]
+        )
+        spark_blocks.append(
+            {
+                "headline": "Effortless Gifts (Dominance)",
+                "body": lines,
+            }
+        )
+    spark_card: dict[str, Any] = {
+        "id": "spark_glue",
+        "title": "Spark & Glue",
+        "body_blocks": spark_blocks
+        or [
+            {
+                "headline": "Quiet field",
+                "body": "No electromagnetic, companionship, or dominance channels on this pair.",
+            }
+        ],
+    }
+
+    # Card 3 — power_dynamics
+    power_blocks: list[dict[str, str]] = []
+    for ch in roles["compromise"]:
+        gset = frozenset(ch.get("gates") or [])
+        name = ch.get("channel") or "Channel"
+        if gset == STRUGGLE_GATES:
+            headline = "Purpose & Tenacity Tuning"
+            proto = "Check in before locking into stubborn solo battles."
+        elif gset == RECOGNITION_GATES:
+            headline = "Desire & Imagination Tuning"
+            proto = "Label casual fantasies vs ready-to-launch plans."
+        else:
+            headline = f"{name} Tuning"
+            proto = "Name who is running the full thermostat before pushing pace."
+        full = ch.get("full", "self")
+        who = "You hold the full channel" if full == "self" else "They hold the full channel"
+        power_blocks.append(
+            {
+                "headline": headline,
+                "body": f"{who} ({name}). {proto}",
+            }
+        )
+    power_card: dict[str, Any] = {
+        "id": "power_dynamics",
+        "title": "Power Dynamics to Tune",
+        "body_blocks": power_blocks
+        or [
+            {
+                "headline": "Steady thermostats",
+                "body": "No compromise channels — fewer thermostat collisions on paper.",
+            }
+        ],
+    }
+    if not power_blocks:
+        power_card["empty_body"] = (
+            "No compromise channels — fewer thermostat collisions on paper."
+        )
+
+    # Card 4 — somatic_playbook
+    protocols: list[dict[str, str]] = []
+    if sacral_asymmetry(type_a, type_b):
+        protocols.append(
+            {
+                "id": "sacral_aura_hygiene",
+                "title": "Sacral / Non-Sacral Aura Hygiene",
+                "body": (
+                    f"{type_a or 'You'} ↔ {type_b or 'Friend'}. The Sacral partner is a "
+                    "nuclear reactor amplifier for the non-Sacral. Recommend 30–60 min "
+                    "solo wind-down before sleep so the non-Sacral can discharge borrowed "
+                    "Sacral charge without the Sacral partner reading it as rejection."
+                ),
+            }
+        )
+    if profile_a and profile_b:
+        pair = {profile_a, profile_b}
+        if pair == {"6/2", "5/1"}:
+            body = (
+                f"Profile Resonance ({profile_a} + {profile_b}). "
+                "6/2 sees cleanly past 5/1 projection field; Projector waits for invitation; "
+                "guide MG via binary Yes/No Sacral questions, not commands, while 20-34 "
+                "is in motion."
+            )
+        else:
+            body = (
+                f"Profile Resonance ({profile_a} + {profile_b}). "
+                "Honor hermit/investigator needs; don't force same social bandwidth."
+            )
+        protocols.append(
+            {
+                "id": "profile_resonance",
+                "title": f"Profile Resonance ({profile_a} + {profile_b})",
+                "body": body,
+            }
+        )
+    if _is_emotional(auth_a) and _is_emotional(auth_b):
+        extras = []
+        if _channel_has_gates(roles["companionship"], SYNTHESIS_GATES) or _channel_has_gates(
+            roles["electromagnetic"], SYNTHESIS_GATES
+        ):
+            extras.append("shared 19-49 comfort")
+        if _channel_has_gates(roles["electromagnetic"], INTIMACY_GATES) or _channel_has_gates(
+            roles["companionship"], INTIMACY_GATES
+        ):
+            extras.append("shared 59-6")
+        if _channel_has_gates(roles["compromise"], RECOGNITION_GATES) or _channel_has_gates(
+            roles["electromagnetic"], RECOGNITION_GATES
+        ):
+            extras.append("30-41 desire waves")
+        extra_txt = (
+            (" Lean into " + ", ".join(extras) + ".") if extras else ""
+        )
+        protocols.append(
+            {
+                "id": "double_emotional",
+                "title": "Double Emotional Wave Surfing",
+                "body": (
+                    "Lean into tactile 19-49 comfort when present (food, warmth, presence; "
+                    "no heavy problem-solving at wave bottom). Wait a night's sleep before "
+                    "locking big decisions."
+                    + extra_txt
+                ),
+            }
+        )
+    protocols = protocols[:3]
+    soma_blocks: list[dict[str, str]] = [
+        {"headline": p["title"], "body": p["body"]} for p in protocols
+    ]
+    somatic_card: dict[str, Any] = {
+        "id": "somatic_playbook",
+        "title": "Tailored Somatic Playbook",
+        "body_blocks": soma_blocks
+        or [
+            {
+                "headline": "Easy pacing",
+                "body": (
+                    "Pacing looks relatively easy on paper — still protect solo aura "
+                    "time after high-charge days."
+                ),
+            }
+        ],
+        "protocols": protocols,
+    }
+    if not protocols:
+        somatic_card["empty_body"] = (
+            "Pacing looks relatively easy on paper — still protect solo aura "
+            "time after high-charge days."
+        )
+
+    return [circuit_card, spark_card, power_card, somatic_card]
+
+
+def compute_soul_sync(
+    chart_a: dict[str, Any],
+    chart_b: dict[str, Any],
+    context: str = "life",
+    protocols: list[str] | None = None,  # ignored (compat)
+    *,
+    self_meta: dict[str, Any] | None = None,
+    friend_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Aura Alchemy between chart A (self) and chart B (friend)."""
+    _ = protocols  # drop Fit-era toggles
+    if context not in CONTEXT_IDS:
+        raise ValueError(f"invalid context: {context}")
+
+    gates_a = _gate_set(chart_a)
+    gates_b = _gate_set(chart_b)
+    defined_a = _defined_set(chart_a, gates_a)
+    defined_b = _defined_set(chart_b, gates_b)
+    hanging_a = _hanging(chart_a, gates_a)
+    hanging_b = _hanging(chart_b, gates_b)
+
+    roles = classify_channel_roles(gates_a, gates_b)
+    bridges_self = split_bridge_locks(
+        hanging_a, gates_b, held_by="friend", missing_for="self"
+    )
+    bridges_friend = split_bridge_locks(
+        hanging_b, gates_a, held_by="self", missing_for="friend"
+    )
+
+    composite_gates = gates_a | gates_b
+    composite_channels = active_channels(composite_gates)
+    composite_defined = defined_centers(composite_channels)
+    newly_motors = sorted((composite_defined & MOTORS) - defined_a - defined_b)
+
+    # Prefer derived definition from live gates (authoritative for badges)
+    def_a = definition_for_gates(gates_a)
+    def_b = definition_for_gates(gates_b)
+    def_comp = derive_definition(composite_defined, composite_channels)
+
+    type_a = (self_meta or {}).get("type") or chart_a.get("type")
+    type_b = (friend_meta or {}).get("type") or chart_b.get("type")
+    profile_a = (self_meta or {}).get("profile") or chart_a.get("profile")
+    profile_b = (friend_meta or {}).get("profile") or chart_b.get("profile")
+    auth_a = (self_meta or {}).get("authority") or chart_a.get("authority")
+    auth_b = (friend_meta or {}).get("authority") or chart_b.get("authority")
+
+    badges = detect_badges(
+        def_a=def_a,
+        def_b=def_b,
+        def_comp=def_comp,
+        defined_a=defined_a,
+        defined_b=defined_b,
+        composite_defined=composite_defined,
+        gates_a=gates_a,
+        gates_b=gates_b,
+        composite_gates=composite_gates,
+        roles=roles,
+        bridges_self=bridges_self,
+        bridges_friend=bridges_friend,
+    )
+    badge_ids = {b["id"] for b in badges}
+
+    signature, secondary = detect_signatures(
+        roles=roles,
+        badge_ids=badge_ids,
+        def_a=def_a,
+        def_b=def_b,
+        def_comp=def_comp,
+        composite_defined_count=len(composite_defined),
+        auth_a=auth_a,
+        auth_b=auth_b,
+    )
+
+    bridge_gates = {b["gate"] for b in bridges_self} | {b["gate"] for b in bridges_friend}
+    spectrums = build_spectrums(
+        roles=roles,
+        bridges_all_gates=bridge_gates,
+        newly_motors=newly_motors,
+        badge_ids=badge_ids,
+        def_a=def_a,
+        def_b=def_b,
+        def_comp=def_comp,
+        auth_a=auth_a,
+        auth_b=auth_b,
+        type_a=type_a,
+        type_b=type_b,
+    )
+
+    cards = build_cards(
+        roles=roles,
+        badge_ids=badge_ids,
+        bridges_self=bridges_self,
+        bridges_friend=bridges_friend,
+        type_a=type_a,
+        type_b=type_b,
+        profile_a=profile_a,
+        profile_b=profile_b,
+        auth_a=auth_a,
+        auth_b=auth_b,
+    )
 
     self_out = {
         "id": (self_meta or {}).get("id"),
@@ -432,6 +1121,7 @@ def compute_soul_sync(
         "type": type_a,
         "profile": profile_a,
         "authority": auth_a,
+        "definition": def_a,
     }
     friend_out = {
         "id": (friend_meta or {}).get("id"),
@@ -439,29 +1129,32 @@ def compute_soul_sync(
         "type": type_b,
         "profile": profile_b,
         "authority": auth_b,
+        "definition": def_b,
     }
 
     return {
         "self": self_out,
         "friend": friend_out,
         "context": context,
-        "context_label": CONTEXT_LABELS[context],
-        "vectors": {
-            "voltage": voltage,
-            "flow": flow,
-            "ease": ease,
-            "voltage_drivers": voltage_drivers,
-            "flow_drivers": flow_drivers,
-            "ease_drivers": ease_drivers,
+        "playbook": {
+            "id": context,
+            "label": CONTEXT_LABELS[context],
+            "card_order": list(PLAYBOOK_CARD_ORDER[context]),
         },
-        "natural_fit": natural_fit,
-        "regulated_fit": regulated_fit,
-        "regulated_ease": regulated_ease,
-        "weights": dict(CONTEXT_WEIGHTS[context]),
-        "archetype": archetype_for(len(composite_defined)),
-        "split_bridges": bridges,
-        "conditioning_strip": conditioning_strip(defined_a, defined_b),
+        "signature": signature,
+        "secondary_signature": secondary,
+        "badges": badges,
+        "spectrums": spectrums,
+        "cards": cards,
         "channel_roles": roles,
-        "available_protocols": avail,
+        "split_bridges": bridges_self,
+        "friend_split_bridges": bridges_friend,
+        "conditioning_strip": conditioning_strip(defined_a, defined_b),
+        "composite": {
+            "defined_count": len(composite_defined),
+            "open_count": 9 - len(composite_defined),
+            "definition": def_comp,
+            "defined_centers": sorted(composite_defined),
+        },
         "disclaimer": DISCLAIMER,
     }

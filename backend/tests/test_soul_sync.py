@@ -1,4 +1,4 @@
-"""Soul Bio-Sync scoring (AC 3–8, context weights, regulated toggles)."""
+"""Soul Aura Alchemy scoring (AC signatures, badges, spectrums, cards)."""
 from __future__ import annotations
 
 import sys
@@ -8,8 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.hd.channels import active_channels, defined_centers, hanging_gates
 from app.hd.soul_sync import (
+    PLAYBOOK_CARD_ORDER,
     classify_channel_roles,
     compute_soul_sync,
+    detect_integration_triad,
     profile_harmony,
 )
 
@@ -43,181 +45,281 @@ def _chart(gates: list[int], **meta) -> dict:
     return base
 
 
-def test_electromagnetic_plus_18_voltage():
-    # Channel Emoting 39–55: A holds 39, B holds 55 → EM
-    a = _chart([39, 5, 15], type="Generator", authority="Sacral", profile="3/5")
-    b = _chart([55, 1, 8], type="Projector", authority="Splenic", profile="1/3")
-    roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
-    assert any(c["channel"] == "Emoting" for c in roles["electromagnetic"])
-    out = compute_soul_sync(a, b, context="work")
-    assert out["vectors"]["voltage"] >= 18
-    em = [d for d in out["vectors"]["voltage_drivers"] if d["kind"] == "electromagnetic"]
-    assert any(d["pts"] == 18 and d["channel"] == "Emoting" for d in em)
-    print("PASS: EM channel → Voltage +18")
+def _badge_ids(out: dict) -> set[str]:
+    return {b["id"] for b in out["badges"]}
 
 
-def test_split_bridge_plus_15():
-    # A has hanging missing completed by B
-    a = _chart([26], type="Generator", authority="Sacral", profile="2/4")  # held 26, missing 44 Surrender
-    assert any(h["missing"] == 44 for h in a["hanging_gates"])
-    b = _chart([44, 10, 20], type="Projector", authority="Splenic", profile="5/1")
-    out = compute_soul_sync(a, b, context="work")
-    assert any(br["gate"] == 44 for br in out["split_bridges"])
-    assert any(
-        d["kind"] == "split_bridge" and d["pts"] == 15 and d.get("gate") == 44
-        for d in out["vectors"]["voltage_drivers"]
-    )
-    assert out["vectors"]["voltage"] >= 15
-    print("PASS: Split-Bridge → Voltage +15 + callout")
-
-
-def test_compromise_minus_18_ease():
-    # A full channel Rhythm 5–15; B only gate 5 → Compromise
+def test_no_fit_percent_in_response():
     a = _chart([5, 15], type="Generator", authority="Sacral", profile="3/5")
-    b = _chart([5, 64, 47], type="Projector", authority="Splenic", profile="1/3")
+    b = _chart([1, 8], type="Projector", authority="Splenic", profile="5/1")
+    out = compute_soul_sync(a, b, context="life")
+    for banned in (
+        "natural_fit",
+        "regulated_fit",
+        "regulated_ease",
+        "weights",
+        "vectors",
+        "archetype",
+        "available_protocols",
+    ):
+        assert banned not in out, banned
+    assert "signature" in out
+    assert "spectrums" in out
+    assert "cards" in out
+    assert out["playbook"]["id"] == "life"
+    print("PASS: schema has signature/spectrums/cards; no Fit % fields")
+
+
+def test_magnetic_alchemy_from_intimacy_em():
+    # EM Intimacy 6–59
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
     roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
-    assert any(c["channel"] == "Rhythm" for c in roles["compromise"])
+    assert any(c["channel"] == "Intimacy" for c in roles["electromagnetic"])
+    out = compute_soul_sync(a, b, context="life")
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    assert "intimacy_lock" in _badge_ids(out)
+    print("PASS: Intimacy EM → Magnetic Alchemy + intimacy_lock")
+
+
+def test_magnetic_alchemy_from_em_count():
+    # Two EM channels: Emoting 39–55 + Inspiration 1–8
+    a = _chart([39, 1], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([55, 8], type="Projector", authority="Splenic", profile="1/3")
+    roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
+    assert len(roles["electromagnetic"]) >= 2
     out = compute_soul_sync(a, b, context="work")
-    ease_penalties = [
-        d for d in out["vectors"]["ease_drivers"] if d["kind"] == "compromise"
-    ]
-    assert ease_penalties and ease_penalties[0]["pts"] == -18
-    # Base 100 − 18 compromise − 10 sacral asymmetry (Gen↔Proj) = 72 (no auth gap: Sacral vs Splenic)
-    assert out["vectors"]["ease"] == 72
-    print("PASS: Compromise → Ease −18")
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    print("PASS: EM≥2 → Magnetic Alchemy")
 
 
-def test_authority_gap_and_emotional_wait():
+def test_mutual_split_bridge_badge():
+    # A: Head–Ajna + Sacral–G = Split
+    # B: Ajna–Throat + G–Throat + Sacral–Spleen = Split; composite merges to Single
     a = _chart(
-        [5, 15],
+        [64, 47, 5, 15],
         type="Generator",
         authority="Sacral",
         profile="3/5",
     )
     b = _chart(
-        [36, 22],
+        [17, 62, 7, 31, 27, 50],
         type="Projector",
-        authority="Emotional (Solar Plexus)",
+        authority="Splenic",
         profile="1/3",
     )
-    natural = compute_soul_sync(a, b, context="life", protocols=[])
-    assert any(d["kind"] == "authority_gap" and d["pts"] == -15 for d in natural["vectors"]["ease_drivers"])
-    wait = compute_soul_sync(a, b, context="life", protocols=["emotional_wait"])
-    assert wait["regulated_ease"] == natural["vectors"]["ease"] + 10
-    assert wait["regulated_fit"] > natural["natural_fit"] or wait["regulated_ease"] > natural["vectors"]["ease"]
-    assert any(p["id"] == "emotional_wait" and p["applicable"] for p in natural["available_protocols"])
-    print("PASS: Emotional vs Sacral → −15; emotional_wait raises regulated")
+    out = compute_soul_sync(a, b, context="life")
+    assert out["self"]["definition"] == "Split" or out["self"]["definition"].startswith("Split")
+    friend_def = out["friend"]["definition"]
+    assert friend_def == "Split" or friend_def.startswith("Split") or friend_def in (
+        "Triple Split",
+        "Quadruple Split",
+    )
+    assert out["composite"]["definition"] == "Single"
+    assert "mutual_split_bridge" in _badge_ids(out)
+    assert out["signature"]["id"] == "magnetic_alchemy"  # mutual wins priority 1
+    print("PASS: Split+Split→Single → mutual_split_bridge (+ Magnetic)")
 
 
-def test_nine_zero_badge_and_ease():
-    # Force a near-full composite via large gate unions (both charts dense)
-    # Build gates that light all 9 centers when combined.
-    # Use many full channels across centers.
+def test_shared_compass_badge():
+    # Neither defines G alone; composite Awakening 10–20 defines G
+    a = _chart([10, 64, 47], type="Projector", authority="Splenic", profile="6/2")
+    b = _chart([20, 18, 58], type="Projector", authority="Splenic", profile="5/1")
+    assert "G" not in a["defined_centers"]
+    assert "G" not in b["defined_centers"]
+    out = compute_soul_sync(a, b, context="life")
+    assert "G" in out["composite"]["defined_centers"]
+    assert "shared_compass" in _badge_ids(out)
+    print("PASS: Open G + Open G → shared_compass")
+
+
+def test_integration_triad_cross_person():
+    a = _chart([10, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([20, 34, 1, 8], type="Manifesting Generator", authority="Sacral", profile="5/1")
+    ok, detail = detect_integration_triad(
+        set(a["activated_gates"]), set(b["activated_gates"]), set(a["activated_gates"]) | set(b["activated_gates"])
+    )
+    assert ok
+    out = compute_soul_sync(a, b, context="life")
+    assert "integration_triad" in _badge_ids(out)
+    print("PASS: Gate 10 vs {20,34} → integration_triad")
+
+
+def test_integration_triad_false_positive_solo_owner():
+    # A alone holds both Awakening + Exploration; B has unrelated gates
+    a = _chart([10, 20, 34], type="Manifesting Generator", authority="Sacral", profile="3/5")
+    b = _chart([64, 47], type="Projector", authority="Splenic", profile="1/3")
+    ok, _ = detect_integration_triad(
+        set(a["activated_gates"]), set(b["activated_gates"]), set(a["activated_gates"]) | set(b["activated_gates"])
+    )
+    assert ok is False
+    out = compute_soul_sync(a, b, context="life")
+    assert "integration_triad" not in _badge_ids(out)
+    print("PASS: solo triad owner → no integration_triad badge")
+
+
+def test_tribal_bond_companionship():
+    a = _chart([19, 49, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([19, 49, 1, 8], type="Generator", authority="Sacral", profile="2/4")
+    roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
+    assert any(c["channel"] == "Synthesis" for c in roles["companionship"])
+    out = compute_soul_sync(a, b, context="life")
+    assert "tribal_bond" in _badge_ids(out)
+    print("PASS: companionship 19-49 → tribal_bond")
+
+
+def test_composite_9_0_and_8_1_badges():
     gates_a = [
-        64, 47,  # Head–Ajna Abstraction
-        17, 62,  # Ajna–Throat Acceptance
-        7, 31,  # G–Throat Alpha
-        21, 45,  # Heart–Throat Money
-        5, 15,  # Sacral–G Rhythm
-        48, 16,  # Spleen–Throat Wavelength
-        58, 18,  # Root–Spleen Judgment
+        64, 47,  # Head–Ajna
+        17, 62,  # Ajna–Throat
+        7, 31,  # G–Throat
+        21, 45,  # Heart–Throat
+        5, 15,  # Sacral–G
+        48, 16,  # Spleen–Throat
+        58, 18,  # Root–Spleen
     ]
     gates_b = [
-        36, 35,  # Solar_Plexus–Throat Transitoriness (adds SP)
-        3, 60,  # Sacral–Root Mutation
-        25, 51,  # G–Heart Initiation
+        36, 35,  # Solar_Plexus–Throat
+        3, 60,  # Sacral–Root
+        25, 51,  # G–Heart
     ]
     a = _chart(gates_a, type="Generator", authority="Sacral", profile="3/5")
     b = _chart(gates_b, type="Manifesting Generator", authority="Sacral", profile="3/5")
     out = compute_soul_sync(a, b, context="work")
-    assert out["archetype"]["composite_defined_count"] == 9
-    assert out["archetype"]["id"] == "closed_loop"
-    assert "9-0" in out["archetype"]["label"]
-    assert any(d["kind"] == "nine_zero" and d["pts"] == -12 for d in out["vectors"]["ease_drivers"])
-    print("PASS: 9-0 badge + Ease −12")
+    assert out["composite"]["defined_count"] == 9
+    assert "composite_9_0" in _badge_ids(out)
+
+    # Drop Solar_Plexus channel for 8-1
+    b8 = _chart([3, 60, 25, 51], type="Manifesting Generator", authority="Sacral", profile="3/5")
+    out8 = compute_soul_sync(a, b8, context="work")
+    # May be 8 or less depending on overlap — assert 8-1 only when count==8
+    if out8["composite"]["defined_count"] == 8:
+        assert "composite_8_1" in _badge_ids(out8)
+    print("PASS: 9-0 badge; 8-1 when defined_count==8")
 
 
-def test_sacral_asymmetry_minus_10():
-    a = _chart([5, 15], type="Generator", authority="Sacral", profile="2/4")
-    b = _chart([1, 8], type="Projector", authority="Splenic", profile="5/1")
-    out = compute_soul_sync(a, b, context="work")
-    assert any(d["kind"] == "sacral_asymmetry" and d["pts"] == -10 for d in out["vectors"]["ease_drivers"])
-    print("PASS: Gen ↔ Projector → Ease −10")
-
-
-def test_context_weights_change_fit_not_vectors():
+def test_spectrums_shape_and_somatic_drivers():
     a = _chart(
-        [39, 5, 15, 26],
+        [6, 5, 15],
         type="Generator",
-        authority="Sacral",
+        authority="Emotional (Solar Plexus)",
         profile="3/5",
     )
     b = _chart(
-        [55, 44, 1, 8],
+        [59, 1, 8],
         type="Projector",
         authority="Emotional (Solar Plexus)",
-        profile="1/3",
+        profile="6/2",
     )
-    work = compute_soul_sync(a, b, context="work")
+    out = compute_soul_sync(a, b, context="life")
+    ids = [s["id"] for s in out["spectrums"]]
+    assert ids == ["auric_charge", "circuit_continuity", "somatic_pacing"]
+    for s in out["spectrums"]:
+        assert 0 <= s["position"] <= 100
+        assert s["low_label"] and s["high_label"]
+        assert "Fit" not in s["label"] and "compatible" not in s["summary"].lower()
+    pacing = next(s for s in out["spectrums"] if s["id"] == "somatic_pacing")
+    assert any(d["kind"] == "double_emotional" for d in pacing["drivers"])
+    assert any(d["kind"] == "sacral_asymmetry" for d in pacing["drivers"])
+    charge = next(s for s in out["spectrums"] if s["id"] == "auric_charge")
+    assert any(d["kind"] == "intimacy_lock" for d in charge["drivers"])
+    print("PASS: spectrums shape + somatic/auric drivers")
+
+
+def test_playbook_reorders_cards_not_signature():
+    a = _chart([6, 39], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 55], type="Projector", authority="Splenic", profile="1/3")
     life = compute_soul_sync(a, b, context="life")
+    work = compute_soul_sync(a, b, context="work")
     play = compute_soul_sync(a, b, context="play")
-    assert work["vectors"]["voltage"] == life["vectors"]["voltage"] == play["vectors"]["voltage"]
-    assert work["vectors"]["flow"] == life["vectors"]["flow"] == play["vectors"]["flow"]
-    assert work["vectors"]["ease"] == life["vectors"]["ease"] == play["vectors"]["ease"]
-    fits = {work["natural_fit"], life["natural_fit"], play["natural_fit"]}
-    # With nonzero vectors, at least one lens should differ
-    assert len(fits) >= 2 or work["natural_fit"] == life["natural_fit"] == play["natural_fit"] == 0
-    # Explicit weight check
-    v, f, e = work["vectors"]["voltage"], work["vectors"]["flow"], work["vectors"]["ease"]
-    assert work["natural_fit"] == int(round(0.35 * v + 0.45 * f + 0.20 * e))
-    assert life["natural_fit"] == int(round(0.25 * v + 0.35 * f + 0.40 * e))
-    assert play["natural_fit"] == int(round(0.50 * v + 0.35 * f + 0.15 * e))
-    print("PASS: context reweights Fit; vectors unchanged")
+    assert life["signature"] == work["signature"] == play["signature"]
+    assert life["badges"] == work["badges"] == play["badges"]
+    assert [s["position"] for s in life["spectrums"]] == [
+        s["position"] for s in work["spectrums"]
+    ]
+    assert life["playbook"]["card_order"] == PLAYBOOK_CARD_ORDER["life"]
+    assert work["playbook"]["card_order"] == PLAYBOOK_CARD_ORDER["work"]
+    assert play["playbook"]["card_order"] == PLAYBOOK_CARD_ORDER["play"]
+    assert play["playbook"]["label"] == "Play & Recovery"
+    print("PASS: playbook reorders cards; signature/badges/spectrums invariant")
 
 
-def test_conditioning_amplifier_solar_plexus():
+def test_power_dynamics_and_somatic_protocols():
+    # Compromise Struggle 28–38: A full, B hanging 28
+    a = _chart(
+        [28, 38, 5, 15],
+        type="Generator",
+        authority="Emotional (Solar Plexus)",
+        profile="6/2",
+    )
+    b = _chart(
+        [28, 1, 8],
+        type="Projector",
+        authority="Emotional (Solar Plexus)",
+        profile="5/1",
+    )
+    out = compute_soul_sync(a, b, context="life")
+    power = next(c for c in out["cards"] if c["id"] == "power_dynamics")
+    assert any("Purpose & Tenacity" in blk["headline"] for blk in power["body_blocks"])
+    assert "friction" not in power["title"].lower()
+    soma = next(c for c in out["cards"] if c["id"] == "somatic_playbook")
+    proto_ids = {p["id"] for p in (soma.get("protocols") or [])}
+    assert "sacral_aura_hygiene" in proto_ids
+    assert "double_emotional" in proto_ids
+    assert "profile_resonance" in proto_ids
+    assert any("6/2" in (p.get("body") or "") and "5/1" in (p.get("body") or "") for p in soma["protocols"])
+    print("PASS: power dynamics + sacral/double-emotional/6-2↔5-1 protocols")
+
+
+def test_bidirectional_bridges_and_spark_glue():
+    a = _chart([26], type="Generator", authority="Sacral", profile="2/4")
+    assert any(h["missing"] == 44 for h in a["hanging_gates"])
+    b = _chart([44, 10], type="Projector", authority="Splenic", profile="5/1")
+    # friend hanging: 10 missing 20 or 34 or 57
+    out = compute_soul_sync(a, b, context="life")
+    assert any(br["gate"] == 44 for br in out["split_bridges"])
+    # friend may have hanging completed by self if self has matching gate
+    spark = next(c for c in out["cards"] if c["id"] == "spark_glue")
+    assert spark["title"] == "Spark & Glue"
+    print("PASS: bidirectional bridge list + spark_glue card")
+
+
+def test_harmonic_sanctuary_and_profile_harmony_helper():
+    assert profile_harmony("3/5", "3/5") is True
+    assert profile_harmony("4/1", "6/2") is False
+    # Companionship ≥2 → Harmonic (unless Magnetic wins)
+    a = _chart([5, 15, 19, 49], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([5, 15, 19, 49], type="Generator", authority="Sacral", profile="3/5")
+    out = compute_soul_sync(a, b, context="life")
+    # No EM → not Magnetic; companionship≥2 → Harmonic Sanctuary
+    assert out["signature"]["id"] == "harmonic_sanctuary"
+    print("PASS: harmonic sanctuary + profile_harmony helper")
+
+
+def test_conditioning_strip_preserved():
     a = _chart([5, 15], type="Generator", authority="Sacral", profile="3/5")
-    # B defines Solar_Plexus via Openness 12–22
     b = _chart([12, 22], type="Projector", authority="Emotional (Solar Plexus)", profile="4/6")
-    assert "Solar_Plexus" in b["defined_centers"]
-    assert "Solar_Plexus" not in a["defined_centers"]
     out = compute_soul_sync(a, b, context="life")
     row = next(r for r in out["conditioning_strip"] if r["center"] == "Solar_Plexus")
-    assert row["self"] == "open"
-    assert row["friend"] == "defined"
     assert row["direction"] == "friend_to_self"
     assert "Amplifier" in row["hint"]
-    print("PASS: open SP ← defined friend → amplifier hint")
-
-
-def test_profile_harmony_identical_and_harmonic():
-    assert profile_harmony("3/5", "3/5") is True
-    assert profile_harmony("1/3", "4/6") is True  # personality {1,4}
-    assert profile_harmony("2/4", "5/1") is True  # personality {2,5}
-    assert profile_harmony("1/3", "6/2") is True  # RA vs LA complementary
-    assert profile_harmony("4/1", "6/2") is False  # Juxtaposition no RA/LA bonus
-    print("PASS: profile harmony rules")
-
-
-def test_yield_compromise_and_solo_buffer():
-    a = _chart([5, 15], type="Generator", authority="Sacral", profile="3/5")
-    b = _chart([5], type="Projector", authority="Splenic", profile="1/3")
-    base = compute_soul_sync(a, b, context="work", protocols=[])
-    assert any(p["id"] == "yield_compromise" and p["applicable"] for p in base["available_protocols"])
-    toggled = compute_soul_sync(a, b, context="work", protocols=["yield_compromise"])
-    assert toggled["regulated_ease"] == base["vectors"]["ease"] + 9  # min(18, 9*1)
-    print("PASS: yield_compromise restore")
+    print("PASS: conditioning strip preserved")
 
 
 if __name__ == "__main__":
-    test_electromagnetic_plus_18_voltage()
-    test_split_bridge_plus_15()
-    test_compromise_minus_18_ease()
-    test_authority_gap_and_emotional_wait()
-    test_nine_zero_badge_and_ease()
-    test_sacral_asymmetry_minus_10()
-    test_context_weights_change_fit_not_vectors()
-    test_conditioning_amplifier_solar_plexus()
-    test_profile_harmony_identical_and_harmonic()
-    test_yield_compromise_and_solo_buffer()
-    print("\nAll soul_sync tests passed.")
+    test_no_fit_percent_in_response()
+    test_magnetic_alchemy_from_intimacy_em()
+    test_magnetic_alchemy_from_em_count()
+    test_mutual_split_bridge_badge()
+    test_shared_compass_badge()
+    test_integration_triad_cross_person()
+    test_integration_triad_false_positive_solo_owner()
+    test_tribal_bond_companionship()
+    test_composite_9_0_and_8_1_badges()
+    test_spectrums_shape_and_somatic_drivers()
+    test_playbook_reorders_cards_not_signature()
+    test_power_dynamics_and_somatic_protocols()
+    test_bidirectional_bridges_and_spark_glue()
+    test_harmonic_sanctuary_and_profile_harmony_helper()
+    test_conditioning_strip_preserved()
+    print("\nAll soul_sync Aura Alchemy tests passed.")

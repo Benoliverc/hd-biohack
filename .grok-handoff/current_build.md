@@ -1,47 +1,46 @@
-# Handoff — Chart Me/Friends UX (IA split)
+# Handoff — Soul Aura Alchemy P0 (kill Fit %)
 
 ## Status
 - Ready for `@qa` Ship Gate
-- Branch: `feat/chart-me-friends-ux`
-- Spec / review: `.grok-handoff/chart-me-friends-ux-review.md` (+ prior save intents in `chart-save-ux-spec.md`)
-- FE-first (Railway still paused). Keeps PR #16 create/update correctness.
+- Branch: `feat/soul-aura-alchemy`
+- Spec: `.grok-handoff/soul-aura-alchemy-spec.md` (supersedes Bio-Sync Fit % in soul-biosync-spec.md)
+- FE + API same PR (schema break). Railway may lag — FE shows API/schema missing state.
 
 ## What changed
-1. **YOU** dedicated card (growth soft) vs **Friends** chips only (`slot_kind=friend`, energy soft). Never `label||"Me"` on friends — `"Friend"` fallback. Extra `self` rows under **Other charts (you)**.
-2. **You selected:** primary **Save as new friend** (omit `natal_chart_id`); secondary **Update your chart** with confirm naming Today/Protocols stakes. Friend name empty (not prefilled Me); create disabled until name entered; reject name `"Me"`.
-3. **Friend selected:** primary Update “[Name]”; secondary Save as another friend.
-4. **Full-width state bar** above form (`data-testid="editing-banner"`): Editing your chart / Editing [Name] / New friend — nothing overwritten.
-5. **Add new person** with existing self → hide Me|Friend segment; primary **Save friend** only.
+1. **Killed Fit %** — removed `natural_fit` / `regulated_fit` / vectors / archetype / co-reg toggles from `POST /soul/sync` + `/soul`.
+2. **Layer A** — Aura Signature hero (5 ids, priority) + optional secondary sub-badge.
+3. **Layer B** — Rare Alchemy badges (mutual Split→Single via `derive_definition`, shared G, 59-6 EM, 10-20-34 triad + false-positive guard, 19-49 companionship, mirror gates, 8-1 / 9-0).
+4. **Layer C** — Auric Charge / Circuit Continuity / Somatic Pacing spectrums; pacing high end uses `text-energy` (amber), never danger-red.
+5. **Playbooks** — `life` (default) / `work` / `play` reorder cards only (client-side + API `card_order`).
+6. **Cards** — circuit_bridge, spark_glue, power_dynamics, somatic_playbook (≤3 templated protocols).
+7. Bidirectional hanging bridges; protocols request field ignored.
 
-## Gate AC (from UX review)
-1. You selected → primary is Save as new friend (or Save friend), not Update
-2. You + Save friend → Me row unchanged
-3. Friends list never chip titled Me
-4. Add new person with existing self → no Me role control
-5. State bar visible / prominent (full-width above form)
-
-Also keep chart-save-ux AC: omit id on create, confirm overwrite, freeze slot_kind on update, 10-cap, Preview no persist.
-
-## data-testid
-- `editing-banner` (state bar), `add-new-person`, `you-row`
-- `friend-chip-<id>`
-- `save-as-new-friend` (primary when You selected)
-- `calculate-save` (Update your chart when You; Update “[Name]” when Friend; Save friend / Calculate & save when new)
-- `preview-only`
+## Gate AC
+Spec AC 1–15. Pytest covers signatures, each badge (incl triad false-positive), spectrums, cards, playbook invariance, no Fit fields.
 
 ## Local smoke
 ```bash
-cd frontend && npm run dev   # http://localhost:3000/profile
+cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q
+cd frontend && npm run dev   # http://localhost:3000/soul
 ```
-1. Select YOU → state bar “Editing your chart”; primary Save as new friend; secondary Update your chart.
-2. Enter friend name + birth → Save as new friend → new Friends chip; YOU unchanged.
-3. Add new person (with self) → no Me segment; Save friend; bar “New friend — nothing is overwritten.”
-4. Friends chips never titled Me; You uses growth soft, friends energy soft.
+1. ≥2 charts → Signature hero, badges, 3 spectrums, 4 cards — **no** Fit %.
+2. Switch Life/Work/Play → cards reorder; signature/spectrums unchanged.
+3. Sacral↔non-Sacral → sacral_aura_hygiene; double Emotional → double_emotional.
+4. Old API / Fit schema → `soul-api-missing` banner.
+
+## data-testid
+- `soul-hero`, `soul-signature`, `soul-secondary-signature`, `soul-badges`, `soul-badge-<id>`
+- `soul-spectrum-auric_charge|circuit_continuity|somatic_pacing`
+- `soul-cards`, `soul-card-<id>`, `soul-playbook`, `soul-context-life|work|play`
+- `soul-api-missing`, `soul-empty`, `soul-cta-chart`
 
 ## Verify
-- `cd frontend && npx tsc --noEmit` (clean)
-- `cd frontend && npm run lint` (pre-existing store.tsx warning only)
+- `cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q` → 15 passed
+- `cd frontend && npx tsc --noEmit` → clean
 
 ## Files
-- `frontend/src/app/profile/page.tsx`
-- `.grok-handoff/current_build.md`, `backlog.md`
+- `backend/app/hd/soul_sync.py`
+- `backend/app/schemas.py`, `backend/app/api/routes.py`
+- `backend/tests/test_soul_sync.py`
+- `frontend/src/app/soul/page.tsx`, `frontend/src/lib/api.ts`
+- `.grok-handoff/soul-aura-alchemy-spec.md`, `current_build.md`

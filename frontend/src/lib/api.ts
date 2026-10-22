@@ -141,6 +141,7 @@ export type SoulSyncRequest = {
   self_chart_id: number;
   friend_chart_id: number;
   context?: SoulContext;
+  /** Ignored by Aura Alchemy API (compat). */
   protocols?: string[];
 };
 
@@ -150,6 +151,7 @@ export type SoulPerson = {
   type?: string | null;
   profile?: string | null;
   authority?: string | null;
+  definition?: string | null;
 };
 
 export type SoulDriver = {
@@ -162,30 +164,70 @@ export type SoulDriver = {
   profiles?: Array<string | null>;
 };
 
+export type SoulSignature = {
+  id: string;
+  label: string;
+  emoji?: string;
+  subtext: string;
+};
+
+export type SoulBadge = {
+  id: string;
+  label: string;
+  detail?: string;
+};
+
+export type SoulSpectrum = {
+  id: string;
+  label: string;
+  low_label: string;
+  high_label: string;
+  position: number;
+  summary: string;
+  drivers: SoulDriver[];
+};
+
+export type SoulCardBlock = {
+  headline: string;
+  body: string;
+};
+
+export type SoulCard = {
+  id: string;
+  title: string;
+  body_blocks: SoulCardBlock[];
+  empty_body?: string | null;
+  bridges?: Array<{
+    gate: number;
+    channel: string;
+    held_by: string;
+    missing_for: string;
+  }>;
+  protocols?: Array<{ id: string; title: string; body: string }>;
+};
+
 export type SoulSyncResult = {
   self: SoulPerson;
   friend: SoulPerson;
   context: SoulContext | string;
-  context_label: string;
-  vectors: {
-    voltage: number;
-    flow: number;
-    ease: number;
-    voltage_drivers: SoulDriver[];
-    flow_drivers: SoulDriver[];
-    ease_drivers: SoulDriver[];
-  };
-  natural_fit: number;
-  regulated_fit: number;
-  regulated_ease: number;
-  weights: { voltage: number; flow: number; ease: number };
-  archetype: {
+  playbook: {
     id: string;
     label: string;
-    composite_defined_count: number;
-    blurb: string;
+    card_order: string[];
   };
+  signature: SoulSignature;
+  secondary_signature?: SoulSignature | null;
+  badges: SoulBadge[];
+  spectrums: SoulSpectrum[];
+  cards: SoulCard[];
+  channel_roles: Record<string, Array<Record<string, unknown>>>;
   split_bridges: Array<{
+    gate: number;
+    channel: string;
+    held_by: string;
+    missing_for: string;
+  }>;
+  friend_split_bridges?: Array<{
     gate: number;
     channel: string;
     held_by: string;
@@ -198,9 +240,15 @@ export type SoulSyncResult = {
     direction: string;
     hint: string;
   }>;
-  channel_roles: Record<string, Array<Record<string, unknown>>>;
-  available_protocols: Array<{ id: string; label: string; applicable: boolean }>;
+  composite: {
+    defined_count: number;
+    open_count: number;
+    definition: string;
+    defined_centers: string[];
+  };
   disclaimer: string;
+  /** Legacy Fit fields — if present, FE shows API-lag empty state. */
+  natural_fit?: number;
 };
 
 export const api = {
