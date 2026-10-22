@@ -58,6 +58,22 @@ const DEMO_BIRTH = {
 
 const MAX_PEOPLE = 10;
 
+function isSelfRow(row: SavedChartRow): boolean {
+  return row.slot_kind !== "friend";
+}
+
+/** Friends never fall back to "Me" — empty labels become "Friend". */
+function friendChipLabel(row: SavedChartRow): string {
+  const t = (row.label || "").trim();
+  if (!t || t.toLowerCase() === "me") return "Friend";
+  return t;
+}
+
+function youDisplayName(row: SavedChartRow): string {
+  const t = (row.label || "").trim();
+  return t && t.toLowerCase() !== "me" ? t : "You";
+}
+
 const SECTION_NAV: {
   id: string;
   label: string;
@@ -333,7 +349,9 @@ export default function ProfilePage() {
         lon: nextLon,
       });
       setSaveAs(kind);
-      setFriendName(latest.label || (kind === "friend" ? "" : "Me"));
+      // You: leave name empty so "Save as new friend" cannot reuse "Me".
+      // Friend: use label (never fall back to "Me").
+      setFriendName(kind === "friend" ? (latest.label || "").trim() : "");
     },
     [setNatalChart]
   );
@@ -344,7 +362,8 @@ export default function ProfilePage() {
         const match = rows.find((r) => r.id === preferId);
         if (match) return match;
       }
-      return rows[0] ?? null;
+      const self = rows.find((r) => isSelfRow(r));
+      return self ?? rows[0] ?? null;
     },
     []
   );
@@ -567,7 +586,7 @@ export default function ProfilePage() {
   const isNewPersonUi = editingChartId == null || viewMode !== "saved";
   const frozenSlot: SaveAs =
     selectedSavedRow?.slot_kind === "friend" ? "friend" : "self";
-  const hasSelfSaved = savedPeople.some((r) => r.slot_kind === "self");
+  const hasSelfSaved = savedPeople.some((r) => isSelfRow(r));
 
   const startNewPerson = () => {
     setEditingChartId(null);
@@ -636,12 +655,23 @@ export default function ProfilePage() {
       if (save && kind === "friend" && !friendName.trim()) {
         throw new Error("Enter a name for this friend.");
       }
+      if (
+        save &&
+        kind === "friend" &&
+        friendName.trim().toLowerCase() === "me"
+      ) {
+        throw new Error("Enter a name for this friend — don’t use “Me”.");
+      }
 
       if (saveIntent === "update" && selectedSavedRow) {
-        const name = selectedSavedRow.label || (frozenSlot === "self" ? "Me" : "Friend");
-        const ok = window.confirm(
-          `Replace the saved chart for “${name}” with these birth details?`
-        );
+        const ok =
+          frozenSlot === "self"
+            ? window.confirm(
+                "Replace your chart (the one Today & Protocols use) with these birth details?"
+              )
+            : window.confirm(
+                `Replace the saved chart for “${friendChipLabel(selectedSavedRow)}” with these birth details?`
+              );
         if (!ok) return;
       }
 
@@ -764,7 +794,11 @@ export default function ProfilePage() {
 
   const deletePerson = async (row: SavedChartRow) => {
     if (!user) return;
-    const ok = window.confirm(`Remove “${row.label || "chart"}” from saved people?`);
+    const ok = window.confirm(
+      isSelfRow(row)
+        ? "Remove your chart? Today & Protocols use this chart."
+        : `Remove “${friendChipLabel(row)}” from Friends?`
+    );
     if (!ok) return;
     setDeletingId(row.id);
     setError(null);
@@ -823,16 +857,72 @@ export default function ProfilePage() {
     (viewMode === "preview" ? "Preview" : isNewPersonUi ? "New person" : "Me");
 
   const updatingExistingUi = !isNewPersonUi && selectedSavedRow != null;
+  const editingYou =
+    updatingExistingUi && selectedSavedRow != null && frozenSlot === "self";
+  const editingFriend =
+    updatingExistingUi && selectedSavedRow != null && frozenSlot === "friend";
 
-  const editingBanner = (() => {
-    if (updatingExistingUi && selectedSavedRow) {
-      const name = selectedSavedRow.label || (frozenSlot === "self" ? "Me" : "Friend");
-      if (frozenSlot === "self") {
-        return <>Editing <span className="font-medium text-fg">“{name}”</span> (chart #{selectedSavedRow.id})</>;
-      }
-      return <>Editing <span className="font-medium text-fg">“{name}”</span> (friend · chart #{selectedSavedRow.id})</>;
+  const youRow = (() => {
+    if (!savedPeople.length) return null;
+    if (natalChartId != null) {
+      const bound = savedPeople.find((r) => r.id === natalChartId && isSelfRow(r));
+      if (bound) return bound;
     }
-    return <>New person (not saved yet)</>;
+    return savedPeople.find((r) => isSelfRow(r)) ?? null;
+  })();
+  const friendRows = savedPeople.filter((r) => r.slot_kind === "friend");
+  const extraSelfRows =
+    youRow != null
+      ? savedPeople.filter((r) => isSelfRow(r) && r.id !== youRow.id)
+      : savedPeople.filter((r) => isSelfRow(r));
+  const duplicateSelfCount = savedPeople.filter((r) => isSelfRow(r)).length;
+  const showMeFriendSegment = isNewPersonUi && !hasSelfSaved;
+  const createFriendDisabled =
+    busy || !formReady || atCap || !friendName.trim();
+
+  const stateBar = (() => {
+    if (editingYou) {
+      return {
+        testId: "editing-banner" as const,
+        className:
+          "rounded-xl border border-energy/50 bg-energy-soft px-4 py-3 text-sm text-energy-ink",
+        body: (
+          <>
+            <span className="font-semibold">Editing your chart.</span> Friends are
+            unchanged.
+          </>
+        ),
+      };
+    }
+    if (editingFriend && selectedSavedRow) {
+      return {
+        testId: "editing-banner" as const,
+        className:
+          "rounded-xl border border-growth/40 bg-growth-soft px-4 py-3 text-sm text-growth-ink",
+        body: (
+          <>
+            <span className="font-semibold">
+              Editing {friendChipLabel(selectedSavedRow)}.
+            </span>{" "}
+            Your chart stays as-is.
+          </>
+        ),
+      };
+    }
+    return {
+      testId: "editing-banner" as const,
+      className:
+        "rounded-xl border border-border bg-sunken px-4 py-3 text-sm text-fg-secondary",
+      body: hasSelfSaved ? (
+        <>
+          <span className="font-semibold text-fg">New friend — nothing is overwritten.</span>
+        </>
+      ) : (
+        <>
+          <span className="font-semibold text-fg">New chart — save as You or a friend.</span>
+        </>
+      ),
+    };
   })();
 
   const peopleAndForm = (
@@ -848,43 +938,147 @@ export default function ProfilePage() {
           {savedPeople.length === 0 ? (
             <p className="text-sm text-fg-muted">None yet — add your chart or a friend’s below.</p>
           ) : (
-            <ul className="flex flex-wrap gap-2">
-              {savedPeople.map((row) => {
-                const active = editingChartId === row.id && viewMode === "saved";
-                return (
-                  <li key={row.id} className="inline-flex items-center gap-1">
+            <div className="space-y-4">
+              {youRow && (
+                <div>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-growth">
+                    You
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => selectPerson(row)}
-                      className={`min-h-10 rounded-full border px-3 py-2 text-left text-xs transition ${
-                        active
-                          ? "border-growth bg-growth-soft text-growth-ink ring-2 ring-growth/30"
-                          : "border-border bg-sunken text-fg hover:border-growth/50"
+                      data-testid="you-row"
+                      onClick={() => selectPerson(youRow)}
+                      className={`min-h-11 flex-1 rounded-xl border px-4 py-2.5 text-left text-sm transition sm:flex-none ${
+                        editingChartId === youRow.id && viewMode === "saved"
+                          ? "border-growth bg-growth-soft font-semibold text-growth-ink ring-2 ring-growth/30"
+                          : "border-growth/40 bg-growth-soft/60 text-growth-ink hover:border-growth"
                       }`}
                     >
-                      <span className="font-medium">{row.label || "Me"}</span>
+                      <span className="font-semibold">YOU</span>
                       <span className="text-fg-muted">
                         {" "}
-                        · {row.type || "—"} · {row.profile || "—"}
+                        · {youDisplayName(youRow)}
+                        {youRow.type || youRow.profile
+                          ? ` · ${youRow.type || "—"} · ${youRow.profile || "—"}`
+                          : ""}
                       </span>
-                      <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
-                        {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") || "—"}
-                        {row.slot_kind === "friend" ? " · friend" : ""}
+                      <span className="mt-0.5 block text-[11px] leading-snug text-fg-muted">
+                        {[youRow.birth_city, youRow.birth_date].filter(Boolean).join(" · ") ||
+                          "—"}
                       </span>
                     </button>
                     <button
                       type="button"
-                      aria-label={`Delete ${row.label || "chart"}`}
-                      disabled={deletingId === row.id}
-                      onClick={() => void deletePerson(row)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
+                      aria-label="Remove your chart"
+                      disabled={deletingId === youRow.id}
+                      onClick={() => void deletePerson(youRow)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
+                      title="Remove your chart"
                     >
-                      {deletingId === row.id ? "…" : "×"}
+                      {deletingId === youRow.id ? "…" : "×"}
                     </button>
-                  </li>
-                );
-              })}
-            </ul>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-energy-ink">
+                  Friends
+                </p>
+                {friendRows.length === 0 ? (
+                  <p className="text-sm text-fg-muted">
+                    No friends yet — use Save as new friend or Add new person.
+                  </p>
+                ) : (
+                  <ul className="flex flex-wrap gap-2">
+                    {friendRows.map((row) => {
+                      const active = editingChartId === row.id && viewMode === "saved";
+                      const name = friendChipLabel(row);
+                      return (
+                        <li key={row.id} className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            data-testid={`friend-chip-${row.id}`}
+                            onClick={() => selectPerson(row)}
+                            className={`min-h-10 rounded-full border px-3 py-2 text-left text-xs transition ${
+                              active
+                                ? "border-energy bg-energy-soft font-semibold text-energy-ink ring-2 ring-energy/30"
+                                : "border-border bg-sunken text-fg hover:border-energy/50"
+                            }`}
+                          >
+                            <span className="font-medium">{name}</span>
+                            <span className="text-fg-muted">
+                              {" "}
+                              · {row.type || "—"} · {row.profile || "—"}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
+                              {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
+                                "—"}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Delete ${name}`}
+                            disabled={deletingId === row.id}
+                            onClick={() => void deletePerson(row)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
+                          >
+                            {deletingId === row.id ? "…" : "×"}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {extraSelfRows.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                    Other charts (you)
+                  </p>
+                  <p className="mb-2 text-xs text-energy-ink">
+                    Extra Me charts from earlier saves — pick one as You or delete duplicates.
+                  </p>
+                  <ul className="flex flex-wrap gap-2">
+                    {extraSelfRows.map((row) => {
+                      const active = editingChartId === row.id && viewMode === "saved";
+                      return (
+                        <li key={row.id} className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => selectPerson(row)}
+                            className={`min-h-10 rounded-full border px-3 py-2 text-left text-xs transition ${
+                              active
+                                ? "border-growth bg-growth-soft text-growth-ink ring-2 ring-growth/30"
+                                : "border-border bg-sunken text-fg-muted hover:border-growth/40"
+                            }`}
+                          >
+                            <span className="font-medium">
+                              {youDisplayName(row)} #{row.id}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] leading-snug">
+                              {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
+                                "—"}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Delete duplicate chart ${row.id}`}
+                            disabled={deletingId === row.id}
+                            onClick={() => void deletePerson(row)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
+                          >
+                            {deletingId === row.id ? "…" : "×"}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
@@ -896,14 +1090,19 @@ export default function ProfilePage() {
             >
               Add new person
             </button>
-            <p className="text-xs text-fg-secondary" data-testid="editing-banner">
-              {editingBanner}
-            </p>
           </div>
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
               At the {MAX_PEOPLE}-person limit — delete someone to add a new person. You can still
               update the selected person.
+              {duplicateSelfCount > 1
+                ? " Clean up duplicate Me charts under Other charts (you)."
+                : ""}
+            </p>
+          )}
+          {!atCap && duplicateSelfCount > 1 && (
+            <p className="mt-2 text-xs text-energy-ink">
+              Several Me charts saved — clean up duplicates under Other charts (you).
             </p>
           )}
         </div>
@@ -912,6 +1111,12 @@ export default function ProfilePage() {
       {user && !formReady && (
         <div className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm text-fg-secondary">
           Loading saved chart…
+        </div>
+      )}
+
+      {user && formReady && (
+        <div data-testid={stateBar.testId} className={stateBar.className}>
+          {stateBar.body}
         </div>
       )}
 
@@ -962,24 +1167,20 @@ export default function ProfilePage() {
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-sm">
               <span className="mb-1 block text-fg-muted">
-                {updatingExistingUi
-                  ? frozenSlot === "friend"
+                {editingYou
+                  ? "Friend’s name (for Save as new friend)"
+                  : editingFriend
                     ? "Name"
-                    : "Display name"
-                  : saveAs === "friend"
-                    ? "Friend’s name"
-                    : "Display name"}
+                    : saveAs === "friend" || hasSelfSaved
+                      ? "Friend’s name"
+                      : "Display name"}
               </span>
               <input
                 className="w-48 rounded-lg border border-border bg-sunken px-3 py-2"
                 placeholder={
-                  updatingExistingUi
-                    ? frozenSlot === "friend"
-                      ? "Friend’s name"
-                      : "Me"
-                    : saveAs === "friend"
-                      ? "Friend’s name"
-                      : "Me"
+                  editingYou || saveAs === "friend" || (isNewPersonUi && hasSelfSaved)
+                    ? "Friend’s name"
+                    : "Optional"
                 }
                 value={friendName}
                 onChange={(e) => setFriendName(e.target.value)}
@@ -988,9 +1189,9 @@ export default function ProfilePage() {
             </label>
             {updatingExistingUi ? (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
-                Role: {frozenSlot === "self" ? "Me" : "Friend"} (fixed)
+                Role: {frozenSlot === "self" ? "You" : "Friend"} (fixed)
               </span>
-            ) : (
+            ) : showMeFriendSegment ? (
               <div className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1">
                 <button
                   type="button"
@@ -1013,11 +1214,36 @@ export default function ProfilePage() {
                   Friend
                 </button>
               </div>
+            ) : (
+              <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-energy/40 bg-energy-soft px-3 py-2 text-sm text-energy-ink">
+                Saving as friend
+              </span>
             )}
           </div>
 
           <div className="relative z-10 flex flex-wrap items-center gap-3">
-            {updatingExistingUi ? (
+            {editingYou ? (
+              <>
+                <button
+                  type="button"
+                  data-testid="save-as-new-friend"
+                  disabled={createFriendDisabled}
+                  onClick={() => void submit("create", "friend")}
+                  className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {busyMode === "save" ? "Saving…" : "Save as new friend"}
+                </button>
+                <button
+                  type="button"
+                  data-testid="calculate-save"
+                  disabled={busy || !formReady}
+                  onClick={() => void submit("update")}
+                  className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-energy/50 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {busyMode === "save" ? "Saving…" : "Update your chart"}
+                </button>
+              </>
+            ) : editingFriend ? (
               <>
                 <button
                   type="button"
@@ -1028,27 +1254,38 @@ export default function ProfilePage() {
                 >
                   {busyMode === "save"
                     ? "Saving…"
-                    : `Update “${selectedSavedRow?.label || (frozenSlot === "self" ? "Me" : "Friend")}”`}
+                    : `Update “${friendChipLabel(selectedSavedRow!)}”`}
                 </button>
                 <button
                   type="button"
                   data-testid="save-as-new-friend"
-                  disabled={busy || !formReady || atCap}
+                  disabled={createFriendDisabled}
                   onClick={() => void submit("create", "friend")}
                   className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Save as new friend
+                  Save as another friend
                 </button>
               </>
             ) : (
               <button
                 type="button"
                 data-testid="calculate-save"
-                disabled={busy || !formReady || atCap}
-                onClick={() => void submit("create", saveAs)}
+                disabled={
+                  busy ||
+                  !formReady ||
+                  atCap ||
+                  ((saveAs === "friend" || hasSelfSaved) && !friendName.trim())
+                }
+                onClick={() =>
+                  void submit("create", hasSelfSaved ? "friend" : saveAs)
+                }
                 className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
               >
-                {busyMode === "save" ? "Saving…" : "Calculate & save"}
+                {busyMode === "save"
+                  ? "Saving…"
+                  : hasSelfSaved || saveAs === "friend"
+                    ? "Save friend"
+                    : "Calculate & save"}
               </button>
             )}
             <button

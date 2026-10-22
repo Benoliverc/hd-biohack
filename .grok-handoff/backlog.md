@@ -5,6 +5,7 @@
 - Admin usage logbook + day/week/month stats — see `admin-usage-spec.md`
 - Soul tab Bio-Sync Index (You ↔ Friend: 3 vectors, context lenses, Natural vs thin Regulated Fit, conditioning strip, Split-Bridge) — see `soul-biosync-spec.md`
 - Chart save UX: explicit Me/Friend target — Update this person vs Save as new friend (no silent overwrite) — see `chart-save-ux-spec.md`
+- Chart Me/Friends UX IA: YOU vs Friends split, inverted primary when You selected, full-width state bar — see `chart-me-friends-ux-review.md`
 
 ## [P1 - Next]
 - Soft HD Environment hint when Variables exist (vernacular chips stay primary)

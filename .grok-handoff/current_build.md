@@ -1,52 +1,47 @@
-# Handoff — Chart save UX (Me/Friend no silent overwrite)
+# Handoff — Chart Me/Friends UX (IA split)
 
 ## Status
-- **PASS @qa Ship Gate** (2026-10-23 00:21 HKT) — not merged; awaiting ship call
-- PR: https://github.com/Benoliverc/hd-biohack/pull/16
-- Tip SHA: `0942bba` (`feat/chart-save-ux`) — polish after Ship Gate PASS
-- Spec: `.grok-handoff/chart-save-ux-spec.md` — AC 1–10
-- Independent of Railway Hobby pause for pure FE create/update split (API already inserts when `natal_chart_id` omitted). Optional BE `slot_kind` freeze needs API redeploy when builds resume.
+- Ready for `@qa` Ship Gate
+- Branch: `feat/chart-me-friends-ux`
+- Spec / review: `.grok-handoff/chart-me-friends-ux-review.md` (+ prior save intents in `chart-save-ux-spec.md`)
+- FE-first (Railway still paused). Keeps PR #16 create/update correctness.
 
-## Polish (post Ship Gate)
-- **After Save as new friend / create:** always `applyRow` the new chart id (synthesize row if list lag). Pin `editingChartIdRef` before `refreshPeople` await so `refreshPeopleOnOpen` cannot re-apply store Me (#33). `bindStore` still only when create-self with no prior self / unbound natal.
+## What changed
+1. **YOU** dedicated card (growth soft) vs **Friends** chips only (`slot_kind=friend`, energy soft). Never `label||"Me"` on friends — `"Friend"` fallback. Extra `self` rows under **Other charts (you)**.
+2. **You selected:** primary **Save as new friend** (omit `natal_chart_id`); secondary **Update your chart** with confirm naming Today/Protocols stakes. Friend name empty (not prefilled Me); create disabled until name entered; reject name `"Me"`.
+3. **Friend selected:** primary Update “[Name]”; secondary Save as another friend.
+4. **Full-width state bar** above form (`data-testid="editing-banner"`): Editing your chart / Editing [Name] / New friend — nothing overwritten.
+5. **Add new person** with existing self → hide Me|Friend segment; primary **Save friend** only.
 
-## What to gate
-Run AC 1–10 from `chart-save-ux-spec.md` against this PR (local stack preferred). Confirm after create-friend the editor chip/banner selects the **new** friend, not Me.
+## Gate AC (from UX review)
+1. You selected → primary is Save as new friend (or Save friend), not Update
+2. You + Save friend → Me row unchanged
+3. Friends list never chip titled Me
+4. Add new person with existing self → no Me role control
+5. State bar visible / prominent (full-width above form)
+
+Also keep chart-save-ux AC: omit id on create, confirm overwrite, freeze slot_kind on update, 10-cap, Preview no persist.
+
+## data-testid
+- `editing-banner` (state bar), `add-new-person`, `you-row`
+- `friend-chip-<id>`
+- `save-as-new-friend` (primary when You selected)
+- `calculate-save` (Update your chart when You; Update “[Name]” when Friend; Save friend / Calculate & save when new)
+- `preview-only`
 
 ## Local smoke
 ```bash
-# Backend (optional slot_kind guard)
-cd backend && source .venv/bin/activate
-pytest tests/test_chart_save_ux.py -q
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-
-# Frontend
 cd frontend && npm run dev   # http://localhost:3000/profile
 ```
-1. Sign in with ≥1 saved chart (Me).
-2. Select Me → change birth city → **Save as new friend** with a name → new friend row; Me unchanged (same id/birth); **editor selects the new friend**.
-3. Select Me → change city → **Update “Me”** → confirm → Me updates in place; cancel confirm → no save.
-4. Select Friend A → **Save as new friend** “B” → A unchanged; B appears and is selected.
-5. **Add new person** → banner “New person (not saved yet)”; form cleared; Calculate & save does not send `natal_chart_id`; after save, new row selected (not Me).
-6. At 10 people: create disabled with limit copy; Update still works.
-7. Update path: role badge frozen (no Me↔Friend toggle).
-8. Empty friend name on create-friend → inline error.
-9. Preview only never persists.
-10. After create-friend, Me still in Saved people; store Me not stolen.
+1. Select YOU → state bar “Editing your chart”; primary Save as new friend; secondary Update your chart.
+2. Enter friend name + birth → Save as new friend → new Friends chip; YOU unchanged.
+3. Add new person (with self) → no Me segment; Save friend; bar “New friend — nothing is overwritten.”
+4. Friends chips never titled Me; You uses growth soft, friends energy soft.
 
-## data-testid
-- `editing-banner`, `add-new-person`
-- `calculate-save` (Update on saved path; Calculate & save on new path)
-- `save-as-new-friend`
-- `preview-only`
-
-## Files
-- `frontend/src/app/profile/page.tsx` (primary)
-- `backend/app/api/routes.py` (optional slot_kind mismatch → 400)
-- `backend/tests/test_chart_save_ux.py`
-- `.grok-handoff/chart-save-ux-spec.md`, `current_build.md`, `backlog.md`
-
-## Verify locally
+## Verify
 - `cd frontend && npx tsc --noEmit` (clean)
 - `cd frontend && npm run lint` (pre-existing store.tsx warning only)
-- `pytest tests/test_chart_save_ux.py` → 2 passed
+
+## Files
+- `frontend/src/app/profile/page.tsx`
+- `.grok-handoff/current_build.md`, `backlog.md`
