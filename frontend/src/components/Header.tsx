@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, FlaskConical, LogOut, Orbit, Shield, UserRound } from "lucide-react";
+import { Activity, FlaskConical, LogOut, Orbit, Shield, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
 
 const nav = [
   { href: "/", label: "Home", icon: Orbit, testId: "nav-home" },
   { href: "/profile", label: "Chart", icon: UserRound, testId: "nav-chart" },
+  { href: "/soul", label: "Soul", icon: Sparkles, testId: "nav-soul" },
   { href: "/transits", label: "Today", icon: Activity, testId: "nav-today" },
   { href: "/biohack", label: "Protocols", icon: FlaskConical, testId: "nav-protocols" },
 ];
