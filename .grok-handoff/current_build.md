@@ -1,3 +1,27 @@
+# Handoff — Admin link fix (follow-up to Admin usage)
+
+## Status
+- **SHIPPED** (frontend live; API still blocked on Railway)
+- Merge: [PR #14](https://github.com/Benoliverc/hd-biohack/pull/14) → `b0a55e6` on `main`
+- Feature tip: `feat/fix-admin-link` @ `59e758c`
+- Ship note: `.grok-handoff/ship-fix-admin-link.md`
+
+## Production
+- **Vercel:** https://hd-biohack.vercel.app — Ready (`dpl_HWC9HVdXNqnwLrWEneh7Gy3uBbBv`) @ ~21:44 HKT 2026-10-22; `/` + `/admin` 200
+- **Railway api:** Online host, builds still **paused**. OpenAPI: no `/admin/usage/*`, no `is_admin` on login UserOut. Header Admin link works via client allowlist (`benjaminlammens@gmail.com`, `benjamin@test.hd-biohack.local`).
+
+## What shipped
+1. `frontend/src/lib/admin.ts` — `isAdminUser` prefers API `is_admin`, falls back to email allowlist
+2. Header + `/admin` use shared gate; login persists `is_admin` when present
+3. Docs: `NEXT_PUBLIC_ADMIN_EMAILS` in frontend `.env.example`
+
+## Next
+1. When Railway builds resume: set/confirm `ADMIN_EMAILS` on `api`, `railway redeploy --from-source -y`
+2. Hard-refresh prod as Benjamin (allowlisted email) → Admin link; `/admin` data once API is live
+3. Rotate Railway env secrets if not already done
+
+---
+
 # Handoff — Admin usage logbook (P0)
 
 ## Status
