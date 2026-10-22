@@ -276,7 +276,7 @@ export default function ProfilePage() {
   }, []);
 
   const applyRow = useCallback(
-    (latest: SavedChartRow) => {
+    (latest: SavedChartRow, opts?: { bindStore?: boolean }) => {
       const c = (latest.chart || {}) as Chart;
       const nextDate = latest.birth_date || "";
       const nextTime = toTimeInputValue(latest.birth_time) || "";
@@ -296,6 +296,8 @@ export default function ProfilePage() {
       const nextTz =
         (typeof latest.timezone === "string" && latest.timezone) ||
         (typeof c.timezone === "string" ? c.timezone : null);
+      const kind: SaveAs = latest.slot_kind === "friend" ? "friend" : "self";
+      const bindStore = opts?.bindStore ?? true;
 
       setBirthDate(nextDate);
       setBirthTime(nextTime);
@@ -305,14 +307,16 @@ export default function ProfilePage() {
       setTimezone(nextTz);
       setChart(c);
       setEditingChartId(latest.id);
-      setNatalChart({
-        id: latest.id,
-        label: latest.label || "Me",
-        birth_city: nextCity,
-        birth_date: nextDate,
-        birth_time: latest.birth_time,
-        timezone: nextTz,
-      });
+      if (bindStore) {
+        setNatalChart({
+          id: latest.id,
+          label: latest.label || "Me",
+          birth_city: nextCity,
+          birth_date: nextDate,
+          birth_time: latest.birth_time,
+          timezone: nextTz,
+        });
+      }
       setViewMode("saved");
       setSavedForm({
         birthDate: nextDate,
@@ -321,8 +325,8 @@ export default function ProfilePage() {
         lat: nextLat,
         lon: nextLon,
       });
-      setSaveAs(latest.slot_kind === "friend" ? "friend" : "self");
-      setFriendName(latest.slot_kind === "friend" ? latest.label || "" : "");
+      setSaveAs(kind);
+      setFriendName(latest.label || (kind === "friend" ? "" : "Me"));
     },
     [setNatalChart]
   );
@@ -550,7 +554,46 @@ export default function ProfilePage() {
     if (nextTz !== undefined) setTimezone(nextTz);
   };
 
-  const submit = async (save: boolean, kind: SaveAs = saveAs) => {
+  const selectedSavedRow =
+    editingChartId != null
+      ? savedPeople.find((r) => r.id === editingChartId) ?? null
+      : null;
+  const isNewPersonUi = editingChartId == null || viewMode !== "saved";
+  const frozenSlot: SaveAs =
+    selectedSavedRow?.slot_kind === "friend" ? "friend" : "self";
+  const hasSelfSaved = savedPeople.some((r) => r.slot_kind === "self");
+
+  const startNewPerson = () => {
+    setEditingChartId(null);
+    setBirthDate("");
+    setBirthTime("");
+    setBirthCity("");
+    setLat(null);
+    setLon(null);
+    setTimezone(null);
+    setChart(null);
+    setViewMode(null);
+    setSavedForm(null);
+    setError(null);
+    setFriendName("");
+    setSaveAs(hasSelfSaved ? "friend" : "self");
+    setPersonEditorOpen(true);
+  };
+
+  const mapSaveError = (raw: string): string => {
+    const lower = raw.toLowerCase();
+    if (lower.includes("chart not found") || lower.includes("was deleted")) {
+      return "That person was deleted — pick someone else or add new.";
+    }
+    return raw;
+  };
+
+  /** saveIntent: update = overwrite selected; create = always insert; preview = calc only. */
+  const submit = async (
+    saveIntent: "update" | "create" | "preview",
+    kindOverride?: SaveAs
+  ) => {
+    const save = saveIntent !== "preview";
     setBusyMode(save ? "save" : "preview");
     setError(null);
     try {
@@ -562,13 +605,36 @@ export default function ProfilePage() {
       const activeUser = user ?? (await ensureUser());
       if (!activeUser?.id) throw new Error("No user account loaded — tap Retry user, then try again.");
 
-      // Cap only blocks *new* people. Recalculating a selected saved chart updates in place.
-      // Prefer local editingChartId so upsert still works if store natal cleared mid-flight.
-      const updatingExisting = Boolean(save && editingChartId != null);
-      if (save && !updatingExisting && savedPeople.length >= MAX_PEOPLE) {
+      if (saveIntent === "update") {
+        if (editingChartId == null || !selectedSavedRow) {
+          throw new Error("Pick a saved person to update, or add a new person.");
+        }
+      }
+
+      // Cap only blocks *new* people. Updating a selected saved chart is always allowed.
+      if (saveIntent === "create" && savedPeople.length >= MAX_PEOPLE) {
         throw new Error(
-          `Chart limit reached (${MAX_PEOPLE}/10). Delete a saved person before adding another.`
+          `At the ${MAX_PEOPLE}-person limit — delete someone to add a new person. You can still update the selected person.`
         );
+      }
+
+      const kind: SaveAs =
+        saveIntent === "update"
+          ? frozenSlot
+          : saveIntent === "create"
+            ? (kindOverride ?? saveAs)
+            : (kindOverride ?? saveAs);
+
+      if (save && kind === "friend" && !friendName.trim()) {
+        throw new Error("Enter a name for this friend.");
+      }
+
+      if (saveIntent === "update" && selectedSavedRow) {
+        const name = selectedSavedRow.label || (frozenSlot === "self" ? "Me" : "Friend");
+        const ok = window.confirm(
+          `Replace the saved chart for “${name}” with these birth details?`
+        );
+        if (!ok) return;
       }
 
       let useLat = lat;
@@ -586,7 +652,7 @@ export default function ProfilePage() {
 
       const label =
         kind === "friend"
-          ? friendName.trim() || "Friend"
+          ? friendName.trim()
           : friendName.trim() || "Me";
 
       const res = await api.calculateChart({
@@ -599,7 +665,9 @@ export default function ProfilePage() {
         lon: useLon,
         label: save ? label : undefined,
         slot_kind: save ? kind : undefined,
-        natal_chart_id: updatingExisting ? editingChartId ?? undefined : undefined,
+        // create never sends natal_chart_id even if a stale id exists
+        natal_chart_id:
+          saveIntent === "update" ? editingChartId ?? undefined : undefined,
       });
       setChart(res.chart);
       const chartTz =
@@ -607,16 +675,16 @@ export default function ProfilePage() {
       if (chartTz) setTimezone(chartTz);
 
       if (save) {
-        if (res.natal_chart_id) {
+        if (!res.natal_chart_id) {
+          setError("Chart calculated but save did not return an id. Try again.");
+          return;
+        }
+        const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
+        const rows = await refreshPeople(activeUser.id);
+        const createdOrUpdated = rows.find((r) => r.id === res.natal_chart_id) ?? null;
+
+        if (saveIntent === "update") {
           setEditingChartId(res.natal_chart_id);
-          setNatalChart({
-            id: res.natal_chart_id,
-            label,
-            birth_city: city,
-            birth_date: birthDate,
-            birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
-            timezone: chartTz || timezone,
-          });
           setViewMode("saved");
           setSavedForm({
             birthDate,
@@ -625,22 +693,62 @@ export default function ProfilePage() {
             lat: useLat,
             lon: useLon,
           });
-          await refreshPeople(activeUser.id);
+          setSaveAs(kind);
+          setFriendName(label);
+          if (natalChartId != null && res.natal_chart_id === natalChartId) {
+            setNatalChart({
+              id: res.natal_chart_id,
+              label,
+              birth_city: city,
+              birth_date: birthDate,
+              birth_time: birthTimeFull,
+              timezone: chartTz || timezone,
+            });
+          }
         } else {
-          setError("Chart calculated but save did not return an id. Try again.");
+          // create: select new row; bind store Me only when saving self with no prior self / unbound
+          const bindStore =
+            kind === "self" && (!hasSelfSaved || natalChartId == null);
+          if (createdOrUpdated) {
+            applyRow(createdOrUpdated, { bindStore });
+          } else {
+            setEditingChartId(res.natal_chart_id);
+            setViewMode("saved");
+            setSavedForm({
+              birthDate,
+              birthTime: toTimeInputValue(birthTime),
+              birthCity: city,
+              lat: useLat,
+              lon: useLon,
+            });
+            setSaveAs(kind);
+            setFriendName(label);
+            if (bindStore) {
+              setNatalChart({
+                id: res.natal_chart_id,
+                label,
+                birth_city: city,
+                birth_date: birthDate,
+                birth_time: birthTimeFull,
+                timezone: chartTz || timezone,
+              });
+            }
+          }
         }
       } else {
         setViewMode("preview");
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(mapSaveError(e instanceof Error ? e.message : String(e)));
     } finally {
       setBusyMode(null);
     }
   };
 
   const selectPerson = (row: SavedChartRow) => {
-    applyRow(row);
+    // Chart edit target is local; keep Today’s Me unless selecting self or nothing bound yet.
+    const bindStore = row.slot_kind !== "friend" || natalChartId == null;
+    applyRow(row, { bindStore });
     setError(null);
   };
 
@@ -698,12 +806,22 @@ export default function ProfilePage() {
   const atCap = savedPeople.length >= MAX_PEOPLE;
 
   const activePersonLabel =
-    savedPeople.find((r) => r.id === editingChartId)?.label ||
-    savedPeople.find((r) => r.id === natalChartId)?.label ||
+    selectedSavedRow?.label ||
     friendName.trim() ||
-    (viewMode === "preview" ? "Preview" : "Me");
+    (viewMode === "preview" ? "Preview" : isNewPersonUi ? "New person" : "Me");
 
-  const updatingExistingUi = editingChartId != null && viewMode === "saved";
+  const updatingExistingUi = !isNewPersonUi && selectedSavedRow != null;
+
+  const editingBanner = (() => {
+    if (updatingExistingUi && selectedSavedRow) {
+      const name = selectedSavedRow.label || (frozenSlot === "self" ? "Me" : "Friend");
+      if (frozenSlot === "self") {
+        return <>Editing <span className="font-medium text-fg">“{name}”</span> (chart #{selectedSavedRow.id})</>;
+      }
+      return <>Editing <span className="font-medium text-fg">“{name}”</span> (friend · chart #{selectedSavedRow.id})</>;
+    }
+    return <>New person (not saved yet)</>;
+  })();
 
   const peopleAndForm = (
     <>
@@ -716,7 +834,7 @@ export default function ProfilePage() {
             </span>
           </div>
           {savedPeople.length === 0 ? (
-            <p className="text-sm text-fg-muted">None yet — calculate &amp; save below.</p>
+            <p className="text-sm text-fg-muted">None yet — add your chart or a friend’s below.</p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {savedPeople.map((row) => {
@@ -756,10 +874,24 @@ export default function ProfilePage() {
               })}
             </ul>
           )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-testid="add-new-person"
+              disabled={busy}
+              onClick={startNewPerson}
+              className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
+            >
+              Add new person
+            </button>
+            <p className="text-xs text-fg-secondary" data-testid="editing-banner">
+              {editingBanner}
+            </p>
+          </div>
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
-              At the {MAX_PEOPLE}-person limit ({savedPeople.length}/{MAX_PEOPLE}) — delete someone
-              to add a new person. Recalculating the selected person still updates in place.
+              At the {MAX_PEOPLE}-person limit — delete someone to add a new person. You can still
+              update the selected person.
             </p>
           )}
         </div>
@@ -817,60 +949,101 @@ export default function ProfilePage() {
         <div className="md:col-span-4 space-y-3">
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-sm">
-              <span className="mb-1 block text-fg-muted">Save as name</span>
+              <span className="mb-1 block text-fg-muted">
+                {updatingExistingUi
+                  ? frozenSlot === "friend"
+                    ? "Name"
+                    : "Display name"
+                  : saveAs === "friend"
+                    ? "Friend’s name"
+                    : "Display name"}
+              </span>
               <input
                 className="w-48 rounded-lg border border-border bg-sunken px-3 py-2"
-                placeholder={saveAs === "friend" ? "Friend’s name" : "Me"}
+                placeholder={
+                  updatingExistingUi
+                    ? frozenSlot === "friend"
+                      ? "Friend’s name"
+                      : "Me"
+                    : saveAs === "friend"
+                      ? "Friend’s name"
+                      : "Me"
+                }
                 value={friendName}
                 onChange={(e) => setFriendName(e.target.value)}
                 disabled={!formReady || busy}
               />
             </label>
-            <div className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1">
-              <button
-                type="button"
-                disabled={!formReady || busy}
-                onClick={() => setSaveAs("self")}
-                className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
-                  saveAs === "self" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
-                }`}
-              >
-                Save as me
-              </button>
-              <button
-                type="button"
-                disabled={!formReady || busy}
-                onClick={() => setSaveAs("friend")}
-                className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
-                  saveAs === "friend" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
-                }`}
-              >
-                Save for a friend
-              </button>
-            </div>
+            {updatingExistingUi ? (
+              <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
+                Role: {frozenSlot === "self" ? "Me" : "Friend"} (fixed)
+              </span>
+            ) : (
+              <div className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1">
+                <button
+                  type="button"
+                  disabled={!formReady || busy}
+                  onClick={() => setSaveAs("self")}
+                  className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                    saveAs === "self" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
+                  }`}
+                >
+                  Me
+                </button>
+                <button
+                  type="button"
+                  disabled={!formReady || busy}
+                  onClick={() => setSaveAs("friend")}
+                  className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                    saveAs === "friend" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
+                  }`}
+                >
+                  Friend
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="relative z-10 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              data-testid="calculate-save"
-              disabled={busy || !formReady || (atCap && !updatingExistingUi)}
-              onClick={() => void submit(true, saveAs)}
-              className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
-            >
-              {busyMode === "save"
-                ? "Saving…"
-                : saveAs === "friend"
-                  ? "Calculate & save friend"
-                  : updatingExistingUi
-                    ? "Update chart"
-                    : "Calculate & Save"}
-            </button>
+            {updatingExistingUi ? (
+              <>
+                <button
+                  type="button"
+                  data-testid="calculate-save"
+                  disabled={busy || !formReady}
+                  onClick={() => void submit("update")}
+                  className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
+                >
+                  {busyMode === "save"
+                    ? "Saving…"
+                    : `Update “${selectedSavedRow?.label || (frozenSlot === "self" ? "Me" : "Friend")}”`}
+                </button>
+                <button
+                  type="button"
+                  data-testid="save-as-new-friend"
+                  disabled={busy || !formReady || atCap}
+                  onClick={() => void submit("create", "friend")}
+                  className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Save as new friend
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                data-testid="calculate-save"
+                disabled={busy || !formReady || atCap}
+                onClick={() => void submit("create", saveAs)}
+                className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
+              >
+                {busyMode === "save" ? "Saving…" : "Calculate & save"}
+              </button>
+            )}
             <button
               type="button"
               data-testid="preview-only"
               disabled={busy || !formReady}
-              onClick={() => void submit(false)}
+              onClick={() => void submit("preview")}
               className="min-h-10 px-1 py-2.5 text-sm text-fg-muted underline-offset-2 hover:text-fg hover:underline disabled:cursor-wait disabled:opacity-60"
               title="Try without saving"
             >
@@ -893,8 +1066,8 @@ export default function ProfilePage() {
 
         {formDirtyVsSaved && viewMode === "saved" && (
           <p className="md:col-span-4 rounded-lg border border-energy/40 bg-energy/10 px-3 py-2 text-xs text-energy-ink">
-            Form no longer matches the saved chart — Preview or Calculate &amp; Save to update
-            results.
+            Form no longer matches the saved chart — Preview or Update to refresh results. Use Save
+            as new friend to add someone else without overwriting.
           </p>
         )}
         {error && (

@@ -181,8 +181,13 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             row = db.get(NatalChart, body.natal_chart_id)
             if not row or row.user_id != body.user_id:
                 raise HTTPException(404, "Chart not found")
+            # Freeze role on update — FE must create a new row to change Me ↔ Friend.
+            if slot_kind != (row.slot_kind or "self"):
+                raise HTTPException(
+                    400,
+                    "Use update without changing role, or save as a new person.",
+                )
             row.label = label[:128]
-            row.slot_kind = slot_kind
             row.birth_date = body.birth_date
             row.birth_time = body.birth_time
             row.birth_city = body.birth_city
