@@ -11,7 +11,7 @@ from ..checkin import derive_today_indication
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
-from ..hd.soul_sync import CONTEXT_WEIGHTS, compute_soul_sync
+from ..hd.soul_sync import CONTEXT_IDS, compute_soul_sync
 from ..models import (
     NatalChart,
     SupplementInventory,
@@ -536,10 +536,10 @@ def telemetry_ingest(body: TelemetryIn, db: Session = Depends(get_db)):
 
 @router.post("/soul/sync", response_model=SoulSyncOut)
 def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
-    """Bio-Sync Index between two natal charts owned by the same user."""
+    """Aura Alchemy between two natal charts owned by the same user."""
     if body.self_chart_id == body.friend_chart_id:
         raise HTTPException(400, "Pick two different charts")
-    if body.context not in CONTEXT_WEIGHTS:
+    if body.context not in CONTEXT_IDS:
         raise HTTPException(400, "Invalid context")
 
     user = db.get(User, body.user_id)
@@ -555,11 +555,11 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
 
     chart_a = self_row.chart_json or {}
     chart_b = friend_row.chart_json or {}
+    # protocols ignored (Aura Alchemy dropped Fit-era co-reg toggles)
     result = compute_soul_sync(
         chart_a,
         chart_b,
         context=body.context,
-        protocols=body.protocols or [],
         self_meta={
             "id": self_row.id,
             "label": getattr(self_row, "label", None) or "Me",

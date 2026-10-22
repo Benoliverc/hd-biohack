@@ -6,52 +6,91 @@ import { ArrowLeftRight } from "lucide-react";
 import {
   api,
   type SavedChartRow,
+  type SoulCard,
   type SoulContext,
+  type SoulSpectrum,
   type SoulSyncResult,
 } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 
-const CONTEXTS: {
+const PLAYBOOKS: {
   id: SoulContext;
   label: string;
-  aliases: string;
 }[] = [
-  { id: "work", label: "Work & Co-Creation", aliases: "Co-Founder / Work" },
-  { id: "life", label: "Life & Intimacy", aliases: "Partner / Sleep" },
-  { id: "play", label: "Play & Performance", aliases: "Friend / Teammate" },
+  { id: "life", label: "Life & Intimacy" },
+  { id: "work", label: "Work & Co-Creation" },
+  { id: "play", label: "Play & Recovery" },
 ];
 
-const VECTOR_GLOSS: Record<string, string> = {
-  voltage: "How much spark and novelty the connection generates.",
-  flow: "How easily structure and roles settle between you.",
-  ease: "How gentle the connection is on the nervous system.",
+/** Client-side card order so playbook switches are instant. */
+const CARD_ORDER: Record<SoulContext, string[]> = {
+  life: ["somatic_playbook", "power_dynamics", "circuit_bridge", "spark_glue"],
+  work: ["circuit_bridge", "spark_glue", "power_dynamics", "somatic_playbook"],
+  play: ["spark_glue", "somatic_playbook", "circuit_bridge", "power_dynamics"],
 };
 
-function Meter({
-  label,
-  value,
-  gloss,
-  testId,
-}: {
-  label: string;
-  value: number;
-  gloss: string;
-  testId: string;
-}) {
+function isAuraSchema(res: SoulSyncResult): boolean {
+  return Boolean(res?.signature?.id) && res.natural_fit == null;
+}
+
+function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
+  const isPacing = spectrum.id === "somatic_pacing";
+  const fillClass = isPacing ? "bg-energy/80" : "bg-growth/70";
+  const highClass = isPacing ? "text-energy" : "text-growth";
   return (
-    <div data-testid={testId} className="rounded-xl border border-border bg-sunken/40 p-4">
+    <div
+      data-testid={`soul-spectrum-${spectrum.id}`}
+      className="rounded-xl border border-border bg-sunken/40 p-4"
+    >
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-fg">{label}</span>
-        <span className="text-lg font-bold tabular-nums text-growth">{value}</span>
+        <span className="text-sm font-semibold text-fg">{spectrum.label}</span>
+        <span className={`text-xs font-medium tabular-nums ${highClass}`}>
+          {spectrum.position}
+        </span>
+      </div>
+      <div className="mb-2 flex justify-between gap-2 text-[10px] uppercase tracking-wide text-fg-muted">
+        <span>{spectrum.low_label}</span>
+        <span className={isPacing ? "text-energy" : undefined}>{spectrum.high_label}</span>
       </div>
       <div className="mb-2 h-2 overflow-hidden rounded-full bg-elevated">
         <div
-          className="h-full rounded-full bg-growth/70 transition-[width]"
-          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+          className={`h-full rounded-full transition-[width] ${fillClass}`}
+          style={{ width: `${Math.max(0, Math.min(100, spectrum.position))}%` }}
         />
       </div>
-      <p className="text-xs text-fg-muted">{gloss}</p>
+      <p className="text-xs text-fg-muted">{spectrum.summary}</p>
+    </div>
+  );
+}
+
+function InsightCard({ card }: { card: SoulCard }) {
+  return (
+    <div
+      className="rounded-2xl border border-border bg-elevated p-5"
+      data-testid={`soul-card-${card.id}`}
+    >
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+        {card.title}
+      </h2>
+      <ul className="space-y-3">
+        {card.body_blocks.map((blk, i) => (
+          <li key={`${card.id}-${i}`}>
+            <p className="text-sm font-medium text-fg">{blk.headline}</p>
+            <p className="mt-0.5 text-sm text-fg-secondary">{blk.body}</p>
+          </li>
+        ))}
+      </ul>
+      {card.id === "circuit_bridge" && card.bridges && card.bridges.length > 0 && (
+        <ul className="mt-3 space-y-1 border-t border-border/60 pt-3 text-xs text-fg-muted">
+          {card.bridges.map((b) => (
+            <li key={`${b.missing_for}-${b.gate}`}>
+              Gate {b.gate} · {b.channel || "channel"} · completes{" "}
+              {b.missing_for === "self" ? "you" : "them"}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -77,13 +116,13 @@ export default function SoulPage() {
 
   const [selfId, setSelfId] = useState<number | null>(null);
   const [friendId, setFriendId] = useState<number | null>(null);
-  const [context, setContext] = useState<SoulContext>("work");
-  const [protocols, setProtocols] = useState<string[]>([]);
+  const [context, setContext] = useState<SoulContext>("life");
 
   const [result, setResult] = useState<SoulSyncResult | null>(null);
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [apiMissing, setApiMissing] = useState(false);
+  const [schemaLag, setSchemaLag] = useState(false);
 
   const loadCharts = useCallback(async () => {
     if (!user?.id) {
@@ -133,16 +172,22 @@ export default function SoulPage() {
     setSyncLoading(true);
     setSyncError(null);
     setApiMissing(false);
+    setSchemaLag(false);
     api
       .soulSync({
         user_id: user.id,
         self_chart_id: selfId,
         friend_chart_id: friendId,
         context,
-        protocols,
       })
       .then((res) => {
-        if (!cancelled) setResult(res);
+        if (cancelled) return;
+        if (!isAuraSchema(res)) {
+          setSchemaLag(true);
+          setResult(null);
+          return;
+        }
+        setResult(res);
       })
       .catch((e) => {
         if (cancelled) return;
@@ -151,7 +196,6 @@ export default function SoulPage() {
           /not found|404|method not allowed|soul sync needs/i.test(msg) ||
           msg.trim() === "" ||
           /\/soul\/sync/i.test(msg);
-        // FastAPI 404 detail is often "Not Found"
         if (/^not found$/i.test(msg.trim()) || missing) {
           setApiMissing(true);
           setSyncError(null);
@@ -166,30 +210,28 @@ export default function SoulPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, selfId, friendId, context, protocols]);
+  }, [user?.id, selfId, friendId, context]);
 
-  const activeContext = CONTEXTS.find((c) => c.id === context) ?? CONTEXTS[0];
   const enoughPeople = charts.length >= 2;
 
-  const applicableProtocols = useMemo(
-    () => (result?.available_protocols || []).filter((p) => p.applicable),
-    [result]
-  );
-
-  const toggleProtocol = (id: string) => {
-    setProtocols((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const regulatedActive = protocols.length > 0;
+  const orderedCards = useMemo(() => {
+    if (!result?.cards) return [];
+    const byId = new Map(result.cards.map((c) => [c.id, c]));
+    const order = CARD_ORDER[context] ?? result.playbook?.card_order ?? [];
+    const ordered = order.map((id) => byId.get(id)).filter(Boolean) as SoulCard[];
+    // Append any unexpected cards
+    for (const c of result.cards) {
+      if (!order.includes(c.id)) ordered.push(c);
+    }
+    return ordered;
+  }, [result, context]);
 
   return (
     <div className="space-y-6" data-testid="soul-page">
       <div>
         <h1 className="text-2xl font-bold">Soul</h1>
         <p className="text-sm text-fg-muted">
-          Bio-Sync between you and someone you&apos;ve charted.
+          Aura mechanics between you and someone you&apos;ve charted.
         </p>
       </div>
 
@@ -210,7 +252,7 @@ export default function SoulPage() {
           data-testid="soul-empty"
         >
           <p className="mb-3 text-sm text-fg-secondary">
-            Soul needs at least two saved people — you and a friend — before Bio-Sync can run.
+            Soul needs at least two saved people — you and a friend — before aura alchemy can run.
           </p>
           <Link
             href="/profile"
@@ -261,10 +303,10 @@ export default function SoulPage() {
             </label>
           </div>
 
-          <div data-testid="soul-context">
-            <p className="mb-2 text-sm font-medium text-fg">Context lens</p>
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Context lens">
-              {CONTEXTS.map((c) => {
+          <div data-testid="soul-playbook">
+            <p className="mb-2 text-sm font-medium text-fg">Playbook</p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Playbook">
+              {PLAYBOOKS.map((c) => {
                 const active = context === c.id;
                 return (
                   <button
@@ -285,18 +327,19 @@ export default function SoulPage() {
               })}
             </div>
             <p className="mt-1.5 text-xs text-fg-muted">
-              Also reads as: {activeContext.aliases}
+              Reorders insight cards only — signature and spectrums stay the same.
             </p>
           </div>
 
-          {apiMissing && (
+          {(apiMissing || schemaLag) && (
             <div
               className="rounded-2xl border border-energy/40 bg-energy/10 p-5"
               data-testid="soul-api-missing"
             >
               <p className="text-sm text-energy-ink">
-                Soul sync needs an API update. The page is ready; production API may still be on an
-                older build (Railway deploy pause). Locally, restart the backend on this branch.
+                {schemaLag
+                  ? "Soul API is on an older Fit % schema. Redeploy the backend with Aura Alchemy, then refresh."
+                  : "Soul sync needs an API update. The page is ready; production API may still be on an older build (Railway deploy pause). Locally, restart the backend on this branch."}
               </p>
             </div>
           )}
@@ -312,7 +355,7 @@ export default function SoulPage() {
               className="rounded-2xl border border-border bg-elevated p-5"
               data-testid="soul-sync-loading"
             >
-              <p className="text-sm text-fg-muted">Calculating Bio-Sync…</p>
+              <p className="text-sm text-fg-muted">Reading aura mechanics…</p>
             </div>
           )}
 
@@ -322,97 +365,69 @@ export default function SoulPage() {
                 className="rounded-2xl border border-border bg-elevated p-5"
                 data-testid="soul-hero"
               >
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-fg-muted">Natural Fit</p>
-                    <p
-                      className="text-4xl font-bold tabular-nums text-growth"
-                      data-testid="soul-natural-fit"
-                    >
-                      {result.natural_fit}
-                      <span className="text-lg font-semibold text-fg-muted">%</span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-fg-muted">Regulated Fit</p>
-                    <p
-                      className={`text-3xl font-bold tabular-nums ${
-                        regulatedActive ? "text-growth" : "text-fg-muted"
-                      }`}
-                      data-testid="soul-regulated-fit"
-                    >
-                      {result.regulated_fit}
-                      <span className="text-base font-semibold">%</span>
-                    </p>
-                    {!regulatedActive && (
-                      <p className="text-xs text-fg-muted">Enable a co-regulation toggle below</p>
-                    )}
-                  </div>
-                  <div
-                    className="rounded-xl border border-growth/30 bg-growth/10 px-3 py-2"
-                    data-testid="soul-archetype"
+                <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+                <h2
+                  className="mt-1 text-3xl font-bold text-growth"
+                  data-testid="soul-signature"
+                >
+                  <span aria-hidden className="mr-2">
+                    {result.signature.emoji || "⚡"}
+                  </span>
+                  {result.signature.label}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
+                  {result.signature.subtext}
+                </p>
+                {result.secondary_signature && (
+                  <p
+                    className="mt-3 inline-flex rounded-full border border-border bg-sunken px-3 py-1 text-xs text-fg-secondary"
+                    data-testid="soul-secondary-signature"
                   >
-                    <p className="text-sm font-semibold text-growth">{result.archetype.label}</p>
-                    <p className="mt-0.5 max-w-xs text-xs text-fg-secondary">
-                      {result.archetype.blurb}
-                    </p>
+                    Also: {result.secondary_signature.label}
+                  </p>
+                )}
+                {result.badges.length > 0 && (
+                  <div
+                    className="mt-4 flex flex-wrap gap-2"
+                    data-testid="soul-badges"
+                  >
+                    {result.badges.map((b) => (
+                      <span
+                        key={b.id}
+                        title={b.detail || undefined}
+                        data-testid={`soul-badge-${b.id}`}
+                        className="rounded-full border border-growth/40 bg-growth/10 px-3 py-1 text-xs font-medium text-growth"
+                      >
+                        {b.label}
+                      </span>
+                    ))}
                   </div>
-                </div>
-                <p className="mt-3 text-xs text-fg-muted" data-testid="soul-disclaimer">
+                )}
+                <p className="mt-4 text-xs text-fg-muted" data-testid="soul-disclaimer">
                   {result.disclaimer}
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3" data-testid="soul-vectors">
-                <Meter
-                  label="Voltage"
-                  value={result.vectors.voltage}
-                  gloss={VECTOR_GLOSS.voltage}
-                  testId="soul-voltage"
-                />
-                <Meter
-                  label="Flow"
-                  value={result.vectors.flow}
-                  gloss={VECTOR_GLOSS.flow}
-                  testId="soul-flow"
-                />
-                <Meter
-                  label="Somatic Ease"
-                  value={result.vectors.ease}
-                  gloss={VECTOR_GLOSS.ease}
-                  testId="soul-ease"
-                />
+              <div className="grid gap-3 md:grid-cols-3" data-testid="soul-spectrums">
+                {result.spectrums.map((s) => (
+                  <SpectrumBar key={s.id} spectrum={s} />
+                ))}
               </div>
 
-              {result.split_bridges.length > 0 && (
-                <div
-                  className="rounded-2xl border border-border bg-elevated p-5"
-                  data-testid="soul-split-bridges"
-                >
-                  <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-                    Split-Bridge
-                  </h2>
-                  <p className="mb-3 text-sm text-fg-secondary">
-                    They complete a hanging gate in your chart — a natural pull point in the field.
-                  </p>
-                  <ul className="space-y-1.5 text-sm text-fg">
-                    {result.split_bridges.map((b) => (
-                      <li key={`${b.gate}-${b.channel}`}>
-                        Gate {b.gate} · {b.channel || "channel"}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="space-y-4" data-testid="soul-cards">
+                {orderedCards.map((card) => (
+                  <InsightCard key={card.id} card={card} />
+                ))}
+              </div>
 
-              <div
+              <details
                 className="rounded-2xl border border-border bg-elevated p-5"
                 data-testid="soul-conditioning"
               >
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-                  Directional conditioning
-                </h2>
-                <ul className="space-y-2">
+                <summary className="cursor-pointer text-sm font-semibold text-fg">
+                  Centers &amp; how this is read
+                </summary>
+                <ul className="mt-3 space-y-2">
                   {result.conditioning_strip.map((row) => {
                     const arrow =
                       row.direction === "friend_to_self"
@@ -442,54 +457,10 @@ export default function SoulPage() {
                     );
                   })}
                 </ul>
-              </div>
-
-              {applicableProtocols.length > 0 && (
-                <div
-                  className="rounded-2xl border border-border bg-elevated p-5"
-                  data-testid="soul-protocols"
-                >
-                  <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-                    Co-regulation (preview)
-                  </h2>
-                  <p className="mb-3 text-xs text-fg-muted">
-                    Thin preview — toggles bump Somatic Ease into Regulated Fit. Not saved.
-                  </p>
-                  <ul className="space-y-2">
-                    {applicableProtocols.map((p) => (
-                      <li key={p.id}>
-                        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-fg">
-                          <input
-                            type="checkbox"
-                            checked={protocols.includes(p.id)}
-                            onChange={() => toggleProtocol(p.id)}
-                            data-testid={`soul-protocol-${p.id}`}
-                          />
-                          {p.label}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <details className="rounded-2xl border border-border bg-elevated p-5">
-                <summary className="cursor-pointer text-sm font-semibold text-fg">
-                  How this is calculated
-                </summary>
-                <div className="mt-3 space-y-2 text-sm text-fg-secondary">
+                <div className="mt-4 space-y-2 text-sm text-fg-secondary">
                   <p>
-                    Natural Fit blends three vectors for the active lens ({result.context_label}):
-                    Voltage (spark), Flow (shared structure), and Somatic Ease (nervous-system
-                    friction). Weights for this lens: Voltage {Math.round(result.weights.voltage * 100)}
-                    %, Flow {Math.round(result.weights.flow * 100)}%, Ease{" "}
-                    {Math.round(result.weights.ease * 100)}%.
-                  </p>
-                  <p>
-                    Drivers come from electromagnetic / companionship / dominance / compromise
-                    channels, hanging-gate bridges, shared centers, profile geometry, authority
-                    timing, and type sacral asymmetry. Regulated Fit only changes Ease via the
-                    toggles above.
+                    Spectrum bars show relative charge, continuity, and pacing style — never a
+                    single compatibility percentage. Playbooks only reorder the insight cards.
                   </p>
                 </div>
               </details>

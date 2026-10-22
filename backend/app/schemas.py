@@ -161,7 +161,8 @@ class SoulSyncIn(BaseModel):
     user_id: int
     self_chart_id: int
     friend_chart_id: int
-    context: Literal["work", "life", "play"] = "work"
+    context: Literal["work", "life", "play"] = "life"
+    # Ignored — Fit-era co-reg toggles removed; kept optional for one release.
     protocols: list[str] = Field(default_factory=list)
 
 
@@ -171,43 +172,72 @@ class SoulPersonOut(BaseModel):
     type: str | None = None
     profile: str | None = None
     authority: str | None = None
+    definition: str | None = None
 
 
-class SoulVectorsOut(BaseModel):
-    voltage: int
-    flow: int
-    ease: int
-    voltage_drivers: list[dict[str, Any]] = Field(default_factory=list)
-    flow_drivers: list[dict[str, Any]] = Field(default_factory=list)
-    ease_drivers: list[dict[str, Any]] = Field(default_factory=list)
-
-
-class SoulArchetypeOut(BaseModel):
+class SoulSignatureOut(BaseModel):
     id: str
     label: str
-    composite_defined_count: int
-    blurb: str = ""
+    emoji: str = ""
+    subtext: str = ""
 
 
-class SoulProtocolOut(BaseModel):
+class SoulBadgeOut(BaseModel):
     id: str
     label: str
-    applicable: bool
+    detail: str = ""
+
+
+class SoulSpectrumOut(BaseModel):
+    id: str
+    label: str
+    low_label: str
+    high_label: str
+    position: int
+    summary: str = ""
+    drivers: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class SoulCardBlockOut(BaseModel):
+    headline: str
+    body: str
+
+
+class SoulCardOut(BaseModel):
+    id: str
+    title: str
+    body_blocks: list[SoulCardBlockOut] = Field(default_factory=list)
+    empty_body: str | None = None
+    bridges: list[dict[str, Any]] | None = None
+    protocols: list[dict[str, Any]] | None = None
+
+
+class SoulPlaybookOut(BaseModel):
+    id: str
+    label: str
+    card_order: list[str] = Field(default_factory=list)
+
+
+class SoulCompositeOut(BaseModel):
+    defined_count: int
+    open_count: int
+    definition: str = ""
+    defined_centers: list[str] = Field(default_factory=list)
 
 
 class SoulSyncOut(BaseModel):
     self: SoulPersonOut
     friend: SoulPersonOut
     context: str
-    context_label: str
-    vectors: SoulVectorsOut
-    natural_fit: int
-    regulated_fit: int
-    regulated_ease: int
-    weights: dict[str, float]
-    archetype: SoulArchetypeOut
-    split_bridges: list[dict[str, Any]] = Field(default_factory=list)
-    conditioning_strip: list[dict[str, Any]] = Field(default_factory=list)
+    playbook: SoulPlaybookOut
+    signature: SoulSignatureOut
+    secondary_signature: SoulSignatureOut | None = None
+    badges: list[SoulBadgeOut] = Field(default_factory=list)
+    spectrums: list[SoulSpectrumOut] = Field(default_factory=list)
+    cards: list[SoulCardOut] = Field(default_factory=list)
     channel_roles: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
-    available_protocols: list[SoulProtocolOut] = Field(default_factory=list)
+    split_bridges: list[dict[str, Any]] = Field(default_factory=list)
+    friend_split_bridges: list[dict[str, Any]] = Field(default_factory=list)
+    conditioning_strip: list[dict[str, Any]] = Field(default_factory=list)
+    composite: SoulCompositeOut
     disclaimer: str = ""
