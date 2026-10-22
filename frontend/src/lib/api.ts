@@ -133,6 +133,76 @@ export type UsageStatsDay = UsageStatsBucket & { day: string };
 export type UsageStatsWeek = UsageStatsBucket & { week: string; week_start: string };
 export type UsageStatsMonth = UsageStatsBucket & { month: string };
 
+
+export type SoulContext = "work" | "life" | "play";
+
+export type SoulSyncRequest = {
+  user_id: number;
+  self_chart_id: number;
+  friend_chart_id: number;
+  context?: SoulContext;
+  protocols?: string[];
+};
+
+export type SoulPerson = {
+  id: number | null;
+  label: string;
+  type?: string | null;
+  profile?: string | null;
+  authority?: string | null;
+};
+
+export type SoulDriver = {
+  kind: string;
+  pts: number;
+  channel?: string;
+  gates?: number[];
+  gate?: number;
+  center?: string;
+  profiles?: Array<string | null>;
+};
+
+export type SoulSyncResult = {
+  self: SoulPerson;
+  friend: SoulPerson;
+  context: SoulContext | string;
+  context_label: string;
+  vectors: {
+    voltage: number;
+    flow: number;
+    ease: number;
+    voltage_drivers: SoulDriver[];
+    flow_drivers: SoulDriver[];
+    ease_drivers: SoulDriver[];
+  };
+  natural_fit: number;
+  regulated_fit: number;
+  regulated_ease: number;
+  weights: { voltage: number; flow: number; ease: number };
+  archetype: {
+    id: string;
+    label: string;
+    composite_defined_count: number;
+    blurb: string;
+  };
+  split_bridges: Array<{
+    gate: number;
+    channel: string;
+    held_by: string;
+    missing_for: string;
+  }>;
+  conditioning_strip: Array<{
+    center: string;
+    self: "defined" | "open" | string;
+    friend: "defined" | "open" | string;
+    direction: string;
+    hint: string;
+  }>;
+  channel_roles: Record<string, Array<Record<string, unknown>>>;
+  available_protocols: Array<{ id: string; label: string; applicable: boolean }>;
+  disclaimer: string;
+};
+
 export const api = {
   health: () => req<{ status: string }>("/health"),
   login: (username: string, password: string) =>
@@ -224,6 +294,15 @@ export const api = {
     req<UsageStatsMonth[]>(
       `/admin/usage/stats/monthly?actor_user_id=${actorUserId}&months=${months}`
     ),
+  soulSync: (body: SoulSyncRequest) =>
+    req<SoulSyncResult>("/soul/sync", {
+      method: "POST",
+      body: JSON.stringify({
+        context: "work",
+        protocols: [],
+        ...body,
+      }),
+    }),
 };
 
 export { API_BASE };

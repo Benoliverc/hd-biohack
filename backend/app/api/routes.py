@@ -11,6 +11,7 @@ from ..checkin import derive_today_indication
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
+from ..hd.soul_sync import CONTEXT_WEIGHTS, compute_soul_sync
 from ..models import (
     NatalChart,
     SupplementInventory,
@@ -43,6 +44,8 @@ from ..schemas import (
     UsageStatsDay,
     UsageStatsMonth,
     UsageStatsWeek,
+    SoulSyncIn,
+    SoulSyncOut,
     UserCreate,
     UserOut,
 )
@@ -525,3 +528,47 @@ def telemetry_ingest(body: TelemetryIn, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(row)
     return {"status": "accepted", "id": row.id, "note": "V2 stub — not yet merged into protocols"}
+
+@router.post("/soul/sync", response_model=SoulSyncOut)
+def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
+    """Bio-Sync Index between two natal charts owned by the same user."""
+    if body.self_chart_id == body.friend_chart_id:
+        raise HTTPException(400, "Pick two different charts")
+    if body.context not in CONTEXT_WEIGHTS:
+        raise HTTPException(400, "Invalid context")
+
+    user = db.get(User, body.user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    self_row = db.get(NatalChart, body.self_chart_id)
+    friend_row = db.get(NatalChart, body.friend_chart_id)
+    if not self_row or not friend_row:
+        raise HTTPException(404, "Chart not found")
+    if self_row.user_id != body.user_id or friend_row.user_id != body.user_id:
+        raise HTTPException(403, "Chart not owned by user")
+
+    chart_a = self_row.chart_json or {}
+    chart_b = friend_row.chart_json or {}
+    result = compute_soul_sync(
+        chart_a,
+        chart_b,
+        context=body.context,
+        protocols=body.protocols or [],
+        self_meta={
+            "id": self_row.id,
+            "label": getattr(self_row, "label", None) or "Me",
+            "type": chart_a.get("type"),
+            "profile": chart_a.get("profile"),
+            "authority": chart_a.get("authority"),
+        },
+        friend_meta={
+            "id": friend_row.id,
+            "label": getattr(friend_row, "label", None) or "Friend",
+            "type": chart_b.get("type"),
+            "profile": chart_b.get("profile"),
+            "authority": chart_b.get("authority"),
+        },
+    )
+    return result
+

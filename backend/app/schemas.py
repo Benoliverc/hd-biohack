@@ -155,3 +155,59 @@ class UsageStatsMonth(BaseModel):
     unique_users_logged_in: int
     charts_generated: int
     protocols_generated: int
+
+
+class SoulSyncIn(BaseModel):
+    user_id: int
+    self_chart_id: int
+    friend_chart_id: int
+    context: Literal["work", "life", "play"] = "work"
+    protocols: list[str] = Field(default_factory=list)
+
+
+class SoulPersonOut(BaseModel):
+    id: int | None = None
+    label: str = ""
+    type: str | None = None
+    profile: str | None = None
+    authority: str | None = None
+
+
+class SoulVectorsOut(BaseModel):
+    voltage: int
+    flow: int
+    ease: int
+    voltage_drivers: list[dict[str, Any]] = Field(default_factory=list)
+    flow_drivers: list[dict[str, Any]] = Field(default_factory=list)
+    ease_drivers: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class SoulArchetypeOut(BaseModel):
+    id: str
+    label: str
+    composite_defined_count: int
+    blurb: str = ""
+
+
+class SoulProtocolOut(BaseModel):
+    id: str
+    label: str
+    applicable: bool
+
+
+class SoulSyncOut(BaseModel):
+    self: SoulPersonOut
+    friend: SoulPersonOut
+    context: str
+    context_label: str
+    vectors: SoulVectorsOut
+    natural_fit: int
+    regulated_fit: int
+    regulated_ease: int
+    weights: dict[str, float]
+    archetype: SoulArchetypeOut
+    split_bridges: list[dict[str, Any]] = Field(default_factory=list)
+    conditioning_strip: list[dict[str, Any]] = Field(default_factory=list)
+    channel_roles: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
+    available_protocols: list[SoulProtocolOut] = Field(default_factory=list)
+    disclaimer: str = ""
