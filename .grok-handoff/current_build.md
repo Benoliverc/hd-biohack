@@ -4,7 +4,7 @@
 - **Ready for:** `@ui-ux` then `@qa` Ship Gate (do **not** treat as shipped)
 - **Spec:** `.grok-handoff/current_spec.md` (P0 Today check-in)
 - **Branch:** `feat/today-checkin`
-- **SHA:** _(filled after commit)_
+- **SHA:** `3db5249`
 
 ## Request
 On `/transits` (nav Today), above “What to do today”, add Check-in: Energy (1–5) + Preferred space → one Main action + why. Free tier. Deterministic. No LLM. No Protocol generate side effect.
