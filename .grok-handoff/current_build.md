@@ -12,7 +12,7 @@
 - Sky “What to do today” card restored to pre-check-in styling (growth card + protocol CTA)
 
 ## Production notes
-- **Frontend:** redeploy Vercel so chips disappear from https://hd-biohack.vercel.app
+- **Frontend:** https://hd-biohack.vercel.app — Vercel Ready (`dpl_BJ6EfnhA5MHp2umpNkBPcSWRNfPE`) — Check-in chips removed from `/transits`
 - **Backend:** Railway builds may still be paused after env-var incident; removing UI is the critical path. Prod API never had `/checkin` live. If Railway can redeploy, tip will also drop checkin routes.
 
 ## Prior ships still live
