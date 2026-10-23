@@ -103,6 +103,78 @@ function saveCompletions(key: string, map: Record<string, boolean>) {
   }
 }
 
+type CheckItem = {
+  id: string;
+  label: string;
+  sub?: string;
+  why?: string;
+  inInventory?: boolean;
+};
+
+type TimedLeadSnap = { id: string; item: string; inInventory?: boolean };
+
+function sanitizeWhy(why: string | undefined, inInventory: boolean | undefined): string | undefined {
+  if (!why) return undefined;
+  // Never claim shelf ownership on unowned / behavior rows without a kit badge.
+  if (inInventory) return why;
+  const cleaned = why
+    .replace(/\s*You already own something like this[^.]*\.\s*/gi, " ")
+    .replace(/\s*[Pp]refer what you already own[^.]*\.?\s*/gi, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return cleaned || undefined;
+}
+
+function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] {
+  if (!proto) return [];
+  const daily = (proto.daily_plan as Record<string, unknown>) || null;
+  if (!daily) return [];
+  const out: TimedLeadSnap[] = [];
+  for (const slot of ["morning", "midday", "evening"] as const) {
+    const row = ((daily[slot] as PlanItem[]) || [])[0];
+    if (!row) continue;
+    out.push({ id: slot, item: row.item, inInventory: row.in_inventory });
+  }
+  return out;
+}
+
+function slotTitle(id: string): string {
+  if (id === "morning") return "Morning";
+  if (id === "midday") return "Midday";
+  if (id === "evening") return "Evening";
+  return id;
+}
+
+function bareItemName(item: string): string {
+  return item.replace(/\s*\(consider adding\)\s*$/i, "").trim();
+}
+
+function announceKitChange(
+  before: TimedLeadSnap[],
+  after: TimedLeadSnap[],
+  kind: "add" | "remove",
+  name: string
+): string {
+  for (const slot of ["morning", "midday", "evening"]) {
+    const b = before.find((x) => x.id === slot);
+    const a = after.find((x) => x.id === slot);
+    if (!a) continue;
+    const itemChanged = !b || b.item !== a.item;
+    const invChanged = !b || Boolean(b.inInventory) !== Boolean(a.inInventory);
+    if (itemChanged || invChanged) {
+      if (a.inInventory) {
+        return `Plan updated · ${slotTitle(slot)} now uses ${bareItemName(a.item)} (from your kit)`;
+      }
+      return `Plan updated · ${slotTitle(slot)} now uses ${a.item}`;
+    }
+  }
+  if (kind === "remove") {
+    return `Removed ${name} · plan refreshed`;
+  }
+  return `Kit updated · Today's Move unchanged for this weather`;
+}
+
+
 export default function BiohackPage() {
   const { user, natalChartId, natalBindingLoading, biohackingUnlocked, setNatalChart } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
@@ -119,6 +191,7 @@ export default function BiohackPage() {
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [invFeedback, setInvFeedback] = useState<string | null>(null);
+  const [kitStatus, setKitStatus] = useState<string | null>(null);
   const [focusInvId, setFocusInvId] = useState<number | null>(null);
   const [natalOpen, setNatalOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
@@ -181,6 +254,7 @@ export default function BiohackPage() {
     setError(null);
     setNatalOpen(false);
     setAutoTried(false);
+    setKitStatus(null);
   }, [user?.id, youChart?.id]);
 
   useEffect(() => {
@@ -211,8 +285,8 @@ export default function BiohackPage() {
   }, [user]);
 
   useEffect(() => {
+    // Collapse natal when a new protocol arrives — never yank kit panel shut mid-edit.
     if (protocol) {
-      setInventoryOpen(false);
       setNatalOpen(false);
     }
   }, [protocol]);
@@ -240,7 +314,7 @@ export default function BiohackPage() {
 
   const loadProtocol = useCallback(
     async (opts?: { rebuild?: boolean }) => {
-      if (!user || !youChart) return;
+      if (!user || !youChart) return null;
       setLoading(true);
       setError(null);
       try {
@@ -257,8 +331,10 @@ export default function BiohackPage() {
         if (opts?.rebuild) {
           /* explicit refresh — same path */
         }
+        return protoRes.protocol as Record<string, unknown>;
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
+        return null;
       } finally {
         setLoading(false);
       }
@@ -296,14 +372,23 @@ export default function BiohackPage() {
     setAdding(true);
     setError(null);
     setInvFeedback(null);
+    setKitStatus(null);
+    const before = snapTimedLeads(protocol);
     try {
       const res = await api.addInventory(user.id, name);
       await refreshInventory();
       setInvName("");
       setFocusInvId(res.id);
-      setInvFeedback(res.duplicate ? `Already in inventory: ${res.name}` : `Added ${res.name}`);
+      setInvFeedback(res.duplicate ? `Already in kit: ${res.name}` : `Added ${res.name}`);
       setInventoryOpen(true);
-      if (protocol) void loadProtocol({ rebuild: true });
+      if (protocol) {
+        const next = await loadProtocol({ rebuild: true });
+        if (!res.duplicate) {
+          setKitStatus(announceKitChange(before, snapTimedLeads(next), "add", res.name));
+        }
+      } else if (!res.duplicate) {
+        setKitStatus(`Added ${res.name} to your kit`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -315,11 +400,18 @@ export default function BiohackPage() {
     if (!user) return;
     setRemovingId(item.id);
     setError(null);
+    setKitStatus(null);
+    const before = snapTimedLeads(protocol);
     try {
       await api.removeInventory(user.id, item.id);
       await refreshInventory();
       if (focusInvId === item.id) setFocusInvId(null);
-      if (protocol) void loadProtocol({ rebuild: true });
+      if (protocol) {
+        const next = await loadProtocol({ rebuild: true });
+        setKitStatus(announceKitChange(before, snapTimedLeads(next), "remove", item.name));
+      } else {
+        setKitStatus(`Removed ${item.name} · plan refreshed`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -345,7 +437,7 @@ export default function BiohackPage() {
   const resolvingYou = natalBindingLoading || !youReady;
 
   const checkItems = useMemo(() => {
-    if (!daily || !summary) return [] as { id: string; label: string; sub?: string; why?: string }[];
+    if (!daily || !summary) return [] as CheckItem[];
     const heroTitle = String(
       (daily.hero as { title?: string } | undefined)?.title || summary.headline || "Today's move"
     );
@@ -355,7 +447,7 @@ export default function BiohackPage() {
     const heroMicro = String(
       (daily.hero as { micro?: string } | undefined)?.micro || summary.micro || ""
     );
-    const items: { id: string; label: string; sub?: string; why?: string }[] = [
+    const items: CheckItem[] = [
       {
         id: "hero",
         label: heroTitle,
@@ -367,15 +459,22 @@ export default function BiohackPage() {
       const row = ((daily[slot] as PlanItem[]) || [])[0];
       if (!row) continue;
       const slotLabel = slot === "morning" ? "Morning" : slot === "midday" ? "Midday" : "Evening";
+      const inInv = Boolean(row.in_inventory);
       items.push({
         id: slot,
         label: `${slotLabel}: ${row.item}`,
         sub: row.when || undefined,
-        why: row.why,
+        why: sanitizeWhy(row.why, inInv),
+        inInventory: inInv,
       });
     }
     return items;
   }, [daily, summary]);
+
+  const timedLeadsAllBehavior = useMemo(() => {
+    const timed = checkItems.filter((it) => it.id !== "hero");
+    return timed.length > 0 && timed.every((it) => !it.inInventory);
+  }, [checkItems]);
 
   const doneCount = checkItems.filter((it) => doneMap[it.id]).length;
 
@@ -394,14 +493,23 @@ export default function BiohackPage() {
         >
           {loading ? "Building…" : "Refresh"}
         </button>
-        <button
-          type="button"
-          onClick={openInventory}
-          className="min-h-10 self-start text-sm text-fg-muted underline-offset-2 hover:text-fg hover:underline"
-        >
-          Edit inventory
-        </button>
       </div>
+      {kitStatus && (
+        <div
+          className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-growth/40 bg-growth-soft px-3 py-2.5 text-sm text-growth-ink"
+          data-testid="kit-status"
+          role="status"
+        >
+          <span>{kitStatus}</span>
+          <button
+            type="button"
+            className="shrink-0 text-xs text-fg-muted underline-offset-2 hover:underline"
+            onClick={() => setKitStatus(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {error && (
         <div className="flex flex-wrap items-center gap-2 text-sm text-danger">
           <span>{error}</span>
@@ -461,6 +569,17 @@ export default function BiohackPage() {
         />
       )}
 
+      {(protocol || youChart) && (
+        <KitStrip
+          count={inventory.length}
+          loading={inventoryLoading}
+          onEdit={openInventory}
+          onAddStarter={(name) => void addInv(name)}
+          adding={adding}
+          disabled={!user || adding || inventoryLoading || resolvingYou}
+        />
+      )}
+
       {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
@@ -472,6 +591,7 @@ export default function BiohackPage() {
           baselineKit={(daily.baseline_kit as PlanItem[]) || []}
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
+          showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
         />
       )}
 
@@ -656,8 +776,9 @@ function TodaysMoveCard({
   baselineKit,
   baselineKitOpen,
   onToggleBaseline,
+  showNoKitFootnote,
 }: {
-  items: { id: string; label: string; sub?: string; why?: string }[];
+  items: CheckItem[];
   doneMap: Record<string, boolean>;
   onToggle: (id: string) => void;
   doneCount: number;
@@ -666,6 +787,7 @@ function TodaysMoveCard({
   baselineKit: PlanItem[];
   baselineKitOpen: boolean;
   onToggleBaseline: () => void;
+  showNoKitFootnote?: boolean;
 }) {
   return (
     <section
@@ -701,12 +823,22 @@ function TodaysMoveCard({
                   data-testid={`protocol-check-${it.id}`}
                 />
                 <span className="min-w-0 flex-1">
-                  <span
-                    className={`block text-sm ${idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"} ${
-                      checked ? "line-through" : ""
-                    }`}
-                  >
-                    {it.label}
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`text-sm ${idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"} ${
+                        checked ? "line-through" : ""
+                      }`}
+                    >
+                      {it.label}
+                    </span>
+                    {it.inInventory && (
+                      <span
+                        className="inline-flex items-center rounded-full bg-growth-soft px-2 py-0.5 text-[12px] font-medium text-growth-ink ring-1 ring-growth/30"
+                        data-testid={`from-kit-badge-${it.id}`}
+                      >
+                        From your kit
+                      </span>
+                    )}
                   </span>
                   {it.sub && <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>}
                   {it.why && <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>}
@@ -716,6 +848,11 @@ function TodaysMoveCard({
           );
         })}
       </ul>
+      {showNoKitFootnote && (
+        <p className="text-xs text-fg-muted" data-testid="no-kit-match-footnote">
+          No kit item matched today&apos;s weather
+        </p>
+      )}
 
       {(doList.length > 0 || dontList.length > 0) && (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -767,6 +904,69 @@ function TodaysMoveCard({
         </div>
       )}
     </section>
+  );
+}
+
+
+/* ─── Kit strip (above-fold) ─────────────────────────────────────────────── */
+
+function KitStrip({
+  count,
+  loading,
+  onEdit,
+  onAddStarter,
+  adding,
+  disabled,
+}: {
+  count: number;
+  loading: boolean;
+  onEdit: () => void;
+  onAddStarter: (name: string) => void;
+  adding: boolean;
+  disabled: boolean;
+}) {
+  const empty = !loading && count === 0;
+  return (
+    <div
+      className="rounded-2xl border border-border bg-elevated px-4 py-3"
+      data-testid="kit-strip"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-fg">
+          <span className="font-semibold">Your kit</span>
+          <span className="text-fg-muted"> · {loading ? "…" : count}</span>
+        </p>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="min-h-9 rounded-lg border border-border bg-sunken px-3 py-1.5 text-xs font-medium text-fg hover:border-growth"
+          data-testid="kit-strip-edit"
+        >
+          {empty ? "Add items" : "Edit"}
+        </button>
+      </div>
+      {empty && (
+        <div className="mt-2 space-y-2" data-testid="kit-strip-empty">
+          <p className="text-xs text-fg-secondary">
+            Add what you own — timed supports prefer your shelf
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {STARTER_SUPPLEMENTS.map((name) => (
+              <button
+                key={name}
+                type="button"
+                disabled={disabled || adding}
+                onClick={() => onAddStarter(name)}
+                className="rounded-full border border-border bg-sunken px-2.5 py-1 text-[11px] text-fg-secondary hover:border-growth disabled:opacity-50"
+                data-testid={`kit-starter-${name}`}
+              >
+                +{name.split(" ")[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -907,14 +1107,14 @@ function InventoryPanel({
         aria-expanded={open}
       >
         <span className="text-sm font-semibold text-fg">
-          Your inventory{count > 0 ? ` (${count})` : ""}
+          Your kit{count > 0 ? ` (${count})` : ""}
         </span>
         <span className="text-xs text-fg-muted">{open ? "Hide" : "Show"}</span>
       </button>
       {open && (
         <div className="border-t border-border px-4 pb-4 pt-3">
           <p className="mb-3 text-xs text-fg-muted">
-            Owned items are prioritized in today&apos;s timed supports.
+            Items in your kit are preferred in today&apos;s timed supports.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             <input
