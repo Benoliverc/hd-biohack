@@ -3,6 +3,7 @@
 ## Status
 - Ready for Ship Gate / PO review
 - Branch: `feat/today-you-profile-only`
+- SHA: `7a9221d`
 - Spec: `.grok-handoff/today-you-profile-only.md`
 - Base: `main` @ PR #20 (`9d01287`)
 
