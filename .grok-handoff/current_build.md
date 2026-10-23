@@ -1,36 +1,50 @@
-# Handoff — Soul Playbook: remove Life/Work/Play tabs (P0)
+# Handoff — Soul Playbook card copy deepen (P0)
 
 ## Status
 - Ready for Ship Gate / PO review
-- Branch: `feat/soul-playbook-no-context-tabs`
-- SHA: `2e71b35`
-- PR: https://github.com/Benoliverc/hd-biohack/pull/22
-- Spec: user ask 2026-10-23 — remove Life & Intimacy / Work & Co-Creation / Play & Recovery under Playbook for now
-- Base: `main` @ PR #21 (`bd2cde8`)
+- SHA: `9fe7599`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/23
+- Branch: `feat/soul-playbook-deeper-copy`
+- Spec: `.grok-handoff/soul-playbook-card-copy-2x.md` + user ask 2026-10-23
+- Base: `main` @ `5f0dd0b` (PR #22 merged)
 
 ## What changed
-1. **Soul Playbook UI** — Removed Life / Work / Play context tab buttons. Single Playbook heading + short helper: “Playbook guidance for this pair…”.
-2. **Fixed context** — FE always sends `context: "life"` (`PLAYBOOK_CONTEXT`). No `setContext` / switching.
-3. **Cards** — Order from API `playbook.card_order`, fallback `LIFE_CARD_ORDER` (life). Lede / focus_hint / signature / badges / spectrums unchanged.
-4. **Copy** — Dropped Life/Work/Play switching and “reorders cards” language in helper + conditioning strip.
+1. **How You Wire Together** (`circuit_bridge`) — ~2× every bridge body + Quiet wiring empty; each block adds feel + one Habit.
+2. **Tailored Somatic Playbook** (`somatic_playbook`) — ~2× sacral hygiene, profile resonance (6/2+5/1 + generic), double emotional (+ channel extras), Easy pacing empty.
+3. **Spark & Glue** (`spark_glue`) — essay (2–4 sentences) + `Channels:` / `On this pair:` cites for EM / Companionship / Dominance; richer Quiet field empty.
+4. **Tests** — `test_playbook_card_copy_deepened` asserts essay length + channel cites preserved.
 
 ## Do not change (verified)
-- Signature detection, badge predicates, Magnetic threshold (backend untouched)
-- Backend still accepts `context`; FE just always sends `life`
+- `detect_signatures`, `MAGNETIC_EM_MIN`, badge predicates, card ids/order, FE structure, `power_dynamics` bodies
 
 ## Files
-- `frontend/src/app/soul/page.tsx`
+- `backend/app/hd/soul_sync.py` (`build_cards`)
+- `backend/tests/test_soul_sync.py`
 - `.grok-handoff/current_build.md`
 
 ## Verify
 ```bash
-cd frontend && npx tsc --noEmit
+cd backend && pytest tests/test_soul_sync.py -q
 ```
 
+## Before → After (Magnetic Intimacy ≈ Me↔K)
+
+### Spark (Electromagnetic)
+**Before:** `Intimacy (6-59)`  
+**After:** Catalytic-chemistry essay + recovery/pace guidance, then `Channels: Intimacy (6-59)`.
+
+### Kinetic Execution Bridge (Structuring+Charisma EM fixture)
+**Before:** `They wire deep intuition into physical action and experience.`  
+**After:** Feel (momentum / embodied next step) + Habit (15-minute same-day move).
+
+### Sacral / Non-Sacral Aura Hygiene
+**Before:** ~37 words (reactor + 30–60 min wind-down).  
+**After:** ~70+ words — overstimulation vs life force, both-sides protection, Habit wind-down without reading as rejection.
+
 ## Smoke (after merge)
-1. Open `/soul` with Me + friend → no Life/Work/Play tabs.
-2. Signature, badges, spectrums, life lede, and cards still render.
-3. Friend switch still refreshes sync; Chart flows untouched.
+1. `/soul` Me↔K Magnetic → Spark & Glue reads as essay with channel cites (not bare list).
+2. Wire + Somatic bodies visibly longer; no Fit % / dating chrome.
+3. Signature / badges / spectrums unchanged.
 
 ## Awaiting
-Ship Gate → merge → Vercel FE redeploy.
+Ship Gate → merge → Railway API redeploy (FE unchanged).

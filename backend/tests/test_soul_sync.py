@@ -307,6 +307,67 @@ def test_bidirectional_bridges_and_spark_glue():
     print("PASS: bidirectional bridge list + spark_glue card")
 
 
+def test_playbook_card_copy_deepened():
+    """Spark & Glue essays + ~2× Wire/Somatic bodies (not bare channel lists)."""
+    # Magnetic Intimacy EM pair (≈ Me↔K chemistry)
+    a = _chart([6, 5, 15], type="Generator", authority="Emotional", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
+    out = compute_soul_sync(a, b, context="life")
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    spark = next(c for c in out["cards"] if c["id"] == "spark_glue")
+    em_blk = next(blk for blk in spark["body_blocks"] if "Electromagnetic" in blk["headline"])
+    # Channel cites preserved AND essay meaning present
+    assert "Intimacy" in em_blk["body"] and "6-59" in em_blk["body"]
+    assert "Channels:" in em_blk["body"]
+    assert len(em_blk["body"].split()) >= 40
+    assert any(
+        phrase in em_blk["body"].lower()
+        for phrase in ("catalytic", "recovery", "spark", "electromagnetic")
+    )
+    # Dominance gift essay when present
+    if any("Dominance" in blk["headline"] for blk in spark["body_blocks"]):
+        dom = next(blk for blk in spark["body_blocks"] if "Dominance" in blk["headline"])
+        assert "On this pair:" in dom["body"]
+        assert len(dom["body"].split()) >= 40
+
+    # Bridge themes (Structuring + Charisma EM)
+    a2 = _chart([23, 20, 6], type="Generator", authority="Sacral", profile="3/5")
+    b2 = _chart([43, 34, 59], type="Projector", authority="Splenic", profile="1/3")
+    wire_out = compute_soul_sync(a2, b2, context="life")
+    wire = next(c for c in wire_out["cards"] if c["id"] == "circuit_bridge")
+    headlines = {blk["headline"] for blk in wire["body_blocks"]}
+    assert "Mental Structuring Bridge" in headlines
+    assert "Kinetic Execution Bridge" in headlines
+    for blk in wire["body_blocks"]:
+        assert len(blk["body"].split()) >= 35, blk["headline"]
+        assert "Habit:" in blk["body"]
+
+    # Somatic protocols longer
+    a3 = _chart(
+        [28, 38, 5, 15],
+        type="Generator",
+        authority="Emotional (Solar Plexus)",
+        profile="6/2",
+    )
+    b3 = _chart(
+        [28, 1, 8],
+        type="Projector",
+        authority="Emotional (Solar Plexus)",
+        profile="5/1",
+    )
+    soma_out = compute_soul_sync(a3, b3, context="life")
+    soma = next(c for c in soma_out["cards"] if c["id"] == "somatic_playbook")
+    by_id = {p["id"]: p for p in (soma.get("protocols") or [])}
+    assert "sacral_aura_hygiene" in by_id
+    assert "profile_resonance" in by_id
+    assert "double_emotional" in by_id
+    assert len(by_id["sacral_aura_hygiene"]["body"].split()) >= 55
+    assert len(by_id["profile_resonance"]["body"].split()) >= 55
+    assert len(by_id["double_emotional"]["body"].split()) >= 55
+    assert "Habit:" in by_id["sacral_aura_hygiene"]["body"]
+    print("PASS: deepened spark_glue / circuit_bridge / somatic_playbook copy")
+
+
 def test_harmonic_sanctuary_and_profile_harmony_helper():
     assert profile_harmony("3/5", "3/5") is True
     assert profile_harmony("4/1", "6/2") is False
@@ -492,6 +553,7 @@ if __name__ == "__main__":
     test_playbook_reorders_cards_not_signature()
     test_power_dynamics_and_somatic_protocols()
     test_bidirectional_bridges_and_spark_glue()
+    test_playbook_card_copy_deepened()
     test_harmonic_sanctuary_and_profile_harmony_helper()
     test_conditioning_strip_preserved()
     test_signatures_diversify_across_fixtures()

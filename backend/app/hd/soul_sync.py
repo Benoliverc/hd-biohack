@@ -979,12 +979,20 @@ def build_cards(
                     if h == "self":
                         holder_note = (
                             "You help organize and articulate their abstract mental "
-                            "swirls into crisp insights."
+                            "swirls into crisp insights. In practice this feels like "
+                            "their ideas finally landing in language you can both use — "
+                            "less fog, more shared map. Habit: after a thinking session, "
+                            "name one decision and one open question out loud before you "
+                            "leave the room so the clarity sticks."
                         )
                     elif h == "friend":
                         holder_note = (
                             "They help organize and articulate your abstract mental "
-                            "swirls into crisp insights."
+                            "swirls into crisp insights. In practice this feels like "
+                            "your inner weather becoming a sentence you both trust — "
+                            "less looping, more usable next step. Habit: after a thinking "
+                            "session, ask them to mirror one decision and one open "
+                            "question before you leave the room so the clarity sticks."
                         )
                     break
         bridge_blocks.append(
@@ -992,8 +1000,12 @@ def build_cards(
                 "headline": "Mental Structuring Bridge",
                 "body": holder_note
                 or (
-                    "You help organize and articulate their abstract mental swirls "
-                    "into crisp insights."
+                    "Together you turn abstract mental swirls into crisp, shareable "
+                    "insights — the field supplies structure when either mind alone "
+                    "would stay foggy. It feels like a thinking partnership: less "
+                    "rumination, more sentences you can act on. Habit: after a deep "
+                    "talk, write one decision and one open question before you "
+                    "separate so the bridge keeps working offline."
                 ),
             }
         )
@@ -1003,7 +1015,13 @@ def build_cards(
         bridge_blocks.append(
             {
                 "headline": "Kinetic Execution Bridge",
-                "body": "They wire deep intuition into physical action and experience.",
+                "body": (
+                    "You wire deep intuition into physical action and lived experience — "
+                    "insight does not stay theoretical when you are in the same field. "
+                    "It feels like momentum: a felt sense becomes a move, a conversation "
+                    "becomes an experiment. Habit: when an idea sparks, pick a 15-minute "
+                    "embodied next step the same day instead of another planning loop."
+                ),
             }
         )
     if "shared_compass" in badge_ids:
@@ -1012,7 +1030,11 @@ def build_cards(
                 "headline": "True North Lock",
                 "body": (
                     "Together you generate a defined sense of direction and presence "
-                    "that neither of you holds solo."
+                    "that neither of you holds solo. The composite feels oriented — "
+                    "less \"where are we going?\" fog, more shared north you can lean on "
+                    "during messy weeks. Habit: once a week, each name one true-north "
+                    "priority out loud and check whether the week's calendar still "
+                    "matches it."
                 ),
             }
         )
@@ -1022,12 +1044,23 @@ def build_cards(
                 "headline": "Split → Single Flow",
                 "body": (
                     "Separately you run split circuitry; together the field resolves "
-                    "into one continuous definition."
+                    "into one continuous definition. It can feel almost electric — "
+                    "fragmented attention suddenly has a through-line and decisions "
+                    "move faster. Habit: protect short solo windows after long shared "
+                    "days so each nervous system can find its own edges again inside "
+                    "the composite flow."
                 ),
             }
         )
     bridge_blocks = bridge_blocks[:4]
     all_bridges = bridges_self + bridges_friend
+    quiet_wiring_body = (
+        "No dramatic bridge theme on this pair — the wiring is quieter, which is "
+        "useful information rather than a deficit. Lean on Spark & Glue for where "
+        "charge actually lives, and on pacing protocols for recovery. Habit: treat "
+        "absence of a big bridge as permission to design connection deliberately "
+        "instead of waiting for circuitry to \"click\" on its own."
+    )
     circuit_card: dict[str, Any] = {
         "id": "circuit_bridge",
         "title": "How You Wire Together",
@@ -1035,54 +1068,86 @@ def build_cards(
         or [
             {
                 "headline": "Quiet wiring",
-                "body": (
-                    "No dramatic bridge theme on this pair — look at Spark & Glue "
-                    "and pacing instead."
-                ),
+                "body": quiet_wiring_body,
             }
         ],
         "bridges": all_bridges,
     }
     if not bridge_blocks:
-        circuit_card["empty_body"] = (
-            "No dramatic bridge theme on this pair — look at Spark & Glue and pacing instead."
-        )
+        circuit_card["empty_body"] = quiet_wiring_body
 
     # Card 2 — spark_glue
+    def _channel_cite_line(ch: dict[str, Any]) -> str:
+        gates = ch.get("gates") or []
+        gate_txt = "-".join(str(g) for g in gates)
+        name = ch.get("channel") or "Channel"
+        return f"{name} ({gate_txt})" if gate_txt else name
+
+    def _dominance_cite_line(ch: dict[str, Any]) -> str:
+        return f"{_holder_label(ch.get('holder', 'self'))} {ch.get('channel') or 'Channel'}"
+
     spark_blocks: list[dict[str, str]] = []
     if roles["electromagnetic"]:
-        lines = ", ".join(
-            f"{c['channel']} ({'-'.join(str(g) for g in c['gates'])})"
-            for c in roles["electromagnetic"]
-        )
+        cites = ", ".join(_channel_cite_line(c) for c in roles["electromagnetic"])
         spark_blocks.append(
             {
                 "headline": "Spark (Electromagnetic)",
-                "body": lines,
+                "body": (
+                    "Electromagnetic spark is catalytic chemistry — your charts complete "
+                    "channels neither person holds alone, so the aura can feel brighter, "
+                    "faster, and more \"alive\" than either baseline. Use it as fuel, not "
+                    "as a constant setting: name the charge when it rises, keep decision "
+                    "windows short while waves are high, and schedule solo recovery so "
+                    "the spark does not become nervous-system debt. On high-EM days, "
+                    "prefer embodied check-ins (walk, food, breath) over forcing clarity "
+                    "in the peak of intensity.\n\n"
+                    f"Channels: {cites}"
+                ),
             }
         )
     if roles["companionship"]:
-        lines = ", ".join(
-            f"{c['channel']} ({'-'.join(str(g) for g in c['gates'])})"
-            for c in roles["companionship"]
-        )
+        cites = ", ".join(_channel_cite_line(c) for c in roles["companionship"])
         spark_blocks.append(
             {
                 "headline": "Bedrock (Companionship)",
-                "body": lines,
+                "body": (
+                    "Companionship glue is the stabilizing layer under whatever spark "
+                    "you share — familiar rhythm, tribal ease, and a sense that the "
+                    "field already \"gets\" the cadence without constant negotiation. "
+                    "It is excellent for recovery days, household logistics, and long "
+                    "arcs of trust; the shadow is assuming consent or going quiet when "
+                    "a need actually wants naming. Keep bedrock honest by saying the "
+                    "small preference early instead of waiting for friction to prove "
+                    "the bond.\n\n"
+                    f"Channels: {cites}"
+                ),
             }
         )
     if roles["dominance"]:
-        lines = ", ".join(
-            f"{_holder_label(c.get('holder', 'self'))} {c['channel']}"
-            for c in roles["dominance"]
-        )
+        cites = ", ".join(_dominance_cite_line(c) for c in roles["dominance"])
         spark_blocks.append(
             {
                 "headline": "Effortless Gifts (Dominance)",
-                "body": lines,
+                "body": (
+                    "Dominance gifts are channels one of you runs fully — they tend to "
+                    "feel effortless for the holder and quietly organizing for the "
+                    "receiver. The gift is not control; it is reliable signal the other "
+                    "can lean on (pace, taste, structure, initiative) without grinding "
+                    "to produce it. Receive by thanking the gift and still keeping your "
+                    "own authority; give by offering the channel without taking over "
+                    "the other person's decision rights.\n\n"
+                    f"On this pair: {cites}"
+                ),
             }
         )
+    quiet_field_body = (
+        "No electromagnetic, companionship, or dominance channels light up as the "
+        "headline chemistry on this pair — the field stays relatively quiet on paper. "
+        "That does not mean low care; it means connection will be designed more than "
+        "ignited. Look to Wire Together and the Somatic Playbook for pacing, and build "
+        "ritual (shared meals, walks, check-ins) so the bond has structure without "
+        "waiting for a Magnetic-style spark."
+    )
     spark_card: dict[str, Any] = {
         "id": "spark_glue",
         "title": "Spark & Glue",
@@ -1090,7 +1155,7 @@ def build_cards(
         or [
             {
                 "headline": "Quiet field",
-                "body": "No electromagnetic, companionship, or dominance channels on this pair.",
+                "body": quiet_field_body,
             }
         ],
     }
@@ -1142,9 +1207,14 @@ def build_cards(
                 "title": "Sacral / Non-Sacral Aura Hygiene",
                 "body": (
                     f"{type_a or 'You'} ↔ {type_b or 'Friend'}. The Sacral partner is a "
-                    "nuclear reactor amplifier for the non-Sacral. Recommend 30–60 min "
-                    "solo wind-down before sleep so the non-Sacral can discharge borrowed "
-                    "Sacral charge without the Sacral partner reading it as rejection."
+                    "nuclear reactor amplifier for the non-Sacral — shared aura can feel "
+                    "energizing for hours and then leave the non-Sacral overstimulated "
+                    "or oddly depleted once alone. Protect both sides: the Sacral does "
+                    "not need to dim their life force, and the non-Sacral does not need "
+                    "to apologize for needing discharge. Habit: schedule 30–60 minutes "
+                    "of solo wind-down before sleep after high-aura days so borrowed "
+                    "Sacral charge can leave the body without either person reading it "
+                    "as rejection or coldness."
                 ),
             }
         )
@@ -1152,15 +1222,24 @@ def build_cards(
         pair = {profile_a, profile_b}
         if pair == {"6/2", "5/1"}:
             body = (
-                f"Profile Resonance ({profile_a} + {profile_b}). "
-                "6/2 sees cleanly past 5/1 projection field; Projector waits for invitation; "
-                "guide MG via binary Yes/No Sacral questions, not commands, while 20-34 "
-                "is in motion."
+                f"Profile Resonance ({profile_a} + {profile_b}). The 6/2 line tends to "
+                "see cleanly past the 5/1 projection field — useful when the room wants "
+                "a savior story and the pair needs truth instead. Keep roles clean: the "
+                "Projector waits for a real invitation before guiding; the Generator / "
+                "MG answers with binary Yes/No Sacral responses rather than taking "
+                "commands, especially while 20-34 Charisma is in motion. Habit: before "
+                "advice or a big push, ask \"Is this an invitation or a projection?\" "
+                "out loud, then let Sacral response set pace."
             )
         else:
             body = (
-                f"Profile Resonance ({profile_a} + {profile_b}). "
-                "Honor hermit/investigator needs; don't force same social bandwidth."
+                f"Profile Resonance ({profile_a} + {profile_b}). Different profile lines "
+                "want different social bandwidth — hermit, investigator, martyr, or "
+                "role-model instincts will not sync just because the bond is warm. "
+                "Forcing the same party cadence or the same depth-of-share creates "
+                "quiet resentment even when love is high. Habit: name your default "
+                "recovery style (alone / parallel presence / people) at the start of "
+                "a busy week so neither person treats the other's need as rejection."
             )
         protocols.append(
             {
@@ -1191,9 +1270,13 @@ def build_cards(
                 "id": "double_emotional",
                 "title": "Double Emotional Wave Surfing",
                 "body": (
-                    "Lean into tactile 19-49 comfort when present (food, warmth, presence; "
-                    "no heavy problem-solving at wave bottom). Wait a night's sleep before "
-                    "locking big decisions."
+                    "Two Emotional authorities in one field means waves can amplify — "
+                    "clarity that feels absolute at the crest often softens by morning, "
+                    "and low points can look like relationship truth when they are "
+                    "chemistry. Prefer tactile comfort over analysis at the bottom of "
+                    "a wave (food, warmth, quiet presence; no heavy problem-solving). "
+                    "Habit: wait at least one night's sleep before locking big decisions, "
+                    "and reopen the conversation when both bodies feel flatter."
                     + extra_txt
                 ),
             }
@@ -1202,6 +1285,13 @@ def build_cards(
     soma_blocks: list[dict[str, str]] = [
         {"headline": p["title"], "body": p["body"]} for p in protocols
     ]
+    easy_pacing_body = (
+        "Pacing looks relatively easy on paper — fewer built-in sacral or double-wave "
+        "collisions — and that can lull a pair into skipping recovery. Quiet fields "
+        "still accumulate charge from sleep debt, travel, and social density. Habit: "
+        "protect solo aura time after high-charge days anyway, and treat \"we feel "
+        "fine\" as a cue to book the buffer before you need it."
+    )
     somatic_card: dict[str, Any] = {
         "id": "somatic_playbook",
         "title": "Tailored Somatic Playbook",
@@ -1209,21 +1299,16 @@ def build_cards(
         or [
             {
                 "headline": "Easy pacing",
-                "body": (
-                    "Pacing looks relatively easy on paper — still protect solo aura "
-                    "time after high-charge days."
-                ),
+                "body": easy_pacing_body,
             }
         ],
         "protocols": protocols,
     }
     if not protocols:
-        somatic_card["empty_body"] = (
-            "Pacing looks relatively easy on paper — still protect solo aura "
-            "time after high-charge days."
-        )
+        somatic_card["empty_body"] = easy_pacing_body
 
     return [circuit_card, spark_card, power_card, somatic_card]
+
 
 
 def compute_soul_sync(
