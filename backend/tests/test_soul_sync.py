@@ -8,7 +8,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.hd.channels import active_channels, defined_centers, hanging_gates
 from app.hd.soul_sync import (
+    BADGE_DESCRIPTIONS,
+    MAGNETIC_EM_MIN,
     PLAYBOOK_CARD_ORDER,
+    PLAYBOOK_LEDES,
+    SIGNATURES,
+    build_playbook_lede,
     classify_channel_roles,
     compute_soul_sync,
     detect_integration_triad,
@@ -255,7 +260,11 @@ def test_playbook_reorders_cards_not_signature():
     assert work["playbook"]["card_order"] == PLAYBOOK_CARD_ORDER["work"]
     assert play["playbook"]["card_order"] == PLAYBOOK_CARD_ORDER["play"]
     assert play["playbook"]["label"] == "Play & Recovery"
-    print("PASS: playbook reorders cards; signature/badges/spectrums invariant")
+    # Ledes differ by context; signature/spectrums stay invariant
+    assert life["playbook"]["lede"] != work["playbook"]["lede"] != play["playbook"]["lede"]
+    assert life["playbook"]["lede"] != play["playbook"]["lede"]
+    assert all(out["playbook"].get("lede") for out in (life, work, play))
+    print("PASS: playbook reorders cards + varies lede; signature/badges/spectrums invariant")
 
 
 def test_power_dynamics_and_somatic_protocols():
@@ -380,6 +389,94 @@ def test_signatures_diversify_across_fixtures():
 
 
 
+def test_signature_subtexts_long_and_magnetic_highest():
+    assert MAGNETIC_EM_MIN == 5
+    assert len(SIGNATURES) == 5
+    for sig in SIGNATURES:
+        words = len(sig["subtext"].split())
+        assert words >= 35, f"{sig['id']} subtext too short ({words} words)"
+    mag = next(s for s in SIGNATURES if s["id"] == "magnetic_alchemy")
+    assert mag.get("tier") == "highest"
+    assert mag.get("tier_label")
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
+    out = compute_soul_sync(a, b, context="life")
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    assert out["signature"]["tier"] == "highest"
+    assert "highest" in out["signature"]["subtext"].lower()
+    print("PASS: signature subtexts ≥35 words; Magnetic tier=highest")
+
+
+def test_badge_descriptions_present():
+    assert set(BADGE_DESCRIPTIONS) == {
+        "mutual_split_bridge",
+        "shared_compass",
+        "intimacy_lock",
+        "integration_triad",
+        "tribal_bond",
+        "mirror_gates",
+        "composite_8_1",
+        "composite_9_0",
+    }
+    for bid, desc in BADGE_DESCRIPTIONS.items():
+        assert len(desc.split()) >= 20, bid
+    # Intimacy fixture emits intimacy_lock with description
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
+    out = compute_soul_sync(a, b, context="life")
+    for badge in out["badges"]:
+        assert badge.get("description"), badge["id"]
+        assert len(badge["description"].split()) >= 20
+    assert any(b["id"] == "intimacy_lock" for b in out["badges"])
+    print("PASS: all 8 badge descriptions; emitted badges carry description")
+
+
+def test_playbook_ledes_vary_by_signature_and_context():
+    # Same signature → 3 distinct context ledes
+    mag_ledes = {ctx: build_playbook_lede("magnetic_alchemy", ctx)["lede"] for ctx in ("life", "work", "play")}
+    assert len(set(mag_ledes.values())) == 3
+    # Different signatures → different life ledes
+    life_by_sig = {
+        sid: build_playbook_lede(sid, "life")["lede"] for sid in PLAYBOOK_LEDES
+    }
+    assert len(set(life_by_sig.values())) == 5
+    # Wired into compute_soul_sync for diversified fixtures
+    fixtures = {
+        "magnetic_alchemy": (
+            _chart([6, 5, 15], type="Generator", authority="Emotional", profile="3/5"),
+            _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3"),
+        ),
+        "integrated_flow": (
+            _chart([10, 5, 15], type="Generator", authority="Sacral", profile="3/5"),
+            _chart([20, 34, 1, 8], type="Manifesting Generator", authority="Sacral", profile="5/1"),
+        ),
+        "catalytic_growth": (
+            _chart(
+                [28, 38, 30, 41, 23, 43, 35, 36, 5, 15, 2, 14, 20, 34, 10],
+                type="Manifesting Generator",
+                authority="Emotional",
+                profile="3/5",
+            ),
+            _chart(
+                [28, 30, 23, 35, 1, 8, 7, 31, 27, 50, 44, 26],
+                type="Projector",
+                authority="Emotional",
+                profile="6/2",
+            ),
+        ),
+    }
+    life_ledes = {}
+    for expected_sig, (a, b) in fixtures.items():
+        out = compute_soul_sync(a, b, context="life")
+        assert out["signature"]["id"] == expected_sig
+        life_ledes[expected_sig] = out["playbook"]["lede"]
+        work = compute_soul_sync(a, b, context="work")
+        assert work["playbook"]["lede"] != out["playbook"]["lede"]
+        assert work["signature"]["id"] == out["signature"]["id"]
+    assert len(set(life_ledes.values())) == 3
+    print(f"PASS: playbook ledes vary by signature×context {list(life_ledes)}")
+
+
 if __name__ == "__main__":
     test_no_fit_percent_in_response()
     test_magnetic_alchemy_from_intimacy_em()
@@ -398,4 +495,7 @@ if __name__ == "__main__":
     test_harmonic_sanctuary_and_profile_harmony_helper()
     test_conditioning_strip_preserved()
     test_signatures_diversify_across_fixtures()
+    test_signature_subtexts_long_and_magnetic_highest()
+    test_badge_descriptions_present()
+    test_playbook_ledes_vary_by_signature_and_context()
     print("\nAll soul_sync Aura Alchemy tests passed.")

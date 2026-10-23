@@ -4,6 +4,7 @@
 - Today HD indication (Energy + Space from natal × transit) — see `current_spec.md` — **FE live; API on Railway after Hobby resume**
 - Admin usage logbook + day/week/month stats — see `admin-usage-spec.md`
 - **Soul Aura Alchemy** (kill Fit %; signatures + rare badges + 3 spectrums + playbook card reorder + 4 insight cards) — see `soul-aura-alchemy-spec.md`
+- **Soul signature copy + playbook differentiation** (Magnetic=highest + 3× subtexts; badge descriptions under labels; Life/Work/Play ledes by signature) — see `soul-signature-copy-playbooks.md`
 - Chart Me/Friends UX IA: YOU vs Friends split, inverted primary when You selected, full-width state bar — see `chart-me-friends-ux-review.md` (shipped PR #17; watch prod)
 
 ## [P1 - Next]

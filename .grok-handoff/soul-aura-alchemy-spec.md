@@ -397,3 +397,7 @@ LLM copy, dual BodyGraph, circle ranking, Variables/PHS, persisting protocols, r
 ## Hand-off
 
 When PO says go: brief `@dev` with this spec path. Do not implement Fit %-preserving dual mode.
+
+## P0.5 amend (2026-10-23) — Playbook ledes + signature copy
+
+Playbooks now include `lede` (and optional `focus_hint`) keyed by primary Aura Signature × Life/Work/Play — see `soul-signature-copy-playbooks.md`. Signature subtexts lengthened; Magnetic carries `tier: highest`; badges expose visible `description` under labels. Detection math unchanged.

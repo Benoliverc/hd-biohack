@@ -1,46 +1,43 @@
-# Handoff — Soul Aura Alchemy P0 (kill Fit %)
+# Handoff — Soul Signature copy + Playbook differentiation + Badge descriptions (P0)
 
 ## Status
-- Ready for `@qa` Ship Gate
-- Branch: `feat/soul-aura-alchemy`
-- Spec: `.grok-handoff/soul-aura-alchemy-spec.md` (supersedes Bio-Sync Fit % in soul-biosync-spec.md)
-- FE + API same PR (schema break). Railway may lag — FE shows API/schema missing state.
+- Ready for Ship Gate / `@qa` after PR review
+- Branch: `feat/soul-signature-copy-playbooks`
+- SHA: `47225ae`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/20
+- Spec: `.grok-handoff/soul-signature-copy-playbooks.md`
+- Base: `main` @ PR #19 Magnetic EM fix
 
 ## What changed
-1. **Killed Fit %** — removed `natural_fit` / `regulated_fit` / vectors / archetype / co-reg toggles from `POST /soul/sync` + `/soul`.
-2. **Layer A** — Aura Signature hero (5 ids, priority) + optional secondary sub-badge.
-3. **Layer B** — Rare Alchemy badges (mutual Split→Single via `derive_definition`, shared G, 59-6 EM, 10-20-34 triad + false-positive guard, 19-49 companionship, mirror gates, 8-1 / 9-0).
-4. **Layer C** — Auric Charge / Circuit Continuity / Somatic Pacing spectrums; pacing high end uses `text-energy` (amber), never danger-red.
-5. **Playbooks** — `life` (default) / `work` / `play` reorder cards only (client-side + API `card_order`).
-6. **Cards** — circuit_bridge, spark_glue, power_dynamics, somatic_playbook (≤3 templated protocols).
-7. Bidirectional hanging bridges; protocols request field ignored.
+1. **Layer A** — 5 signature subtexts ~3× longer; Magnetic `tier: "highest"` / `tier_label: "Highest signature"` + FE chip.
+2. **Layer B** — `description` (1–3 sentences) on all 8 badge ids; FE stacks label + description (not tooltip-only); short `detail` kept as mechanic crumb.
+3. **Layer C** — `PLAYBOOK_LEDES` 5×3 matrix + `build_playbook_lede`; `SoulPlaybookOut.lede` / `focus_hint`; FE callout above cards; helper copy rewritten (no “reorder only”).
+4. Secondary signature shows first-sentence subtext under “Also:”.
 
-## Gate AC
-Spec AC 1–15. Pytest covers signatures, each badge (incl triad false-positive), spectrums, cards, playbook invariance, no Fit fields.
-
-## Local smoke
-```bash
-cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q
-cd frontend && npm run dev   # http://localhost:3000/soul
-```
-1. ≥2 charts → Signature hero, badges, 3 spectrums, 4 cards — **no** Fit %.
-2. Switch Life/Work/Play → cards reorder; signature/spectrums unchanged.
-3. Sacral↔non-Sacral → sacral_aura_hygiene; double Emotional → double_emotional.
-4. Old API / Fit schema → `soul-api-missing` banner.
-
-## data-testid
-- `soul-hero`, `soul-signature`, `soul-secondary-signature`, `soul-badges`, `soul-badge-<id>`
-- `soul-spectrum-auric_charge|circuit_continuity|somatic_pacing`
-- `soul-cards`, `soul-card-<id>`, `soul-playbook`, `soul-context-life|work|play`
-- `soul-api-missing`, `soul-empty`, `soul-cta-chart`
-
-## Verify
-- `cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q` → 15 passed
-- `cd frontend && npx tsc --noEmit` → clean
+## Do not change (verified)
+- `detect_signatures` priority / predicates
+- `MAGNETIC_EM_MIN = 5`
+- Badge detection predicates
+- No Fit % fields
 
 ## Files
 - `backend/app/hd/soul_sync.py`
-- `backend/app/schemas.py`, `backend/app/api/routes.py`
+- `backend/app/schemas.py`
 - `backend/tests/test_soul_sync.py`
-- `frontend/src/app/soul/page.tsx`, `frontend/src/lib/api.ts`
-- `.grok-handoff/soul-aura-alchemy-spec.md`, `current_build.md`
+- `frontend/src/lib/api.ts`
+- `frontend/src/app/soul/page.tsx`
+- `.grok-handoff/soul-signature-copy-playbooks.md`, `backlog.md`, `current_build.md`, `soul-aura-alchemy-spec.md` (short amend)
+
+## Verify
+```bash
+cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q   # 20 passed
+cd frontend && npx tsc --noEmit                                       # clean
+```
+
+## Smoke (prod pairs after merge)
+1. Me↔K → Magnetic Alchemy + Highest chip + long subtext; Life/Work/Play ledes differ.
+2. Me↔Achi → Integrated Flow; different lede set than Magnetic.
+3. Me↔Test → Catalytic Growth; badge descriptions visible without hover.
+
+## Awaiting
+Ship Gate → merge → Railway + Vercel redeploy (FE+API paired).

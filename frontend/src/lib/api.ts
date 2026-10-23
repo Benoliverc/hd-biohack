@@ -169,12 +169,15 @@ export type SoulSignature = {
   label: string;
   emoji?: string;
   subtext: string;
+  tier?: string | null;
+  tier_label?: string | null;
 };
 
 export type SoulBadge = {
   id: string;
   label: string;
   detail?: string;
+  description?: string;
 };
 
 export type SoulSpectrum = {
@@ -214,6 +217,8 @@ export type SoulSyncResult = {
     id: string;
     label: string;
     card_order: string[];
+    lede?: string;
+    focus_hint?: string | null;
   };
   signature: SoulSignature;
   secondary_signature?: SoulSignature | null;
