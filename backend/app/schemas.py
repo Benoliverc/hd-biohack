@@ -180,12 +180,15 @@ class SoulSignatureOut(BaseModel):
     label: str
     emoji: str = ""
     subtext: str = ""
+    tier: str | None = None
+    tier_label: str | None = None
 
 
 class SoulBadgeOut(BaseModel):
     id: str
     label: str
     detail: str = ""
+    description: str = ""
 
 
 class SoulSpectrumOut(BaseModel):
@@ -216,6 +219,8 @@ class SoulPlaybookOut(BaseModel):
     id: str
     label: str
     card_order: list[str] = Field(default_factory=list)
+    lede: str = ""
+    focus_hint: str | None = None
 
 
 class SoulCompositeOut(BaseModel):

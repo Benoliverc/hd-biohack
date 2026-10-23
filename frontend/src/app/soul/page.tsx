@@ -327,7 +327,8 @@ export default function SoulPage() {
               })}
             </div>
             <p className="mt-1.5 text-xs text-fg-muted">
-              Reorders insight cards only — signature and spectrums stay the same.
+              Playbook reframes guidance for Life, Work, or Play. Signature and
+              spectrums stay for this pair; the focus blurb and card order change.
             </p>
           </div>
 
@@ -366,42 +367,67 @@ export default function SoulPage() {
                 data-testid="soul-hero"
               >
                 <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
-                <h2
-                  className="mt-1 text-3xl font-bold text-growth"
-                  data-testid="soul-signature"
-                >
-                  <span aria-hidden className="mr-2">
-                    {result.signature.emoji || "⚡"}
-                  </span>
-                  {result.signature.label}
-                </h2>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <h2
+                    className="text-3xl font-bold text-growth"
+                    data-testid="soul-signature"
+                  >
+                    <span aria-hidden className="mr-2">
+                      {result.signature.emoji || "⚡"}
+                    </span>
+                    {result.signature.label}
+                  </h2>
+                  {(result.signature.tier === "highest" ||
+                    result.signature.id === "magnetic_alchemy") && (
+                    <span
+                      data-testid="soul-signature-tier"
+                      className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
+                    >
+                      {result.signature.tier_label || "Highest signature"}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
                   {result.signature.subtext}
                 </p>
                 {result.secondary_signature && (
-                  <p
-                    className="mt-3 inline-flex rounded-full border border-border bg-sunken px-3 py-1 text-xs text-fg-secondary"
+                  <div
+                    className="mt-3 rounded-xl border border-border bg-sunken/60 px-3 py-2"
                     data-testid="soul-secondary-signature"
                   >
-                    Also: {result.secondary_signature.label}
-                  </p>
+                    <p className="text-xs font-medium text-fg-secondary">
+                      Also: {result.secondary_signature.label}
+                    </p>
+                    {result.secondary_signature.subtext ? (
+                      <p className="mt-1 text-xs text-fg-muted">
+                        {result.secondary_signature.subtext.includes(". ")
+                          ? `${result.secondary_signature.subtext.split(". ")[0]}.`
+                          : result.secondary_signature.subtext}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
                 {result.badges.length > 0 && (
-                  <div
-                    className="mt-4 flex flex-wrap gap-2"
+                  <ul
+                    className="mt-4 space-y-3"
                     data-testid="soul-badges"
                   >
                     {result.badges.map((b) => (
-                      <span
+                      <li
                         key={b.id}
-                        title={b.detail || undefined}
                         data-testid={`soul-badge-${b.id}`}
-                        className="rounded-full border border-growth/40 bg-growth/10 px-3 py-1 text-xs font-medium text-growth"
+                        className="rounded-xl border border-growth/30 bg-growth/5 px-3 py-2.5"
                       >
-                        {b.label}
-                      </span>
+                        <p className="text-xs font-semibold text-growth">{b.label}</p>
+                        {b.description ? (
+                          <p className="mt-1 text-sm text-fg-secondary">{b.description}</p>
+                        ) : null}
+                        {b.detail ? (
+                          <p className="mt-1 text-[10px] text-fg-muted">{b.detail}</p>
+                        ) : null}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
                 <p className="mt-4 text-xs text-fg-muted" data-testid="soul-disclaimer">
                   {result.disclaimer}
@@ -413,6 +439,22 @@ export default function SoulPage() {
                   <SpectrumBar key={s.id} spectrum={s} />
                 ))}
               </div>
+
+              {(result.playbook?.lede || result.playbook?.focus_hint) && (
+                <div
+                  className="rounded-2xl border border-growth/30 bg-growth/10 p-4"
+                  data-testid="soul-playbook-lede"
+                >
+                  {result.playbook.focus_hint ? (
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth">
+                      {result.playbook.focus_hint}
+                    </p>
+                  ) : null}
+                  {result.playbook.lede ? (
+                    <p className="text-sm text-fg-secondary">{result.playbook.lede}</p>
+                  ) : null}
+                </div>
+              )}
 
               <div className="space-y-4" data-testid="soul-cards">
                 {orderedCards.map((card) => (
@@ -460,7 +502,8 @@ export default function SoulPage() {
                 <div className="mt-4 space-y-2 text-sm text-fg-secondary">
                   <p>
                     Spectrum bars show relative charge, continuity, and pacing style — never a
-                    single compatibility percentage. Playbooks only reorder the insight cards.
+                    single compatibility percentage. Playbook focus blurb and card order change
+                    with Life, Work, or Play; signature and spectrums stay for this pair.
                   </p>
                 </div>
               </details>
