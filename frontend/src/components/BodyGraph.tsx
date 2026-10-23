@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { displayCenter } from "@/lib/hdCopy";
 import {
   CENTER_GEOM,
   CENTER_LABELS,
   CHANNEL_LATTICE,
+  GATE_CHIP_R,
   GATE_TO_CENTER,
   MOTOR_CENTERS,
   TORSO_PATH,
@@ -13,6 +15,7 @@ import {
   channelPathD,
   centerPath,
   gateAnchor,
+  hangingHalfChannelPathD,
   type CenterKey,
 } from "@/lib/bodygraphGeometry";
 
@@ -31,6 +34,11 @@ export type BodyGraphProps = {
   personalityGates?: number[];
   /** Design (unconscious) gate numbers — Terracotta strokes/chips when set. */
   designGates?: number[];
+  /**
+   * When true, paint center name labels and dim gate chips (~0.15).
+   * Default false — names live on hover/focus pill only (zero label clutter).
+   */
+  showLabels?: boolean;
   className?: string;
 };
 
@@ -40,6 +48,7 @@ const TERRACOTTA = "#C87D55";
 const CHALK = "#EFECE4";
 const GHOST = "#82877E";
 const LINEN = "#F7F6F2";
+const CREAM_STROKE = "#FAF8F5";
 const SAGE = "var(--growth)"; // #4A6B53 in tokens
 
 function norm(c: string): CenterKey | string {
@@ -59,7 +68,7 @@ function gateKey(a: number, b: number): string {
   return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
 
-type ChipTone = "basalt" | "terracotta" | "ochre";
+type ChipTone = "basalt" | "terracotta" | "dual";
 
 function chipToneForGate(
   gate: number,
@@ -70,23 +79,11 @@ function chipToneForGate(
   if (!hasSplit) return "basalt";
   const p = personality.has(gate);
   const d = design.has(gate);
-  if (p && d) return "ochre";
+  if (p && d) return "dual";
   if (p) return "basalt";
   if (d) return "terracotta";
   return "basalt";
 }
-
-const CHIP_FILL: Record<ChipTone, string> = {
-  basalt: BASALT,
-  terracotta: TERRACOTTA,
-  ochre: "var(--recovery)",
-};
-
-const CHIP_TEXT: Record<ChipTone, string> = {
-  basalt: LINEN,
-  terracotta: LINEN,
-  ochre: BASALT,
-};
 
 /**
  * Channel stroke from personality/design gate ownership.
@@ -119,6 +116,7 @@ export function BodyGraph({
   hangingGates = [],
   personalityGates,
   designGates,
+  showLabels = false,
   className = "",
 }: BodyGraphProps) {
   const defined = new Set(definedCenters.map((c) => norm(c) as string));
@@ -126,6 +124,7 @@ export function BodyGraph({
   const personality = new Set(personalityGates || []);
   const design = new Set(designGates || []);
   const hasSplit = personality.size > 0 || design.size > 0;
+  const [focusCenter, setFocusCenter] = useState<CenterKey | null>(null);
 
   const activeKeySet = new Set(
     channels.map((ch) => {
@@ -175,18 +174,41 @@ export function BodyGraph({
     title: string;
   }>;
 
-  // Missing hanging partners as plain ghost numbers (no dashed rays — spec)
-  const missingNaked = new Map<number, true>();
-  for (const h of hangingGates) {
-    if (h.missing == null) continue;
-    if (activeKeySet.has(gateKey(h.held ?? -1, h.missing))) continue;
-    missingNaked.set(h.missing, true);
-  }
+  // Hanging half-channels: held gate → path midpoint (no naked ghost numbers)
+  const hangingHalves = hangingGates
+    .map((h, i) => {
+      if (h.held == null || h.missing == null) return null;
+      if (activeKeySet.has(gateKey(h.held, h.missing))) return null;
+      const d = hangingHalfChannelPathD(h.held, h.missing);
+      if (!d) return null;
+      const tone: ChipTone = chipToneForGate(h.held, personality, design, hasSplit);
+      const stroke =
+        tone === "terracotta" ? TERRACOTTA : tone === "dual" ? TERRACOTTA : BASALT;
+      return {
+        key: `hang-${i}-${h.held}-${h.missing}`,
+        d,
+        stroke,
+        held: h.held,
+        missing: h.missing,
+        title: `Hanging ${h.held} → ${h.missing}${h.channel ? ` · ${h.channel}` : ""}`,
+      };
+    })
+    .filter(Boolean) as Array<{
+    key: string;
+    d: string;
+    stroke: string;
+    held: number;
+    missing: number;
+    title: string;
+  }>;
 
   const chipGates = Array.from(activated).sort((a, b) => a - b);
+  const chipOpacity = showLabels ? 0.15 : 1;
+  const focusLabel = focusCenter ? CENTER_LABELS[focusCenter] : null;
+  const focusDefined = focusCenter ? defined.has(focusCenter) : false;
 
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
+    <div className={`relative flex flex-col items-center gap-3 ${className}`}>
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
         className="h-auto w-full max-w-[300px]"
@@ -229,15 +251,15 @@ export function BodyGraph({
                 d={d}
                 fill="none"
                 stroke={GHOST}
-                strokeOpacity={0.25}
-                strokeWidth={4}
+                strokeOpacity={0.18}
+                strokeWidth={3.5}
                 strokeLinecap="round"
               />
             );
           })}
         </g>
 
-        {/* Active channels — Basalt (Personality) / Terracotta (Design) / split gradient */}
+        {/* Active channels — behind centers + chips */}
         {activePaths.map((p) => {
           const stroke =
             p.stroke === "design"
@@ -260,7 +282,22 @@ export function BodyGraph({
           );
         })}
 
-        {/* Centers — rounded paths (rx≈8), sage / terracotta / chalk */}
+        {/* Hanging half-channels — held → midpoint */}
+        {hangingHalves.map((h) => (
+          <path
+            key={h.key}
+            d={h.d}
+            fill="none"
+            stroke={h.stroke}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeOpacity={0.85}
+          >
+            <title>{h.title}</title>
+          </path>
+        ))}
+
+        {/* Centers — no default name text; hover/focus → pill below */}
         {(Object.entries(CENTER_GEOM) as [CenterKey, (typeof CENTER_GEOM)[CenterKey]][]).map(
           ([key, g]) => {
             const isDef = defined.has(key);
@@ -274,6 +311,7 @@ export function BodyGraph({
               : GHOST;
             const strokeW = isDef ? 1.5 : 1;
             const strokeOp = isDef ? 1 : 0.35;
+            const status = isDef ? `Defined ${displayCenter(key)}` : `Open ${displayCenter(key)}`;
             return (
               <g key={key}>
                 <path
@@ -282,90 +320,95 @@ export function BodyGraph({
                   stroke={stroke}
                   strokeWidth={strokeW}
                   strokeOpacity={strokeOp}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={status}
+                  style={{ cursor: "pointer" }}
+                  onMouseEnter={() => setFocusCenter(key)}
+                  onMouseLeave={() => setFocusCenter((c) => (c === key ? null : c))}
+                  onFocus={() => setFocusCenter(key)}
+                  onBlur={() => setFocusCenter((c) => (c === key ? null : c))}
                 >
-                  <title>
-                    {isDef
-                      ? `Defined ${displayCenter(key)}`
-                      : `Open ${displayCenter(key)}`}
-                  </title>
+                  <title>{status}</title>
                 </path>
-                <text
-                  x={g.cx}
-                  y={g.cy + 1}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={key === "Solar_Plexus" || key === "Spleen" ? 8 : 9}
-                  fill={isDef ? LINEN : GHOST}
-                  opacity={0.7}
-                  style={{ fontWeight: 600 }}
-                >
-                  {CENTER_LABELS[key]}
-                </text>
+                {showLabels ? (
+                  <text
+                    x={g.cx}
+                    y={g.cy + 1}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={key === "Solar_Plexus" || key === "Spleen" ? 8 : 9}
+                    fill={isDef ? LINEN : GHOST}
+                    opacity={0.85}
+                    style={{ fontWeight: 600, pointerEvents: "none" }}
+                  >
+                    {CENTER_LABELS[key]}
+                  </text>
+                ) : null}
               </g>
             );
           }
         )}
 
-        {/* Inactive / hanging-missing gates — plain ghost text, no circle */}
-        {Array.from(missingNaked.keys()).map((gate) => {
-          if (activated.has(gate)) return null;
-          const pos = gateAnchor(gate);
-          return (
-            <text
-              key={`naked-${gate}`}
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize={9}
-              fill={GHOST}
-              opacity={0.85}
-            >
-              {gate}
-            </text>
-          );
-        })}
-
-        {/* Activated gate badges — r=8, font 9px, inside center borders */}
-        {chipGates.map((gate) => {
-          const pos = gateAnchor(gate);
-          const tone = chipToneForGate(gate, personality, design, hasSplit);
-          const center = GATE_TO_CENTER[gate];
-          const origin =
-            hasSplit && personality.has(gate) && design.has(gate)
-              ? "personality + design"
-              : hasSplit && personality.has(gate)
-                ? "personality"
-                : hasSplit && design.has(gate)
-                  ? "design"
-                  : "activated";
-          return (
-            <g key={`chip-${gate}`}>
-              <circle
-                cx={pos.x}
-                cy={pos.y}
-                r={8}
-                fill={CHIP_FILL[tone]}
-                stroke={LINEN}
-                strokeWidth={1}
-              >
-                <title>{`Gate ${gate}${center ? ` · ${displayCenter(center)}` : ""} · ${origin}`}</title>
-              </circle>
-              <text
-                x={pos.x}
-                y={pos.y + 0.5}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={9}
-                fill={CHIP_TEXT[tone]}
-                style={{ fontWeight: 700 }}
-              >
-                {gate}
-              </text>
-            </g>
-          );
-        })}
+        {/* Activated gate badges — r=6.5; dual = basalt core + terracotta ring */}
+        <g opacity={chipOpacity}>
+          {chipGates.map((gate) => {
+            const pos = gateAnchor(gate);
+            const tone = chipToneForGate(gate, personality, design, hasSplit);
+            const center = GATE_TO_CENTER[gate];
+            const origin =
+              hasSplit && personality.has(gate) && design.has(gate)
+                ? "personality + design"
+                : hasSplit && personality.has(gate)
+                  ? "personality"
+                  : hasSplit && design.has(gate)
+                    ? "design"
+                    : "activated";
+            const fill = tone === "terracotta" ? TERRACOTTA : BASALT;
+            const textFill = LINEN;
+            return (
+              <g key={`chip-${gate}`}>
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={GATE_CHIP_R}
+                  fill={fill}
+                  stroke={tone === "dual" ? TERRACOTTA : CREAM_STROKE}
+                  strokeWidth={tone === "dual" ? 2 : 1.5}
+                >
+                  <title>{`Gate ${gate}${center ? ` · ${displayCenter(center)}` : ""} · ${origin}`}</title>
+                </circle>
+                <text
+                  x={pos.x}
+                  y={pos.y + 0.5}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={7.5}
+                  fill={textFill}
+                  style={{ fontWeight: 700, pointerEvents: "none" }}
+                >
+                  {gate}
+                </text>
+              </g>
+            );
+          })}
+        </g>
       </svg>
+
+      {/* Floating center pill — hover / keyboard focus */}
+      {focusLabel && !showLabels ? (
+        <div
+          className="pointer-events-none absolute top-2 z-10 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm"
+          style={{
+            background: focusDefined ? "var(--growth)" : CHALK,
+            color: focusDefined ? LINEN : BASALT,
+            border: focusDefined ? "none" : `1px solid ${GHOST}`,
+          }}
+          aria-live="polite"
+        >
+          {focusDefined ? "Defined" : "Open"} · {displayCenter(focusCenter!)}
+        </div>
+      ) : null}
 
       {/* Legend */}
       <ul className="w-full max-w-sm space-y-1 text-[11px] leading-snug text-fg-secondary">
@@ -378,7 +421,8 @@ export function BodyGraph({
           <span>
             <span className="font-medium text-fg">Defined centers</span> — energy you came with,
             always on tap
-            <span className="text-fg-muted"> (motors in terracotta)</span>.
+            <span className="text-fg-muted"> (motors in terracotta)</span>. Hover a center for its
+            name.
           </span>
         </li>
         <li className="flex items-start gap-2">
@@ -403,12 +447,15 @@ export function BodyGraph({
             {hasSplit
               ? " — basalt = personality, terracotta = design (split = both)."
               : " — basalt talent lines; ghost lattice shows inactive routes."}
+            {hangingHalves.length > 0
+              ? " Hanging gates show a half-channel to the midpoint."
+              : ""}
           </span>
         </li>
         <li className="flex items-start gap-2">
           <span
             className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold"
-            style={{ background: BASALT, color: LINEN }}
+            style={{ background: BASALT, color: LINEN, boxShadow: `0 0 0 2px ${TERRACOTTA}` }}
             aria-hidden
           >
             #
@@ -416,7 +463,7 @@ export function BodyGraph({
           <span>
             <span className="font-medium text-fg">Gate chips</span>
             {hasSplit
-              ? " — basalt = personality, terracotta = design, ochre = both."
+              ? " — basalt = personality, terracotta = design, basalt + terracotta ring = both."
               : " — numbered activations on the graph."}
           </span>
         </li>

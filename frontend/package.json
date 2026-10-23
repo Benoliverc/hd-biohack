@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "assert:gate-spacing": "npx tsx scripts/assert-gate-spacing.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.59.0",
