@@ -29,17 +29,18 @@ export const VB = { w: 240, h: 360 };
 export const CENTER_RX = 8;
 
 export const CENTER_GEOM: Record<CenterKey, CenterGeom> = {
-  // Crowded centers (Throat/Sacral/Root) scale beyond ~25% so 7–11
-  // perimeter chips clear MIN_GATE_SPACING (r=6.5 chips need ≥15px).
-  Head: { kind: "triangle", cx: 120, cy: 26, s: 28, tip: "up" },
-  Ajna: { kind: "triangle", cx: 120, cy: 78, s: 32, tip: "down" },
+  // Crowded centers scale beyond ~25% so perimeter chips clear MIN_GATE_SPACING.
+  // Head+Ajna raised ~8px so Ajna 43 ↔ Throat 23 clear ≥18px c2c.
+  // Heart/SP/Spleen/Root enlarged so facing-wall chips fit without collisions.
+  Head: { kind: "triangle", cx: 120, cy: 18, s: 28, tip: "up" },
+  Ajna: { kind: "triangle", cx: 120, cy: 70, s: 32, tip: "down" },
   Throat: { kind: "square", cx: 120, cy: 138, s: 52 },
   G: { kind: "diamond", cx: 120, cy: 204, s: 32 },
-  Heart: { kind: "triangle", cx: 182, cy: 182, s: 24, tip: "down" },
+  Heart: { kind: "triangle", cx: 182, cy: 182, s: 30, tip: "down" },
   Sacral: { kind: "square", cx: 120, cy: 268, s: 48 },
-  Solar_Plexus: { kind: "triangle", cx: 190, cy: 270, s: 32, tip: "up" },
-  Spleen: { kind: "triangle", cx: 50, cy: 270, s: 32, tip: "up" },
-  Root: { kind: "square", cx: 120, cy: 328, s: 46 },
+  Solar_Plexus: { kind: "triangle", cx: 190, cy: 270, s: 42, tip: "up" },
+  Spleen: { kind: "triangle", cx: 50, cy: 270, s: 42, tip: "up" },
+  Root: { kind: "square", cx: 120, cy: 328, s: 52 },
 };
 
 
@@ -123,30 +124,29 @@ export const MIN_GATE_SPACING = 14.5;
  * Spacing enforced by assertGateSpacing() ≥ MIN_GATE_SPACING.
  */
 const GATE_OFFSETS: Record<number, { dx: number; dy: number }> = {
-
   // Head — tip up: 61 tip, 64/63 base toward Ajna
   64: { dx: -12, dy: 12 },
   61: { dx: 0, dy: -14 },
   63: { dx: 12, dy: 12 },
-  // Ajna — tip down: top base toward Head, tip toward Throat
+  // Ajna — tip down; 43 inset up into apex for 43↔23 gap
   47: { dx: -16, dy: -14 },
   24: { dx: 0, dy: -16 },
   4: { dx: 16, dy: -14 },
-  17: { dx: -14, dy: 12 },
-  43: { dx: 0, dy: 20 },
-  11: { dx: 14, dy: 12 },
-  // Throat
+  17: { dx: -14, dy: 10 },
+  43: { dx: 0, dy: 14 },
+  11: { dx: 14, dy: 10 },
+  // Throat — 23 inset down on top rim for Ajna gap
   62: { dx: -14, dy: -23.5 },
-  23: { dx: 3.4, dy: -23.5 },
-  56: { dx: 18.4, dy: -23.5 },
-  16: { dx: -23.5, dy: -11.9 },
-  20: { dx: -23.5, dy: 3.2 },
-  31: { dx: -9, dy: 23.5 },
-  8: { dx: 7.4, dy: 23.5 },
-  33: { dx: -23.5, dy: 19.6 },
-  35: { dx: 23.5, dy: -9.4 },
-  12: { dx: 23.5, dy: 5.6 },
-  45: { dx: 23.5, dy: 22.5 },
+  23: { dx: 4, dy: -16 },
+  56: { dx: 18, dy: -23.5 },
+  16: { dx: -23.5, dy: -10 },
+  20: { dx: -23.5, dy: 5 },
+  31: { dx: -8, dy: 23.5 },
+  8: { dx: 8, dy: 23.5 },
+  33: { dx: -23.5, dy: 20 },
+  35: { dx: 23.5, dy: -10 },
+  12: { dx: 23.5, dy: 6 },
+  45: { dx: 23.5, dy: 22 },
   // G
   7: { dx: 0, dy: -29.5 },
   1: { dx: 14.8, dy: -14.7 },
@@ -156,49 +156,51 @@ const GATE_OFFSETS: Record<number, { dx: number; dy: number }> = {
   2: { dx: -14.7, dy: 14.8 },
   46: { dx: -29.5, dy: 0 },
   25: { dx: 14.8, dy: 14.8 },
-  // Heart / Ego — toward Throat / SP / Spleen / G
-  21: { dx: 10, dy: -10 },
-  40: { dx: 10, dy: 10 },
-  26: { dx: -10, dy: 10 },
-  51: { dx: -10, dy: -10 },
-  // Sacral
+  // Heart / Ego — face partner centers
+  // 21 → Throat 45; 51 → G 25; 26 → Spleen 44; 40 → SP 37
+  21: { dx: 0, dy: -18 },
+  51: { dx: -22, dy: -6 },
+  26: { dx: -18, dy: 16 },
+  40: { dx: 18, dy: 16 },
+  // Sacral — bottom faces Root; right faces SP; left faces Spleen
   5: { dx: -11.4, dy: -21.5 },
   14: { dx: 7, dy: -21.5 },
   29: { dx: 21.5, dy: -17.2 },
   59: { dx: 21.5, dy: 1.9 },
-  9: { dx: 21.5, dy: 21 },
-  3: { dx: 2.9, dy: 21.5 },
-  42: { dx: -16.1, dy: 21.5 },
+  9: { dx: 16, dy: 21.5 },
+  3: { dx: 0, dy: 21.5 },
+  42: { dx: -16, dy: 21.5 },
   27: { dx: -21.5, dy: 7.5 },
   34: { dx: -21.5, dy: -10.4 },
-  // Solar Plexus
-  36: { dx: 19.1, dy: 5.8 },
-  22: { dx: 21.5, dy: 21.9 },
-  37: { dx: -3.1, dy: 21.9 },
-  6: { dx: 8.5, dy: -13.8 },
-  49: { dx: -27.8, dy: 21.9 },
-  55: { dx: -16.1, dy: 0.2 },
-  30: { dx: -5.5, dy: -19.4 },
-  // Spleen
-  48: { dx: 0, dy: -29.5 },
-  57: { dx: 11.7, dy: -7.8 },
-  44: { dx: 22.8, dy: 12.7 },
-  50: { dx: 11, dy: 21.9 },
-  32: { dx: -11, dy: 21.9 },
-  28: { dx: -22.8, dy: 12.7 },
-  18: { dx: -11.7, dy: -7.8 },
-  // Root
-  58: { dx: -20.5, dy: -20.5 },
-  38: { dx: -2.3, dy: -20.5 },
-  54: { dx: 15.5, dy: -20.5 },
-  53: { dx: 20.5, dy: -6.4 },
-  60: { dx: 20.5, dy: 9.9 },
-  52: { dx: 9.9, dy: 20.5 },
-  19: { dx: -6.4, dy: 20.5 },
-  39: { dx: -20.5, dy: 15.5 },
-  41: { dx: -20.5, dy: -2.3 },
+  // Solar Plexus — left/bottom-left slope toward Sacral / Root / Ego
+  36: { dx: 2, dy: -40 },
+  22: { dx: 32, dy: -15 },
+  37: { dx: -22, dy: -32 },
+  6: { dx: -30, dy: -12 },
+  30: { dx: -36, dy: 18 },
+  55: { dx: -20, dy: 34 },
+  49: { dx: 5, dy: 34 },
+  // Spleen — mirror facing Root / Sacral / Heart
+  48: { dx: 0, dy: -40 },
+  57: { dx: 20, dy: -18 },
+  44: { dx: 28, dy: 12 },
+  50: { dx: 18, dy: 34 },
+  32: { dx: -6, dy: 34 },
+  28: { dx: -32, dy: 16 },
+  18: { dx: -28, dy: -10 },
+  // Root — walls face partner centers (Benjamin map)
+  // Left → Spleen 58/38/54 → 18/28/32; Right → SP 41/39/19 → 30/55/49;
+  // Top → Sacral 53/60/52 → 42/3/9
+  53: { dx: -16, dy: -23 },
+  60: { dx: 0, dy: -23 },
+  52: { dx: 16, dy: -23 },
+  58: { dx: -23, dy: -8 },
+  38: { dx: -23, dy: 7 },
+  54: { dx: -23, dy: 22 },
+  41: { dx: 23, dy: -8 },
+  39: { dx: 23, dy: 7 },
+  19: { dx: 23, dy: 22 },
 };
-
 
 export function gateAnchor(gate: number, preferCenter?: CenterKey): { x: number; y: number } {
   const center = preferCenter || GATE_TO_CENTER[gate];
@@ -231,6 +233,19 @@ export function assertGateSpacing(
   return { ok: true };
 }
 
+/** Ajna 43 ↔ Throat 23 must keep a visible channel gap (≥18px c2c). */
+export const MIN_AJNA_THROAT_GAP = 18;
+
+export function assertAjnaThroatGap(
+  minDist: number = MIN_AJNA_THROAT_GAP
+): { ok: true; dist: number } | { ok: false; dist: number } {
+  const a = gateAnchor(43);
+  const b = gateAnchor(23);
+  const dist = Math.hypot(b.x - a.x, b.y - a.y);
+  if (dist < minDist) return { ok: false, dist };
+  return { ok: true, dist };
+}
+
 
 export function centersForChannel(gates: [number, number] | number[]): [CenterKey, CenterKey] | null {
   const a = GATE_TO_CENTER[gates[0]];
@@ -249,15 +264,12 @@ export function channelEndpoints(
   const g1 = gates[1];
   const a0 = gateAnchor(g0, c1);
   const a1 = gateAnchor(g1, c2);
-  const A = CENTER_GEOM[c1];
-  const B = CENTER_GEOM[c2];
-  // Termini sit near gate badges (inside centers) so strokes meet chips cleanly
-  const t = 0.72;
+  // Termini = exact chip centers; chips (r=6.5) render above so paths emerge under numbers
   return {
-    x1: A.cx + (a0.x - A.cx) * t,
-    y1: A.cy + (a0.y - A.cy) * t,
-    x2: B.cx + (a1.x - B.cx) * t,
-    y2: B.cy + (a1.y - B.cy) * t,
+    x1: a0.x,
+    y1: a0.y,
+    x2: a1.x,
+    y2: a1.y,
     c1,
     c2,
   };
@@ -313,21 +325,47 @@ export function channelPathD(gates: [number, number] | number[]): string | null 
 }
 
 /**
- * Half-channel for a hanging gate: from the held-side channel terminus
- * along the lattice toward the missing partner, stopping at the path midpoint.
+ * Lattice-ordered gate pair for a channel (matches CHANNEL_LATTICE / ghost paths).
+ * Returns null if the pair is not on the 36-channel lattice.
  */
+export function latticeGatePair(
+  a: number,
+  b: number
+): [number, number] | null {
+  for (const row of CHANNEL_LATTICE) {
+    const [g0, g1] = row.gates;
+    if ((g0 === a && g1 === b) || (g0 === b && g1 === a)) return [g0, g1];
+  }
+  return null;
+}
+
+/**
+ * pathLength dash params so a hanging half-channel hugs the EXISTING channel `d`
+ * (never invent mid-segment sticks). Path is oriented latticeA → latticeB.
+ * - held === latticeA (start): dashoffset 0
+ * - held === latticeB (end): dashoffset -52
+ */
+export function hangingHalfChannelDash(
+  held: number,
+  missing: number
+): { gates: [number, number]; dasharray: string; dashoffset: number } | null {
+  const pair = latticeGatePair(held, missing);
+  if (!pair) return null;
+  const [g0, g1] = pair;
+  if (held === g0) {
+    return { gates: pair, dasharray: "48 100", dashoffset: 0 };
+  }
+  if (held === g1) {
+    return { gates: pair, dasharray: "48 100", dashoffset: -52 };
+  }
+  return null;
+}
+
+/** @deprecated Use hangingHalfChannelDash + channelPathD — invented sticks removed. */
 export function hangingHalfChannelPathD(held: number, missing: number): string | null {
-  const ep = channelEndpoints([held, missing]);
-  if (!ep) return null;
-  const heldPos = gateAnchor(held);
-  const d1 = Math.hypot(ep.x1 - heldPos.x, ep.y1 - heldPos.y);
-  const d2 = Math.hypot(ep.x2 - heldPos.x, ep.y2 - heldPos.y);
-  const fromHeld = d1 <= d2;
-  const x0 = fromHeld ? ep.x1 : ep.x2;
-  const y0 = fromHeld ? ep.y1 : ep.y2;
-  const mx = (ep.x1 + ep.x2) / 2;
-  const my = (ep.y1 + ep.y2) / 2;
-  return `M ${x0} ${y0} L ${mx} ${my}`;
+  const dash = hangingHalfChannelDash(held, missing);
+  if (!dash) return null;
+  return channelPathD(dash.gates);
 }
 
 
