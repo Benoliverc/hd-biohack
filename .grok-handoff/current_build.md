@@ -2,6 +2,8 @@
 
 ## Status
 - Ready for Ship Gate / PO review
+- SHA: `9fe7599`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/23
 - Branch: `feat/soul-playbook-deeper-copy`
 - Spec: `.grok-handoff/soul-playbook-card-copy-2x.md` + user ask 2026-10-23
 - Base: `main` @ `5f0dd0b` (PR #22 merged)
