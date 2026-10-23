@@ -15,7 +15,7 @@ import {
   channelPathD,
   centerPath,
   gateAnchor,
-  hangingHalfChannelPathD,
+  hangingHalfChannelDash,
   type CenterKey,
 } from "@/lib/bodygraphGeometry";
 
@@ -30,7 +30,7 @@ export type BodyGraphProps = {
   channels: BodyGraphChannel[];
   activatedGates?: number[];
   hangingGates?: Array<{ held?: number; missing?: number; channel?: string }>;
-  /** Personality (conscious) gate numbers — Basalt strokes/chips when set. */
+  /** Personality (conscious) gate numbers — Obsidian strokes/chips when set. */
   personalityGates?: number[];
   /** Design (unconscious) gate numbers — Terracotta strokes/chips when set. */
   designGates?: number[];
@@ -42,14 +42,17 @@ export type BodyGraphProps = {
   className?: string;
 };
 
-/** Spec hexes (also mirrored in CSS tokens for light theme). */
-const BASALT = "#1C201D";
-const TERRACOTTA = "#C87D55";
-const CHALK = "#EFECE4";
-const GHOST = "#82877E";
+/** Bodygraph palette — chips/channels pop on every center fill. */
+const OBSIDIAN = "#1A1A1A"; // Conscious (Personality)
+const TERRACOTTA = "#C45B38"; // Somatic (Design)
+const ALABASTER = "#F5F2EB"; // Open centers
+const OPEN_BORDER = "#CFC9BC";
+const TRACK = "#D8D3C8"; // Inactive channel tracks
 const LINEN = "#F7F6F2";
 const CREAM_STROKE = "#FAF8F5";
-const SAGE = "var(--growth)"; // #4A6B53 in tokens
+const SAGE = "#3F624D"; // Defined non-motors
+const MOTOR_FILL = "#D9B89C"; // Defined motors (amber/sand — not terracotta)
+const MOTOR_BORDER = "#8C583A";
 
 function norm(c: string): CenterKey | string {
   const map: Record<string, CenterKey> = {
@@ -68,7 +71,7 @@ function gateKey(a: number, b: number): string {
   return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
 
-type ChipTone = "basalt" | "terracotta" | "dual";
+type ChipTone = "obsidian" | "terracotta" | "dual";
 
 function chipToneForGate(
   gate: number,
@@ -76,19 +79,19 @@ function chipToneForGate(
   design: Set<number>,
   hasSplit: boolean
 ): ChipTone {
-  if (!hasSplit) return "basalt";
+  if (!hasSplit) return "obsidian";
   const p = personality.has(gate);
   const d = design.has(gate);
   if (p && d) return "dual";
-  if (p) return "basalt";
+  if (p) return "obsidian";
   if (d) return "terracotta";
-  return "basalt";
+  return "obsidian";
 }
 
 /**
  * Channel stroke from personality/design gate ownership.
- * Both personality → Basalt; both design → Terracotta;
- * mixed → split gradient (documented); no split data → Basalt fallback.
+ * Both personality → Obsidian; both design → Terracotta;
+ * mixed → dual parallel strokes; no split data → Obsidian fallback.
  */
 function channelStrokeKind(
   g0: number,
@@ -174,20 +177,24 @@ export function BodyGraph({
     title: string;
   }>;
 
-  // Hanging half-channels: held gate → path midpoint (no naked ghost numbers)
+  // Hanging half-channels: SAME lattice `d` + pathLength dash (no invented sticks)
   const hangingHalves = hangingGates
     .map((h, i) => {
       if (h.held == null || h.missing == null) return null;
       if (activeKeySet.has(gateKey(h.held, h.missing))) return null;
-      const d = hangingHalfChannelPathD(h.held, h.missing);
+      const dash = hangingHalfChannelDash(h.held, h.missing);
+      if (!dash) return null;
+      const d = channelPathD(dash.gates);
       if (!d) return null;
       const tone: ChipTone = chipToneForGate(h.held, personality, design, hasSplit);
       const stroke =
-        tone === "terracotta" ? TERRACOTTA : tone === "dual" ? TERRACOTTA : BASALT;
+        tone === "terracotta" ? TERRACOTTA : tone === "dual" ? TERRACOTTA : OBSIDIAN;
       return {
         key: `hang-${i}-${h.held}-${h.missing}`,
         d,
         stroke,
+        dasharray: dash.dasharray,
+        dashoffset: dash.dashoffset,
         held: h.held,
         missing: h.missing,
         title: `Hanging ${h.held} → ${h.missing}${h.channel ? ` · ${h.channel}` : ""}`,
@@ -197,6 +204,8 @@ export function BodyGraph({
     key: string;
     d: string;
     stroke: string;
+    dasharray: string;
+    dashoffset: number;
     held: number;
     missing: number;
     title: string;
@@ -216,29 +225,10 @@ export function BodyGraph({
         aria-label="Human Design bodygraph"
       >
         <title>Human Design bodygraph</title>
-        <defs>
-          {activePaths
-            .filter((p) => p.stroke === "split")
-            .map((p) => (
-              <linearGradient
-                key={`grad-${p.key}`}
-                id={`grad-${p.key}`}
-                gradientUnits="userSpaceOnUse"
-                x1={p.ep.x1}
-                y1={p.ep.y1}
-                x2={p.ep.x2}
-                y2={p.ep.y2}
-              >
-                <stop offset="0%" stopColor={BASALT} />
-                <stop offset="100%" stopColor={TERRACOTTA} />
-              </linearGradient>
-            ))}
-        </defs>
+        {/* Soft torso silhouette */}
+        <path d={TORSO_PATH} fill={ALABASTER} opacity={0.95} />
 
-        {/* Soft chalk torso — #EFECE4, cubic Beziers */}
-        <path d={TORSO_PATH} fill={CHALK} opacity={0.95} />
-
-        {/* Full ghost lattice — solid faint, never dashed */}
+        {/* Full inactive lattice — warm track under half-channels */}
         <g aria-hidden="true">
           {CHANNEL_LATTICE.map((row) => {
             const k = gateKey(row.gates[0], row.gates[1]);
@@ -250,30 +240,53 @@ export function BodyGraph({
                 key={`ghost-${k}`}
                 d={d}
                 fill="none"
-                stroke={GHOST}
-                strokeOpacity={0.18}
-                strokeWidth={3.5}
+                stroke={TRACK}
+                strokeWidth={5}
                 strokeLinecap="round"
+                strokeLinejoin="round"
               />
             );
           })}
         </g>
 
-        {/* Active channels — behind centers + chips */}
+        {/* Active channels — behind centers + chips; dual = two parallel strokes */}
         {activePaths.map((p) => {
-          const stroke =
-            p.stroke === "design"
-              ? TERRACOTTA
-              : p.stroke === "split"
-                ? `url(#grad-${p.key})`
-                : BASALT;
+          if (p.stroke === "split") {
+            return (
+              <g key={p.key}>
+                <path
+                  d={p.d}
+                  fill="none"
+                  stroke={OBSIDIAN}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="6 6"
+                  strokeDashoffset={0}
+                >
+                  <title>{p.title}</title>
+                </path>
+                <path
+                  d={p.d}
+                  fill="none"
+                  stroke={TERRACOTTA}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="6 6"
+                  strokeDashoffset={6}
+                />
+              </g>
+            );
+          }
+          const stroke = p.stroke === "design" ? TERRACOTTA : OBSIDIAN;
           return (
             <path
               key={p.key}
               d={p.d}
               fill="none"
               stroke={stroke}
-              strokeWidth={6}
+              strokeWidth={5}
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -282,16 +295,20 @@ export function BodyGraph({
           );
         })}
 
-        {/* Hanging half-channels — held → midpoint */}
+        {/* Hanging half-channels — pathLength dash on EXISTING channel d */}
         {hangingHalves.map((h) => (
           <path
             key={h.key}
             d={h.d}
             fill="none"
             stroke={h.stroke}
-            strokeWidth={4}
+            strokeWidth={5}
             strokeLinecap="round"
-            strokeOpacity={0.85}
+            strokeLinejoin="round"
+            pathLength={100}
+            strokeDasharray={h.dasharray}
+            strokeDashoffset={h.dashoffset}
+            strokeOpacity={0.95}
           >
             <title>{h.title}</title>
           </path>
@@ -303,14 +320,10 @@ export function BodyGraph({
             const isDef = defined.has(key);
             const motor = MOTOR_CENTERS.has(key);
             const d = centerPath(g.kind, g.cx, g.cy, g.s, g.tip);
-            const fill = isDef ? (motor ? TERRACOTTA : SAGE) : CHALK;
-            const stroke = isDef
-              ? motor
-                ? "var(--energy-ink)"
-                : "var(--growth-deep)"
-              : GHOST;
-            const strokeW = isDef ? 1.5 : 1;
-            const strokeOp = isDef ? 1 : 0.35;
+            const fill = isDef ? (motor ? MOTOR_FILL : SAGE) : ALABASTER;
+            const stroke = isDef ? (motor ? MOTOR_BORDER : "#2F4A38") : OPEN_BORDER;
+            const strokeW = 1.5;
+            const strokeOp = 1;
             const status = isDef ? `Defined ${displayCenter(key)}` : `Open ${displayCenter(key)}`;
             return (
               <g key={key}>
@@ -338,7 +351,7 @@ export function BodyGraph({
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fontSize={key === "Solar_Plexus" || key === "Spleen" ? 8 : 9}
-                    fill={isDef ? LINEN : GHOST}
+                    fill={isDef ? LINEN : "#6B675E"}
                     opacity={0.85}
                     style={{ fontWeight: 600, pointerEvents: "none" }}
                   >
@@ -350,7 +363,7 @@ export function BodyGraph({
           }
         )}
 
-        {/* Activated gate badges — r=6.5; dual = basalt core + terracotta ring */}
+        {/* Activated gate badges — r=6.5; dual = obsidian core + terracotta ring */}
         <g opacity={chipOpacity}>
           {chipGates.map((gate) => {
             const pos = gateAnchor(gate);
@@ -364,7 +377,7 @@ export function BodyGraph({
                   : hasSplit && design.has(gate)
                     ? "design"
                     : "activated";
-            const fill = tone === "terracotta" ? TERRACOTTA : BASALT;
+            const fill = tone === "terracotta" ? TERRACOTTA : OBSIDIAN;
             const textFill = LINEN;
             return (
               <g key={`chip-${gate}`}>
@@ -400,9 +413,9 @@ export function BodyGraph({
         <div
           className="pointer-events-none absolute top-2 z-10 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm"
           style={{
-            background: focusDefined ? "var(--growth)" : CHALK,
-            color: focusDefined ? LINEN : BASALT,
-            border: focusDefined ? "none" : `1px solid ${GHOST}`,
+            background: focusDefined ? SAGE : ALABASTER,
+            color: focusDefined ? LINEN : OBSIDIAN,
+            border: focusDefined ? "none" : `1px solid ${OPEN_BORDER}`,
           }}
           aria-live="polite"
         >
@@ -410,64 +423,79 @@ export function BodyGraph({
         </div>
       ) : null}
 
-      {/* Legend */}
-      <ul className="w-full max-w-sm space-y-1 text-[11px] leading-snug text-fg-secondary">
-        <li className="flex items-start gap-2">
+      {/* Biohacking pill legend — no basalt/terracotta/chalk jargon */}
+      <div className="flex w-full max-w-sm flex-col items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
           <span
-            className="mt-0.5 inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
-            style={{ background: "var(--growth)" }}
-            aria-hidden
-          />
-          <span>
-            <span className="font-medium text-fg">Defined centers</span> — energy you came with,
-            always on tap
-            <span className="text-fg-muted"> (motors in terracotta)</span>. Hover a center for its
-            name.
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span
-            className="mt-0.5 inline-block h-2.5 w-2.5 shrink-0 rounded-sm border"
-            style={{ background: CHALK, borderColor: GHOST }}
-            aria-hidden
-          />
-          <span>
-            <span className="font-medium text-fg">Open centers</span> — chalk fill; where you pick
-            up other people&apos;s energy.
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span
-            className="mt-1 inline-block h-0.5 w-2.5 shrink-0 rounded-full"
-            style={{ background: BASALT }}
-            aria-hidden
-          />
-          <span>
-            <span className="font-medium text-fg">Active channels</span>
-            {hasSplit
-              ? " — basalt = personality, terracotta = design (split = both)."
-              : " — basalt talent lines; ghost lattice shows inactive routes."}
-            {hangingHalves.length > 0
-              ? " Hanging gates show a half-channel to the midpoint."
-              : ""}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span
-            className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold"
-            style={{ background: BASALT, color: LINEN, boxShadow: `0 0 0 2px ${TERRACOTTA}` }}
-            aria-hidden
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
+            title="Conscious · Mind / Personality"
           >
-            #
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: OBSIDIAN }}
+              aria-hidden
+            />
+            Conscious
+            <span className="font-normal text-fg-muted">(Mind)</span>
           </span>
-          <span>
-            <span className="font-medium text-fg">Gate chips</span>
-            {hasSplit
-              ? " — basalt = personality, terracotta = design, basalt + terracotta ring = both."
-              : " — numbered activations on the graph."}
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
+            title="Somatic · Body / Unconscious"
+          >
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: TERRACOTTA }}
+              aria-hidden
+            />
+            Somatic
+            <span className="font-normal text-fg-muted">(Body)</span>
           </span>
-        </li>
-      </ul>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
+            title="Integrated · Personality + Design"
+          >
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{
+                background: OBSIDIAN,
+                boxShadow: `0 0 0 2px ${TERRACOTTA}`,
+              }}
+              aria-hidden
+            />
+            Integrated
+            <span className="font-normal text-fg-muted">(Both)</span>
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
+            title="Defined · Consistent Baseline"
+          >
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-sm"
+              style={{ background: SAGE }}
+              aria-hidden
+            />
+            Defined
+            <span className="font-normal text-fg-muted">(Baseline)</span>
+          </span>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
+            title="Open · Amplifies Environment"
+          >
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-sm border"
+              style={{ background: ALABASTER, borderColor: OPEN_BORDER }}
+              aria-hidden
+            />
+            Open
+            <span className="font-normal text-fg-muted">(Amplifies)</span>
+          </span>
+        </div>
+        <p className="text-center text-[10px] text-fg-muted">
+          Tap any center or gate to inspect mechanics
+        </p>
+      </div>
 
       {activePaths.length > 0 && (
         <div className="w-full max-w-sm rounded-xl border border-border bg-canvas/60 px-3 py-2">
