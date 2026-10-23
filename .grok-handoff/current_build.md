@@ -3,6 +3,8 @@
 ## Status
 - Ready for Ship Gate / PO review
 - Branch: `feat/soul-playbook-no-context-tabs`
+- SHA: `2e71b35`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/22
 - Spec: user ask 2026-10-23 — remove Life & Intimacy / Work & Co-Creation / Play & Recovery under Playbook for now
 - Base: `main` @ PR #21 (`bd2cde8`)
 
