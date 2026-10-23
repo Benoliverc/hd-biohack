@@ -91,7 +91,7 @@ Evaluate top-down. First match is **primary**. If a later rule also matches, exp
 
 | Priority | id | Label | Trigger (any clause) | Subtext |
 |---|---|---|---|---|
-| 1 | `magnetic_alchemy` | Magnetic Alchemy | `len(electromagnetic) >= 2` **OR** EM channel Intimacy `{6,59}` present **OR** `mutual_split_bridge` (see badges) | High-voltage auric lock. Deep catalytic spark that amplifies vitality and transforms both baselines. |
+| 1 | `magnetic_alchemy` | Magnetic Alchemy | `len(electromagnetic) >= 5` (**raised from 2** — real natal pairs routinely form 2–4 EM) **OR** EM channel Intimacy `{6,59}` present **OR** `mutual_split_bridge` (see badges) | High-voltage auric lock. Deep catalytic spark that amplifies vitality and transforms both baselines. |
 | 2 | `integrated_flow` | Integrated Flow Circuit | Both individuals are Split* and composite definition is `Single` **OR** Integration Triad badge fires | Seamless circuit completion. Separate energy islands snap into a unified, continuous flow. |
 | 3 | `harmonic_sanctuary` | Harmonic Sanctuary | `len(companionship) >= 2` **OR** (`len(companionship) >= 1` AND `len(compromise) <= 1` AND shared authority class) | Deep tribal or rhythmic familiarity. Low-friction baseline with effortless unspoken understanding. |
 | 4 | `catalytic_growth` | Catalytic Growth Engine | Composite defined count is 8 or 9 **AND** (`len(compromise) >= 2` OR `len(dominance) >= 3`) | Intense developmental mirror. High momentum pairing designed for rapid expansion and conscious pacing. |
@@ -102,6 +102,8 @@ Evaluate top-down. First match is **primary**. If a later rule also matches, exp
 **Shared authority class (P0):** both Emotional, or both Sacral, or both Splenic (string match via existing `_is_emotional` / sacral / splenic helpers). Other authorities do not count as “shared” for Harmonic Sanctuary.
 
 **Fallback:** if somehow none match (should not with rule 5), use `spacious_explorers`.
+
+**2026-10-23 fix:** Magnetic EM threshold raised `2 → 5` (`MAGNETIC_EM_MIN`). Prod pairs were 100% Magnetic because typical charts form ≥2 EM channels. Intimacy (59-6) and mutual split-bridge triggers unchanged.
 
 UI: large hero title + subtext. Secondary as a small pill under the title (e.g. “Also: Harmonic Sanctuary”).
 
