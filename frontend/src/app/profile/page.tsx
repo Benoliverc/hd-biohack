@@ -17,6 +17,7 @@ import {
   profilePlainLine,
   displayCenter,
 } from "@/lib/hdCopy";
+import { youChipLabel } from "@/lib/youChipLabel";
 
 type Chart = Record<string, unknown>;
 type BusyMode = "preview" | "save" | null;
@@ -67,11 +68,6 @@ function friendChipLabel(row: SavedChartRow): string {
   const t = (row.label || "").trim();
   if (!t || t.toLowerCase() === "me") return "Friend";
   return t;
-}
-
-function youDisplayName(row: SavedChartRow): string {
-  const t = (row.label || "").trim();
-  return t && t.toLowerCase() !== "me" ? t : "You";
 }
 
 const SECTION_NAV: {
@@ -965,11 +961,15 @@ export default function ProfilePage() {
                     >
                       <span className="font-semibold">YOU</span>
                       <span className="text-fg-muted">
-                        {" "}
-                        · {youDisplayName(youRow)}
-                        {youRow.type || youRow.profile
-                          ? ` · ${youRow.type || "—"} · ${youRow.profile || "—"}`
-                          : ""}
+                        {(() => {
+                          const name = youChipLabel(youRow);
+                          const meta =
+                            youRow.type || youRow.profile
+                              ? ` · ${youRow.type || "—"} · ${youRow.profile || "—"}`
+                              : "";
+                          // Badge already says YOU — if label is You, don't repeat it.
+                          return name === "You" ? meta : ` · ${name}${meta}`;
+                        })()}
                       </span>
                       <span className="mt-0.5 block text-[11px] leading-snug text-fg-muted">
                         {[youRow.birth_city, youRow.birth_date].filter(Boolean).join(" · ") ||
@@ -1064,7 +1064,7 @@ export default function ProfilePage() {
                             }`}
                           >
                             <span className="font-medium">
-                              {youDisplayName(row)} #{row.id}
+                              {youChipLabel(row)} #{row.id}
                             </span>
                             <span className="mt-0.5 block text-[10px] leading-snug">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||

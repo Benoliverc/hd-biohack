@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { api, type SavedChartRow } from "@/lib/api";
 import {
   formatNatalOverlayLabel,
@@ -12,6 +11,7 @@ import { displayCenter, formatGateLine } from "@/lib/hdCopy";
 import { formatAsOfInZone } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import type { TodayIndicationPayload } from "@/lib/api";
+import { youChipLabel } from "@/lib/youChipLabel";
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
   return row.slot_kind !== "friend";
@@ -27,11 +27,6 @@ function summaryFromSelf(row: SavedChartRow): NatalChartSummary {
     timezone: row.timezone ?? null,
     slot_kind: row.slot_kind ?? "self",
   };
-}
-
-function youDisplayName(chart: NatalChartSummary): string {
-  const t = (chart.label || "").trim();
-  return t && t.toLowerCase() !== "me" ? t : "You";
 }
 
 /** Prefer store id only when that row is self; else first self; else null. */
@@ -160,9 +155,9 @@ export default function TransitsPage() {
         ? "No strong personal overlay spike — skim today's planetary gates below."
         : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
     );
-    todayBullets.push("Skim today's planetary gates below, then open Protocols for stack tweaks.");
+    todayBullets.push("Skim today's sky below, then open Protocols for Today's Move.");
   } else if (todayBullets.length === 1) {
-    todayBullets.push("When ready, open Protocols for natal baseline + this week's transit adjustments.");
+    todayBullets.push("Skim today's sky below, then open Protocols for Today's Move.");
   }
 
   return (
@@ -178,17 +173,12 @@ export default function TransitsPage() {
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
                   title="Today always uses your chart"
+                  data-testid="today-you-chip"
                 >
-                  <span aria-hidden className="text-fg-muted">
-                    🔒
-                  </span>
-                  You · {youDisplayName(youChart)}
+                  {youChipLabel(youChart)}
                 </span>
               </div>
-              <p className="text-sm font-medium text-fg">Today is for you</p>
-              <p className="text-xs text-fg-muted">
-                Always your natal — friends stay on Chart &amp; Soul.
-              </p>
+              <p className="text-xs text-fg-muted">Friends stay on Chart &amp; Soul</p>
               <p className="text-xs text-fg-muted">
                 Overlaying {formatNatalOverlayLabel(youChart)}
               </p>
@@ -226,18 +216,11 @@ export default function TransitsPage() {
             What to do today
           </h2>
           <p className="mb-2 text-xs text-fg-muted">Sky cues (secondary to today&apos;s indication)</p>
-          <ul className="mb-3 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
             {todayBullets.slice(0, 3).map((b) => (
               <li key={b}>{b}</li>
             ))}
           </ul>
-          <Link
-            href="/biohack"
-            data-testid="open-protocol-adjustments"
-            className="inline-flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium text-growth underline-offset-2 hover:underline"
-          >
-            Open Protocols
-          </Link>
         </div>
       )}
 

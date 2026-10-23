@@ -10,9 +10,9 @@ import { isAdminUser } from "@/lib/admin";
 const nav = [
   { href: "/", label: "Home", icon: Orbit, testId: "nav-home" },
   { href: "/profile", label: "Chart", icon: UserRound, testId: "nav-chart" },
-  { href: "/soul", label: "Soul", icon: Sparkles, testId: "nav-soul" },
   { href: "/transits", label: "Today", icon: Activity, testId: "nav-today" },
   { href: "/biohack", label: "Protocols", icon: FlaskConical, testId: "nav-protocols" },
+  { href: "/soul", label: "Soul", icon: Sparkles, testId: "nav-soul" },
 ];
 
 const showDevControls =

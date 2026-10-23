@@ -1,47 +1,50 @@
-# Handoff — Home reflects shipped Baseline (P0)
+# Handoff — Batch A: Whole-app copy / You-chrome polish
 
 ## Status
 - Ready for Ship Gate / PO review
-- Branch: `feat/home-reflect-ships`
-- Specs: `.grok-handoff/home-reflect-ships.md` + `.grok-handoff/home-reflect-ux-critique.md` (UX PASS)
-- Base: `main` @ `0ab5c13` (PR #25)
+- Branch: `feat/batch-a-copy-you-chrome`
+- Specs: `.grok-handoff/app-deep-review-2026-10-23.md` + `.grok-handoff/app-deep-ux-critique.md` (UX PASS)
+- Base: `main` @ `98e10f8` (PR #26)
 
 ## What changed (FE-only)
-1. Hero eyebrow → `Baseline · chart · sky · move`; has/no-chart H1/sub + CTAs from UX copy bank (sky, not gates).
-2. Loop line under sub: `Chart → Today’s sky → Today’s Move → Soul`.
-3. Continue strip CTA → solid growth **Open Protocols** → `/biohack` (no Generate); micro `Auto-loads from today’s sky · Refresh rebuilds`.
-4. Outcome grid → 4 cards (`sm:grid-cols-2 lg:grid-cols-4`): Chart, Today, Protocols (**Today’s Move** + kit), Soul (**Aura between you**, Sparkles).
-5. Blueprint / Today / Protocols copy rewritten per bank (You+friends, indication-first, kit — not inventory/stacks).
-6. `layout.tsx` description mentions Soul / kit lightly.
-7. Test ids kept: `home-calculate-chart`, `home-view-protocols`.
+1. **B1 Aura** — Home Soul: Fit % bullet → `Aura Signature + one Playbook for this pair` + chemistry/weather bullet. Soul schema-lag: `older schema` (no Fit %). Playbook micro: drop double “Playbook”.
+2. **B2 You chrome** — Shared `youChipLabel` (`frontend/src/lib/youChipLabel.ts`). Today + Protocols chips = label only (no 🔒, no `You · You`). Chart YOU row: no `YOU · You`. Today keeps one friends footnote; Protocols omits.
+3. **Kit leftovers** — Add to kit / Loading kit… / From your kit / Pro unlocks Today’s Move + kit (API `inventory` / `in_inventory` unchanged).
+4. **Paywall** — Natal baseline / Kit-aware Today’s Move / unlock live Today’s Move (no stacks/inventory/generate).
+5. **Today** — Sky/Move secondary bullet; single Open Protocols (indication CTA only).
+6. **Login** — H1 `Chart. Today. Protocols. Soul.`; Soul pillar; Protocols body = Today’s Move / kit.
+7. **Nice** — Header nav → `Home · Chart · Today · Protocols · Soul`.
 
-## Do not change (verified)
-- Header nav, feature pages, API, paywall, Railway
-- Trust line kept
-- Destinations only `/profile` `/transits` `/biohack` `/soul`
+## Out of scope (verified)
+- Zinc ranking API, Chart deep structure, OAuth/Stripe, Railway
+- No rename of API inventory fields
 
 ## Files
+- `frontend/src/lib/youChipLabel.ts` (new)
 - `frontend/src/app/page.tsx`
-- `frontend/src/app/layout.tsx`
-- `.grok-handoff/home-reflect-ships.md`
-- `.grok-handoff/home-reflect-ux-critique.md`
+- `frontend/src/app/transits/page.tsx`
+- `frontend/src/app/biohack/page.tsx`
+- `frontend/src/app/profile/page.tsx`
+- `frontend/src/app/soul/page.tsx`
+- `frontend/src/app/login/page.tsx`
+- `frontend/src/components/BiohackingEntitlementGate.tsx`
+- `frontend/src/components/Header.tsx`
+- `.grok-handoff/app-deep-review-2026-10-23.md`
+- `.grok-handoff/app-deep-ux-critique.md`
 - `.grok-handoff/current_build.md`
 
 ## Verify
 ```bash
 cd frontend && npx tsc --noEmit
 ```
-- tsc: green
-- Grep page.tsx: no Generate / inventory (UI) / Your plan / stacks / gates-only framing
 
-## Smoke notes (for PO)
+## Smoke (for PO)
 | Case | Expect |
 |------|--------|
-| has-chart | Continue **Open Protocols** solid growth; no Generate; 4 cards incl Soul |
-| no-chart | Calculate primary; See today’s sky; no continue strip |
-| CTAs | `/profile` `/transits` `/biohack` `/soul` |
-| Copy | Today’s Move, kit, You-only, no Fit % |
-
-## Pair
-- Vercel FE only (no Railway / API)
-- Do not merge until Ship Gate
+| home Soul | Aura Signature bullet; no Fit % |
+| Me chart Today+Protocols | chip `You` only; no 🔒 You · You |
+| Chart YOU row | no YOU · You |
+| kit | Add to kit; Loading kit; From your kit |
+| Free paywall | Today’s Move / kit; no stacks/generate |
+| Today | one Open Protocols; sky/Move copy |
+| login | Soul pillar + H1 |

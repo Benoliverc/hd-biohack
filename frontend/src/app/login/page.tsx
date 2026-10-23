@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, FlaskConical, Orbit, Eye, EyeOff } from "lucide-react";
+import { Activity, FlaskConical, Orbit, Eye, EyeOff, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 
@@ -20,7 +20,12 @@ const PILLARS = [
   {
     icon: FlaskConical,
     title: "Protocols",
-    body: "A daily and weekly plan tuned to your chart and what you already take.",
+    body: "A checkable Today's Move from today's sky — preferring what you already own.",
+  },
+  {
+    icon: Sparkles,
+    title: "Soul",
+    body: "Aura Signature and one Playbook for how you wire with someone you've charted.",
   },
 ];
 
@@ -71,7 +76,7 @@ export default function LoginPage() {
         <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
           <p className="text-sm font-medium uppercase tracking-[0.14em] text-growth">Baseline</p>
           <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
-            Chart. Today. Protocols.
+            Chart. Today. Protocols. Soul.
             <span className="mt-2 block text-xl font-normal text-fg-secondary sm:text-2xl">
               Human Design that turns into a day you can follow.
             </span>
@@ -80,7 +85,7 @@ export default function LoginPage() {
             Sign in to calculate your natal chart, see what the sky is doing today, and get
             grounded protocols — no mysticism, just next steps.
           </p>
-          <ul className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {PILLARS.map(({ icon: Icon, title, body }) => (
               <li
                 key={title}
