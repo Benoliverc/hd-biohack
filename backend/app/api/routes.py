@@ -410,6 +410,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
 
     transit = calculate_transits()
     overlay = overlay_transits(natal_row.chart_json, transit)
+    indication = derive_today_indication(natal_row.chart_json, transit, overlay)
     inv = [
         r.name
         for r in db.query(SupplementInventory).filter(
@@ -417,7 +418,13 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
             SupplementInventory.active.is_(True),
         ).all()
     ]
-    proto = build_protocol(natal_row.chart_json, overlay, inv)
+    proto = build_protocol(
+        natal_row.chart_json,
+        overlay,
+        inv,
+        indication=indication,
+        transit=transit,
+    )
     proto = maybe_synthesize(proto)
 
     # Persist weekly snapshot
@@ -441,6 +448,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
             "biohacking_enabled": user.biohacking_enabled,
         },
         "overlay": overlay,
+        "indication": indication,
         "protocol": proto,
     }
 
