@@ -1,6 +1,7 @@
 # Ship — Soul Aura Signature Magnetic over-trigger fix
 
 **Status:** Ready for `@qa` / Ship Gate (not merged)  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/19
 **Branch:** `feat/soul-signature-magnetic-fix`  
 **Date:** 2026-10-23 (HKT)  
 **Do not merge / redeploy until PO ship call.**

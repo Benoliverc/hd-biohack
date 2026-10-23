@@ -2,7 +2,7 @@
 
 Handed to `@qa` from `@dev` / executor.
 
-- PR: (fill after open)
+- PR: https://github.com/Benoliverc/hd-biohack/pull/19
 - Branch: `feat/soul-signature-magnetic-fix`
 - Spec fix note: `.grok-handoff/soul-aura-alchemy-spec.md` (MAGNETIC_EM_MIN=5)
 - Handoff: `.grok-handoff/ship-soul-signature-magnetic-fix.md`
