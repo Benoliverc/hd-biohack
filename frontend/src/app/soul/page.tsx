@@ -302,7 +302,7 @@ export default function SoulPage() {
           <div data-testid="soul-playbook">
             <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
             <p className="text-xs text-fg-muted">
-              Playbook guidance for this pair — signature, spectrums, and cards below.
+              Guidance for this pair — signature, spectrums, and cards below.
             </p>
           </div>
 
@@ -313,7 +313,7 @@ export default function SoulPage() {
             >
               <p className="text-sm text-energy-ink">
                 {schemaLag
-                  ? "Soul API is on an older Fit % schema. Redeploy the backend with Aura Alchemy, then refresh."
+                  ? "Soul API is on an older schema. Redeploy with Aura Alchemy, then refresh."
                   : "Soul sync needs an API update. The page is ready; production API may still be on an older build (Railway deploy pause). Locally, restart the backend on this branch."}
               </p>
             </div>

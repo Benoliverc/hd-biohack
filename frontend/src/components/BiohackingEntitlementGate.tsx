@@ -22,16 +22,16 @@ export function BiohackingEntitlementGate({
         <h2 className="mb-2 text-sm font-semibold text-growth">What you unlock</h2>
         <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
           <li>
-            <span className="text-growth">Natal baseline</span> — permanent emphasize /
-            increase / decrease stacks from your Type and centers
+            <span className="text-growth">Natal baseline</span> — emphasize / increase /
+            ease from your Type and centers
           </li>
           <li>
             <span className="text-energy-ink">This week&apos;s transit tweaks</span> — temporary
             morning / midday / evening adjustments
           </li>
           <li>
-            <span className="text-fg">Inventory-aware protocols</span> — prioritize
-            supplements you already own
+            <span className="text-fg">Kit-aware Today&apos;s Move</span> — prefer what
+            you already own
           </li>
         </ul>
         <button
@@ -44,7 +44,7 @@ export function BiohackingEntitlementGate({
           Unlock protocols
         </button>
         <p className="mt-2 text-xs text-fg-muted">
-          Chart + daily transits stay free. Pro unlocks protocols and inventory.
+          Chart + daily transits stay free. Pro unlocks Today’s Move and your kit.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export function BiohackingEntitlementGate({
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
           <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-growth/40 bg-canvas/90 px-3 py-1.5 text-xs text-growth shadow-soft backdrop-blur">
             <Lock className="h-3.5 w-3.5" />
-            Preview — unlock to generate live stacks
+            Preview — unlock to open live Today’s Move
           </div>
         </div>
       </div>

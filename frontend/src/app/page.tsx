@@ -201,8 +201,8 @@ export default function HomePage() {
               charted.
             </p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>No Fit % — magnetic pairs get protocols, not a weak score</li>
-              <li>Why: chemistry lives here; daily weather lives on Today &amp; Protocols</li>
+              <li>Aura Signature + one Playbook for this pair</li>
+              <li>Chemistry lives here — daily weather stays on Today &amp; Protocols</li>
             </ul>
           </div>
         </Link>

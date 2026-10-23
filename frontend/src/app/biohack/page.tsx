@@ -7,6 +7,7 @@ import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api"
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import { formatAsOfInZone } from "@/lib/timezone";
+import { youChipLabel } from "@/lib/youChipLabel";
 
 type InvItem = { id: number; name: string; notes: string };
 
@@ -50,11 +51,6 @@ function summaryFromSelf(row: SavedChartRow): NatalChartSummary {
     timezone: row.timezone ?? null,
     slot_kind: row.slot_kind ?? "self",
   };
-}
-
-function youDisplayName(chart: NatalChartSummary): string {
-  const t = (chart.label || "").trim();
-  return t && t.toLowerCase() !== "me" ? t : "You";
 }
 
 /** Prefer store id only when that row is self; else first self; else null. */
@@ -686,14 +682,8 @@ function ProtocolsHeader({
               title="Protocols always uses your chart"
               data-testid="protocols-you-chip"
             >
-              <span aria-hidden className="text-fg-muted">
-                🔒
-              </span>
-              You · {youDisplayName(youChart)}
+              {youChipLabel(youChart)}
             </span>
-            <p className="text-xs text-fg-muted">
-              Always your natal — friends stay on Chart &amp; Soul.
-            </p>
           </>
         ) : (
           <div
@@ -709,7 +699,7 @@ function ProtocolsHeader({
       </div>
       {!biohackingUnlocked && (
         <p className="w-full text-xs text-fg-muted sm:order-last">
-          Pro unlocks today&apos;s plan, this week, and inventory.
+          Pro unlocks Today&apos;s Move, this week, and your kit.
         </p>
       )}
     </header>
@@ -1136,7 +1126,7 @@ function InventoryPanel({
               onClick={() => void addInv()}
               className="min-h-10 rounded-xl border border-border px-3 py-2 text-sm hover:border-growth disabled:opacity-50"
             >
-              {adding ? "Adding…" : "Add to inventory"}
+              {adding ? "Adding…" : "Add to kit"}
             </button>
           </div>
           {invFeedback && (
@@ -1164,7 +1154,7 @@ function InventoryPanel({
             </div>
           )}
           {inventoryLoading || natalBindingLoading ? (
-            <p className="text-sm text-fg-muted">Loading inventory…</p>
+            <p className="text-sm text-fg-muted">Loading kit…</p>
           ) : inventory.length === 0 ? null : (
             <ul className="flex flex-wrap gap-2">
               {inventory.map((it) => (
@@ -1247,8 +1237,8 @@ function BaselineColumn({
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="min-w-0 font-medium text-fg">{it.name}</span>
               {it.in_inventory && (
-                <span className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wide text-growth">
-                  in inventory
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-medium tracking-wide text-growth">
+                  From your kit
                 </span>
               )}
             </div>
