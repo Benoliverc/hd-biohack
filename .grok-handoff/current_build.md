@@ -4,6 +4,7 @@
 - Ready for Ship Gate / PO review
 - Branch: `feat/today-you-profile-only`
 - SHA: `7a9221d`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/21
 - Spec: `.grok-handoff/today-you-profile-only.md`
 - Base: `main` @ PR #20 (`9d01287`)
 
