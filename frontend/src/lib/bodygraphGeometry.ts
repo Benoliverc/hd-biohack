@@ -29,16 +29,19 @@ export const VB = { w: 240, h: 360 };
 export const CENTER_RX = 8;
 
 export const CENTER_GEOM: Record<CenterKey, CenterGeom> = {
-  Head: { kind: "triangle", cx: 120, cy: 38, s: 26, tip: "up" },
-  Ajna: { kind: "triangle", cx: 120, cy: 84, s: 28, tip: "down" },
-  Throat: { kind: "square", cx: 120, cy: 130, s: 30 },
-  G: { kind: "diamond", cx: 120, cy: 184, s: 32 },
-  Heart: { kind: "triangle", cx: 174, cy: 172, s: 20, tip: "down" },
-  Sacral: { kind: "square", cx: 120, cy: 242, s: 36 },
-  Solar_Plexus: { kind: "triangle", cx: 180, cy: 250, s: 28, tip: "up" },
-  Spleen: { kind: "triangle", cx: 60, cy: 250, s: 28, tip: "up" },
-  Root: { kind: "square", cx: 120, cy: 310, s: 34 },
+  // Crowded centers (Throat/Sacral/Root) scale beyond ~25% so 7–11
+  // perimeter chips clear MIN_GATE_SPACING (r=6.5 chips need ≥15px).
+  Head: { kind: "triangle", cx: 120, cy: 26, s: 28, tip: "up" },
+  Ajna: { kind: "triangle", cx: 120, cy: 78, s: 32, tip: "down" },
+  Throat: { kind: "square", cx: 120, cy: 138, s: 52 },
+  G: { kind: "diamond", cx: 120, cy: 204, s: 32 },
+  Heart: { kind: "triangle", cx: 182, cy: 182, s: 24, tip: "down" },
+  Sacral: { kind: "square", cx: 120, cy: 268, s: 48 },
+  Solar_Plexus: { kind: "triangle", cx: 190, cy: 270, s: 32, tip: "up" },
+  Spleen: { kind: "triangle", cx: 50, cy: 270, s: 32, tip: "up" },
+  Root: { kind: "square", cx: 120, cy: 328, s: 46 },
 };
+
 
 /** Motors get Terracotta; awareness / identity get Sage Fern. */
 export const MOTOR_CENTERS = new Set<CenterKey>([
@@ -104,85 +107,98 @@ export const CHANNEL_LATTICE: Array<{ gates: [number, number]; name: string }> =
   { gates: [47, 64], name: "Abstraction" },
 ];
 
+/** Chip radius used by BodyGraph (keep in sync with renderer). */
+export const GATE_CHIP_R = 6.5;
+
 /**
- * Gate chip anchors — offsets kept *inside* the center border so r=8 badges
- * never collide with edges or each other (Grounded Vitality).
+ * Minimum Euclidean distance between gate-chip anchors (assertGateSpacing).
+ * Chips are r=6.5 → visual touch at 13; we keep ≥14.5 air so overlaps can’t regress.
+ */
+export const MIN_GATE_SPACING = 14.5;
+
+/**
+ * Gate chip anchors — inner perimeter of each center, aligned toward channel
+ * partners (Benjamin edge map for Throat: top 62/23/56, right 35/12/45,
+ * bottom 8/31 + 33 near bottom-left, left 16/20).
+ * Spacing enforced by assertGateSpacing() ≥ MIN_GATE_SPACING.
  */
 const GATE_OFFSETS: Record<number, { dx: number; dy: number }> = {
-  // Head
-  64: { dx: -11, dy: 6 },
-  61: { dx: 0, dy: -10 },
-  63: { dx: 11, dy: 6 },
-  // Ajna
-  47: { dx: -12, dy: -4 },
-  24: { dx: -13, dy: 6 },
-  4: { dx: -8, dy: 12 },
-  17: { dx: 8, dy: 12 },
-  43: { dx: 13, dy: 6 },
-  11: { dx: 12, dy: -4 },
+
+  // Head — tip up: 61 tip, 64/63 base toward Ajna
+  64: { dx: -12, dy: 12 },
+  61: { dx: 0, dy: -14 },
+  63: { dx: 12, dy: 12 },
+  // Ajna — tip down: top base toward Head, tip toward Throat
+  47: { dx: -16, dy: -14 },
+  24: { dx: 0, dy: -16 },
+  4: { dx: 16, dy: -14 },
+  17: { dx: -14, dy: 12 },
+  43: { dx: 0, dy: 20 },
+  11: { dx: 14, dy: 12 },
   // Throat
-  62: { dx: -7, dy: -11 },
-  23: { dx: 7, dy: -11 },
-  56: { dx: -12, dy: -6 },
-  16: { dx: 12, dy: -6 },
-  20: { dx: -12, dy: 2 },
-  31: { dx: 0, dy: -12 },
-  8: { dx: 0, dy: 12 },
-  33: { dx: 12, dy: 2 },
-  35: { dx: 12, dy: 8 },
-  12: { dx: -12, dy: 8 },
-  45: { dx: 10, dy: 11 },
+  62: { dx: -14, dy: -23.5 },
+  23: { dx: 3.4, dy: -23.5 },
+  56: { dx: 18.4, dy: -23.5 },
+  16: { dx: -23.5, dy: -11.9 },
+  20: { dx: -23.5, dy: 3.2 },
+  31: { dx: -9, dy: 23.5 },
+  8: { dx: 7.4, dy: 23.5 },
+  33: { dx: -23.5, dy: 19.6 },
+  35: { dx: 23.5, dy: -9.4 },
+  12: { dx: 23.5, dy: 5.6 },
+  45: { dx: 23.5, dy: 22.5 },
   // G
-  7: { dx: 0, dy: -14 },
-  1: { dx: -10, dy: -10 },
-  13: { dx: 10, dy: -10 },
-  10: { dx: -14, dy: 0 },
-  15: { dx: 14, dy: 0 },
-  2: { dx: 0, dy: 14 },
-  46: { dx: -10, dy: 10 },
-  25: { dx: 10, dy: 10 },
-  // Heart / Ego
-  21: { dx: 8, dy: -5 },
-  40: { dx: 9, dy: 7 },
-  26: { dx: 0, dy: 10 },
-  51: { dx: -7, dy: 7 },
+  7: { dx: 0, dy: -29.5 },
+  1: { dx: 14.8, dy: -14.7 },
+  13: { dx: 29.5, dy: 0 },
+  10: { dx: -14.7, dy: -14.7 },
+  15: { dx: -0.2, dy: 29.3 },
+  2: { dx: -14.7, dy: 14.8 },
+  46: { dx: -29.5, dy: 0 },
+  25: { dx: 14.8, dy: 14.8 },
+  // Heart / Ego — toward Throat / SP / Spleen / G
+  21: { dx: 10, dy: -10 },
+  40: { dx: 10, dy: 10 },
+  26: { dx: -10, dy: 10 },
+  51: { dx: -10, dy: -10 },
   // Sacral
-  5: { dx: -8, dy: -13 },
-  14: { dx: 8, dy: -13 },
-  29: { dx: -13, dy: -5 },
-  59: { dx: 13, dy: 6 },
-  9: { dx: -13, dy: 6 },
-  3: { dx: 0, dy: 14 },
-  42: { dx: 9, dy: 13 },
-  27: { dx: -9, dy: 13 },
-  34: { dx: -14, dy: 0 },
+  5: { dx: -11.4, dy: -21.5 },
+  14: { dx: 7, dy: -21.5 },
+  29: { dx: 21.5, dy: -17.2 },
+  59: { dx: 21.5, dy: 1.9 },
+  9: { dx: 21.5, dy: 21 },
+  3: { dx: 2.9, dy: 21.5 },
+  42: { dx: -16.1, dy: 21.5 },
+  27: { dx: -21.5, dy: 7.5 },
+  34: { dx: -21.5, dy: -10.4 },
   // Solar Plexus
-  36: { dx: -10, dy: -7 },
-  22: { dx: -4, dy: -12 },
-  37: { dx: 5, dy: -11 },
-  6: { dx: -12, dy: 4 },
-  49: { dx: 11, dy: -3 },
-  55: { dx: 10, dy: 8 },
-  30: { dx: 0, dy: 12 },
+  36: { dx: 19.1, dy: 5.8 },
+  22: { dx: 21.5, dy: 21.9 },
+  37: { dx: -3.1, dy: 21.9 },
+  6: { dx: 8.5, dy: -13.8 },
+  49: { dx: -27.8, dy: 21.9 },
+  55: { dx: -16.1, dy: 0.2 },
+  30: { dx: -5.5, dy: -19.4 },
   // Spleen
-  48: { dx: 10, dy: -7 },
-  57: { dx: 12, dy: 0 },
-  44: { dx: 8, dy: 10 },
-  50: { dx: 0, dy: 12 },
-  32: { dx: -9, dy: 9 },
-  28: { dx: -11, dy: 2 },
-  18: { dx: -6, dy: -11 },
+  48: { dx: 0, dy: -29.5 },
+  57: { dx: 11.7, dy: -7.8 },
+  44: { dx: 22.8, dy: 12.7 },
+  50: { dx: 11, dy: 21.9 },
+  32: { dx: -11, dy: 21.9 },
+  28: { dx: -22.8, dy: 12.7 },
+  18: { dx: -11.7, dy: -7.8 },
   // Root
-  58: { dx: -12, dy: -8 },
-  38: { dx: -13, dy: 3 },
-  54: { dx: -9, dy: 11 },
-  53: { dx: 0, dy: 13 },
-  60: { dx: 9, dy: 11 },
-  52: { dx: 13, dy: 3 },
-  19: { dx: 12, dy: -8 },
-  39: { dx: 8, dy: -12 },
-  41: { dx: -6, dy: -12 },
+  58: { dx: -20.5, dy: -20.5 },
+  38: { dx: -2.3, dy: -20.5 },
+  54: { dx: 15.5, dy: -20.5 },
+  53: { dx: 20.5, dy: -6.4 },
+  60: { dx: 20.5, dy: 9.9 },
+  52: { dx: 9.9, dy: 20.5 },
+  19: { dx: -6.4, dy: 20.5 },
+  39: { dx: -20.5, dy: 15.5 },
+  41: { dx: -20.5, dy: -2.3 },
 };
+
 
 export function gateAnchor(gate: number, preferCenter?: CenterKey): { x: number; y: number } {
   const center = preferCenter || GATE_TO_CENTER[gate];
@@ -191,6 +207,30 @@ export function gateAnchor(gate: number, preferCenter?: CenterKey): { x: number;
   const off = GATE_OFFSETS[gate] || { dx: 0, dy: 0 };
   return { x: g.cx + off.dx, y: g.cy + off.dy };
 }
+
+/**
+ * Fail loudly if any two gate anchors are closer than MIN_GATE_SPACING.
+ * Call from unit/script checks so overlaps can’t regress silently.
+ */
+export function assertGateSpacing(
+  minDist: number = MIN_GATE_SPACING
+): { ok: true } | { ok: false; violations: Array<{ a: number; b: number; dist: number }> } {
+  const gates = Object.keys(GATE_OFFSETS).map(Number);
+  const violations: Array<{ a: number; b: number; dist: number }> = [];
+  for (let i = 0; i < gates.length; i++) {
+    for (let j = i + 1; j < gates.length; j++) {
+      const a = gateAnchor(gates[i]);
+      const b = gateAnchor(gates[j]);
+      const dist = Math.hypot(b.x - a.x, b.y - a.y);
+      if (dist < minDist) {
+        violations.push({ a: gates[i], b: gates[j], dist });
+      }
+    }
+  }
+  if (violations.length) return { ok: false, violations };
+  return { ok: true };
+}
+
 
 export function centersForChannel(gates: [number, number] | number[]): [CenterKey, CenterKey] | null {
   const a = GATE_TO_CENTER[gates[0]];
@@ -271,6 +311,25 @@ export function channelPathD(gates: [number, number] | number[]): string | null 
   const out2 = side === "left" ? Math.min(cpx2, edgeX) : Math.max(cpx2, edgeX);
   return `M ${x1} ${y1} C ${out1} ${cpy1}, ${out2} ${cpy2}, ${x2} ${y2}`;
 }
+
+/**
+ * Half-channel for a hanging gate: from the held-side channel terminus
+ * along the lattice toward the missing partner, stopping at the path midpoint.
+ */
+export function hangingHalfChannelPathD(held: number, missing: number): string | null {
+  const ep = channelEndpoints([held, missing]);
+  if (!ep) return null;
+  const heldPos = gateAnchor(held);
+  const d1 = Math.hypot(ep.x1 - heldPos.x, ep.y1 - heldPos.y);
+  const d2 = Math.hypot(ep.x2 - heldPos.x, ep.y2 - heldPos.y);
+  const fromHeld = d1 <= d2;
+  const x0 = fromHeld ? ep.x1 : ep.x2;
+  const y0 = fromHeld ? ep.y1 : ep.y2;
+  const mx = (ep.x1 + ep.x2) / 2;
+  const my = (ep.y1 + ep.y2) / 2;
+  return `M ${x0} ${y0} L ${mx} ${my}`;
+}
+
 
 /** @deprecated Prefer centerPath / channelPathD; kept for callers that need points. */
 export function polyPoints(

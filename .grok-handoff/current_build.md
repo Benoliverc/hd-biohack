@@ -1,50 +1,42 @@
-# Handoff — Batch A: Whole-app copy / You-chrome polish
+# Handoff — BodyGraph perimeter upgrade
 
 ## Status
 - Ready for Ship Gate / PO review
-- Branch: `feat/batch-a-copy-you-chrome`
-- Specs: `.grok-handoff/app-deep-review-2026-10-23.md` + `.grok-handoff/app-deep-ux-critique.md` (UX PASS)
-- Base: `main` @ `98e10f8` (PR #26)
+- Branch: `feat/bodygraph-perimeter`
+- Specs: `.grok-handoff/bodygraph-perimeter-upgrade.md` (Benjamin architecture; supersedes shrink-only in `bodygraph-overlap-fix.md`)
+- Base: `main` @ `d0fbca9` (PR #27)
 
 ## What changed (FE-only)
-1. **B1 Aura** — Home Soul: Fit % bullet → `Aura Signature + one Playbook for this pair` + chemistry/weather bullet. Soul schema-lag: `older schema` (no Fit %). Playbook micro: drop double “Playbook”.
-2. **B2 You chrome** — Shared `youChipLabel` (`frontend/src/lib/youChipLabel.ts`). Today + Protocols chips = label only (no 🔒, no `You · You`). Chart YOU row: no `YOU · You`. Today keeps one friends footnote; Protocols omits.
-3. **Kit leftovers** — Add to kit / Loading kit… / From your kit / Pro unlocks Today’s Move + kit (API `inventory` / `in_inventory` unchanged).
-4. **Paywall** — Natal baseline / Kit-aware Today’s Move / unlock live Today’s Move (no stacks/inventory/generate).
-5. **Today** — Sky/Move secondary bullet; single Open Protocols (indication CTA only).
-6. **Login** — H1 `Chart. Today. Protocols. Soul.`; Soul pillar; Protocols body = Today’s Move / kit.
-7. **Nice** — Header nav → `Home · Chart · Today · Protocols · Soul`.
+1. **Zero label clutter** — Center names off by default; hover/focus floating pill (Defined/Open · name). Optional `showLabels` dims chips to ~0.15 and paints names.
+2. **No ghost inactive numbers** — removed hanging-missing naked text; hanging list below unchanged.
+3. **Perimeter GATE_OFFSETS** — all 64 on inner perimeter; Throat Benjamin edges (top 62/23/56, right 35/12/45, bottom 8/31, 33 near bottom-left, left 16/20). Crowded centers scaled beyond ~25% so chips clear spacing (Throat s=52, Sacral/Root ~46–48).
+4. **Chip style** — r=6.5, font 7.5/700, cream stroke `#FAF8F5` 1.5px. **Dual activation = basalt core + 2px terracotta ring** (never stacked circles).
+5. **Channels + hanging half-channels** — full channels behind centers; hanging paints half-path held → midpoint (personality basalt / design terracotta).
+6. **Collision guard** — `assertGateSpacing()` + `frontend/scripts/assert-gate-spacing.mjs` (`npm run assert:gate-spacing`); all pairs ≥ 14.5px.
 
-## Out of scope (verified)
-- Zinc ranking API, Chart deep structure, OAuth/Stripe, Railway
-- No rename of API inventory fields
-
-## Files
-- `frontend/src/lib/youChipLabel.ts` (new)
-- `frontend/src/app/page.tsx`
-- `frontend/src/app/transits/page.tsx`
-- `frontend/src/app/biohack/page.tsx`
-- `frontend/src/app/profile/page.tsx`
-- `frontend/src/app/soul/page.tsx`
-- `frontend/src/app/login/page.tsx`
-- `frontend/src/components/BiohackingEntitlementGate.tsx`
-- `frontend/src/components/Header.tsx`
-- `.grok-handoff/app-deep-review-2026-10-23.md`
-- `.grok-handoff/app-deep-ux-critique.md`
-- `.grok-handoff/current_build.md`
+## Dual-activation approach
+**Basalt core + 2px terracotta ring** (not half-split / not stacked circles).
 
 ## Verify
-```bash
-cd frontend && npx tsc --noEmit
-```
+- `cd frontend && npx tsc --noEmit` — green
+- `npx tsx frontend/scripts/assert-gate-spacing.mjs` — PASS
+- Grep: no default center labels; no `missingNaked`
 
-## Smoke (for PO)
+## Out of scope
+API/chart calc, Zinc ranking, Batch B copy, header nav.
+
+## Files
+- `frontend/src/lib/bodygraphGeometry.ts`
+- `frontend/src/components/BodyGraph.tsx`
+- `frontend/scripts/assert-gate-spacing.mjs` (new)
+- `frontend/package.json` (script)
+- `.grok-handoff/bodygraph-perimeter-upgrade.md`
+- `.grok-handoff/bodygraph-overlap-fix.md` (diagnosis context)
+
+## Smoke for PO
 | Case | Expect |
-|------|--------|
-| home Soul | Aura Signature bullet; no Fit % |
-| Me chart Today+Protocols | chip `You` only; no 🔒 You · You |
-| Chart YOU row | no YOU · You |
-| kit | Add to kit; Loading kit; From your kit |
-| Free paywall | Today’s Move / kit; no stacks/generate |
-| Today | one Open Protocols; sky/Move copy |
-| login | Soul pillar + H1 |
+| user’s chart | no stacked Throat/Spleen/G/Root chips |
+| labels | no center-name under chips by default; hover pill |
+| hanging | half-channels visible |
+| dual gates | basalt + terracotta ring |
+| showLabels | names on, chips dim |
