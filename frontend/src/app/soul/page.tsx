@@ -14,21 +14,16 @@ import {
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 
-const PLAYBOOKS: {
-  id: SoulContext;
-  label: string;
-}[] = [
-  { id: "life", label: "Life & Intimacy" },
-  { id: "work", label: "Work & Co-Creation" },
-  { id: "play", label: "Play & Recovery" },
-];
+/** Default playbook context (tabs removed — single Playbook view). */
+const PLAYBOOK_CONTEXT: SoulContext = "life";
 
-/** Client-side card order so playbook switches are instant. */
-const CARD_ORDER: Record<SoulContext, string[]> = {
-  life: ["somatic_playbook", "power_dynamics", "circuit_bridge", "spark_glue"],
-  work: ["circuit_bridge", "spark_glue", "power_dynamics", "somatic_playbook"],
-  play: ["spark_glue", "somatic_playbook", "circuit_bridge", "power_dynamics"],
-};
+/** Fallback card order for life context when API omits playbook.card_order. */
+const LIFE_CARD_ORDER = [
+  "somatic_playbook",
+  "power_dynamics",
+  "circuit_bridge",
+  "spark_glue",
+];
 
 function isAuraSchema(res: SoulSyncResult): boolean {
   return Boolean(res?.signature?.id) && res.natural_fit == null;
@@ -116,7 +111,7 @@ export default function SoulPage() {
 
   const [selfId, setSelfId] = useState<number | null>(null);
   const [friendId, setFriendId] = useState<number | null>(null);
-  const [context, setContext] = useState<SoulContext>("life");
+  const context = PLAYBOOK_CONTEXT;
 
   const [result, setResult] = useState<SoulSyncResult | null>(null);
   const [syncLoading, setSyncLoading] = useState(false);
@@ -217,14 +212,15 @@ export default function SoulPage() {
   const orderedCards = useMemo(() => {
     if (!result?.cards) return [];
     const byId = new Map(result.cards.map((c) => [c.id, c]));
-    const order = CARD_ORDER[context] ?? result.playbook?.card_order ?? [];
+    const order = result.playbook?.card_order?.length
+      ? result.playbook.card_order
+      : LIFE_CARD_ORDER;
     const ordered = order.map((id) => byId.get(id)).filter(Boolean) as SoulCard[];
-    // Append any unexpected cards
     for (const c of result.cards) {
       if (!order.includes(c.id)) ordered.push(c);
     }
     return ordered;
-  }, [result, context]);
+  }, [result]);
 
   return (
     <div className="space-y-6" data-testid="soul-page">
@@ -304,31 +300,9 @@ export default function SoulPage() {
           </div>
 
           <div data-testid="soul-playbook">
-            <p className="mb-2 text-sm font-medium text-fg">Playbook</p>
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Playbook">
-              {PLAYBOOKS.map((c) => {
-                const active = context === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    data-testid={`soul-context-${c.id}`}
-                    aria-pressed={active}
-                    onClick={() => setContext(c.id)}
-                    className={`inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-xs sm:text-sm ${
-                      active
-                        ? "border-growth bg-growth/15 font-semibold text-growth"
-                        : "border-border bg-sunken text-fg-secondary hover:border-growth/40"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-1.5 text-xs text-fg-muted">
-              Playbook reframes guidance for Life, Work, or Play. Signature and
-              spectrums stay for this pair; the focus blurb and card order change.
+            <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
+            <p className="text-xs text-fg-muted">
+              Playbook guidance for this pair — signature, spectrums, and cards below.
             </p>
           </div>
 
@@ -502,8 +476,8 @@ export default function SoulPage() {
                 <div className="mt-4 space-y-2 text-sm text-fg-secondary">
                   <p>
                     Spectrum bars show relative charge, continuity, and pacing style — never a
-                    single compatibility percentage. Playbook focus blurb and card order change
-                    with Life, Work, or Play; signature and spectrums stay for this pair.
+                    single compatibility percentage. Signature and spectrums stay for this pair;
+                    the Playbook blurb and cards are guidance for how you relate.
                   </p>
                 </div>
               </details>

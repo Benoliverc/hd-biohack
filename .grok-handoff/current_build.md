@@ -1,28 +1,24 @@
-# Handoff — Today always uses You / Me natal (P0)
+# Handoff — Soul Playbook: remove Life/Work/Play tabs (P0)
 
 ## Status
 - Ready for Ship Gate / PO review
-- Branch: `feat/today-you-profile-only`
-- SHA: `7a9221d`
-- PR: https://github.com/Benoliverc/hd-biohack/pull/21
-- Spec: `.grok-handoff/today-you-profile-only.md`
-- Base: `main` @ PR #20 (`9d01287`)
+- Branch: `feat/soul-playbook-no-context-tabs`
+- Spec: user ask 2026-10-23 — remove Life & Intimacy / Work & Co-Creation / Play & Recovery under Playbook for now
+- Base: `main` @ PR #21 (`bd2cde8`)
 
 ## What changed
-1. **Today (`/transits`)** — Resolves **You** (`slot_kind !== "friend"`) via `api.charts`; calls `transitsToday(youChart?.id)` only. Locked **You** chip + “Today is for you” / “Always your natal — friends stay on Chart & Soul.” Nudges sticky to self when entering Today; clears friend sticky if no self.
-2. **Store hydrate** — Prefer sticky **only if self**; else any self row; else `null` (never bind friend as natal). `NatalChartSummary.slot_kind` optional.
-3. **Chart delete rebound** — After delete, rebound to **self** with `bindStore: true`; if no self, edit friend with `bindStore: false` and clear natal sticky.
+1. **Soul Playbook UI** — Removed Life / Work / Play context tab buttons. Single Playbook heading + short helper: “Playbook guidance for this pair…”.
+2. **Fixed context** — FE always sends `context: "life"` (`PLAYBOOK_CONTEXT`). No `setContext` / switching.
+3. **Cards** — Order from API `playbook.card_order`, fallback `LIFE_CARD_ORDER` (life). Lede / focus_hint / signature / badges / spectrums unchanged.
+4. **Copy** — Dropped Life/Work/Play switching and “reorders cards” language in helper + conditioning strip.
 
 ## Do not change (verified)
-- Soul friend picker / Soul API
-- Indication scoring math
-- No friend picker on Today
+- Signature detection, badge predicates, Magnetic threshold (backend untouched)
+- Backend still accepts `context`; FE just always sends `life`
 
 ## Files
-- `frontend/src/app/transits/page.tsx`
-- `frontend/src/lib/store.tsx`
-- `frontend/src/app/profile/page.tsx`
-- `.grok-handoff/today-you-profile-only.md`, `current_build.md`
+- `frontend/src/app/soul/page.tsx`
+- `.grok-handoff/current_build.md`
 
 ## Verify
 ```bash
@@ -30,11 +26,9 @@ cd frontend && npx tsc --noEmit
 ```
 
 ## Smoke (after merge)
-1. Me + friend; Chart select friend → Today still You chip + self overlay.
-2. DevTools set sticky to friend id; reload `/transits` → still You.
-3. Newest chart = friend; reload Today → still You.
-4. Soul friend pick still works; Chart Me/Friend edit intact.
-5. No self (friends only) → Today sky-only / save-You CTA, not friend-as-you.
+1. Open `/soul` with Me + friend → no Life/Work/Play tabs.
+2. Signature, badges, spectrums, life lede, and cards still render.
+3. Friend switch still refreshes sync; Chart flows untouched.
 
 ## Awaiting
 Ship Gate → merge → Vercel FE redeploy.
