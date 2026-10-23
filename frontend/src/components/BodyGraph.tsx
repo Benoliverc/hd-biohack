@@ -8,6 +8,7 @@ import {
   CHANNEL_LATTICE,
   GATE_CHIP_R,
   GATE_TO_CENTER,
+  INTEGRATION_GATES,
   MOTOR_CENTERS,
   TORSO_PATH,
   VB,
@@ -16,6 +17,7 @@ import {
   centerPath,
   gateAnchor,
   hangingHalfChannelDash,
+  preferIntegrationHangingMissing,
   type CenterKey,
 } from "@/lib/bodygraphGeometry";
 
@@ -177,11 +179,47 @@ export function BodyGraph({
     title: string;
   }>;
 
-  // Hanging half-channels: SAME lattice `d` + pathLength dash (no invented sticks)
-  const hangingHalves = hangingGates
+  // Hanging half-channels: SAME lattice `d` + pathLength dash (no invented sticks).
+  // Integration multi-gates: collapse to one trunk-oriented hang (no 3 tentacles).
+  const hangingRaw = hangingGates
     .map((h, i) => {
       if (h.held == null || h.missing == null) return null;
       if (activeKeySet.has(gateKey(h.held, h.missing))) return null;
+      return { ...h, held: h.held as number, missing: h.missing as number, i };
+    })
+    .filter(Boolean) as Array<{
+    held: number;
+    missing: number;
+    channel?: string;
+    i: number;
+  }>;
+
+  const hangingFiltered: typeof hangingRaw = [];
+  const integHeldSeen = new Set<number>();
+  // Group Integration hangings by held gate → keep preferred missing only
+  const integByHeld = new Map<number, number[]>();
+  for (const h of hangingRaw) {
+    if (INTEGRATION_GATES.has(h.held) && INTEGRATION_GATES.has(h.missing)) {
+      const arr = integByHeld.get(h.held) || [];
+      arr.push(h.missing);
+      integByHeld.set(h.held, arr);
+    }
+  }
+  for (const h of hangingRaw) {
+    if (INTEGRATION_GATES.has(h.held) && INTEGRATION_GATES.has(h.missing)) {
+      if (integHeldSeen.has(h.held)) continue;
+      const preferred =
+        preferIntegrationHangingMissing(h.held, integByHeld.get(h.held) || []) ??
+        h.missing;
+      integHeldSeen.add(h.held);
+      hangingFiltered.push({ ...h, missing: preferred });
+      continue;
+    }
+    hangingFiltered.push(h);
+  }
+
+  const hangingHalves = hangingFiltered
+    .map((h) => {
       const dash = hangingHalfChannelDash(h.held, h.missing);
       if (!dash) return null;
       const d = channelPathD(dash.gates);
@@ -190,7 +228,7 @@ export function BodyGraph({
       const stroke =
         tone === "terracotta" ? TERRACOTTA : tone === "dual" ? TERRACOTTA : OBSIDIAN;
       return {
-        key: `hang-${i}-${h.held}-${h.missing}`,
+        key: `hang-${h.i}-${h.held}-${h.missing}`,
         d,
         stroke,
         dasharray: dash.dasharray,
@@ -215,6 +253,9 @@ export function BodyGraph({
   const chipOpacity = showLabels ? 0.15 : 1;
   const focusLabel = focusCenter ? CENTER_LABELS[focusCenter] : null;
   const focusDefined = focusCenter ? defined.has(focusCenter) : false;
+  const focusActiveGates = focusCenter
+    ? chipGates.filter((g) => GATE_TO_CENTER[g] === focusCenter)
+    : [];
 
   return (
     <div className={`relative flex flex-col items-center gap-3 ${className}`}>
@@ -244,6 +285,7 @@ export function BodyGraph({
                 strokeWidth={5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                style={{ pointerEvents: "none" }}
               />
             );
           })}
@@ -253,7 +295,7 @@ export function BodyGraph({
         {activePaths.map((p) => {
           if (p.stroke === "split") {
             return (
-              <g key={p.key}>
+              <g key={p.key} style={{ pointerEvents: "none" }}>
                 <path
                   d={p.d}
                   fill="none"
@@ -289,6 +331,7 @@ export function BodyGraph({
               strokeWidth={5}
               strokeLinecap="round"
               strokeLinejoin="round"
+              style={{ pointerEvents: "none" }}
             >
               <title>{p.title}</title>
             </path>
@@ -309,6 +352,7 @@ export function BodyGraph({
             strokeDasharray={h.dasharray}
             strokeDashoffset={h.dashoffset}
             strokeOpacity={0.95}
+            style={{ pointerEvents: "none" }}
           >
             <title>{h.title}</title>
           </path>
@@ -380,7 +424,7 @@ export function BodyGraph({
             const fill = tone === "terracotta" ? TERRACOTTA : OBSIDIAN;
             const textFill = LINEN;
             return (
-              <g key={`chip-${gate}`}>
+              <g key={`chip-${gate}`} style={{ pointerEvents: "none" }}>
                 <circle
                   cx={pos.x}
                   cy={pos.y}
@@ -411,7 +455,7 @@ export function BodyGraph({
       {/* Floating center pill — hover / keyboard focus */}
       {focusLabel && !showLabels ? (
         <div
-          className="pointer-events-none absolute top-2 z-10 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm"
+          className="pointer-events-none absolute top-2 z-10 max-w-[90%] rounded-full px-3 py-1 text-center text-[11px] font-semibold shadow-sm"
           style={{
             background: focusDefined ? SAGE : ALABASTER,
             color: focusDefined ? LINEN : OBSIDIAN,
@@ -420,6 +464,9 @@ export function BodyGraph({
           aria-live="polite"
         >
           {focusDefined ? "Defined" : "Open"} · {displayCenter(focusCenter!)}
+          {focusActiveGates.length > 0
+            ? ` · ${focusActiveGates.join(" · ")}`
+            : ""}
         </div>
       ) : null}
 
@@ -493,7 +540,7 @@ export function BodyGraph({
           </span>
         </div>
         <p className="text-center text-[10px] text-fg-muted">
-          Tap any center or gate to inspect mechanics
+          Tap any center to inspect its mechanics
         </p>
       </div>
 
