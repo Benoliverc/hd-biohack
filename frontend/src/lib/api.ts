@@ -304,13 +304,15 @@ export const api = {
       indication: TodayIndicationPayload | null;
     }>(`/transits/today${natalChartId ? `?natal_chart_id=${natalChartId}` : ""}`),
   protocol: (userId: number, natalChartId?: number) =>
-    req<{ entitlement: Record<string, unknown>; overlay: Record<string, unknown>; protocol: Record<string, unknown> }>(
-      "/biohack/protocol",
-      {
-        method: "POST",
-        body: JSON.stringify({ user_id: userId, natal_chart_id: natalChartId ?? null }),
-      }
-    ),
+    req<{
+      entitlement: Record<string, unknown>;
+      overlay: Record<string, unknown>;
+      indication: TodayIndicationPayload | null;
+      protocol: Record<string, unknown>;
+    }>("/biohack/protocol", {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId, natal_chart_id: natalChartId ?? null }),
+    }),
   inventory: (userId: number) =>
     req<Array<{ id: number; name: string; notes: string }>>(`/inventory/${userId}`),
   addInventory: (userId: number, name: string) =>

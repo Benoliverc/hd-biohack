@@ -1,6 +1,7 @@
 # Baseline backlog
 
 ## [P0 - Active]
+- **Protocols redesign** (“do the sky” IA) — see `protocols-redesign-p0.md` — **in PR `feat/protocols-redesign-p0`**
 - Today HD indication (Energy + Space from natal × transit) — see `current_spec.md` — **FE live; API on Railway after Hobby resume**
 - Admin usage logbook + day/week/month stats — see `admin-usage-spec.md`
 - **Soul Aura Alchemy** (kill Fit %; signatures + rare badges + 3 spectrums + playbook card reorder + 4 insight cards) — see `soul-aura-alchemy-spec.md`
@@ -12,7 +13,7 @@
 - Energy history / 7-day sparkline
 - Midday / evening re-check
 - Wearable readiness overlay (self-report wins)
-- Space → filter / reorder Protocol Do list
+- Space → filter / reorder Protocol Do list — **folded into protocols-redesign-p0**
 - Optional one-line note after check-in
 - Local reminder for 30-sec Today check-in
 - Soul Aura Alchemy P1: LLM narrative polish; richer per-channel essay library; component-merge bridges beyond hanging+definition; dual/composite BodyGraph; circle scan; persist playbook/protocols; Partner/Sleep microcopy pack

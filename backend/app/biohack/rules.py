@@ -510,6 +510,296 @@ def _plan_item(
     }
 
 
+def _slot_from_stack(
+    when: str,
+    stack_items: list[dict],
+    owned: set[str],
+    why_fallback: str,
+    priority: int = 1,
+) -> dict | None:
+    """Prefer an owned inventory hit from a center stack; else first stack item."""
+    if not stack_items:
+        return None
+    owned_hits = [it for it in stack_items if _inv_hit(it["name"], owned)]
+    pick = owned_hits[0] if owned_hits else stack_items[0]
+    return _plan_item(
+        when,
+        pick["name"],
+        "As on your label / clinician guidance",
+        pick.get("note") or why_fallback,
+        owned,
+        priority,
+    )
+
+
+def _pick_timed_supports(
+    natal: dict[str, Any],
+    overlay: dict[str, Any],
+    owned: set[str],
+    focus_centers: list[str],
+    morning_stack: list[dict],
+    midday_stack: list[dict],
+    evening_stack: list[dict],
+    energy_label: str,
+    preferred_space: str,
+) -> tuple[dict, dict, dict]:
+    """One Morning / Midday / Evening lead from energy × bridge × owned inventory.
+
+    Always-on daylight / caffeine / magnesium are NOT the permanent lead trio —
+    they live in baseline_kit instead.
+    """
+    undefined = set(natal.get("undefined_centers", []))
+    defined = set(natal.get("defined_centers", []))
+    newly = set(overlay.get("newly_defined_centers", []))
+    focus = set(focus_centers) | newly
+    open_sp = "Solar_Plexus" in undefined or "Emotional" in (natal.get("authority") or "")
+    sacral_def = "Sacral" in defined
+    hd_type = natal.get("type") or ""
+    bridges = overlay.get("bridged_channels") or []
+    bridge = bridges[0] if bridges else None
+    bridge_name = str(bridge.get("name") or "") if isinstance(bridge, dict) else ""
+    bridge_centers = set(bridge.get("centers") or []) if isinstance(bridge, dict) else set()
+
+    # ── Morning ──────────────────────────────────────────────────────────
+    morning: dict | None = None
+    if energy_label in ("Drained", "Low"):
+        morning = _plan_item(
+            "On waking",
+            "Quiet start — protein + no messages first",
+            "Eat before Slack / news",
+            f"{energy_label} weather — protect the first hour so open centers don't borrow urgency.",
+            owned,
+            1,
+            track_inventory=False,
+        )
+    elif "Spleen" in focus or "Spleen" in bridge_centers:
+        morning = _slot_from_stack(
+            "Morning",
+            morning_stack,
+            owned,
+            "Splenic weather is quiet — support instinct, don't override with tabs.",
+        )
+        if morning is None or not morning.get("in_inventory"):
+            # Prefer Zinc/D from evening/morning spleen stacks if owned
+            zincish = [
+                it
+                for it in (morning_stack + evening_stack)
+                if any(k in it["name"].lower() for k in ("zinc", "vitamin d", "vitamin d3"))
+            ]
+            hit = _slot_from_stack("Morning", zincish, owned, "Immune / intuition pulse.")
+            if hit and hit.get("in_inventory"):
+                morning = hit
+            else:
+                morning = _plan_item(
+                    "Before noon",
+                    "Protein + short alone walk — don't open Slack first",
+                    "10–15 min, phone away",
+                    "Spleen/instinct weather — take the hit before the feed fills your Head.",
+                    owned,
+                    1,
+                    track_inventory=False,
+                )
+    elif focus & {"Head", "Ajna"} or bridge_centers & {"Head", "Ajna"}:
+        morning = _slot_from_stack(
+            "With breakfast",
+            morning_stack,
+            owned,
+            "Quiet Head/Ajna pressure before the day's certainty loops open.",
+        )
+        if morning is None:
+            morning = _plan_item(
+                "Morning",
+                "Fewer tabs before noon — one open question only",
+                "Journal or park the rest",
+                f"{bridge_name or 'Mind'} bridge wants certainty — don't feed it with more inputs.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+    elif "Root" in focus or "Root" in bridge_centers:
+        morning = _slot_from_stack(
+            "Morning",
+            [it for it in (morning_stack + midday_stack) if "electrolyte" in it["name"].lower()]
+            or morning_stack,
+            owned,
+            "Open or busy Root amplifies hurry — minerals before other people's urgency.",
+        )
+        if morning is None:
+            morning = _plan_item(
+                "Morning",
+                "Grounding walk before messages",
+                "5–10 min outdoors or hallway",
+                "Root weather — move the body before you take on the room's hurry.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+    if morning is None:
+        morning = _slot_from_stack(
+            "With breakfast",
+            morning_stack,
+            owned,
+            "From your chart focus this week.",
+        )
+    if morning is None:
+        if sacral_def:
+            morning = _plan_item(
+                "With breakfast",
+                "Protein-forward meal",
+                "Palm-sized protein + whole food",
+                "Steady fuel for Sacral response without a crash.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+        else:
+            morning = _plan_item(
+                "Morning",
+                "Short alone reset before the day opens",
+                "5–10 min, no feed",
+                f"{hd_type or 'Your'} Type OS — clear borrowed noise before you engage.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+
+    # ── Midday ───────────────────────────────────────────────────────────
+    midday: dict | None = None
+    if energy_label == "Hyper" or preferred_space == "focus":
+        midday = _plan_item(
+            "Midday work block",
+            "Single-task window (25–50 min) · phone face-down",
+            "One focus only",
+            f"{energy_label} / {preferred_space} — fewer tabs keeps temporary definition from looping.",
+            owned,
+            1,
+            track_inventory=False,
+        )
+    elif preferred_space in ("out", "nature") or "G" in focus:
+        midday = _plan_item(
+            "Midday",
+            "Outdoor light walk",
+            "10–20 min",
+            "Direction / identity reset — match Out & about weather with real sky.",
+            owned,
+            1,
+            track_inventory=False,
+        )
+    elif focus & {"Head", "Ajna"} or bridge_centers & {"Head", "Ajna"}:
+        midday = _slot_from_stack(
+            "Midday",
+            midday_stack,
+            owned,
+            "Reduce over-analysis loops while the mind channel is bridged.",
+        )
+        if midday is None:
+            midday = _plan_item(
+                "Midday work block",
+                "Single-task window (25–50 min)",
+                "One focus, phone face-down",
+                "Open Head/Ajna soak mental pressure — certainty comes from one thread.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+    if midday is None:
+        midday = _slot_from_stack(
+            "Midday / around training",
+            midday_stack,
+            owned,
+            "Transit-weighted midday support.",
+        )
+    if midday is None:
+        if hd_type in ("Generator", "Manifesting Generator"):
+            midday = _plan_item(
+                "Midday",
+                "One Sacral check-in before the next block",
+                "Body yes/no, then inform if MG",
+                "Respond first — don't initiate from a mental to-do crest.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+        elif hd_type == "Projector":
+            midday = _plan_item(
+                "Midday",
+                "Invitation-only deep-work block",
+                "One recognized window",
+                "Projector battery is recognition + rest, not all-day output.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+        else:
+            midday = _plan_item(
+                "Midday",
+                "Protect one initiation / inform window",
+                "Then leave it",
+                "Keep the day's move sharp — not a full stack.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+
+    # ── Evening ──────────────────────────────────────────────────────────
+    evening: dict | None = None
+    if energy_label in ("Hyper", "Charged"):
+        mag = _slot_from_stack(
+            "60–90 min before bed",
+            [it for it in evening_stack if "magnesium" in it["name"].lower()] or evening_stack,
+            owned,
+            "Downshift after a high-motor day.",
+        )
+        if mag and mag.get("in_inventory"):
+            evening = _plan_item(
+                "Evening wind-down",
+                mag["item"].replace(" (consider adding)", ""),
+                mag.get("dose_hint") or "Per label",
+                f"{energy_label} anti-stim — use what you own; skip extra stim stacks.",
+                owned,
+                1,
+            )
+        else:
+            evening = _plan_item(
+                "Evening",
+                "No stim stack · early wind-down",
+                "Skip coffee, pre-workout, late research tabs",
+                f"{energy_label} weather — let motors finish the loop without borrowed fuel.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+    elif open_sp or "Solar_Plexus" in focus:
+        evening = _plan_item(
+            "Evening",
+            "No big decisions on the emotional crest",
+            "Sleep on it; re-check tomorrow",
+            "Emotional Authority / open Solar Plexus — truth isn't in the peak of the wave.",
+            owned,
+            1,
+            track_inventory=False,
+        )
+    else:
+        evening = _slot_from_stack(
+            "Evening wind-down",
+            evening_stack,
+            owned,
+            "Evening transit support.",
+        )
+        if evening is None:
+            evening = _plan_item(
+                "Evening",
+                "Early wind-down · no late research tabs",
+                "Screens down before the second wind",
+                "Close the day's loop before open centers soak overnight noise.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+
+    return morning, midday, evening
+
+
 def _build_actionable_plans(
     natal: dict[str, Any],
     overlay: dict[str, Any],
@@ -519,166 +809,80 @@ def _build_actionable_plans(
     midday_stack: list[dict],
     evening_stack: list[dict],
     adjusts: list[str],
+    indication: dict[str, Any] | None = None,
 ) -> tuple[dict, dict, dict]:
-    """Practical daily/weekly plans + summary (informational, not medical)."""
+    """Sky-led daily plan: indication hero + 3 timed supports + demoted baseline kit."""
     hd_type = natal.get("type") or ""
     authority = natal.get("authority") or ""
     strategy = natal.get("strategy") or ""
-    defined = set(natal.get("defined_centers", []))
     undefined = set(natal.get("undefined_centers", []))
     open_root = "Root" in undefined
     open_sp = "Solar_Plexus" in undefined or "Emotional" in authority
-    sacral_def = "Sacral" in defined
-    ajna_open = "Ajna" in undefined or "Head" in undefined
 
-    morning: list[dict] = []
-    midday: list[dict] = []
-    evening: list[dict] = []
-    do: list[str] = []
-    dont: list[str] = []
+    ind = indication or {}
+    energy_label = str(ind.get("energy_label") or "Steady")
+    preferred_space = str(ind.get("preferred_space") or "focus")
+    preferred_space_label = str(ind.get("preferred_space_label") or preferred_space)
+    hero_title = str(ind.get("main_action_text") or "").strip()
+    hero_why = str(ind.get("main_action_why") or "").strip()
+    hero_micro = str(ind.get("main_action_micro") or "").strip()
+    if not hero_title:
+        hero_title = f"Run today's move with {authority or 'your Authority'}"
+    if not hero_why:
+        hero_why = (
+            f"Decide with {authority or 'your Authority'} "
+            f"({strategy or 'Strategy'}). Keep open centers from borrowing urgency."
+        )
 
-    # Core morning behaviors (always)
-    morning.append(
+    morning, midday, evening = _pick_timed_supports(
+        natal,
+        overlay,
+        owned,
+        focus_centers,
+        morning_stack,
+        midday_stack,
+        evening_stack,
+        energy_label,
+        preferred_space,
+    )
+
+    # Demoted always-on hygiene — not the hero lead trio
+    baseline_kit = [
         _plan_item(
             "Within 30 min of waking",
             "Daylight + short walk",
             "5–15 min outdoors if possible",
-            "Resets direction/energy map for the day — especially useful if G or Root are noisy.",
+            "Baseline kit — resets direction when G or Root are noisy.",
             owned,
-            1,
+            10,
             track_inventory=False,
-        )
-    )
-    morning.append(
-        _plan_item(
-            "With breakfast",
-            "Protein-forward meal",
-            "Palm-sized protein + whole food",
-            "Steady fuel for Sacral response or Projector focus without crash.",
-            owned,
-            2,
-            track_inventory=False,
-        )
-    )
-
-    # Inventory-aware stacks first
-    prio = 3
-    for it in morning_stack[:4]:
-        morning.append(
-            _plan_item(
-                "With breakfast",
-                it["name"],
-                "As on your label / clinician guidance",
-                it.get("note", "From your chart focus this week."),
-                owned,
-                prio,
-            )
-        )
-        prio += 1
-
-    if open_root or "Root" in focus_centers:
-        morning.append(
-            _plan_item(
-                "Morning",
-                "Electrolytes",
-                "1 serving in water",
-                "Open or busy Root amplifies hurry — minerals help you not ride other people's urgency.",
-                owned,
-                prio,
-            )
-        )
-
-    # Midday
-    midday.append(
+        ),
         _plan_item(
             "By early afternoon",
             "Caffeine cutoff",
             "Last coffee/tea ~6–8h before bed",
-            "Protects sleep when Root or emotional weather is loud.",
+            "Baseline kit — protects sleep when Root or emotional weather is loud.",
             owned,
-            1,
+            10,
             track_inventory=False,
-        )
-    )
-    if ajna_open or "Ajna" in focus_centers or "Head" in focus_centers:
-        midday.append(
-            _plan_item(
-                "Midday work block",
-                "Single-task window (25–50 min)",
-                "One focus, phone face-down",
-                "Open Head/Ajna soak up mental pressure — fewer tabs = clearer battery.",
-                owned,
-                2,
-                track_inventory=False,
-            )
-        )
-    prio = 3
-    for it in midday_stack[:3]:
-        midday.append(
-            _plan_item(
-                "Midday / around training",
-                it["name"],
-                "As on your label",
-                it.get("note", "Transit-weighted midday support."),
-                owned,
-                prio,
-            )
-        )
-        prio += 1
-
-    # Evening
-    evening.append(
+        ),
         _plan_item(
             "60–90 min before bed",
             "Magnesium Glycinate",
             "Per label (often evening)",
-            "Downshift for Root pressure and sleep quality — prefer what you already own.",
+            "Baseline kit — prefer what you already own; skip if evening lead already covers it.",
             owned,
-            1,
-        )
-    )
-    if open_sp or "Solar_Plexus" in focus_centers:
-        evening.append(
-            _plan_item(
-                "Evening",
-                "No big decisions on the emotional crest",
-                "Sleep on it; re-check tomorrow",
-                "Emotional Authority / open Solar Plexus — truth isn't in the peak of the wave.",
-                owned,
-                2,
-                track_inventory=False,
-            )
-        )
-    evening.append(
-        _plan_item(
-            "Evening",
-            "No late stimulants",
-            "Skip coffee, energy drinks, heavy pre-workout",
-            "Lets the nervous system finish the day's loop.",
-            owned,
-            3,
-            track_inventory=False,
-        )
-    )
-    prio = 4
-    for it in evening_stack[:3]:
-        if "magnesium" in it["name"].lower() and any("magnesium" in x["item"].lower() for x in evening):
-            continue
-        evening.append(
-            _plan_item(
-                "Evening wind-down",
-                it["name"],
-                "As on your label",
-                it.get("note", "Evening transit support."),
-                owned,
-                prio,
-            )
-        )
-        prio += 1
+            10,
+        ),
+    ]
 
-    # Do / Don't by type
-    do.append(f"Follow Strategy: {strategy or 'your chart strategy'}.")
-    do.append(f"Decide with Authority: {authority or "your body's yes"} — not the mind's wishlist.")
+    do: list[str] = []
+    dont: list[str] = []
+    # One Strategy/Authority line, not three clones
+    do.append(
+        f"Follow Strategy ({strategy or 'your chart strategy'}) · "
+        f"decide with Authority ({authority or "your body's yes"})."
+    )
     if hd_type in ("Generator", "Manifesting Generator"):
         do.append("Only start work that gets a clear Sacral yes (sounds/body response).")
         dont.append("Initiate from FOMO or a mental to-do list before something responds.")
@@ -691,131 +895,96 @@ def _build_actionable_plans(
     elif hd_type == "Reflector":
         do.append("Change room/people before changing your stack on a low day.")
         dont.append("Make identity-level decisions in one afternoon.")
+
+    # Space-aware Do/Don't (max 3 each)
+    if preferred_space == "alone":
+        do.append("Keep social initiation optional — Alone weather first.")
+        dont.append("Fill the calendar to match other people's pace.")
+    elif preferred_space == "focus":
+        do.append("Single-task the main move — Focus corner over multitasking.")
+        dont.append("Context-switch every notification during the lead block.")
+    elif preferred_space == "out":
+        do.append("Take the inform / walk move outdoors when you can.")
+    elif preferred_space == "people":
+        do.append("One clear conversation beats three half-present ones.")
+    elif preferred_space == "nature":
+        do.append("Get sky / trees before another indoor loop.")
+
     if open_root:
         dont.append("Stack afternoon/evening caffeine when you feel other people's urgency.")
+    if open_sp and "emotional crest" not in " ".join(dont).lower():
+        dont.append("Big decisions at the emotional peak.")
     if adjusts:
-        do.append(adjusts[0].split(": ", 1)[-1] if ": " in adjusts[0] else adjusts[0])
+        bit = adjusts[0].split(": ", 1)[-1] if ": " in adjusts[0] else adjusts[0]
+        if bit not in do and len(do) < 3:
+            do.append(bit)
 
-    # Weekly
-    habits: list[dict] = []
-    emphasize: list[str] = []
-    pause: list[str] = []
-    theme_bits = []
+    do = do[:3]
+    dont = dont[:3]
+
+    # Weekly: 1 theme (Sun/Earth summary) + sky note only on the surface
     weekly_macro = overlay.get("weekly_macro_theme") or {}
-    if isinstance(weekly_macro, dict) and weekly_macro.get("theme"):
-        theme_bits.append(str(weekly_macro["theme"]))
-    theme_bits.append(f"{hd_type} operating system + open-center hygiene")
-    theme = " · ".join(theme_bits[:2])
+    if isinstance(weekly_macro, dict) and weekly_macro.get("summary"):
+        theme = str(weekly_macro["summary"])
+    elif isinstance(weekly_macro, dict) and weekly_macro.get("theme"):
+        theme = str(weekly_macro["theme"])
+    else:
+        theme = f"{hd_type} operating system + open-center hygiene"
 
-    if sacral_def:
-        habits.append(
-            {
-                "cadence": "2–3x/week",
-                "action": "Strength or Zone-2 session only after a Sacral yes",
-                "why": "Defined Sacral recovers well when you don't force starts.",
-            }
+    bridges = overlay.get("bridged_channels") or []
+    sky_note = "Steady sky — follow Strategy and Authority."
+    if bridges:
+        b = bridges[0]
+        gates = "-".join(str(g) for g in b.get("gates", []))
+        sky_note = (
+            f"Channel {gates} ({b.get('name')}) bridged involving "
+            f"{', '.join(b.get('centers') or [])} — temporary conditioning; "
+            f"don't over-identify."
         )
-    if hd_type == "Projector":
-        habits.append(
-            {
-                "cadence": "Daily",
-                "action": "Earlier wind-down + one invitation-only deep-work block",
-                "why": "Projectors succeed with rest and recognition, not all-day output.",
-            }
-        )
-        habits.append(
-            {
-                "cadence": "This week",
-                "action": "Schedule social recovery after peopled days",
-                "why": "Open centers soak energy — alone time clears what isn't yours.",
-            }
-        )
-    if hd_type == "Manifestor":
-        habits.append(
-            {
-                "cadence": "Daily",
-                "action": "Inform-before-act reminder (text/Slack before big moves)",
-                "why": "Reduces resistance without asking permission.",
-            }
-        )
-    habits.append(
-        {
-            "cadence": "Daily",
-            "action": "Morning daylight + protein breakfast",
-            "why": "Simple battery baseline for every Type.",
-        }
-    )
-    if open_root or open_sp:
-        habits.append(
-            {
-                "cadence": "Daily",
-                "action": "Hard caffeine cutoff by early afternoon",
-                "why": "Open Root / emotional wave sleep better without late stims.",
-            }
+    newly = overlay.get("newly_defined_centers") or []
+    if newly and not bridges:
+        sky_note = (
+            "Temporary definition in "
+            + ", ".join(str(c).replace("_", " ") for c in newly[:3])
+            + " — expect unfamiliar pressure."
         )
 
-    # Prefer inventory names in emphasize
-    for it in morning_stack + evening_stack:
-        name = it["name"]
-        if _inv_hit(name, owned) and name not in emphasize:
-            emphasize.append(name)
-    for it in morning_stack + midday_stack:
-        name = it["name"]
-        if not _inv_hit(name, owned) and "stimulant" not in name.lower():
-            if name not in emphasize and len(emphasize) < 5:
-                emphasize.append(f"{name} (consider adding)")
-    pause.append("Late caffeine / stim stacking")
-    if hd_type == "Projector":
-        pause.append("All-day focus stacks to match Generator peers")
-    if open_sp:
-        pause.append("Big decisions at the emotional peak")
-
-    daily_plan = {
-        "morning": morning,
-        "midday": midday,
-        "evening": evening,
-        "do": do,
-        "dont": dont,
-    }
     weekly_plan = {
         "theme": theme,
-        "habits": habits,
-        "supplements_to_emphasize": emphasize[:6],
-        "supplements_to_pause_or_reduce": pause,
+        "sky_note": sky_note,
+        "habits": [],  # P0: week surface is theme + sky only
+        "supplements_to_emphasize": [],
+        "supplements_to_pause_or_reduce": [],
     }
 
-    # Summary
-    focus_lbl = ", ".join(c.replace("_", " ") for c in focus_centers[:3]) or "steady centers"
-    top_actions = []
-    if morning:
-        top_actions.append(f"Morning: {morning[0]['item']} ({morning[0]['when']}).")
-    if midday:
-        top_actions.append(f"Midday: {midday[0]['item']}.")
-    if evening:
-        top_actions.append(f"Evening: {evening[0]['item']}.")
-    while len(top_actions) < 3 and do:
-        cand = do[len(top_actions) - 0] if len(top_actions) < len(do) else do[-1]
-        if cand not in top_actions:
-            top_actions.append(cand)
-        else:
-            break
-    top_actions = top_actions[:3]
+    daily_plan = {
+        "morning": [morning],
+        "midday": [midday],
+        "evening": [evening],
+        "do": do,
+        "dont": dont,
+        "baseline_kit": baseline_kit,
+        "hero": {
+            "title": hero_title,
+            "why": hero_why,
+            "micro": hero_micro,
+        },
+    }
 
-    battery = {
-        "Generator": "Your battery fills when you respond — not when you push.",
-        "Manifesting Generator": "Your battery likes speed after a Sacral yes, then informing.",
-        "Manifestor": "Your battery likes protected initiation windows, not constant availability.",
-        "Projector": "Your battery is recognition + rest, not Sacral stamina.",
-        "Reflector": "Your battery is the room you're in — change place before forcing output.",
-    }.get(hd_type, "Protect your energy map today.")
+    top_actions = [
+        f"Morning: {morning['item']}",
+        f"Midday: {midday['item']}",
+        f"Evening: {evening['item']}",
+    ]
 
     summary = {
-        "headline": f"Today: run your {hd_type or 'chart'} OS — focus {focus_lbl}.",
-        "in_short": (
-            f"{battery} Decide with {authority or 'your Authority'} "
-            f"({strategy or 'Strategy'}). One focus: keep open centers from borrowing urgency."
-        ),
+        "headline": hero_title,
+        "in_short": hero_why,
+        "micro": hero_micro,
         "top_actions": top_actions,
+        "energy_label": energy_label,
+        "preferred_space": preferred_space,
+        "preferred_space_label": preferred_space_label,
     }
     return summary, daily_plan, weekly_plan
 
@@ -824,7 +993,11 @@ def build_protocol(
     natal: dict[str, Any],
     overlay: dict[str, Any],
     inventory_names: list[str] | None = None,
+    indication: dict[str, Any] | None = None,
+    transit: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    from ..checkin import derive_today_indication
+
     owned = {n.lower() for n in (inventory_names or [])}
     undefined = set(natal.get("undefined_centers", []))
     newly = set(overlay.get("newly_defined_centers", []))
@@ -879,9 +1052,24 @@ def build_protocol(
     midday_d = dedupe(midday)
     evening_d = dedupe(evening)
     focus = priority[:4]
+
+    if indication is None:
+        indication = derive_today_indication(natal, transit or {}, overlay)
+
     summary, daily_plan, weekly_plan = _build_actionable_plans(
-        natal, overlay, owned, focus, morning_d, midday_d, evening_d, adjusts
+        natal,
+        overlay,
+        owned,
+        focus,
+        morning_d,
+        midday_d,
+        evening_d,
+        adjusts,
+        indication=indication,
     )
+    # Align week sky_note with directive when bridges exist
+    if daily_directive and weekly_plan.get("sky_note"):
+        weekly_plan["sky_note"] = daily_directive if bridges else weekly_plan["sky_note"]
 
     return {
         "disclaimer": (
@@ -901,6 +1089,7 @@ def build_protocol(
         "daily_directive": daily_directive,
         "inventory_prioritized": bool(owned),
         "source": "deterministic_rules",
+        "indication": indication,
         "labels": {
             "natal_baseline": "Standard care for your chart (permanent)",
             "transit_weekly": "This week's transit adjustments (temporary)",
