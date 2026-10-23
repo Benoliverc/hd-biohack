@@ -9,7 +9,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Baseline — chart, today’s sky, grounded protocols",
-  description: "Your natal chart, today’s sky, and grounded protocols you can follow — informational, not medical advice.",
+  description:
+    "Your natal chart, today’s sky, kit-aware Protocols, and Soul — informational, not medical advice.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

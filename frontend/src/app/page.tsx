@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, FlaskConical, UserRound } from "lucide-react";
+import { Activity, FlaskConical, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 
 export default function HomePage() {
@@ -22,7 +22,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="rounded-3xl border border-border bg-elevated p-6 sm:p-8">
         <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-growth">
-          Human Design · daily protocols
+          Baseline · chart · sky · move
         </p>
 
         {natalBindingLoading ? (
@@ -39,8 +39,11 @@ export default function HomePage() {
             </h1>
             <p className="max-w-2xl text-fg-muted">
               {hasChart
-                ? "Chart and today’s gates stay free."
-                : "Save your natal chart free. Today’s gates stay free. Protocols unlock with Pro when you’re ready."}
+                ? "Chart and today’s sky stay free. Protocols turn the sky into a checkable move — using your kit when you own it."
+                : "Save your natal free. Today’s sky stays free. Protocols unlock with Pro when you’re ready."}
+            </p>
+            <p className="mt-2 text-xs font-medium tracking-wide text-fg-muted/80">
+              Chart → Today’s sky → Today’s Move → Soul
             </p>
           </>
         )}
@@ -65,7 +68,7 @@ export default function HomePage() {
             href="/transits"
             className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm hover:border-energy sm:w-auto"
           >
-            {hasChart ? "Today’s gates" : "See today’s gates"}
+            {hasChart ? "Today’s sky" : "See today’s sky"}
           </Link>
         </div>
 
@@ -83,18 +86,23 @@ export default function HomePage() {
                 Change
               </Link>
             </div>
-            <Link
-              href="/biohack"
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border bg-elevated px-3.5 py-2 text-sm hover:border-growth sm:w-auto"
-            >
-              Generate today’s protocol
-            </Link>
+            <div className="flex w-full flex-col gap-1 sm:w-auto sm:items-end">
+              <Link
+                href="/biohack"
+                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-growth px-3.5 py-2 text-sm font-medium text-fg-inverse hover:bg-growth-deep sm:w-auto"
+              >
+                Open Protocols
+              </Link>
+              <p className="text-[11px] text-fg-muted">
+                Auto-loads from today’s sky · Refresh rebuilds
+              </p>
+            </div>
           </div>
         ) : null}
       </section>
 
-      {/* Outcome cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Outcome cards — Chart · Today · Protocols · Soul */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/profile"
           className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
@@ -108,8 +116,8 @@ export default function HomePage() {
           <div className="flex-1 text-sm text-fg-muted">
             <p>Type, authority, centers, and gates — the map everything else uses.</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Shows how you’re designed to decide and recover</li>
-              <li>Why: Today and Protocols read this first</li>
+              <li>You + friends you save (friends never drive Today or Protocols)</li>
+              <li>Why: Today, Protocols, and Soul all read this first</li>
             </ul>
           </div>
           <p className="mt-3 text-xs font-medium text-fg-muted">
@@ -134,12 +142,12 @@ export default function HomePage() {
             <Activity className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
-            What’s active now
+            What’s active on you
           </h2>
           <div className="flex-1 text-sm text-fg-muted">
-            <p>Today’s planetary gates in your natal timezone.</p>
+            <p>Energy, space, and one main action from your natal × today’s sky.</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Highlights what’s conditioning you today</li>
+              <li>Always your chart — friends stay on Chart &amp; Soul</li>
               <li>Why: catch pressure and openings before you plan</li>
             </ul>
           </div>
@@ -154,13 +162,16 @@ export default function HomePage() {
             <FlaskConical className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
-            Your plan
+            Today’s Move
           </h2>
           <div className="flex-1 text-sm text-fg-muted">
-            <p>Day and week stacks from your chart, sky, and inventory.</p>
+            <p>
+              Weather from Today, a checkable day list, week theme — preferring compounds in
+              your kit.
+            </p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Turns design + transits into concrete next steps</li>
-              <li>Why: less guessing what to do with the chart</li>
+              <li>Auto-loads; Refresh rebuilds when the sky or kit changes</li>
+              <li>From your kit shows when your shelf steered the move</li>
             </ul>
           </div>
           <p className="mt-3 text-xs font-medium text-fg-muted">
@@ -172,6 +183,28 @@ export default function HomePage() {
                   ? "Ready"
                   : "Pro — unlock when you’re ready"}
           </p>
+        </Link>
+
+        <Link
+          href="/soul"
+          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+        >
+          <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-growth-soft text-growth">
+            <Sparkles className="h-5 w-5" aria-hidden />
+          </span>
+          <h2 className="mb-1 font-semibold text-growth group-hover:text-growth-deep">
+            Aura between you
+          </h2>
+          <div className="flex-1 text-sm text-fg-muted">
+            <p>
+              Signatures and a single Playbook for how your aura wires with someone you’ve
+              charted.
+            </p>
+            <ul className="mt-2 list-disc space-y-0.5 pl-4">
+              <li>No Fit % — magnetic pairs get protocols, not a weak score</li>
+              <li>Why: chemistry lives here; daily weather lives on Today &amp; Protocols</li>
+            </ul>
+          </div>
         </Link>
       </div>
 
