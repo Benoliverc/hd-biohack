@@ -3,6 +3,8 @@
 ## Status
 - Ready for Ship Gate / `@qa` after PR review
 - Branch: `feat/soul-signature-copy-playbooks`
+- SHA: `47225ae`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/20
 - Spec: `.grok-handoff/soul-signature-copy-playbooks.md`
 - Base: `main` @ PR #19 Magnetic EM fix
 
