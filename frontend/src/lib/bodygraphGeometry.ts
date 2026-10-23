@@ -118,16 +118,17 @@ export const GATE_CHIP_R = 6.5;
 export const MIN_GATE_SPACING = 14.5;
 
 /**
- * Gate chip anchors — inner perimeter of each center, aligned toward channel
- * partners (Benjamin edge map for Throat: top 62/23/56, right 35/12/45,
- * bottom 8/31 + 33 near bottom-left, left 16/20).
+ * Gate chip anchors — SINGLE SOURCE OF TRUTH for chip (x,y).
+ * channelPathD / channelEndpoints ALWAYS start & end at gateAnchor(gate).
+ * Inner perimeter of each center, aligned toward channel partners
+ * (Throat: top 62/23/56, right 35/12/45, bottom 8/31+33, left 16/20).
  * Spacing enforced by assertGateSpacing() ≥ MIN_GATE_SPACING.
  */
 const GATE_OFFSETS: Record<number, { dx: number; dy: number }> = {
-  // Head — tip up: 61 tip, 64/63 base toward Ajna
-  64: { dx: -12, dy: 12 },
-  61: { dx: 0, dy: -14 },
-  63: { dx: 12, dy: 12 },
+  // Head — tip up; 61 on BOTTOM edge between 64 (L) and 63 (R), above Ajna 24
+  64: { dx: -16, dy: 14 },
+  61: { dx: 0, dy: 16 },
+  63: { dx: 16, dy: 14 },
   // Ajna — tip down; 43 inset up into apex for 43↔23 gap
   47: { dx: -16, dy: -14 },
   24: { dx: 0, dy: -16 },
@@ -211,6 +212,71 @@ export function gateAnchor(gate: number, preferCenter?: CenterKey): { x: number;
 }
 
 /**
+ * Absolute chip positions derived from GATE_OFFSETS + CENTER_GEOM.
+ * Prefer gateAnchor(gate) at call sites; this map is for audit / tooling.
+ */
+export const GATE_POSITIONS: Record<number, { x: number; y: number }> = (() => {
+  const out: Record<number, { x: number; y: number }> = {};
+  for (const g of Object.keys(GATE_OFFSETS).map(Number)) {
+    out[g] = gateAnchor(g);
+  }
+  return out;
+})();
+
+/**
+ * Integration circuit (10-20-34-57) — shared trunk geometry.
+ *
+ * Approach: traditional HD Integration with central diagonal spine
+ * **20 (Throat) ↔ 57 (Spleen)** and short tributaries from **10 (G)** and
+ * **34 (Sacral)** into a join on that spine. Completed Personality+Design
+ * channels paint along the SAME shared segments so black/orange halves meet
+ * tip-to-tip. Hanging multi-gates prefer one trunk-oriented half instead of
+ * three tentacles (see preferIntegrationHangingMissing).
+ */
+export const INTEGRATION_GATES = new Set([10, 20, 34, 57]);
+export const INTEGRATION_SPINE: [number, number] = [20, 57];
+
+/** Join where G(10) and Sacral(34) tributaries meet the 20↔57 spine. */
+export function integrationJoinPoint(): { x: number; y: number } {
+  const a = gateAnchor(20);
+  const b = gateAnchor(57);
+  // Slight bias toward G/Sacral (right of pure midpoint on this leftward spine)
+  return {
+    x: a.x * 0.45 + b.x * 0.55,
+    y: a.y * 0.45 + b.y * 0.55,
+  };
+}
+
+function isIntegrationPair(g0: number, g1: number): boolean {
+  return INTEGRATION_GATES.has(g0) && INTEGRATION_GATES.has(g1);
+}
+
+/**
+ * When an Integration gate hangs toward multiple partners, keep ONE primary
+ * missing so the SVG does not sprout three tentacles.
+ * - 20 / 57 → along spine toward each other
+ * - 10 / 34 → into the join (prefer 57 as spine foot for pathLength orientation)
+ */
+export function preferIntegrationHangingMissing(
+  held: number,
+  candidates: number[]
+): number | null {
+  if (!INTEGRATION_GATES.has(held)) return null;
+  const integ = candidates.filter((c) => INTEGRATION_GATES.has(c));
+  if (integ.length === 0) return null;
+  if (held === 20) return integ.includes(57) ? 57 : integ[0];
+  if (held === 57) return integ.includes(20) ? 20 : integ[0];
+  if (held === 10 || held === 34) {
+    // Prefer spine foot 57, then 20, then 34/10 sibling
+    for (const pref of [57, 20, held === 10 ? 34 : 10]) {
+      if (integ.includes(pref)) return pref;
+    }
+    return integ[0];
+  }
+  return integ[0];
+}
+
+/**
  * Fail loudly if any two gate anchors are closer than MIN_GATE_SPACING.
  * Call from unit/script checks so overlaps can’t regress silently.
  */
@@ -278,8 +344,11 @@ export function channelEndpoints(
 /** Center-pair keys that should arc along the silhouette (not straight diagonals). */
 function outerArcSide(c1: CenterKey, c2: CenterKey): "left" | "right" | null {
   const pair = new Set([c1, c2]);
-  // Left perimeter: Throat/G/Sacral ↔ Spleen, Spleen ↔ Root
-  if (pair.has("Spleen") && (pair.has("Throat") || pair.has("G") || pair.has("Root"))) {
+  // Left perimeter: Throat/G/Sacral ↔ Spleen, Spleen ↔ Root (stay outside Spleen tip)
+  if (
+    pair.has("Spleen") &&
+    (pair.has("Throat") || pair.has("G") || pair.has("Sacral") || pair.has("Root"))
+  ) {
     return "left";
   }
   // Right perimeter: Throat/G/Heart ↔ SP, SP ↔ Root
@@ -295,33 +364,70 @@ function outerArcSide(c1: CenterKey, c2: CenterKey): "left" | "right" | null {
 }
 
 /**
- * SVG path `d` for a channel. Spine / inner links are straight; outer
- * Throat↔Spleen / Throat↔SP / side↔Root (etc.) use wide cubic Beziers
- * that follow the chalk silhouette perimeter.
+ * SVG path `d` for a channel.
+ * Endpoints ALWAYS equal gateAnchor(A/B) — never invent mid-air stubs.
+ * Integration pairs use shared trunk (spine 20↔57 + tributaries via join).
+ * Outer perimeter pairs use wide cubics routed OUTSIDE center fills
+ * (esp. Spleen tip) so strokes do not slice unrelated corners.
  */
 export function channelPathD(gates: [number, number] | number[]): string | null {
-  const ep = channelEndpoints(gates);
+  const g0 = Number(gates[0]);
+  const g1 = Number(gates[1]);
+  if (!GATE_TO_CENTER[g0] || !GATE_TO_CENTER[g1]) return null;
+
+  // Integration trunk — shared geometry for all 6 lattice pairs among 10/20/34/57
+  if (isIntegrationPair(g0, g1)) {
+    return integrationChannelPathD(g0, g1);
+  }
+
+  const ep = channelEndpoints([g0, g1]);
   if (!ep) return null;
   const { x1, y1, x2, y2, c1, c2 } = ep;
   const side = outerArcSide(c1, c2);
   if (!side) {
     return `M ${x1} ${y1} L ${x2} ${y2}`;
   }
-  // Wide outer cubic that hugs the chalk silhouette (shoulders → waist → hips)
+  // Wide outer cubic hugging silhouette; pull left of Spleen tip / right of SP tip
   const midY = (y1 + y2) / 2;
   const span = Math.abs(y2 - y1);
-  // Stronger pull for long vertical spans (Throat↔Spleen/SP); milder for Root sides
-  const pull = span > 80 ? 52 : span > 40 ? 44 : 36;
-  const edgeX = side === "left" ? 28 : VB.w - 28;
-  const cpx1 = side === "left" ? Math.min(x1 - 8, edgeX + pull * 0.15) : Math.max(x1 + 8, edgeX - pull * 0.15);
-  const cpx2 = side === "left" ? Math.min(x2 - 8, edgeX + pull * 0.15) : Math.max(x2 + 8, edgeX - pull * 0.15);
-  // Bias first control toward upper third, second toward lower third of the span
-  const cpy1 = y1 + (midY - y1) * 0.55;
-  const cpy2 = y2 - (y2 - midY) * 0.55;
-  // Nudge controls further outward at mid-height (widest torso)
+  const pull = span > 80 ? 56 : span > 40 ? 46 : 36;
+  // Keep arcs outside triangular peaks (Spleen tip ~x50 y228; SP mirror)
+  const edgeX = side === "left" ? 18 : VB.w - 18;
+  const cpx1 =
+    side === "left"
+      ? Math.min(x1 - 10, edgeX + pull * 0.1)
+      : Math.max(x1 + 10, edgeX - pull * 0.1);
+  const cpx2 =
+    side === "left"
+      ? Math.min(x2 - 10, edgeX + pull * 0.1)
+      : Math.max(x2 + 10, edgeX - pull * 0.1);
+  const cpy1 = y1 + (midY - y1) * 0.5;
+  const cpy2 = y2 - (y2 - midY) * 0.5;
   const out1 = side === "left" ? Math.min(cpx1, edgeX) : Math.max(cpx1, edgeX);
   const out2 = side === "left" ? Math.min(cpx2, edgeX) : Math.max(cpx2, edgeX);
   return `M ${x1} ${y1} C ${out1} ${cpy1}, ${out2} ${cpy2}, ${x2} ${y2}`;
+}
+
+/**
+ * Integration path: always starts at gateAnchor(a) and ends at gateAnchor(b).
+ * Spine segment 20↔57 is one shared curve; 10 and 34 enter at integrationJoinPoint.
+ */
+function integrationChannelPathD(a: number, b: number): string {
+  const start = gateAnchor(a);
+  const end = gateAnchor(b);
+  const J = integrationJoinPoint();
+  const pair = new Set([a, b]);
+
+  // Pure spine — single shared curve (Personality + Design halves meet mid-path)
+  if (pair.has(20) && pair.has(57)) {
+    const midX = (start.x + end.x) / 2 - 8; // slight left bow clear of G diamond
+    const midY = (start.y + end.y) / 2;
+    return `M ${start.x} ${start.y} Q ${midX} ${midY}, ${end.x} ${end.y}`;
+  }
+
+  // Tributary ↔ spine foot/head: go via join so segments share J
+  // 10-20, 10-57, 34-20, 34-57, 10-34, 20-34
+  return `M ${start.x} ${start.y} L ${J.x} ${J.y} L ${end.x} ${end.y}`;
 }
 
 /**
