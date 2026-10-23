@@ -102,6 +102,8 @@ SACRAL_TYPES = {"Generator", "Manifesting Generator"}
 NON_SACRAL_TYPES = {"Projector", "Manifestor", "Reflector"}
 
 INTIMACY_GATES = frozenset({6, 59})
+# Real natal pairs routinely form 2–4 EM channels; Magnetic needs exceptional density.
+MAGNETIC_EM_MIN = 5
 SYNTHESIS_GATES = frozenset({19, 49})
 STRUCTURING_GATES = frozenset({23, 43})
 ABSTRACTION_GATES = frozenset({47, 64})
@@ -527,7 +529,8 @@ def detect_signatures(
     checks: list[tuple[str, bool]] = [
         (
             "magnetic_alchemy",
-            len(em) >= 2
+            # Tighten vs P0 draft EM>=2 (nearly all real pairs). Keep 59-6 + mutual.
+            len(em) >= MAGNETIC_EM_MIN
             or _channel_has_gates(em, INTIMACY_GATES)
             or "mutual_split_bridge" in badge_ids,
         ),

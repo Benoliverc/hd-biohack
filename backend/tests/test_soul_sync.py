@@ -83,14 +83,28 @@ def test_magnetic_alchemy_from_intimacy_em():
 
 
 def test_magnetic_alchemy_from_em_count():
-    # Two EM channels: Emoting 39–55 + Inspiration 1–8
+    # Five EM channels → exceptional density (MAGNETIC_EM_MIN).
+    # Pairs: Emoting 39-55, Inspiration 1-8, Judgment 18-58, Concentration 9-52, Logic 63-4
+    a = _chart([39, 1, 18, 9, 63], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([55, 8, 58, 52, 4], type="Projector", authority="Splenic", profile="1/3")
+    roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
+    assert len(roles["electromagnetic"]) >= 5
+    out = compute_soul_sync(a, b, context="work")
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    print("PASS: EM≥5 → Magnetic Alchemy")
+
+
+def test_modest_em_without_intimacy_or_mutual_not_magnetic():
+    # Two EM channels used to always win Magnetic; must not anymore.
     a = _chart([39, 1], type="Generator", authority="Sacral", profile="3/5")
     b = _chart([55, 8], type="Projector", authority="Splenic", profile="1/3")
     roles = classify_channel_roles(set(a["activated_gates"]), set(b["activated_gates"]))
-    assert len(roles["electromagnetic"]) >= 2
+    assert 2 <= len(roles["electromagnetic"]) < 5
     out = compute_soul_sync(a, b, context="work")
-    assert out["signature"]["id"] == "magnetic_alchemy"
-    print("PASS: EM≥2 → Magnetic Alchemy")
+    assert out["signature"]["id"] != "magnetic_alchemy"
+    assert "intimacy_lock" not in _badge_ids(out)
+    assert "mutual_split_bridge" not in _badge_ids(out)
+    print(f"PASS: modest EM={len(roles['electromagnetic'])} → {out['signature']['id']} (not Magnetic)")
 
 
 def test_mutual_split_bridge_badge():
@@ -306,10 +320,71 @@ def test_conditioning_strip_preserved():
     print("PASS: conditioning strip preserved")
 
 
+
+def test_signatures_diversify_across_fixtures():
+    """Regression: Magnetic must not monopolize; ≥3 distinct primary signatures."""
+    fixtures = {
+        # Intimacy EM → Magnetic
+        "intimacy": (
+            _chart([6, 5, 15], type="Generator", authority="Emotional", profile="3/5"),
+            _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3"),
+        ),
+        # Companionship ≥2, no EM → Harmonic
+        "companionship": (
+            _chart([19, 49, 5, 15, 2, 14, 23, 43], type="Generator", authority="Sacral", profile="2/4"),
+            _chart([19, 49, 5, 15, 27, 50, 7, 31], type="Generator", authority="Sacral", profile="4/6"),
+        ),
+        # Open / sparse composite → Spacious
+        "open_field": (
+            _chart([64, 47, 17, 62], type="Projector", authority="Mental", profile="1/3"),
+            _chart([18, 58, 28, 38], type="Projector", authority="Splenic", profile="5/1"),
+        ),
+        # Integration triad, modest EM (Awakening+Exploration=2) → Integrated (not Mag)
+        "triad": (
+            _chart([10, 5, 15], type="Generator", authority="Sacral", profile="3/5"),
+            _chart([20, 34, 1, 8], type="Manifesting Generator", authority="Sacral", profile="5/1"),
+        ),
+        # Dense compromise + 8-ish composite, no Mag triggers → Catalytic
+        "catalytic": (
+            _chart(
+                [28, 38, 30, 41, 23, 43, 35, 36, 5, 15, 2, 14, 20, 34, 10],
+                type="Manifesting Generator",
+                authority="Emotional",
+                profile="3/5",
+            ),
+            _chart(
+                [28, 30, 23, 35, 1, 8, 7, 31, 27, 50, 44, 26],
+                type="Projector",
+                authority="Emotional",
+                profile="6/2",
+            ),
+        ),
+    }
+    expected = {
+        "intimacy": "magnetic_alchemy",
+        "companionship": "harmonic_sanctuary",
+        "open_field": "spacious_explorers",
+        "triad": "integrated_flow",
+        "catalytic": "catalytic_growth",
+    }
+    got = {}
+    for name, (a, b) in fixtures.items():
+        out = compute_soul_sync(a, b, context="life")
+        got[name] = out["signature"]["id"]
+        assert out["signature"]["id"] == expected[name], (
+            f"{name}: expected {expected[name]}, got {out['signature']['id']} "
+            f"EM={len(out['channel_roles']['electromagnetic'])} badges={_badge_ids(out)}"
+        )
+    assert len(set(got.values())) >= 3
+    print(f"PASS: diversified signatures {got}")
+
+
+
 if __name__ == "__main__":
     test_no_fit_percent_in_response()
     test_magnetic_alchemy_from_intimacy_em()
     test_magnetic_alchemy_from_em_count()
+    test_modest_em_without_intimacy_or_mutual_not_magnetic()
     test_mutual_split_bridge_badge()
     test_shared_compass_badge()
     test_integration_triad_cross_person()
@@ -322,4 +397,5 @@ if __name__ == "__main__":
     test_bidirectional_bridges_and_spark_glue()
     test_harmonic_sanctuary_and_profile_harmony_helper()
     test_conditioning_strip_preserved()
+    test_signatures_diversify_across_fixtures()
     print("\nAll soul_sync Aura Alchemy tests passed.")
