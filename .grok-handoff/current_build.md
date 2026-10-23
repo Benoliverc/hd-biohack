@@ -1,43 +1,40 @@
-# Handoff — Soul Signature copy + Playbook differentiation + Badge descriptions (P0)
+# Handoff — Today always uses You / Me natal (P0)
 
 ## Status
-- Ready for Ship Gate / `@qa` after PR review
-- Branch: `feat/soul-signature-copy-playbooks`
-- SHA: `47225ae`
-- PR: https://github.com/Benoliverc/hd-biohack/pull/20
-- Spec: `.grok-handoff/soul-signature-copy-playbooks.md`
-- Base: `main` @ PR #19 Magnetic EM fix
+- Ready for Ship Gate / PO review
+- Branch: `feat/today-you-profile-only`
+- SHA: `7a9221d`
+- PR: https://github.com/Benoliverc/hd-biohack/pull/21
+- Spec: `.grok-handoff/today-you-profile-only.md`
+- Base: `main` @ PR #20 (`9d01287`)
 
 ## What changed
-1. **Layer A** — 5 signature subtexts ~3× longer; Magnetic `tier: "highest"` / `tier_label: "Highest signature"` + FE chip.
-2. **Layer B** — `description` (1–3 sentences) on all 8 badge ids; FE stacks label + description (not tooltip-only); short `detail` kept as mechanic crumb.
-3. **Layer C** — `PLAYBOOK_LEDES` 5×3 matrix + `build_playbook_lede`; `SoulPlaybookOut.lede` / `focus_hint`; FE callout above cards; helper copy rewritten (no “reorder only”).
-4. Secondary signature shows first-sentence subtext under “Also:”.
+1. **Today (`/transits`)** — Resolves **You** (`slot_kind !== "friend"`) via `api.charts`; calls `transitsToday(youChart?.id)` only. Locked **You** chip + “Today is for you” / “Always your natal — friends stay on Chart & Soul.” Nudges sticky to self when entering Today; clears friend sticky if no self.
+2. **Store hydrate** — Prefer sticky **only if self**; else any self row; else `null` (never bind friend as natal). `NatalChartSummary.slot_kind` optional.
+3. **Chart delete rebound** — After delete, rebound to **self** with `bindStore: true`; if no self, edit friend with `bindStore: false` and clear natal sticky.
 
 ## Do not change (verified)
-- `detect_signatures` priority / predicates
-- `MAGNETIC_EM_MIN = 5`
-- Badge detection predicates
-- No Fit % fields
+- Soul friend picker / Soul API
+- Indication scoring math
+- No friend picker on Today
 
 ## Files
-- `backend/app/hd/soul_sync.py`
-- `backend/app/schemas.py`
-- `backend/tests/test_soul_sync.py`
-- `frontend/src/lib/api.ts`
-- `frontend/src/app/soul/page.tsx`
-- `.grok-handoff/soul-signature-copy-playbooks.md`, `backlog.md`, `current_build.md`, `soul-aura-alchemy-spec.md` (short amend)
+- `frontend/src/app/transits/page.tsx`
+- `frontend/src/lib/store.tsx`
+- `frontend/src/app/profile/page.tsx`
+- `.grok-handoff/today-you-profile-only.md`, `current_build.md`
 
 ## Verify
 ```bash
-cd backend && .venv/bin/python -m pytest tests/test_soul_sync.py -q   # 20 passed
-cd frontend && npx tsc --noEmit                                       # clean
+cd frontend && npx tsc --noEmit
 ```
 
-## Smoke (prod pairs after merge)
-1. Me↔K → Magnetic Alchemy + Highest chip + long subtext; Life/Work/Play ledes differ.
-2. Me↔Achi → Integrated Flow; different lede set than Magnetic.
-3. Me↔Test → Catalytic Growth; badge descriptions visible without hover.
+## Smoke (after merge)
+1. Me + friend; Chart select friend → Today still You chip + self overlay.
+2. DevTools set sticky to friend id; reload `/transits` → still You.
+3. Newest chart = friend; reload Today → still You.
+4. Soul friend pick still works; Chart Me/Friend edit intact.
+5. No self (friends only) → Today sky-only / save-You CTA, not friend-as-you.
 
 ## Awaiting
-Ship Gate → merge → Railway + Vercel redeploy (FE+API paired).
+Ship Gate → merge → Vercel FE redeploy.

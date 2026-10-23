@@ -338,6 +338,7 @@ export default function ProfilePage() {
           birth_date: nextDate,
           birth_time: latest.birth_time,
           timezone: nextTz,
+          slot_kind: latest.slot_kind,
         });
       }
       setViewMode("saved");
@@ -806,8 +807,15 @@ export default function ProfilePage() {
       await api.deleteChart(row.id, user.id);
       const rows = await refreshPeople(user.id);
       if (editingChartId === row.id || natalChartId === row.id) {
-        if (rows[0]) applyRow(rows[0]);
-        else {
+        const self = rows.find((r) => isSelfRow(r));
+        if (self) {
+          // Rebound to You; friends never become the Today/Protocols sticky.
+          applyRow(self, { bindStore: true });
+        } else if (rows[0]) {
+          // No self left — Chart can edit a friend, but clear natal sticky.
+          applyRow(rows[0], { bindStore: false });
+          setNatalChart(null);
+        } else {
           setChart(null);
           setNatalChart(null);
           setViewMode(null);
