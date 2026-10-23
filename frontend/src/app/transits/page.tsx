@@ -2,15 +2,54 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
-import { formatNatalOverlayLabel, useApp } from "@/lib/store";
+import { api, type SavedChartRow } from "@/lib/api";
+import {
+  formatNatalOverlayLabel,
+  useApp,
+  type NatalChartSummary,
+} from "@/lib/store";
 import { displayCenter, formatGateLine } from "@/lib/hdCopy";
 import { formatAsOfInZone } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import type { TodayIndicationPayload } from "@/lib/api";
 
+function isSelfRow(row: { slot_kind?: string }): boolean {
+  return row.slot_kind !== "friend";
+}
+
+function summaryFromSelf(row: SavedChartRow): NatalChartSummary {
+  return {
+    id: row.id,
+    label: row.label || "Me",
+    birth_city: row.birth_city || "",
+    birth_date: row.birth_date,
+    birth_time: row.birth_time,
+    timezone: row.timezone ?? null,
+    slot_kind: row.slot_kind ?? "self",
+  };
+}
+
+function youDisplayName(chart: NatalChartSummary): string {
+  const t = (chart.label || "").trim();
+  return t && t.toLowerCase() !== "me" ? t : "You";
+}
+
+/** Prefer store id only when that row is self; else first self; else null. */
+function resolveYouChart(
+  rows: SavedChartRow[],
+  stickyId: number | null
+): SavedChartRow | null {
+  if (stickyId != null) {
+    const match = rows.find((r) => r.id === stickyId);
+    if (match && isSelfRow(match)) return match;
+  }
+  return rows.find((r) => isSelfRow(r)) ?? null;
+}
+
 export default function TransitsPage() {
-  const { natalChartId, natalChart, natalBindingLoading } = useApp();
+  const { user, natalChartId, natalBindingLoading, setNatalChart } = useApp();
+  const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
+  const [youReady, setYouReady] = useState(false);
   const [data, setData] = useState<{
     transit: Record<string, unknown>;
     overlay: Record<string, unknown> | null;
@@ -19,8 +58,48 @@ export default function TransitsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Resolve You natal independently of friend sticky; never pass a friend id to the API.
   useEffect(() => {
+    if (!user) {
+      setYouChart(null);
+      setYouReady(false);
+      return;
+    }
     if (natalBindingLoading) {
+      setYouReady(false);
+      return;
+    }
+    let cancelled = false;
+    setYouReady(false);
+    api
+      .charts(user.id)
+      .then((rows) => {
+        if (cancelled) return;
+        const selfRow = resolveYouChart(rows, natalChartId);
+        const summary = selfRow ? summaryFromSelf(selfRow) : null;
+        setYouChart(summary);
+        setYouReady(true);
+        // Nudge sticky back to self when entering Today (aligns Protocols too).
+        if (summary && natalChartId !== summary.id) {
+          setNatalChart(summary);
+        } else if (!summary && natalChartId != null) {
+          // No You chart — clear friend sticky so Today stays sky-only.
+          setNatalChart(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setYouChart(null);
+          setYouReady(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, natalBindingLoading, natalChartId, setNatalChart]);
+
+  useEffect(() => {
+    if (natalBindingLoading || !youReady) {
       setLoading(true);
       setData(null);
       return;
@@ -30,7 +109,7 @@ export default function TransitsPage() {
     setError(null);
     setData(null);
     api
-      .transitsToday(natalChartId ?? undefined)
+      .transitsToday(youChart?.id)
       .then((res) => {
         if (!cancelled) setData(res);
       })
@@ -43,7 +122,7 @@ export default function TransitsPage() {
     return () => {
       cancelled = true;
     };
-  }, [natalChartId, natalBindingLoading]);
+  }, [youChart?.id, youReady, natalBindingLoading]);
 
   const activations =
     ((data?.transit?.activations as Array<Record<string, unknown>>) || []);
@@ -52,7 +131,8 @@ export default function TransitsPage() {
     | undefined;
   const overlay = data?.overlay;
   const atUtc = data?.transit?.at_utc as string | undefined;
-  const asOfLabel = formatAsOfInZone(atUtc, natalChart?.timezone);
+  const asOfLabel = formatAsOfInZone(atUtc, youChart?.timezone);
+  const resolvingYou = natalBindingLoading || !youReady;
 
   const bridged = ((overlay?.bridged_channels as Array<Record<string, unknown>>) || []);
   const newlyDefined = ((overlay?.newly_defined_centers as string[]) || []);
@@ -76,7 +156,7 @@ export default function TransitsPage() {
   }
   if (todayBullets.length === 0 && !loading) {
     todayBullets.push(
-      natalChartId
+      youChart
         ? "No strong personal overlay spike — skim today's planetary gates below."
         : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
     );
@@ -90,20 +170,42 @@ export default function TransitsPage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Today</h1>
-          <p className="text-sm text-fg-muted">
-            {natalBindingLoading
-              ? "Looking up your natal chart…"
-              : natalChart
-                ? `Overlaying ${formatNatalOverlayLabel(natalChart)}`
-                : "Save a natal chart on Chart to see personal conditioning overlays."}
-          </p>
+          {resolvingYou ? (
+            <p className="text-sm text-fg-muted">Looking up your natal chart…</p>
+          ) : youChart ? (
+            <div className="mt-1 space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
+                  title="Today always uses your chart"
+                >
+                  <span aria-hidden className="text-fg-muted">
+                    🔒
+                  </span>
+                  You · {youDisplayName(youChart)}
+                </span>
+              </div>
+              <p className="text-sm font-medium text-fg">Today is for you</p>
+              <p className="text-xs text-fg-muted">
+                Always your natal — friends stay on Chart &amp; Soul.
+              </p>
+              <p className="text-xs text-fg-muted">
+                Overlaying {formatNatalOverlayLabel(youChart)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-fg-muted">
+              Save your chart on Chart to see personal conditioning overlays. Friends
+              never drive Today.
+            </p>
+          )}
           {asOfLabel && (
             <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>
           )}
         </div>
       </div>
 
-      {natalBindingLoading && (
+      {resolvingYou && (
         <div className="rounded-xl border border-border bg-elevated px-4 py-3">
           <p className="text-sm text-fg-muted">Looking up your natal chart…</p>
         </div>
@@ -115,7 +217,7 @@ export default function TransitsPage() {
         indication={data?.indication}
         loading={loading && !data}
         error={error}
-        bindingLoading={natalBindingLoading}
+        bindingLoading={resolvingYou}
       />
 
       {!loading && todayBullets.length > 0 && (

@@ -12,6 +12,8 @@ export type NatalChartSummary = {
   birth_date?: string;
   birth_time?: string;
   timezone?: string | null;
+  /** Present when known; friends must not drive Today / Protocols sticky. */
+  slot_kind?: "self" | "friend" | string;
 };
 
 type AppState = {
@@ -61,6 +63,10 @@ function hydrateAdminFlag(u: User): User {
 }
 
 
+function isSelfChartRow(row: SavedChartRow): boolean {
+  return row.slot_kind !== "friend";
+}
+
 function summaryFromRow(row: SavedChartRow): NatalChartSummary {
   return {
     id: row.id,
@@ -69,7 +75,17 @@ function summaryFromRow(row: SavedChartRow): NatalChartSummary {
     birth_date: row.birth_date,
     birth_time: row.birth_time,
     timezone: row.timezone ?? null,
+    slot_kind: row.slot_kind,
   };
+}
+
+/** Prefer sticky only when it is self; else any self; never bind a friend as natal. */
+function pickSelfNatalRow(rows: SavedChartRow[], stickyId: number | null): SavedChartRow | null {
+  if (stickyId != null) {
+    const match = rows.find((r) => r.id === stickyId);
+    if (match && isSelfChartRow(match)) return match;
+  }
+  return rows.find((r) => isSelfChartRow(r)) ?? null;
 }
 
 function selectedKey(userId: number) {
@@ -202,7 +218,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setNatalBindingLoading(usersLoading);
   }, [user, usersLoading]);
 
-  // Auto-attach preferred saved natal (localStorage) or latest on load / Dev user switch.
+  // Auto-attach preferred **self** natal (localStorage sticky only if self). Never bind a friend.
   useEffect(() => {
     let cancelled = false;
     if (!user) return;
@@ -217,11 +233,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           writeSelectedId(user.id, null);
           return;
         }
-        const preferred = readSelectedId(user.id);
-        const match = preferred != null ? rows.find((r) => r.id === preferred) : null;
-        const row = match || rows[0];
-        setNatalChart(summaryFromRow(row));
-        writeSelectedId(user.id, row.id);
+        const sticky = readSelectedId(user.id);
+        const row = pickSelfNatalRow(rows, sticky);
+        if (row) {
+          setNatalChart(summaryFromRow(row));
+          writeSelectedId(user.id, row.id);
+        } else {
+          // Friends may exist, but Today/Protocols sticky stays empty until You is saved.
+          setNatalChart(null);
+          writeSelectedId(user.id, null);
+        }
       })
       .catch(() => {
         if (!cancelled) setNatalChart(null);
