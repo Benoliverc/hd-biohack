@@ -53,10 +53,12 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
 
   const [hydrated, setHydrated] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const dismissed = readDismissed(storageKey);
     setExpanded(!dismissed);
+    setActiveIndex(0);
     setHydrated(true);
   }, [storageKey]);
 
@@ -65,11 +67,8 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
     setExpanded(false);
   }, [storageKey]);
 
-  const handleKeepOpen = useCallback(() => {
-    setExpanded(true);
-  }, []);
-
   const handleReopen = useCallback(() => {
+    setActiveIndex(0);
     setExpanded(true);
   }, []);
 
@@ -86,6 +85,14 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
     },
     [onJump]
   );
+
+  const goPrev = useCallback(() => {
+    setActiveIndex((i) => Math.max(0, i - 1));
+  }, []);
+
+  const goNext = useCallback(() => {
+    setActiveIndex((i) => Math.min(steps.length - 1, i + 1));
+  }, [steps.length]);
 
   if (!hydrated) {
     return (
@@ -105,7 +112,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
           type="button"
           onClick={handleReopen}
           data-testid={`${testId}-reopen`}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1.5 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-growth"
+          className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-2 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-growth"
         >
           {reopenLabel}
         </button>
@@ -113,70 +120,204 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
     );
   }
 
+  const active = steps[activeIndex] ?? steps[0];
+  const isFirst = activeIndex <= 0;
+  const isLast = activeIndex >= steps.length - 1;
+
+  /* Chart @narrow: true single-step (no stacked inactive titles) + tighter cap.
+     Soul / sm+ keep the full accordion list. */
+  const chartCompact =
+    variant === "chart"
+      ? "max-h-[min(32vh,240px)] p-3 sm:max-h-[50vh] sm:p-5"
+      : "max-h-[50vh] p-4 sm:p-5";
+
   return (
     <section
       data-testid={testId}
       data-literacy-state="expanded"
-      className="rounded-2xl border border-border bg-elevated/80 p-4 sm:p-5"
+      data-literacy-step={active?.id}
+      data-literacy-compact={variant === "chart" ? "chart-narrow" : "default"}
+      className={`overflow-y-auto rounded-2xl border border-border bg-elevated/80 ${chartCompact}`}
       aria-label={title}
     >
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 sm:mb-3">
         <h2 className="text-sm font-semibold text-fg">{title}</h2>
-        <p className="text-[11px] text-fg-muted">
-          {steps.length} short steps · jump into the live map
+        <p className="text-xs text-fg-muted">
+          <span className="sm:hidden">
+            {activeIndex + 1}/{steps.length}
+          </span>
+          <span className="hidden sm:inline">
+            Step {activeIndex + 1} of {steps.length} · jump into the live map
+          </span>
         </p>
       </div>
 
-      <ol className="space-y-3">
+      {/* Narrow Chart: step dots only (inactive titles hidden to reclaim fold). */}
+      {variant === "chart" ? (
+        <div
+          className="mb-2 flex flex-wrap gap-1.5 sm:hidden"
+          role="tablist"
+          aria-label="Literacy steps"
+        >
+          {steps.map((step, index) => {
+            const n = String(index + 1).padStart(2, "0");
+            const isActive = index === activeIndex;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveIndex(index)}
+                data-testid={`${testId}-dot-${step.id}`}
+                className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 text-[11px] font-semibold tabular-nums ${
+                  isActive
+                    ? "border-growth/40 bg-growth/15 text-growth"
+                    : "border-border bg-elevated text-fg-muted"
+                }`}
+              >
+                {n}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <ol className="space-y-2">
         {steps.map((step, index) => {
           const n = String(index + 1).padStart(2, "0");
+          const isActive = index === activeIndex;
+          /* Chart narrow: mount only the active step card. */
+          if (variant === "chart" && !isActive) {
+            return (
+              <li
+                key={step.id}
+                data-testid={`${testId}-step-${step.id}`}
+                data-literacy-active="false"
+                className="hidden sm:block rounded-xl border border-border/70 bg-canvas/20 px-3 py-2"
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className="flex min-h-10 w-full items-center gap-3 text-left"
+                  aria-expanded={false}
+                >
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-elevated text-[11px] font-semibold tabular-nums text-fg-muted"
+                    aria-hidden
+                  >
+                    {n}
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm font-medium text-fg-secondary">
+                    {step.title}
+                  </span>
+                </button>
+              </li>
+            );
+          }
           return (
             <li
               key={step.id}
               data-testid={`${testId}-step-${step.id}`}
-              className="flex gap-3 rounded-xl border border-border/70 bg-canvas/40 px-3 py-2.5"
+              data-literacy-active={isActive ? "true" : "false"}
+              className={`rounded-xl border px-3 py-2 ${
+                isActive
+                  ? "border-growth/40 bg-canvas/50"
+                  : "border-border/70 bg-canvas/20"
+              }`}
             >
-              <span
-                className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-growth/30 bg-growth/10 text-[11px] font-semibold tabular-nums text-growth"
-                aria-hidden
+              <button
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                className={`flex min-h-10 w-full items-center gap-3 text-left ${
+                  variant === "chart" ? "hidden sm:flex" : ""
+                }`}
+                aria-expanded={isActive}
               >
-                {n}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className="text-sm font-medium text-fg">{step.title}</h3>
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums ${
+                    isActive
+                      ? "border-growth/40 bg-growth/15 text-growth"
+                      : "border-border bg-elevated text-fg-muted"
+                  }`}
+                  aria-hidden
+                >
+                  {n}
+                </span>
+                <span
+                  className={`min-w-0 flex-1 text-sm font-medium ${
+                    isActive ? "text-fg" : "text-fg-secondary"
+                  }`}
+                >
+                  {step.title}
+                </span>
+              </button>
+
+              {/* Chart narrow: always show title inline above body (header button hidden). */}
+              {variant === "chart" && isActive ? (
+                <div className="mb-1 flex items-center gap-3 sm:hidden">
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-growth/40 bg-growth/15 text-[11px] font-semibold tabular-nums text-growth"
+                    aria-hidden
+                  >
+                    {n}
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm font-medium text-fg">
+                    {step.title}
+                  </span>
+                </div>
+              ) : null}
+
+              {isActive ? (
+                <div
+                  className={`mt-1 border-t border-border/50 pb-1 pt-2 ${
+                    variant === "chart" ? "pl-0 sm:pl-10" : "pl-10"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed text-fg-secondary line-clamp-3 sm:line-clamp-none">
+                    {step.body}
+                  </p>
                   <button
                     type="button"
                     onClick={() => handleJump(step)}
                     data-testid={`${testId}-jump-${step.id}`}
-                    className="shrink-0 rounded-full border border-border bg-elevated px-2.5 py-0.5 text-[11px] font-medium text-fg-secondary transition hover:border-growth/40 hover:text-growth"
+                    className="mt-2 inline-flex min-h-10 items-center rounded-full border border-border bg-elevated px-3 py-2 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-growth"
                   >
                     Jump · {step.jumpLabel}
                   </button>
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-fg-secondary">{step.body}</p>
-              </div>
+              ) : null}
             </li>
           );
         })}
       </ol>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2 sm:mt-4 sm:pt-3">
         <button
           type="button"
           onClick={handleDismiss}
           data-testid={`${testId}-dismiss`}
-          className="rounded-lg bg-growth px-3 py-1.5 text-xs font-semibold text-growth-ink transition hover:opacity-90"
+          className="inline-flex min-h-10 items-center rounded-lg bg-growth px-3 py-2 text-xs font-semibold text-growth-ink transition hover:opacity-90"
         >
           Got it
         </button>
         <button
           type="button"
-          onClick={handleKeepOpen}
-          data-testid={`${testId}-keep-open`}
-          className="rounded-lg border border-border bg-transparent px-3 py-1.5 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-fg"
+          onClick={goPrev}
+          disabled={isFirst}
+          data-testid={`${testId}-prev`}
+          className="inline-flex min-h-10 items-center rounded-lg border border-border bg-transparent px-3 py-2 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Keep open
+          Prev
+        </button>
+        <button
+          type="button"
+          onClick={goNext}
+          disabled={isLast}
+          data-testid={`${testId}-next`}
+          className="inline-flex min-h-10 items-center rounded-lg border border-border bg-transparent px-3 py-2 text-xs font-medium text-fg-secondary transition hover:border-growth/40 hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Next
         </button>
       </div>
     </section>

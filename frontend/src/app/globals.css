@@ -101,12 +101,15 @@ body > * {
   --app-header-h: 7rem;
   --chart-section-nav-h: 3.25rem;
   --chart-scroll-mt: calc(var(--app-header-h) + var(--chart-section-nav-h) + 0.5rem);
+  --soul-scroll-mt: calc(var(--app-header-h) + 0.5rem);
 }
 
 /* Deep-link / sticky-nav offset for chart page sections */
 #people-form,
 #bodygraph,
+#bodygraph-legend,
 #snapshot,
+#snapshot-centers,
 #deep-dive,
 #core,
 #centers,
@@ -114,4 +117,13 @@ body > * {
 #activations,
 #planets {
   scroll-margin-top: var(--chart-scroll-mt);
+}
+
+/* Soul deep-link offset under sticky app header */
+#soul-hero,
+#soul-spectrums,
+#soul-cards,
+#soul-conditioning,
+[id^="soul-card-"] {
+  scroll-margin-top: var(--soul-scroll-mt);
 }

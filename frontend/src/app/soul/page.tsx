@@ -105,9 +105,19 @@ function pickDefaultFriend(rows: SavedChartRow[], selfId: number | null): number
   return (prefer ?? friends[0])?.id ?? null;
 }
 
-function jumpSoulSection(id: string) {
+function waitTwoFrames(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+}
+
+/** Smooth-scroll Soul anchors using sticky header offset (--app-header-h / scroll-margin). */
+async function jumpSoulSection(id: string) {
   const url = `${window.location.pathname}${window.location.search}#${id}`;
   window.history.replaceState(null, "", url);
+  await waitTwoFrames();
   const el = document.getElementById(id);
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -347,8 +357,6 @@ export default function SoulPage() {
 
           {result && (
             <>
-              <LiteracyCoach variant="soul" onJump={(targetId) => jumpSoulSection(targetId)} />
-
               <div
                 id="soul-hero"
                 className="rounded-2xl border border-border bg-elevated p-5"
@@ -421,6 +429,13 @@ export default function SoulPage() {
                   {result.disclaimer}
                 </p>
               </div>
+
+              <LiteracyCoach
+                variant="soul"
+                onJump={(targetId) => {
+                  void jumpSoulSection(targetId);
+                }}
+              />
 
               <div id="soul-spectrums" className="grid gap-3 md:grid-cols-3" data-testid="soul-spectrums">
                 {result.spectrums.map((s) => (

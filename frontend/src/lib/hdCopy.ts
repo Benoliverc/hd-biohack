@@ -436,7 +436,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     body:
       "Dark chips = mind / Personality; warm chips = body / Design; ringed = both. Same gate can show on either story — that is the legend under your Bodygraph.",
     jumpLabel: "Legend",
-    targetId: "bodygraph",
+    targetId: "bodygraph-legend",
   },
   {
     id: "type-strategy-authority",
@@ -452,7 +452,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     body:
       "Open centers are where conditioning lands. Snapshot lists the ones that matter most for you — daily sky and other people pull here first.",
     jumpLabel: "Centers to watch",
-    targetId: "snapshot",
+    targetId: "snapshot-centers",
   },
   {
     id: "deep-dive",
@@ -465,6 +465,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
   },
 ];
 
+/** Order matches Soul DOM after Signature: Spectrums → Somatic → Power → Wire → Spark. */
 export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
   {
     id: "signature-not-score",
@@ -476,19 +477,19 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
   },
   {
     id: "spectrums-not-fit",
-    title: "Spectrums ≠ Fit %",
+    title: "Charge · continuity · pacing",
     body:
-      "Three bars show relative charge, continuity, and pacing. High charge can mean high voltage that needs protocols — not “bad chemistry.”",
+      "Three bars show relative charge, continuity, and pacing for this pair. High charge can mean high voltage that needs protocols — not bad chemistry.",
     jumpLabel: "Spectrums",
     targetId: "soul-spectrums",
   },
   {
-    id: "spark-bedrock-dominance",
-    title: "Spark, Bedrock, Dominance",
+    id: "wire-somatic",
+    title: "Somatic playbook + Wire",
     body:
-      "In Spark & Glue: Spark (Electromagnetic) = each holds one half — ignition. Bedrock (Companionship) = you both have the full channel — shared baseline. Dominance = one person fully holds a channel — a gift to lean on, not a power trip.",
-    jumpLabel: "Spark & Glue",
-    targetId: "soul-card-spark_glue",
+      "The Tailored Somatic Playbook gives body-first moves for this pair. How You Wire Together (next) names bridges and hanging completions. Centers strip shows who defines what.",
+    jumpLabel: "Somatic playbook",
+    targetId: "soul-card-somatic_playbook",
   },
   {
     id: "power-dynamics",
@@ -499,11 +500,11 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     targetId: "soul-card-power_dynamics",
   },
   {
-    id: "wire-somatic",
-    title: "Wire + somatic practice",
+    id: "spark-bedrock-dominance",
+    title: "Spark, Bedrock, Dominance",
     body:
-      "How You Wire Together names bridges and hanging completions. The Tailored Somatic Playbook gives body-first moves for this pair. Centers strip shows who defines what.",
-    jumpLabel: "How you wire",
-    targetId: "soul-card-circuit_bridge",
+      "In Spark & Glue: Spark (Electromagnetic) = each holds one half — ignition. Bedrock (Companionship) = you both have the full channel — shared baseline. Dominance = one person fully holds a channel — a gift to lean on, not a power trip.",
+    jumpLabel: "Spark & Glue",
+    targetId: "soul-card-spark_glue",
   },
 ];
