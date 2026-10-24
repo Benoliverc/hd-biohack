@@ -89,6 +89,35 @@ export type SavedChartRow = {
 
 export type PreferredSpace = "people" | "alone" | "nature" | "focus" | "out";
 
+export type DailySignalSource =
+  | "moon_gate"
+  | "moon_line"
+  | "sun_line"
+  | "sun_gate"
+  | "hanging_pressure"
+  | "conditioning"
+  | "continuity";
+
+export type DailySignal = {
+  key: string;
+  headline: string;
+  body: string;
+  source: DailySignalSource;
+};
+
+export type VsYesterdayDelta = {
+  field:
+    | "moon"
+    | "sun"
+    | "hanging_pressure"
+    | "bridge"
+    | "newly_defined"
+    | "energy"
+    | "space";
+  from: string;
+  to: string;
+};
+
 export type TodayIndicationPayload = {
   energy_level: number;
   energy_label: string;
@@ -101,6 +130,9 @@ export type TodayIndicationPayload = {
   has_natal: boolean;
   save_chart_cta: boolean;
   disclaimer: string;
+  daily_signal?: DailySignal | null;
+  vs_yesterday?: VsYesterdayDelta[];
+  conditioning_caption?: string;
 };
 
 

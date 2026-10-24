@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..biohack import build_protocol, maybe_synthesize
 from ..checkin import derive_today_indication
+from ..checkin.novelty import hkt_bucket_instant, hkt_today
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
@@ -299,8 +300,16 @@ def transits_today(
     natal_chart_id: int | None = None,
     db: Session = Depends(get_db),
 ):
-    transit = calculate_transits()
+    # Bucket ephemeris at fixed 07:00 Asia/Hong_Kong for calendar day D and D-1
+    # so refreshes are stable within the day (Daily Novelty Contract).
+    day = hkt_today()
+    when_today = hkt_bucket_instant(day)
+    when_yest = hkt_bucket_instant(day - timedelta(days=1))
+
+    transit = calculate_transits(when_today)
+    prev_transit = calculate_transits(when_yest)
     overlay = None
+    prev_overlay = None
     natal = None
     if natal_chart_id:
         row = db.get(NatalChart, natal_chart_id)
@@ -308,7 +317,24 @@ def transits_today(
             raise HTTPException(404, "Natal chart not found")
         natal = row.chart_json
         overlay = overlay_transits(natal, transit)
-    indication = derive_today_indication(natal, transit, overlay)
+        prev_overlay = overlay_transits(natal, prev_transit)
+
+    prev_indication = None
+    if natal is not None:
+        # Chip baseline for vs_yesterday energy/space deltas (no novelty recurse)
+        prev_indication = derive_today_indication(natal, prev_transit, prev_overlay)
+
+    indication = derive_today_indication(
+        natal,
+        transit,
+        overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        prev_indication=prev_indication,
+        day=day,
+        calc_transit=calculate_transits,
+        calc_overlay=overlay_transits if natal else None,
+    )
     return TransitResponse(transit=transit, overlay=overlay, indication=indication)
 
 

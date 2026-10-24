@@ -261,6 +261,199 @@ def test_page_load_shape_has_main():
     print("PASS AC1 shape: Energy+Space+Main present without taps")
 
 
+
+
+def _transit(*, sun_g, sun_l, moon_g, moon_l, gates=None):
+    sun = {"planet": "Sun", "gate": sun_g, "line": sun_l, "label": f"{sun_g}.{sun_l}"}
+    moon = {"planet": "Moon", "gate": moon_g, "line": moon_l, "label": f"{moon_g}.{moon_l}"}
+    earth = {"planet": "Earth", "gate": 1, "line": 1, "label": "1.1"}
+    acts = [sun, earth, moon]
+    activated = gates if gates is not None else [sun_g, moon_g, 1]
+    return {
+        "activations": acts,
+        "activated_gates": activated,
+        "sun_earth": {"sun": sun, "earth": earth},
+    }
+
+
+def test_daily_signal_moon_gate_waterfall():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal(hanging_gates=[{"held": 10, "missing": 20, "channel": "Awakening"}])
+    today = _transit(sun_g=50, sun_l=4, moon_g=51, moon_l=4)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    sig = compute_daily_signal(
+        natal=natal,
+        transit=today,
+        overlay={"bridged_channels": [], "newly_defined_centers": []},
+        prev_transit=yest,
+        prev_overlay={"bridged_channels": [], "newly_defined_centers": []},
+        day=date(2026, 10, 24),
+    )
+    assert sig["source"] == "moon_gate"
+    assert sig["key"] == "moon:51.4"
+    assert "51" in sig["headline"]
+    print("PASS: moon_gate waterfall")
+
+
+def test_daily_signal_moon_line_then_sun_line():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=5, moon_g=17, moon_l=2)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    sig = compute_daily_signal(
+        natal=natal,
+        transit=today,
+        overlay={"bridged_channels": [], "newly_defined_centers": []},
+        prev_transit=yest,
+        prev_overlay={"bridged_channels": [], "newly_defined_centers": []},
+        day=date(2026, 10, 24),
+    )
+    assert sig["source"] == "moon_line"
+    assert sig["key"] == "moon:17.2"
+
+    today2 = _transit(sun_g=50, sun_l=5, moon_g=17, moon_l=1)
+    yest2 = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    sig2 = compute_daily_signal(
+        natal=natal,
+        transit=today2,
+        overlay={"bridged_channels": [], "newly_defined_centers": []},
+        prev_transit=yest2,
+        prev_overlay={"bridged_channels": [], "newly_defined_centers": []},
+        day=date(2026, 10, 24),
+    )
+    assert sig2["source"] == "sun_line"
+    assert sig2["key"] == "sun:50.5"
+    print("PASS: moon_line / sun_line waterfall")
+
+
+def test_daily_signal_continuity_key_includes_day_index():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal()
+    snap = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"bridged_channels": [], "newly_defined_centers": []}
+    sig_a = compute_daily_signal(
+        natal=natal,
+        transit=snap,
+        overlay=overlay,
+        prev_transit=snap,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+    )
+    sig_b = compute_daily_signal(
+        natal=natal,
+        transit=snap,
+        overlay=overlay,
+        prev_transit=snap,
+        prev_overlay=overlay,
+        day=date(2026, 10, 25),
+    )
+    assert sig_a["source"] == "continuity"
+    assert sig_b["source"] == "continuity"
+    assert sig_a["key"] != sig_b["key"]
+    assert "day" in sig_a["key"] and "day" in sig_b["key"]
+    print("PASS: continuity keys differ by day index")
+
+
+def test_derive_attaches_novelty_fields():
+    from datetime import date
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=5, moon_g=51, moon_l=4)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    ind = derive_today_indication(
+        natal,
+        today,
+        overlay,
+        prev_transit=yest,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+    )
+    assert ind["daily_signal"]["key"]
+    assert ind["daily_signal"]["source"] in {
+        "moon_gate",
+        "moon_line",
+        "sun_line",
+        "sun_gate",
+        "hanging_pressure",
+        "conditioning",
+        "continuity",
+    }
+    assert isinstance(ind["vs_yesterday"], list)
+    assert ind["conditioning_caption"]
+    print("PASS: derive attaches daily_signal / vs_yesterday / caption")
+
+
+def test_main_action_sky_on_hyper_and_charged():
+    natal = {"type": "Manifesting Generator", "strategy": "To Respond"}
+    transit = _transit(sun_g=12, sun_l=3, moon_g=44, moon_l=2)
+    for level in (1, 2, 4, 5):
+        text, why, micro = compute_main_action(
+            level,
+            "focus",
+            natal=natal,
+            transit=transit,
+            overlay={"newly_defined_centers": [], "bridged_channels": []},
+        )
+        blob = text.lower()
+        assert "sun 12.3" in blob or "moon 44.2" in blob, (level, text)
+        assert "notice" in blob
+    print("PASS: sky clause on Low/Drained/Charged/Hyper")
+
+
+def test_consecutive_hkt_days_different_daily_signal_keys():
+    """Empiric: 14 consecutive HKT 07:00 buckets → distinct daily_signal.key."""
+    from datetime import date, timedelta
+    from app.hd.chart import calculate_transits, overlay_transits
+    from app.checkin.novelty import hkt_bucket_instant
+
+    natal = _natal(
+        type="Manifesting Generator",
+        strategy="To Respond",
+        defined_centers=["Sacral", "Root", "Throat"],
+        undefined_centers=["Head", "Ajna", "G", "Heart", "Solar_Plexus", "Spleen"],
+        activated_gates=[5, 14, 34, 20],
+        hanging_gates=[
+            {"held": 34, "missing": 10, "channel": "Exploration"},
+            {"held": 20, "missing": 57, "channel": "The Brain Wave"},
+        ],
+        channels=[{"gates": [5, 15], "name": "Rhythm", "centers": ["Sacral", "G"]}],
+    )
+
+    start = date(2026, 10, 1)
+    keys = []
+    energies = []
+    for i in range(14):
+        day = start + timedelta(days=i)
+        prev = start + timedelta(days=i - 1) if i > 0 else start - timedelta(days=1)
+        t = calculate_transits(hkt_bucket_instant(day))
+        pt = calculate_transits(hkt_bucket_instant(prev))
+        o = overlay_transits(natal, t)
+        po = overlay_transits(natal, pt)
+        ind = derive_today_indication(
+            natal,
+            t,
+            o,
+            prev_transit=pt,
+            prev_overlay=po,
+            day=day,
+            calc_transit=calculate_transits,
+            calc_overlay=overlay_transits,
+        )
+        keys.append(ind["daily_signal"]["key"])
+        energies.append(ind["energy_level"])
+
+    for i in range(1, len(keys)):
+        assert keys[i] != keys[i - 1], (i, keys[i - 1], keys[i])
+    print(f"PASS: 14/14 consecutive HKT days distinct keys; energies={energies}")
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -279,4 +472,10 @@ if __name__ == "__main__":
     test_why_does_not_restate_chips()
     test_sky_bullet_helper()
     test_page_load_shape_has_main()
+    test_daily_signal_moon_gate_waterfall()
+    test_daily_signal_moon_line_then_sun_line()
+    test_daily_signal_continuity_key_includes_day_index()
+    test_derive_attaches_novelty_fields()
+    test_main_action_sky_on_hyper_and_charged()
+    test_consecutive_hkt_days_different_daily_signal_keys()
     print("ALL indication unit tests passed")

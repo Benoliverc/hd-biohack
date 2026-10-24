@@ -1,23 +1,10 @@
-# Handoff — BodyGraph SSOT + Integration trunk
+# Current build — Today Daily Novelty Contract (Option 2)
 
-## Status
-- Ready for Ship Gate / PO review
-- Branch: `feat/bodygraph-ssot-integration`
-- Specs: `.grok-handoff/bodygraph-ssot-integration.md`
-- Base: `main` @ `fb00992` (post-PR #29)
-
-## What changed (FE-only)
-1. Channel endpoints SSOT from `gateAnchor` / `GATE_POSITIONS` (all 36 pairs).
-2. Integration trunk: spine 20↔57 + tributaries 10/34 via join; hang collapse.
-3. Gate 61 on Head bottom edge between 64 and 63.
-4. Center-only tap; caption “Tap any center…”; pill lists active gates.
-
-## Integration approach
-Traditional trunk: shared spine 20–57; 10 and 34 tributaries into join. Documented in `bodygraphGeometry.ts`.
-
-## Verify
-- `cd frontend && npx tsc --noEmit` — green
-- `npx tsx frontend/scripts/assert-gate-spacing.mjs` — PASS
-
-## Out of scope
-API, Zinc, Batch B, merge/Vercel (parent pings PO).
+- **Branch:** `feat/today-daily-novelty`
+- **Base:** `main` @ `7aeca75` (post BodyGraph SSOT #30)
+- **Spec:** `.grok-handoff/today-daily-novelty-ux-2026-10-24.md` (Option 2)
+- **Handoff:** `.grok-handoff/today-daily-novelty.md`
+- **SHA:** 4c75b6de1b1e5c43fcdc3cbcf544367177525c05
+- **Tests:** `pytest tests/test_checkin.py` → 23 passed; `npx tsc --noEmit` → green
+- **Preview:** HKT 07:00 bucket; hero = daily_signal → vs_yesterday → main → Still conditioning
+- **Do not merge** until PO yes; no deploy from this handoff.
