@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BirthDataIn(BaseModel):
@@ -31,6 +31,37 @@ class ChartResponse(BaseModel):
     natal_chart_id: int | None = None
 
 
+class DailySignal(BaseModel):
+    key: str
+    headline: str
+    body: str
+    source: Literal[
+        "moon_gate",
+        "moon_line",
+        "sun_line",
+        "sun_gate",
+        "hanging_pressure",
+        "conditioning",
+        "continuity",
+    ]
+
+
+class VsYesterdayDelta(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    field: Literal[
+        "moon",
+        "sun",
+        "hanging_pressure",
+        "bridge",
+        "newly_defined",
+        "energy",
+        "space",
+    ]
+    from_value: str = Field(..., alias="from")
+    to: str
+
+
 class TodayIndication(BaseModel):
     energy_level: int = Field(..., ge=1, le=5)
     energy_label: str
@@ -43,6 +74,9 @@ class TodayIndication(BaseModel):
     has_natal: bool = True
     save_chart_cta: bool = False
     disclaimer: str = ""
+    daily_signal: DailySignal | None = None
+    vs_yesterday: list[VsYesterdayDelta] = Field(default_factory=list)
+    conditioning_caption: str = ""
 
 
 class TransitResponse(BaseModel):

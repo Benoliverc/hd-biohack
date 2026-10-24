@@ -76,7 +76,7 @@ def sky_bullet_one(
                 label = f"Gate {g} · line {ln}"
             else:
                 label = raw or "today's Sun"
-        return f"Notice the Sun theme ({label}) — let it color your day without forcing it."
+        return f"Notice the Sun theme ({label}) — let it colour your day without forcing it."
     newly = overlay.get("newly_defined_centers") or []
     if newly:
         centers = ", ".join(str(c).replace("_", " ") for c in newly[:3])
@@ -89,6 +89,16 @@ def sky_bullet_one(
         name = bridged[0].get("name") or "a bridge"
         return f"A bridge may be active ({name}) — watch who/what feels magnetic today."
     return None
+
+
+def _sky_clause(transit: dict[str, Any] | None) -> str | None:
+    """Sun and/or Moon gate.line clause for every energy band."""
+    from .novelty import sky_notice_sun_moon
+
+    notice = sky_notice_sun_moon(transit)
+    if not notice:
+        return None
+    return f"{notice} while you"
 
 
 def compute_main_action(
@@ -104,6 +114,7 @@ def compute_main_action(
     Return (main_action_text, main_action_why, main_action_micro).
 
     main_action_text is the title only — space micro-move is separate for its own UI line.
+    Sky clause applies on ALL energy bands (not only Steady).
     Deterministic only — never calls Protocol generate or an LLM.
     """
     if energy_level < ENERGY_MIN or energy_level > ENERGY_MAX:
@@ -114,10 +125,14 @@ def compute_main_action(
     hd_type, strategy = _type_strategy(natal)
     micro = SPACE_MICRO[preferred_space]
     battery = TYPE_BATTERY.get(hd_type, "Protect your energy map today.")
+    sky_prefix = _sky_clause(transit)
 
     if energy_level <= 2:
         primary = TYPE_RECOVER.get(hd_type, GENERIC_RECOVER)
         why = f"Protect and recover — {battery}"
+        if sky_prefix:
+            # Soft notice — recover framing stays primary
+            primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}" if primary else sky_prefix
     elif energy_level == 3:
         sky = sky_bullet_one(transit, overlay)
         if sky:
@@ -132,6 +147,11 @@ def compute_main_action(
         else:
             primary = GENERIC_STEADY
             why = "Keep the day simple — no natal overlay yet."
+        # Steady already sky-led when sun present; if sky_bullet fell through,
+        # still attach Sun/Moon clause when available.
+        if sky_prefix and not (sky and "Sun theme" in (sky or "")):
+            if sky_prefix.lower() not in primary.lower():
+                primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}"
     else:
         primary = TYPE_SURPLUS.get(hd_type, GENERIC_SURPLUS)
         if strategy and hd_type:
@@ -141,6 +161,8 @@ def compute_main_action(
             why = f"Use surplus carefully; avoid more stimulation. {battery}"
         else:
             why = f"Use surplus carefully, Strategy-aligned. {battery}"
+        if sky_prefix:
+            primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}"
 
     text = primary.rstrip(".") + "."
     # Why is one plain "because" — do not restate Energy/Space chip labels

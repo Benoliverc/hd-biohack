@@ -131,14 +131,8 @@ export default function TransitsPage() {
 
   const bridged = ((overlay?.bridged_channels as Array<Record<string, unknown>>) || []);
   const newlyDefined = ((overlay?.newly_defined_centers as string[]) || []);
+  // Sun theme lives in daily_signal / Main action — do not duplicate here.
   const todayBullets: string[] = [];
-  if (sunEarth) {
-    const sunGate = formatGateLine(
-      (sunEarth.sun.gate as number | undefined) ?? String(sunEarth.sun.label ?? ""),
-      sunEarth.sun.line as number | undefined
-    );
-    todayBullets.push(`Notice the Sun theme (${sunGate}) — let it color your day without forcing it.`);
-  }
   if (newlyDefined.length > 0) {
     todayBullets.push(
       `Temporary energy in ${newlyDefined.map(displayCenter).join(", ")} — expect unfamiliar pressure; don't over-identify.`
@@ -155,9 +149,9 @@ export default function TransitsPage() {
         ? "No strong personal overlay spike — skim today's planetary gates below."
         : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
     );
-    todayBullets.push("Skim today's sky below, then open Protocols for Today's Move.");
-  } else if (todayBullets.length === 1) {
-    todayBullets.push("Skim today's sky below, then open Protocols for Today's Move.");
+  }
+  if (!loading) {
+    todayBullets.push("Open Protocols for Today's Move.");
   }
 
   return (
@@ -208,6 +202,8 @@ export default function TransitsPage() {
         loading={loading && !data}
         error={error}
         bindingLoading={resolvingYou}
+        youLabel={youChart ? youChipLabel(youChart) : null}
+        asOfLabel={asOfLabel}
       />
 
       {!loading && todayBullets.length > 0 && (
@@ -215,7 +211,7 @@ export default function TransitsPage() {
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
             What to do today
           </h2>
-          <p className="mb-2 text-xs text-fg-muted">Sky cues (secondary to today&apos;s indication)</p>
+          <p className="mb-2 text-xs text-fg-muted">Protocols cue — sky novelty leads in Today&apos;s indication</p>
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
             {todayBullets.slice(0, 3).map((b) => (
               <li key={b}>{b}</li>
@@ -226,7 +222,7 @@ export default function TransitsPage() {
 
       {sunEarth && (
         <div className="rounded-2xl border border-energy/40 bg-energy/10 p-5">
-          <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">Weekly macro theme</h2>
+          <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">Sun / Earth theme</h2>
           <p className="text-lg">
             Sun{" "}
             {formatGateLine(

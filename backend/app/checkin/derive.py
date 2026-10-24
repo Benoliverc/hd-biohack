@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any
+from datetime import date
+from typing import Any, Callable
+
 
 from ..hd.channels import MOTORS, active_channels, defined_centers
+from .novelty import (
+    CONDITIONING_CAPTION,
+    compute_daily_signal,
+    compute_vs_yesterday,
+    hkt_today,
+)
 from .rules import PreferredSpace, compute_main_action
 
 ENERGY_LABELS = {
@@ -183,7 +191,56 @@ def _preferred_space(
     return "focus", drivers
 
 
-def _no_natal_indication(transit: dict[str, Any] | None) -> dict[str, Any]:
+def _attach_novelty(
+    payload: dict[str, Any],
+    *,
+    natal: dict[str, Any] | None,
+    transit: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+    prev_transit: dict[str, Any] | None,
+    prev_overlay: dict[str, Any] | None,
+    prev_indication: dict[str, Any] | None,
+    day: date | None,
+    calc_transit: Callable[..., dict[str, Any]] | None = None,
+    calc_overlay: Callable[..., dict[str, Any] | None] | None = None,
+) -> dict[str, Any]:
+    bucket_day = day or hkt_today()
+    daily = compute_daily_signal(
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        day=bucket_day,
+        calc_transit=calc_transit,
+        calc_overlay=calc_overlay,
+    )
+    vs = compute_vs_yesterday(
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        energy_today=payload.get("energy_level"),
+        energy_yest=(prev_indication or {}).get("energy_level"),
+        space_today=payload.get("preferred_space"),
+        space_yest=(prev_indication or {}).get("preferred_space"),
+        daily_source=daily.get("source"),
+        continuity_headline=daily.get("headline") if daily.get("source") == "continuity" else None,
+    )
+    payload["daily_signal"] = daily
+    payload["vs_yesterday"] = vs
+    payload["conditioning_caption"] = CONDITIONING_CAPTION
+    return payload
+
+
+def _no_natal_indication(
+    transit: dict[str, Any] | None,
+    *,
+    prev_transit: dict[str, Any] | None = None,
+    day: date | None = None,
+    calc_transit: Callable[..., dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Transit-safe Steady/Charged only — never claim personal bridges."""
     transit = transit or {}
     gates = set(transit.get("activated_gates") or [])
@@ -208,7 +265,7 @@ def _no_natal_indication(transit: dict[str, Any] | None) -> dict[str, Any]:
         f"{why.rstrip('.')} · Chart weather only (no natal) — "
         "not biometric or medical; personal bridges need a saved chart."
     )
-    return {
+    payload = {
         "energy_level": energy,
         "energy_label": ENERGY_LABELS[energy],
         "preferred_space": space,
@@ -221,20 +278,45 @@ def _no_natal_indication(transit: dict[str, Any] | None) -> dict[str, Any]:
         "save_chart_cta": True,
         "disclaimer": "Chart weather from today's sky — not how you feel, not medical advice.",
     }
+    return _attach_novelty(
+        payload,
+        natal=None,
+        transit=transit,
+        overlay=None,
+        prev_transit=prev_transit,
+        prev_overlay=None,
+        prev_indication=None,
+        day=day,
+        calc_transit=calc_transit,
+        calc_overlay=None,
+    )
 
 
 def derive_today_indication(
     natal: dict[str, Any] | None,
     transit: dict[str, Any] | None,
     overlay: dict[str, Any] | None,
+    *,
+    prev_transit: dict[str, Any] | None = None,
+    prev_overlay: dict[str, Any] | None = None,
+    prev_indication: dict[str, Any] | None = None,
+    day: date | None = None,
+    calc_transit: Callable[..., dict[str, Any]] | None = None,
+    calc_overlay: Callable[..., dict[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """
-    Pure function: natal × today transit overlay → energy, space, main action.
+    Pure function: natal × today transit overlay → energy, space, main action,
+    plus Daily Novelty Contract fields (daily_signal, vs_yesterday).
 
     No LLM, no Protocol generate, no Type/Authority mutation claims.
     """
     if not natal:
-        return _no_natal_indication(transit)
+        return _no_natal_indication(
+            transit,
+            prev_transit=prev_transit,
+            day=day,
+            calc_transit=calc_transit,
+        )
 
     natal_defined = _as_set(natal.get("defined_centers"))
     newly = _as_set((overlay or {}).get("newly_defined_centers"))
@@ -270,7 +352,7 @@ def derive_today_indication(
             why = f"{why.rstrip('.')} · Temporary/borrowed Sacral — not a Type change."
 
     drivers = energy_drivers + [d for d in space_drivers if d not in energy_drivers]
-    return {
+    payload = {
         "energy_level": energy,
         "energy_label": ENERGY_LABELS[energy],
         "preferred_space": space,
@@ -283,3 +365,15 @@ def derive_today_indication(
         "save_chart_cta": False,
         "disclaimer": "Chart weather from your design × today's sky — not biometric or medical advice.",
     }
+    return _attach_novelty(
+        payload,
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        prev_indication=prev_indication,
+        day=day,
+        calc_transit=calc_transit,
+        calc_overlay=calc_overlay,
+    )
