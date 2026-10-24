@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
+import LiteracyCoach from "@/components/LiteracyCoach";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -62,6 +63,7 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
 function InsightCard({ card }: { card: SoulCard }) {
   return (
     <div
+      id={`soul-card-${card.id}`}
       className="rounded-2xl border border-border bg-elevated p-5"
       data-testid={`soul-card-${card.id}`}
     >
@@ -101,6 +103,15 @@ function pickDefaultFriend(rows: SavedChartRow[], selfId: number | null): number
   const friends = rows.filter((r) => r.id !== selfId);
   const prefer = friends.find((r) => r.slot_kind === "friend");
   return (prefer ?? friends[0])?.id ?? null;
+}
+
+function jumpSoulSection(id: string) {
+  const url = `${window.location.pathname}${window.location.search}#${id}`;
+  window.history.replaceState(null, "", url);
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 export default function SoulPage() {
@@ -336,7 +347,10 @@ export default function SoulPage() {
 
           {result && (
             <>
+              <LiteracyCoach variant="soul" onJump={(targetId) => jumpSoulSection(targetId)} />
+
               <div
+                id="soul-hero"
                 className="rounded-2xl border border-border bg-elevated p-5"
                 data-testid="soul-hero"
               >
@@ -408,7 +422,7 @@ export default function SoulPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3" data-testid="soul-spectrums">
+              <div id="soul-spectrums" className="grid gap-3 md:grid-cols-3" data-testid="soul-spectrums">
                 {result.spectrums.map((s) => (
                   <SpectrumBar key={s.id} spectrum={s} />
                 ))}
@@ -430,13 +444,14 @@ export default function SoulPage() {
                 </div>
               )}
 
-              <div className="space-y-4" data-testid="soul-cards">
+              <div id="soul-cards" className="space-y-4" data-testid="soul-cards">
                 {orderedCards.map((card) => (
                   <InsightCard key={card.id} card={card} />
                 ))}
               </div>
 
               <details
+                id="soul-conditioning"
                 className="rounded-2xl border border-border bg-elevated p-5"
                 data-testid="soul-conditioning"
               >
