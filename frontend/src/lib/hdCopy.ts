@@ -418,7 +418,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "defined-open",
     title: "Defined vs Open centers",
     body:
-      "Colored shapes are Defined — consistent energy you can rely on. Pale shapes are Open — you amplify people and places; watch for energy leaks.",
+      "Colored shapes are Defined — think of them as a steady battery you always carry. That energy is yours day to day, so people feel a consistent you there. Pale (white) shapes are Open — places you soak up rooms and other people, amplify what's around you, and can feel drained if you stay plugged in too long. Start by noticing which is which on your map.",
     jumpLabel: "Bodygraph",
     targetId: "bodygraph",
   },
@@ -426,7 +426,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "channels-hanging",
     title: "Channels & hanging gates",
     body:
-      "A channel is a lit path between two centers (consistent circuitry). A hanging gate is a half-path — magnetic to people who hold the other side.",
+      "A channel is a full wire: both ends of a path between two centers are lit, so that circuit runs reliably in you. A hanging gate is a half-wire — one end is active and naturally seeks the other half in someone else or in the day's sky. That's why certain people feel magnetic: they complete a wire you've been carrying open.",
     jumpLabel: "Bodygraph",
     targetId: "bodygraph",
   },
@@ -434,7 +434,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "conscious-somatic",
     title: "Conscious · Somatic · Integrated",
     body:
-      "Dark chips = mind / Personality; warm chips = body / Design; ringed = both. Same gate can show on either story — that is the legend under your Bodygraph.",
+      "The legend under your Bodygraph splits how each activation shows up. Darker chips are Conscious — what your mind notices and can talk about (Personality). Warmer chips are Somatic — what your body knows before words (Design). A ringed or dual mark means Integrated: both stories light the same place. You don't need to memorize jargon; just match the colors to the legend.",
     jumpLabel: "Legend",
     targetId: "bodygraph-legend",
   },
@@ -442,7 +442,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "type-strategy-authority",
     title: "Type → Strategy → Authority",
     body:
-      "Type is your energy role. Strategy is how life invites you. Authority is your body’s yes — decide from there, not the mind alone.",
+      "These three are your operating loop. Type is the kind of energy engine you run (how you move through a day). Strategy is the low-friction way life tends to invite you — following it usually means less push-and-resist. Authority is your body's yes: the quiet signal that a choice is right for you, before the mind stacks pros and cons. Snapshot puts all three in one place.",
     jumpLabel: "Snapshot",
     targetId: "snapshot",
   },
@@ -450,7 +450,7 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "centers-to-watch",
     title: "Centers to watch",
     body:
-      "Open centers are where conditioning lands. Snapshot lists the ones that matter most for you — daily sky and other people pull here first.",
+      "Open centers are where conditioning lands first — other people, weather, and the daily sky can pull your baseline off-center here. Snapshot lists the ones that matter most for you so you can notice the pull early instead of fighting symptoms later. Treat them as early-warning dials, not flaws.",
     jumpLabel: "Centers to watch",
     targetId: "snapshot-centers",
   },
@@ -458,12 +458,13 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
     id: "deep-dive",
     title: "Deep dive when you want more",
     body:
-      "Core, Centers, Channels, and Planets expand the same map — same words, more gate and line detail beneath your summary.",
+      "When the summary isn't enough, Deep dive opens the same map in finer grain: Core, Centers, Channels, and Planets. Same language as above — just the exact gates and lines under your Snapshot. Open it when you're curious; skip it when you only need the headline.",
     jumpLabel: "Deep dive",
     targetId: "deep-dive",
     deepDiveTab: "core",
   },
 ];
+
 
 /** Order matches Soul DOM after Signature: Spectrums → Somatic → Power → Wire → Spark. */
 export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
@@ -471,7 +472,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "signature-not-score",
     title: "Aura Signature first",
     body:
-      "The big label is how this pair’s auras tend to wire — architecture across how you relate, not a score and not a dating grade. Secondary labels and badges are rare extras when they fire.",
+      "The big label at the top describes how your two charts tend to lock together — the architecture of the bond across work, life, and play. It is not a grade, not a dating score, and not 'how good' you are for each other. Secondary badges only appear when something rare lights up; start with the Signature as the shape of the relationship, not a rating.",
     jumpLabel: "Signature",
     targetId: "soul-hero",
   },
@@ -479,7 +480,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "spectrums-not-fit",
     title: "Charge · continuity · pacing",
     body:
-      "Three bars show relative charge, continuity, and pacing for this pair. High charge can mean high voltage that needs protocols — not bad chemistry.",
+      "The three bars map relative charge (how much voltage you stir in each other), continuity (how steady the shared field feels), and pacing (how fast or slow you prefer to move together). High charge can mean high energy that needs clear protocols — it is not a bad match. Read them as rhythm dials, never as a fit percentage.",
     jumpLabel: "Spectrums",
     targetId: "soul-spectrums",
   },
@@ -487,7 +488,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "wire-somatic",
     title: "Somatic playbook + Wire",
     body:
-      "The Tailored Somatic Playbook gives body-first moves for this pair. How You Wire Together (next) names bridges and hanging completions. Centers strip shows who defines what.",
+      "The Tailored Somatic Playbook is body-first: simple co-regulation moves for this pair in the context you picked (work, life, or play). How You Wire Together names the circuit bridges between you — where a hanging half finds its other side. The centers strip shows who brings which defined baseline. Use these when you want something to try, not just a label.",
     jumpLabel: "Somatic playbook",
     targetId: "soul-card-somatic_playbook",
   },
@@ -495,7 +496,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "power-dynamics",
     title: "Power Dynamics to Tune",
     body:
-      "Compromise channels (same gate, different missing halves) are thermostat collisions — name them and tune, don’t shame.",
+      "Some channels show up as compromise: one of you holds a full channel while the other holds only a hanging gate on the same path. That can feel like fighting over the thermostat — same room, different set points. These are high-awareness zones. Name them, slow down, and tune together; they are not a verdict that one person is 'in charge.'",
     jumpLabel: "Power Dynamics",
     targetId: "soul-card-power_dynamics",
   },
@@ -503,7 +504,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "spark-bedrock-dominance",
     title: "Spark, Bedrock, Dominance",
     body:
-      "In Spark & Glue: Spark (Electromagnetic) = each holds one half — ignition. Bedrock (Companionship) = you both have the full channel — shared baseline. Dominance = one person fully holds a channel — a gift to lean on, not a power trip.",
+      "In Spark & Glue, three everyday patterns show up. Spark is when each of you holds one half of a channel — the click of ignition when you meet. Bedrock is when you both already have the full channel — a shared baseline you can lean on without drama. Dominance is when one person fully holds a channel the other doesn't — a steady gift to borrow from, not a power trip. Read the cards with those pictures in mind.",
     jumpLabel: "Spark & Glue",
     targetId: "soul-card-spark_glue",
   },

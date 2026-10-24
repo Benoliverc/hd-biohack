@@ -274,7 +274,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                     variant === "chart" ? "pl-0 sm:pl-10" : "pl-10"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed text-fg-secondary line-clamp-3 sm:line-clamp-none">
+                  <p className="text-sm leading-relaxed text-fg-secondary">
                     {step.body}
                   </p>
                   <button
@@ -297,7 +297,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
           type="button"
           onClick={handleDismiss}
           data-testid={`${testId}-dismiss`}
-          className="inline-flex min-h-10 items-center rounded-lg bg-growth px-3 py-2 text-xs font-semibold text-growth-ink transition hover:opacity-90"
+          className="inline-flex min-h-10 items-center rounded-lg bg-growth px-3 py-2 text-xs font-semibold text-fg-inverse transition hover:bg-growth-deep"
         >
           Got it
         </button>
