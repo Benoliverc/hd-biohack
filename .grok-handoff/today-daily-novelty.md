@@ -4,7 +4,7 @@
 **Status:** Ready for Ship Gate / PO review — **do not merge** until Benjamin yes  
 **Branch:** `feat/today-daily-novelty`
 **PR:** https://github.com/Benoliverc/hd-biohack/pull/31
-**SHA:** 7d11cf95295683683c85881897e76e7951a37b04
+**SHA:** 2ef074fdcfdae835307ed73663474b2a08bca9c5
 **Spec:** `.grok-handoff/today-daily-novelty-ux-2026-10-24.md` §2 waterfall + §4 payload/hierarchy  
 **Prior:** `.grok-handoff/today-indication-variance-2026-10-24.md`
 
