@@ -485,7 +485,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
   },
   {
     id: "wire-somatic",
-    title: "Wire + somatic practice",
+    title: "Somatic playbook + Wire",
     body:
       "The Tailored Somatic Playbook gives body-first moves for this pair. How You Wire Together (next) names bridges and hanging completions. Centers strip shows who defines what.",
     jumpLabel: "Somatic playbook",

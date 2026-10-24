@@ -1397,17 +1397,22 @@ export default function ProfilePage() {
         <>
           <ChartSectionNav onJump={jumpToSection} />
 
+          {/* Narrow: Bodygraph above coach so map enters first viewport @~375.
+              sm+: coach teaches first (desktop Ship Gate already green). */}
+          <div className="flex flex-col gap-4">
+          <div className="order-2 sm:order-1">
           <LiteracyCoach
             variant="chart"
             onJump={(targetId, meta) =>
               jumpToSection(targetId, meta?.deepDiveTab)
             }
           />
+          </div>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
+          <div className="order-1 sm:order-2 grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div
               id="bodygraph"
-              className="rounded-2xl border border-border bg-elevated p-4"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4"
             >
               <h2 className="mb-2 text-sm font-semibold text-fg">Bodygraph</h2>
               <BodyGraph
@@ -1496,6 +1501,7 @@ export default function ProfilePage() {
                 ))}
               </div>
             </div>
+          </div>
           </div>
 
           <ChartDeepDive
