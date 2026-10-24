@@ -8,7 +8,7 @@ import {
   type NatalChartSummary,
 } from "@/lib/store";
 import { displayCenter, formatGateLine } from "@/lib/hdCopy";
-import { formatAsOfInZone } from "@/lib/timezone";
+import { formatResetsInHkt } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
@@ -125,8 +125,7 @@ export default function TransitsPage() {
     | { sun: Record<string, unknown>; earth: Record<string, unknown> }
     | undefined;
   const overlay = data?.overlay;
-  const atUtc = data?.transit?.at_utc as string | undefined;
-  const asOfLabel = formatAsOfInZone(atUtc, youChart?.timezone);
+  const asOfLabel = formatResetsInHkt();
   const resolvingYou = natalBindingLoading || !youReady;
 
   const bridged = ((overlay?.bridged_channels as Array<Record<string, unknown>>) || []);

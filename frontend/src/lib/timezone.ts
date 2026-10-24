@@ -74,3 +74,57 @@ export function formatAsOfInZone(
     return `As of ${at.toISOString()} · UTC`;
   }
 }
+
+/** Novelty day bucket hour in Asia/Hong_Kong (matches backend BUCKET_HOUR). */
+export const NOVELTY_BUCKET_HOUR_HKT = 7;
+
+/** Asia/Hong_Kong is fixed UTC+8 (no DST). */
+const HKT_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+/**
+ * Next Daily Novelty reset instant: next 07:00 Asia/Hong_Kong.
+ * If `now` is at or after today's 07:00 HKT, returns tomorrow's 07:00 HKT.
+ */
+export function nextNoveltyResetHkt(now: Date = new Date()): Date {
+  const hktWall = new Date(now.getTime() + HKT_OFFSET_MS);
+  const y = hktWall.getUTCFullYear();
+  const m = hktWall.getUTCMonth();
+  const d = hktWall.getUTCDate();
+
+  let resetUtcMs =
+    Date.UTC(y, m, d, NOVELTY_BUCKET_HOUR_HKT, 0, 0) - HKT_OFFSET_MS;
+
+  if (now.getTime() >= resetUtcMs) {
+    const nextDay = new Date(Date.UTC(y, m, d + 1));
+    resetUtcMs =
+      Date.UTC(
+        nextDay.getUTCFullYear(),
+        nextDay.getUTCMonth(),
+        nextDay.getUTCDate(),
+        NOVELTY_BUCKET_HOUR_HKT,
+        0,
+        0
+      ) - HKT_OFFSET_MS;
+  }
+  return new Date(resetUtcMs);
+}
+
+/**
+ * Warm relative countdown to the next Daily Novelty reset (07:00 HKT).
+ * Approximate on purpose — no natal/Brussels absolute stamp.
+ */
+export function formatResetsInHkt(now: Date = new Date()): string {
+  const ms = nextNoveltyResetHkt(now).getTime() - now.getTime();
+  if (ms < 60_000) return "Resets soon";
+
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) {
+    return minutes === 1
+      ? "Resets in ~1 minute"
+      : `Resets in ~${minutes} minutes`;
+  }
+  if (minutes < 120) return "Resets in about an hour";
+
+  const hours = Math.round(ms / 3_600_000);
+  return hours === 1 ? "Resets in ~1 hour" : `Resets in ~${hours} hours`;
+}

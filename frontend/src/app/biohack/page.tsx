@@ -6,7 +6,7 @@ import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGat
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
-import { formatAsOfInZone } from "@/lib/timezone";
+import { formatResetsInHkt } from "@/lib/timezone";
 import { youChipLabel } from "@/lib/youChipLabel";
 
 type InvItem = { id: number; name: string; notes: string };
@@ -177,7 +177,6 @@ export default function BiohackPage() {
   const [youReady, setYouReady] = useState(false);
   const [protocol, setProtocol] = useState<Record<string, unknown> | null>(null);
   const [indication, setIndication] = useState<TodayIndicationPayload | null>(null);
-  const [asOfUtc, setAsOfUtc] = useState<string | null>(null);
   const [inventory, setInventory] = useState<InvItem[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -246,7 +245,6 @@ export default function BiohackPage() {
   useEffect(() => {
     setProtocol(null);
     setIndication(null);
-    setAsOfUtc(null);
     setError(null);
     setNatalOpen(false);
     setAutoTried(false);
@@ -321,7 +319,6 @@ export default function BiohackPage() {
         setProtocol(protoRes.protocol);
         // Prefer shared derive from /transits/today for weather strip parity with Today
         setIndication(transitRes.indication ?? protoRes.indication ?? null);
-        setAsOfUtc((transitRes.transit?.at_utc as string | undefined) ?? null);
         setNatalOpen(false);
         await refreshInventory();
         if (opts?.rebuild) {
@@ -429,7 +426,7 @@ export default function BiohackPage() {
   const labels = (protocol?.labels as Record<string, string>) || {};
   const weeklyThemeObj = (protocol?.weekly_theme as Record<string, unknown>) || null;
 
-  const asOfLabel = formatAsOfInZone(asOfUtc, youChart?.timezone);
+  const asOfLabel = formatResetsInHkt();
   const resolvingYou = natalBindingLoading || !youReady;
 
   const checkItems = useMemo(() => {
