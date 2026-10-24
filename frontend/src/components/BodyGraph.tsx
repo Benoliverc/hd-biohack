@@ -471,7 +471,10 @@ export function BodyGraph({
       ) : null}
 
       {/* Biohacking pill legend — no basalt/terracotta/chalk jargon */}
-      <div className="flex w-full max-w-sm flex-col items-center gap-2">
+      <div
+        id="bodygraph-legend"
+        className="flex w-full max-w-sm flex-col items-center gap-2"
+      >
         <div className="flex flex-wrap items-center justify-center gap-1.5">
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"

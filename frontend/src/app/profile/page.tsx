@@ -1461,7 +1461,10 @@ export default function ProfilePage() {
               </div>
 
               {watch.length > 0 && (
-                <div className="rounded-xl border border-border bg-elevated p-4">
+                <div
+                  id="snapshot-centers"
+                  className="rounded-xl border border-border bg-elevated p-4"
+                >
                   <h3 className="text-sm font-semibold text-fg">Centers to watch</h3>
                   <p className="mb-2 text-xs text-fg-muted">
                     Open centers — where you can pick up other people’s energy (energy leaks to notice).
