@@ -6,6 +6,7 @@ import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
+import LiteracyCoach from "@/components/LiteracyCoach";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import {
   TYPE_COPY,
@@ -1395,6 +1396,13 @@ export default function ProfilePage() {
       {chart && (
         <>
           <ChartSectionNav onJump={jumpToSection} />
+
+          <LiteracyCoach
+            variant="chart"
+            onJump={(targetId, meta) =>
+              jumpToSection(targetId, meta?.deepDiveTab)
+            }
+          />
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div

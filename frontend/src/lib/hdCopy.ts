@@ -384,3 +384,126 @@ export function channelMeaning(gates: number[], name?: string): string {
   }
   return "A defined channel is a consistent energetic pathway between two centers — a reliable theme in how your energy moves and expresses.";
 }
+
+/* -------------------------------------------------------------------------- */
+/* Literacy coach (Opt 1) — Chart /profile + Soul /soul                       */
+/* -------------------------------------------------------------------------- */
+
+export type LiteracyDeepDiveTab = "core" | "centers" | "channels" | "planets";
+
+export type LiteracyJumpMeta = {
+  deepDiveTab?: LiteracyDeepDiveTab;
+};
+
+export type LiteracyStep = {
+  id: string;
+  title: string;
+  body: string;
+  /** Jump chip label shown to the user */
+  jumpLabel: string;
+  /** Element id to smooth-scroll to (without #) */
+  targetId: string;
+  /** Optional Chart deep-dive tab switch when jumping */
+  deepDiveTab?: LiteracyDeepDiveTab;
+};
+
+/** localStorage: set to "1" when user dismisses (Got it). Absent = first visit expanded. */
+export const LITERACY_STORAGE_KEYS = {
+  chart: "baseline.literacy.chart.v1",
+  soul: "baseline.literacy.soul.v1",
+} as const;
+
+export const CHART_LITERACY_STEPS: LiteracyStep[] = [
+  {
+    id: "defined-open",
+    title: "Defined vs Open centers",
+    body:
+      "Colored shapes are Defined — consistent energy you can rely on. Pale shapes are Open — you amplify people and places; watch for energy leaks.",
+    jumpLabel: "Bodygraph",
+    targetId: "bodygraph",
+  },
+  {
+    id: "channels-hanging",
+    title: "Channels & hanging gates",
+    body:
+      "A channel is a lit path between two centers (consistent circuitry). A hanging gate is a half-path — magnetic to people who hold the other side.",
+    jumpLabel: "Bodygraph",
+    targetId: "bodygraph",
+  },
+  {
+    id: "conscious-somatic",
+    title: "Conscious · Somatic · Integrated",
+    body:
+      "Dark chips = mind / Personality; warm chips = body / Design; ringed = both. Same gate can show on either story — that is the legend under your Bodygraph.",
+    jumpLabel: "Legend",
+    targetId: "bodygraph",
+  },
+  {
+    id: "type-strategy-authority",
+    title: "Type → Strategy → Authority",
+    body:
+      "Type is your energy role. Strategy is how life invites you. Authority is your body’s yes — decide from there, not the mind alone.",
+    jumpLabel: "Snapshot",
+    targetId: "snapshot",
+  },
+  {
+    id: "centers-to-watch",
+    title: "Centers to watch",
+    body:
+      "Open centers are where conditioning lands. Snapshot lists the ones that matter most for you — daily sky and other people pull here first.",
+    jumpLabel: "Centers to watch",
+    targetId: "snapshot",
+  },
+  {
+    id: "deep-dive",
+    title: "Deep dive when you want more",
+    body:
+      "Core, Centers, Channels, and Planets expand the same map — same words, more gate and line detail beneath your summary.",
+    jumpLabel: "Deep dive",
+    targetId: "deep-dive",
+    deepDiveTab: "core",
+  },
+];
+
+export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
+  {
+    id: "signature-not-score",
+    title: "Aura Signature first",
+    body:
+      "The big label is how this pair’s auras tend to wire — architecture across how you relate, not a score and not a dating grade. Secondary labels and badges are rare extras when they fire.",
+    jumpLabel: "Signature",
+    targetId: "soul-hero",
+  },
+  {
+    id: "spectrums-not-fit",
+    title: "Spectrums ≠ Fit %",
+    body:
+      "Three bars show relative charge, continuity, and pacing. High charge can mean high voltage that needs protocols — not “bad chemistry.”",
+    jumpLabel: "Spectrums",
+    targetId: "soul-spectrums",
+  },
+  {
+    id: "spark-bedrock-dominance",
+    title: "Spark, Bedrock, Dominance",
+    body:
+      "In Spark & Glue: Spark (Electromagnetic) = each holds one half — ignition. Bedrock (Companionship) = you both have the full channel — shared baseline. Dominance = one person fully holds a channel — a gift to lean on, not a power trip.",
+    jumpLabel: "Spark & Glue",
+    targetId: "soul-card-spark_glue",
+  },
+  {
+    id: "power-dynamics",
+    title: "Power Dynamics to Tune",
+    body:
+      "Compromise channels (same gate, different missing halves) are thermostat collisions — name them and tune, don’t shame.",
+    jumpLabel: "Power Dynamics",
+    targetId: "soul-card-power_dynamics",
+  },
+  {
+    id: "wire-somatic",
+    title: "Wire + somatic practice",
+    body:
+      "How You Wire Together names bridges and hanging completions. The Tailored Somatic Playbook gives body-first moves for this pair. Centers strip shows who defines what.",
+    jumpLabel: "How you wire",
+    targetId: "soul-card-circuit_bridge",
+  },
+];
