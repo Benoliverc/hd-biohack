@@ -8,6 +8,20 @@ import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import { formatResetsInHkt } from "@/lib/timezone";
 import { youChipLabel } from "@/lib/youChipLabel";
+import {
+  type CompletionKind,
+  type DayCompletions,
+  type WeekCompletedRow,
+  doneMapFromCompletions,
+  formatWeekDayLabel,
+  hkDayKey,
+  loadDayCompletions,
+  loadWeekCompleted,
+  progressPct,
+  saveDayCompletions,
+  setCompletionNote,
+  toggleCompletion,
+} from "@/lib/protocolCompletions";
 
 type InvItem = { id: number; name: string; notes: string };
 
@@ -65,46 +79,13 @@ function resolveYouChart(
   return rows.find((r) => isSelfRow(r)) ?? null;
 }
 
-function hkDayKey(d = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Hong_Kong",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
-
-function completionsKey(userId: number, chartId: number, day: string): string {
-  return `hd-biohack:protocol-done:v1:${userId}:${chartId}:${day}`;
-}
-
-function loadCompletions(key: string): Record<string, boolean> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, boolean>;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveCompletions(key: string, map: Record<string, boolean>) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(map));
-  } catch {
-    /* ignore quota */
-  }
-}
-
 type CheckItem = {
   id: string;
   label: string;
   sub?: string;
   why?: string;
   inInventory?: boolean;
+  kind: CompletionKind;
 };
 
 type TimedLeadSnap = { id: string; item: string; inInventory?: boolean };
@@ -191,8 +172,11 @@ export default function BiohackPage() {
   const [natalOpen, setNatalOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [baselineKitOpen, setBaselineKitOpen] = useState(false);
-  const [doneMap, setDoneMap] = useState<Record<string, boolean>>({});
+  const [completions, setCompletions] = useState<DayCompletions>({});
+  const [weekRows, setWeekRows] = useState<WeekCompletedRow[]>([]);
+  const [completeFlash, setCompleteFlash] = useState(false);
   const inventoryRef = useRef<HTMLDivElement | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dayKey = hkDayKey();
 
   const refreshInventory = useCallback(async () => {
@@ -285,25 +269,42 @@ export default function BiohackPage() {
     }
   }, [protocol]);
 
-  // Persist completions per user+chart+HKT day
-  useEffect(() => {
+  const refreshWeek = useCallback(() => {
     if (!user || !youChart) {
-      setDoneMap({});
+      setWeekRows([]);
       return;
     }
-    setDoneMap(loadCompletions(completionsKey(user.id, youChart.id, dayKey)));
+    setWeekRows(loadWeekCompleted(user.id, youChart.id));
+  }, [user, youChart]);
+
+  // Persist completions per user+chart+HKT day (+ week rollup read)
+  useEffect(() => {
+    if (!user || !youChart) {
+      setCompletions({});
+      setWeekRows([]);
+      return;
+    }
+    setCompletions(loadDayCompletions(user.id, youChart.id, dayKey));
+    setWeekRows(loadWeekCompleted(user.id, youChart.id));
   }, [user?.id, youChart?.id, dayKey]);
 
-  const toggleDone = useCallback(
-    (id: string) => {
+  useEffect(() => {
+    return () => {
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+    };
+  }, []);
+
+  const saveNote = useCallback(
+    (id: string, note: string) => {
       if (!user || !youChart) return;
-      setDoneMap((prev) => {
-        const next = { ...prev, [id]: !prev[id] };
-        saveCompletions(completionsKey(user.id, youChart.id, dayKey), next);
+      setCompletions((prev) => {
+        const next = setCompletionNote(prev, id, note);
+        saveDayCompletions(user.id, youChart.id, dayKey, next);
         return next;
       });
+      queueMicrotask(() => refreshWeek());
     },
-    [user, youChart, dayKey]
+    [user, youChart, dayKey, refreshWeek]
   );
 
   const loadProtocol = useCallback(
@@ -446,6 +447,7 @@ export default function BiohackPage() {
         label: heroTitle,
         sub: heroMicro || undefined,
         why: heroWhy || undefined,
+        kind: "move",
       },
     ];
     for (const slot of ["morning", "midday", "evening"] as const) {
@@ -459,17 +461,62 @@ export default function BiohackPage() {
         sub: row.when || undefined,
         why: sanitizeWhy(row.why, inInv),
         inInventory: inInv,
+        kind: "move",
       });
     }
     return items;
   }, [daily, summary]);
+
+  const baselineCheckItems = useMemo(() => {
+    if (!daily) return [] as CheckItem[];
+    const kit = (daily.baseline_kit as PlanItem[]) || [];
+    return kit.map((row, i) => {
+      const inInv = Boolean(row.in_inventory);
+      return {
+        id: `baseline:${i}`,
+        label: row.item,
+        sub: row.when || undefined,
+        why: sanitizeWhy(row.why, inInv),
+        inInventory: inInv,
+        kind: "baseline" as const,
+      };
+    });
+  }, [daily]);
 
   const timedLeadsAllBehavior = useMemo(() => {
     const timed = checkItems.filter((it) => it.id !== "hero");
     return timed.length > 0 && timed.every((it) => !it.inInventory);
   }, [checkItems]);
 
+  const doneMap = useMemo(() => doneMapFromCompletions(completions), [completions]);
   const doneCount = checkItems.filter((it) => doneMap[it.id]).length;
+  const moveComplete = checkItems.length > 0 && doneCount === checkItems.length;
+  const baselineDoneCount = baselineCheckItems.filter((it) => doneMap[it.id]).length;
+
+  const onToggleItem = useCallback(
+    (it: CheckItem) => {
+      if (!user || !youChart) return;
+      setCompletions((prev) => {
+        const wasComplete =
+          checkItems.length > 0 && checkItems.every((c) => Boolean(prev[c.id]?.done));
+        const next = toggleCompletion(prev, it.id, { label: it.label, kind: it.kind });
+        saveDayCompletions(user.id, youChart.id, dayKey, next);
+        const nowComplete =
+          checkItems.length > 0 &&
+          checkItems.every((c) =>
+            c.id === it.id ? !Boolean(prev[c.id]?.done) : Boolean(next[c.id]?.done)
+          );
+        if (!wasComplete && nowComplete && it.kind === "move") {
+          if (flashTimer.current) clearTimeout(flashTimer.current);
+          setCompleteFlash(true);
+          flashTimer.current = setTimeout(() => setCompleteFlash(false), 3200);
+        }
+        return next;
+      });
+      queueMicrotask(() => refreshWeek());
+    },
+    [user, youChart, dayKey, checkItems, refreshWeek]
+  );
 
   const refreshDisabled =
     loading || adding || !user || resolvingYou || !youChart || !biohackingUnlocked;
@@ -576,12 +623,17 @@ export default function BiohackPage() {
       {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
+          baselineItems={baselineCheckItems}
+          completions={completions}
           doneMap={doneMap}
-          onToggle={toggleDone}
+          onToggle={onToggleItem}
+          onNote={saveNote}
           doneCount={doneCount}
+          baselineDoneCount={baselineDoneCount}
+          moveComplete={moveComplete}
+          completeFlash={completeFlash}
           doList={(daily.do as string[]) || []}
           dontList={(daily.dont as string[]) || []}
-          baselineKit={(daily.baseline_kit as PlanItem[]) || []}
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
@@ -592,6 +644,7 @@ export default function BiohackPage() {
         <WeekSkyCard
           theme={String(weekly.theme || "")}
           skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
+          weekRows={weekRows}
         />
       )}
 
@@ -755,27 +808,40 @@ function WeatherStrip({
 
 function TodaysMoveCard({
   items,
+  baselineItems,
+  completions,
   doneMap,
   onToggle,
+  onNote,
   doneCount,
+  baselineDoneCount,
+  moveComplete,
+  completeFlash,
   doList,
   dontList,
-  baselineKit,
   baselineKitOpen,
   onToggleBaseline,
   showNoKitFootnote,
 }: {
   items: CheckItem[];
+  baselineItems: CheckItem[];
+  completions: DayCompletions;
   doneMap: Record<string, boolean>;
-  onToggle: (id: string) => void;
+  onToggle: (it: CheckItem) => void;
+  onNote: (id: string, note: string) => void;
   doneCount: number;
+  baselineDoneCount: number;
+  moveComplete: boolean;
+  completeFlash: boolean;
   doList: string[];
   dontList: string[];
-  baselineKit: PlanItem[];
   baselineKitOpen: boolean;
   onToggleBaseline: () => void;
   showNoKitFootnote?: boolean;
 }) {
+  const pct = progressPct(doneCount, items.length);
+  const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
+
   return (
     <section
       className="space-y-4 rounded-2xl border border-growth/40 bg-growth-soft p-5"
@@ -785,52 +851,114 @@ function TodaysMoveCard({
         <h2 className="text-lg font-semibold text-growth-ink">Today&apos;s Move</h2>
         {items.length > 0 && (
           <span className="text-xs text-fg-muted" data-testid="protocol-done-count">
-            {doneCount}/{items.length} done
+            {doneCount}/{items.length} done · {pct}%
           </span>
         )}
       </div>
 
+      {items.length > 0 && (
+        <div
+          className="h-2 overflow-hidden rounded-full bg-elevated/80 ring-1 ring-growth/20"
+          data-testid="protocol-progress"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Today's move progress"
+        >
+          <div
+            className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
+
+      {(completeFlash || moveComplete) && items.length > 0 && (
+        <div
+          className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 text-sm font-medium text-growth-ink ${
+            completeFlash ? "animate-pulse" : ""
+          }`}
+          data-testid="protocol-move-complete"
+          role="status"
+        >
+          Today&apos;s move complete — nice work.
+        </div>
+      )}
+
       <ul className="space-y-2">
         {items.map((it, idx) => {
           const checked = Boolean(doneMap[it.id]);
+          const note = completions[it.id]?.note || "";
           return (
             <li key={it.id}>
-              <label
-                className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 ${
+              <div
+                className={`rounded-xl border px-3 py-2.5 ${
                   checked
-                    ? "border-growth/50 bg-elevated/60 opacity-80"
+                    ? "border-growth/50 bg-elevated/60 opacity-90"
                     : "border-growth/30 bg-elevated/90"
                 } ${idx === 0 ? "shadow-soft" : ""}`}
               >
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
-                  checked={checked}
-                  onChange={() => onToggle(it.id)}
-                  data-testid={`protocol-check-${it.id}`}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`text-sm ${idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"} ${
-                        checked ? "line-through" : ""
-                      }`}
-                    >
-                      {it.label}
-                    </span>
-                    {it.inInventory && (
+                <label className="flex cursor-pointer gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
+                    checked={checked}
+                    onChange={() => onToggle(it)}
+                    data-testid={`protocol-check-${it.id}`}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
                       <span
-                        className="inline-flex items-center rounded-full bg-growth-soft px-2 py-0.5 text-[12px] font-medium text-growth-ink ring-1 ring-growth/30"
-                        data-testid={`from-kit-badge-${it.id}`}
+                        className={`text-sm ${
+                          idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"
+                        } ${checked ? "line-through" : ""}`}
                       >
-                        From your kit
+                        {it.label}
                       </span>
+                      {it.inInventory && (
+                        <span
+                          className="inline-flex items-center rounded-full bg-growth-soft px-2 py-0.5 text-[12px] font-medium text-growth-ink ring-1 ring-growth/30"
+                          data-testid={`from-kit-badge-${it.id}`}
+                        >
+                          From your kit
+                        </span>
+                      )}
+                    </span>
+                    {it.sub && (
+                      <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
+                    )}
+                    {it.why && (
+                      <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>
                     )}
                   </span>
-                  {it.sub && <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>}
-                  {it.why && <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>}
-                </span>
-              </label>
+                </label>
+                {checked && (
+                  <div className="mt-2 pl-7">
+                    <label className="block text-[11px] text-fg-muted" htmlFor={`note-${it.id}`}>
+                      Optional note
+                    </label>
+                    <input
+                      id={`note-${it.id}`}
+                      type="text"
+                      maxLength={120}
+                      defaultValue={note}
+                      placeholder="How it went…"
+                      className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted"
+                      data-testid={`protocol-note-${it.id}`}
+                      onBlur={(e) => {
+                        if (e.target.value.trim() !== (note || "").trim()) {
+                          onNote(it.id, e.target.value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </li>
           );
         })}
@@ -866,7 +994,7 @@ function TodaysMoveCard({
         </div>
       )}
 
-      {baselineKit.length > 0 && (
+      {baselineItems.length > 0 && (
         <div className="rounded-xl border border-border/80 bg-elevated/50" data-testid="baseline-kit">
           <button
             type="button"
@@ -874,19 +1002,87 @@ function TodaysMoveCard({
             className="flex min-h-10 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-fg-muted"
             aria-expanded={baselineKitOpen}
           >
-            <span>Baseline kit (always-on defaults)</span>
+            <span>
+              Baseline kit (always-on defaults)
+              <span className="ml-1 text-fg-muted" data-testid="baseline-done-count">
+                · {baselineDoneCount}/{baselineItems.length}
+              </span>
+            </span>
             <span>{baselineKitOpen ? "Hide" : "Show"}</span>
           </button>
           {baselineKitOpen && (
-            <ul className="space-y-2 border-t border-border px-3 pb-3 pt-2">
-              {baselineKit.map((it, i) => (
-                <li key={`${it.item}-${i}`} className="text-sm text-fg-secondary">
-                  <span className="font-medium text-fg">{it.item}</span>
-                  {it.when && <span className="text-fg-muted"> · {it.when}</span>}
-                  {it.why && <p className="text-xs text-fg-muted">{it.why}</p>}
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-2 border-t border-border px-3 pb-3 pt-2">
+              <div
+                className="h-1.5 overflow-hidden rounded-full bg-sunken"
+                data-testid="baseline-progress"
+                role="progressbar"
+                aria-valuenow={baselinePct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Baseline kit progress"
+              >
+                <div
+                  className="h-full rounded-full bg-growth/70 transition-[width] duration-300 ease-out"
+                  style={{ width: `${baselinePct}%` }}
+                />
+              </div>
+              <ul className="space-y-2">
+                {baselineItems.map((it) => {
+                  const checked = Boolean(doneMap[it.id]);
+                  const note = completions[it.id]?.note || "";
+                  return (
+                    <li key={it.id}>
+                      <div className="rounded-lg border border-border/60 bg-elevated/80 px-2.5 py-2">
+                        <label className="flex cursor-pointer gap-2.5">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
+                            checked={checked}
+                            onChange={() => onToggle(it)}
+                            data-testid={`protocol-check-${it.id}`}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className={`text-sm font-medium text-fg ${checked ? "line-through" : ""}`}
+                            >
+                              {it.label}
+                            </span>
+                            {it.sub && (
+                              <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
+                            )}
+                            {it.why && (
+                              <span className="mt-0.5 block text-xs text-fg-muted">{it.why}</span>
+                            )}
+                          </span>
+                        </label>
+                        {checked && (
+                          <div className="mt-1.5 pl-6">
+                            <input
+                              type="text"
+                              maxLength={120}
+                              defaultValue={note}
+                              placeholder="Optional note…"
+                              className="w-full rounded-lg border border-border bg-sunken px-2 py-1 text-xs text-fg placeholder:text-fg-muted"
+                              data-testid={`protocol-note-${it.id}`}
+                              onBlur={(e) => {
+                                if (e.target.value.trim() !== (note || "").trim()) {
+                                  onNote(it.id, e.target.value);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  (e.target as HTMLInputElement).blur();
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
         </div>
       )}
@@ -957,12 +1153,23 @@ function KitStrip({
   );
 }
 
-/* ─── Week: theme + sky only ────────────────────────────────────────────── */
+/* ─── Week: theme + sky + completed ─────────────────────────────────────── */
 
-function WeekSkyCard({ theme, skyNote }: { theme: string; skyNote: string }) {
+function WeekSkyCard({
+  theme,
+  skyNote,
+  weekRows,
+}: {
+  theme: string;
+  skyNote: string;
+  weekRows: WeekCompletedRow[];
+}) {
+  const moveRows = weekRows.filter((r) => r.kind === "move");
+  const baselineRows = weekRows.filter((r) => r.kind === "baseline");
+
   return (
     <section
-      className="space-y-2 rounded-2xl border border-border bg-elevated p-5"
+      className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
       data-testid="week-plan"
     >
       <h2 className="text-lg font-semibold text-energy-ink">This week</h2>
@@ -982,6 +1189,56 @@ function WeekSkyCard({ theme, skyNote }: { theme: string; skyNote: string }) {
           <p className="mt-1.5 text-sm text-fg-secondary">{skyNote}</p>
         </div>
       )}
+
+      <div
+        className="rounded-xl border border-growth/30 bg-growth-soft/40 px-4 py-3"
+        data-testid="week-completed"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-growth-ink">
+            Completed this week
+          </p>
+          <span className="text-[11px] text-fg-muted" data-testid="week-completed-count">
+            {weekRows.length} checked · Mon–Sun HKT
+          </span>
+        </div>
+        {weekRows.length === 0 ? (
+          <p className="mt-2 text-sm text-fg-muted" data-testid="week-completed-empty">
+            Nothing checked yet — tick Today&apos;s Move or baseline kit items as you go.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5" data-testid="week-completed-list">
+            {weekRows.map((r) => (
+              <li
+                key={`${r.day}:${r.id}`}
+                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
+              >
+                <span className="shrink-0 text-[11px] font-medium text-fg-muted">
+                  {formatWeekDayLabel(r.day)}
+                </span>
+                <span className={r.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
+                  {r.label}
+                </span>
+                {r.kind === "baseline" && (
+                  <span className="rounded-full bg-sunken px-1.5 py-0.5 text-[10px] text-fg-muted">
+                    baseline
+                  </span>
+                )}
+                {r.note && (
+                  <span className="w-full text-[11px] italic text-fg-muted sm:w-auto">
+                    — {r.note}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {(moveRows.length > 0 || baselineRows.length > 0) && (
+          <p className="mt-2 text-[11px] text-fg-muted">
+            {moveRows.length} move · {baselineRows.length} baseline · stored on this device
+          </p>
+        )}
+      </div>
     </section>
   );
 }
