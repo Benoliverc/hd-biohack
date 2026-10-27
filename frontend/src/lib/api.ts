@@ -335,7 +335,11 @@ export const api = {
       overlay: Record<string, unknown> | null;
       indication: TodayIndicationPayload | null;
     }>(`/transits/today${natalChartId ? `?natal_chart_id=${natalChartId}` : ""}`),
-  protocol: (userId: number, natalChartId?: number) =>
+  protocol: (
+    userId: number,
+    natalChartId?: number,
+    opts?: { yesterdayLeadFingerprint?: string | null }
+  ) =>
     req<{
       entitlement: Record<string, unknown>;
       overlay: Record<string, unknown>;
@@ -343,7 +347,11 @@ export const api = {
       protocol: Record<string, unknown>;
     }>("/biohack/protocol", {
       method: "POST",
-      body: JSON.stringify({ user_id: userId, natal_chart_id: natalChartId ?? null }),
+      body: JSON.stringify({
+        user_id: userId,
+        natal_chart_id: natalChartId ?? null,
+        yesterday_lead_fingerprint: opts?.yesterdayLeadFingerprint ?? null,
+      }),
     }),
   inventory: (userId: number) =>
     req<Array<{ id: number; name: string; notes: string }>>(`/inventory/${userId}`),
