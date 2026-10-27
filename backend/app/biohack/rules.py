@@ -995,8 +995,10 @@ def build_protocol(
     inventory_names: list[str] | None = None,
     indication: dict[str, Any] | None = None,
     transit: dict[str, Any] | None = None,
+    yesterday_lead_fingerprint: str | None = None,
 ) -> dict[str, Any]:
     from ..checkin import derive_today_indication
+    from .sky_rotation import apply_sky_rotation, lead_fingerprint
 
     owned = {n.lower() for n in (inventory_names or [])}
     undefined = set(natal.get("undefined_centers", []))
@@ -1071,6 +1073,30 @@ def build_protocol(
     if daily_directive and weekly_plan.get("sky_note"):
         weekly_plan["sky_note"] = daily_directive if bridges else weekly_plan["sky_note"]
 
+    # Sky-rotated daily protocol — Daily Novelty Contract for timed leads
+    morning_lead = daily_plan["morning"][0]
+    midday_lead = daily_plan["midday"][0]
+    evening_lead = daily_plan["evening"][0]
+    natural_fp = lead_fingerprint(morning_lead, midday_lead, evening_lead)
+    daily_signal = (indication or {}).get("daily_signal") if isinstance(indication, dict) else None
+    morning_lead, midday_lead, evening_lead, whats_new = apply_sky_rotation(
+        morning_lead,
+        midday_lead,
+        evening_lead,
+        yesterday_fingerprint=yesterday_lead_fingerprint,
+        daily_signal=daily_signal if isinstance(daily_signal, dict) else None,
+        owned=owned,
+    )
+    daily_plan["morning"] = [morning_lead]
+    daily_plan["midday"] = [midday_lead]
+    daily_plan["evening"] = [evening_lead]
+    daily_plan["whats_new"] = whats_new
+    summary["top_actions"] = [
+        f"Morning: {morning_lead['item']}",
+        f"Midday: {midday_lead['item']}",
+        f"Evening: {evening_lead['item']}",
+    ]
+
     return {
         "disclaimer": (
             "For informational and energetic optimization purposes only; not medical advice. "
@@ -1090,6 +1116,9 @@ def build_protocol(
         "inventory_prioritized": bool(owned),
         "source": "deterministic_rules",
         "indication": indication,
+        "whats_new": whats_new,
+        "lead_fingerprint": whats_new.get("lead_fingerprint") or natural_fp,
+        "natural_lead_fingerprint": natural_fp,
         "labels": {
             "natal_baseline": "Standard care for your chart (permanent)",
             "transit_weekly": "This week's transit adjustments (temporary)",

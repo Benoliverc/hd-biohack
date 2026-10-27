@@ -34,6 +34,19 @@ type PlanItem = {
   priority?: number;
 };
 
+type WhatsNew = {
+  chip?: string;
+  body?: string;
+  source?: string;
+  key?: string;
+  rotated?: boolean;
+  rotated_slot?: string | null;
+  forced_rotation?: boolean;
+  lead_fingerprint?: string;
+  yesterday_lead_fingerprint?: string | null;
+  fingerprint_matched?: boolean;
+};
+
 type StackItem = {
   name: string;
   note: string;
@@ -77,6 +90,52 @@ function resolveYouChart(
     if (match && isSelfRow(match)) return match;
   }
   return rows.find((r) => isSelfRow(r)) ?? null;
+}
+
+function leadFpKey(userId: number, chartId: number, day: string): string {
+  return `hd-biohack:protocol-leads:v1:${userId}:${chartId}:${day}`;
+}
+
+function loadLeadFingerprint(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { fingerprint?: string };
+    return typeof parsed?.fingerprint === "string" && parsed.fingerprint
+      ? parsed.fingerprint
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLeadFingerprint(key: string, fingerprint: string, whatsNew?: WhatsNew | null) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(
+      key,
+      JSON.stringify({ fingerprint, whats_new: whatsNew ?? null, saved_at: Date.now() })
+    );
+  } catch {
+    /* ignore quota */
+  }
+}
+
+/** Previous HKT calendar day key (wall-clock −24h, formatted in Asia/Hong_Kong). */
+function prevHkDayKey(d = new Date()): string {
+  return hkDayKey(new Date(d.getTime() - 24 * 60 * 60 * 1000));
+}
+
+function vsPillLabel(d: { field: string; from: string; to: string }): string {
+  if (d.field === "moon") return `Moon ${d.from} → ${d.to}`;
+  if (d.field === "sun") return `Sun ${d.from} → ${d.to}`;
+  if (d.field === "hanging_pressure") return `Hanging ${d.from} → ${d.to}`;
+  if (d.field === "bridge") return `Bridge ${d.from} → ${d.to}`;
+  if (d.field === "newly_defined") return `Centers ${d.from} → ${d.to}`;
+  if (d.field === "energy") return `Energy ${d.from} → ${d.to}`;
+  if (d.field === "space") return `Space ${d.from} → ${d.to}`;
+  return `${d.from} → ${d.to}`;
 }
 
 type CheckItem = {
@@ -313,13 +372,31 @@ export default function BiohackPage() {
       setLoading(true);
       setError(null);
       try {
+        const yFp = loadLeadFingerprint(
+          leadFpKey(user.id, youChart.id, prevHkDayKey())
+        );
         const [protoRes, transitRes] = await Promise.all([
-          api.protocol(user.id, youChart.id),
+          api.protocol(user.id, youChart.id, {
+            yesterdayLeadFingerprint: yFp,
+          }),
           api.transitsToday(youChart.id),
         ]);
         setProtocol(protoRes.protocol);
         // Prefer shared derive from /transits/today for weather strip parity with Today
         setIndication(transitRes.indication ?? protoRes.indication ?? null);
+        const wn =
+          (protoRes.protocol?.whats_new as WhatsNew | undefined) ||
+          ((protoRes.protocol?.daily_plan as { whats_new?: WhatsNew } | undefined)
+            ?.whats_new ??
+            null);
+        const fp =
+          (typeof protoRes.protocol?.lead_fingerprint === "string" &&
+            protoRes.protocol.lead_fingerprint) ||
+          wn?.lead_fingerprint ||
+          null;
+        if (fp) {
+          saveLeadFingerprint(leadFpKey(user.id, youChart.id, dayKey), fp, wn);
+        }
         setNatalOpen(false);
         await refreshInventory();
         if (opts?.rebuild) {
@@ -333,7 +410,7 @@ export default function BiohackPage() {
         setLoading(false);
       }
     },
-    [user, youChart, refreshInventory]
+    [user, youChart, refreshInventory, dayKey]
   );
 
   // Auto-load today's protocol on enter (no Generate ritual)
@@ -429,6 +506,9 @@ export default function BiohackPage() {
 
   const asOfLabel = formatResetsInHkt();
   const resolvingYou = natalBindingLoading || !youReady;
+  const whatsNew: WhatsNew | null =
+    (protocol?.whats_new as WhatsNew | undefined) ||
+    ((daily as { whats_new?: WhatsNew } | null)?.whats_new ?? null);
 
   const checkItems = useMemo(() => {
     if (!daily || !summary) return [] as CheckItem[];
@@ -606,6 +686,7 @@ export default function BiohackPage() {
               protocol.daily_directive ||
               ""
           )}
+          whatsNew={whatsNew}
         />
       )}
 
@@ -637,6 +718,7 @@ export default function BiohackPage() {
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
+          whatsNew={whatsNew}
         />
       )}
 
@@ -763,11 +845,13 @@ function WeatherStrip({
   asOfLabel,
   weeklyTheme,
   skyNote,
+  whatsNew,
 }: {
   indication: TodayIndicationPayload;
   asOfLabel: string | null;
   weeklyTheme: Record<string, unknown> | null;
   skyNote: string;
+  whatsNew?: WhatsNew | null;
 }) {
   const sunEarth =
     weeklyTheme && (weeklyTheme.summary || weeklyTheme.sun_gate)
@@ -776,6 +860,11 @@ function WeatherStrip({
   const bridgeBit = skyNote.includes("Channel")
     ? skyNote.split(".")[0]
     : skyNote.slice(0, 120);
+  const vs = indication.vs_yesterday || [];
+  const chip =
+    whatsNew?.chip ||
+    indication.daily_signal?.headline ||
+    "What's new vs yesterday";
 
   return (
     <section
@@ -789,8 +878,34 @@ function WeatherStrip({
         <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg">
           {indication.preferred_space_label}
         </span>
+        <span
+          className="rounded-full border border-growth/40 bg-growth-soft px-2.5 py-0.5 text-xs font-semibold text-growth-ink"
+          data-testid="whats-new-chip"
+          title={whatsNew?.body || indication.daily_signal?.body || undefined}
+        >
+          {chip}
+        </span>
         {asOfLabel && <span className="text-[11px] text-fg-muted">{asOfLabel}</span>}
       </div>
+      {vs.length > 0 && (
+        <div
+          className="mt-2 flex flex-wrap gap-1.5"
+          data-testid="protocols-vs-yesterday"
+          role="list"
+          aria-label="Vs yesterday"
+        >
+          {vs.map((d) => (
+            <span
+              key={`${d.field}-${d.from}-${d.to}`}
+              role="listitem"
+              className="inline-flex items-center rounded-full border border-border bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary"
+              data-testid={`protocols-vs-${d.field}`}
+            >
+              {vsPillLabel(d)}
+            </span>
+          ))}
+        </div>
+      )}
       {sunEarth && <p className="mt-2 text-sm text-fg">{sunEarth}</p>}
       {bridgeBit && <p className="mt-1 text-xs text-fg-muted">{bridgeBit}</p>}
       <p className="mt-2 text-[11px] text-fg-muted">
@@ -822,6 +937,7 @@ function TodaysMoveCard({
   baselineKitOpen,
   onToggleBaseline,
   showNoKitFootnote,
+  whatsNew,
 }: {
   items: CheckItem[];
   baselineItems: CheckItem[];
@@ -838,9 +954,11 @@ function TodaysMoveCard({
   baselineKitOpen: boolean;
   onToggleBaseline: () => void;
   showNoKitFootnote?: boolean;
+  whatsNew?: WhatsNew | null;
 }) {
   const pct = progressPct(doneCount, items.length);
   const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
+  const rotatedSlot = whatsNew?.rotated_slot || null;
 
   return (
     <section
@@ -855,6 +973,27 @@ function TodaysMoveCard({
           </span>
         )}
       </div>
+      {whatsNew && (
+        <div
+          className="rounded-xl border border-growth/30 bg-elevated/80 px-3 py-2"
+          data-testid="todays-move-whats-new"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-growth-ink">
+            What&apos;s new vs yesterday
+          </p>
+          <p className="mt-0.5 text-sm text-fg">
+            {whatsNew.chip || "Sky-rotated lead"}
+          </p>
+          {whatsNew.body && (
+            <p className="mt-1 text-xs text-fg-secondary">{whatsNew.body}</p>
+          )}
+          {whatsNew.forced_rotation && rotatedSlot && (
+            <p className="mt-1 text-[11px] text-fg-muted" data-testid="forced-rotation-note">
+              Rotated {rotatedSlot} lead so today isn&apos;t a copy of yesterday.
+            </p>
+          )}
+        </div>
+      )}
 
       {items.length > 0 && (
         <div
@@ -929,6 +1068,14 @@ function TodaysMoveCard({
                     )}
                     {it.why && (
                       <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>
+                    )}
+                    {rotatedSlot && it.id === rotatedSlot && (
+                      <span
+                        className="inline-flex items-center rounded-full bg-energy/15 px-2 py-0.5 text-[12px] font-medium text-energy-ink ring-1 ring-energy/30"
+                        data-testid={`new-vs-yesterday-badge-${it.id}`}
+                      >
+                        New vs yesterday
+                      </span>
                     )}
                   </span>
                 </label>

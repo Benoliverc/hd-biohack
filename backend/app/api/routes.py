@@ -434,9 +434,27 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
     if not natal_row:
         raise HTTPException(404, "No natal chart for user — calculate & save one first")
 
-    transit = calculate_transits()
-    overlay = overlay_transits(natal_row.chart_json, transit)
-    indication = derive_today_indication(natal_row.chart_json, transit, overlay)
+    # Same HKT 07:00 novelty buckets as /transits/today
+    day = hkt_today()
+    when_today = hkt_bucket_instant(day)
+    when_yest = hkt_bucket_instant(day - timedelta(days=1))
+    natal = natal_row.chart_json
+    transit = calculate_transits(when_today)
+    prev_transit = calculate_transits(when_yest)
+    overlay = overlay_transits(natal, transit)
+    prev_overlay = overlay_transits(natal, prev_transit)
+    prev_indication = derive_today_indication(natal, prev_transit, prev_overlay)
+    indication = derive_today_indication(
+        natal,
+        transit,
+        overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        prev_indication=prev_indication,
+        day=day,
+        calc_transit=calculate_transits,
+        calc_overlay=overlay_transits,
+    )
     inv = [
         r.name
         for r in db.query(SupplementInventory).filter(
@@ -444,12 +462,25 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
             SupplementInventory.active.is_(True),
         ).all()
     ]
+    # Prefer FE-persisted yesterday fingerprint; else recompute natural leads for D-1
+    y_fp = (body.yesterday_lead_fingerprint or "").strip() or None
+    if not y_fp:
+        yest_proto = build_protocol(
+            natal,
+            prev_overlay,
+            inv,
+            indication=prev_indication,
+            transit=prev_transit,
+            yesterday_lead_fingerprint=None,
+        )
+        y_fp = yest_proto.get("lead_fingerprint") or yest_proto.get("natural_lead_fingerprint")
     proto = build_protocol(
-        natal_row.chart_json,
+        natal,
         overlay,
         inv,
         indication=indication,
         transit=transit,
+        yesterday_lead_fingerprint=y_fp,
     )
     proto = maybe_synthesize(proto)
 

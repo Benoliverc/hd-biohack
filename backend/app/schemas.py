@@ -123,6 +123,8 @@ class InventoryItemIn(BaseModel):
 class ProtocolRequest(BaseModel):
     user_id: int
     natal_chart_id: int | None = None
+    # FE-persisted post-rotation fingerprint from previous HKT day (anti-whiplash).
+    yesterday_lead_fingerprint: str | None = None
 
 
 class TelemetryIn(BaseModel):
