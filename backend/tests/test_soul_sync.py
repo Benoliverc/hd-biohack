@@ -285,6 +285,11 @@ def test_power_dynamics_and_somatic_protocols():
     power = next(c for c in out["cards"] if c["id"] == "power_dynamics")
     assert any("Purpose & Tenacity" in blk["headline"] for blk in power["body_blocks"])
     assert "friction" not in power["title"].lower()
+    tenacity = next(blk for blk in power["body_blocks"] if "Purpose & Tenacity" in blk["headline"])
+    assert tenacity["body"].startswith("You hold the full Struggle channel")
+    assert "What to do:" in tenacity["body"]
+    assert "Name who is running the full thermostat before pushing pace" not in tenacity["body"]
+    assert len(tenacity["body"].split()) >= 80
     soma = next(c for c in out["cards"] if c["id"] == "somatic_playbook")
     proto_ids = {p["id"] for p in (soma.get("protocols") or [])}
     assert "sacral_aura_hygiene" in proto_ids

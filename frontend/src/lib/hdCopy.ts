@@ -496,7 +496,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "power-dynamics",
     title: "Power Dynamics to Tune",
     body:
-      "Some channels show up as compromise: one of you holds a full channel while the other holds only a hanging gate on the same path. That can feel like fighting over the thermostat — same room, different set points. These are high-awareness zones. Name them, slow down, and tune together; they are not a verdict that one person is 'in charge.'",
+      "Some channels show up as compromise: one of you holds a full channel while the other holds only a hanging gate on the same path. That can feel like fighting over the thermostat — same room, different set points. Each card below names who holds the fuller set point for that theme and gives a plain what-to-do. These are high-awareness zones to tune together; they are not a verdict that one person is 'in charge.'",
     jumpLabel: "Power Dynamics",
     targetId: "soul-card-power_dynamics",
   },

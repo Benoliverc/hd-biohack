@@ -318,8 +318,325 @@ STRUGGLE_GATES = frozenset({28, 38})
 RECOGNITION_GATES = frozenset({30, 41})
 AWAKENING_GATES = frozenset({10, 20})
 EXPLORATION_GATES = frozenset({10, 34})
+CONCENTRATION_GATES = frozenset({9, 52})
+TRANSFORMATION_GATES = frozenset({32, 54})
+COMMUNITY_GATES = frozenset({37, 40})
 
 DISCLAIMER = "Chart mechanics for awareness — not medical or relationship advice."
+
+
+def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
+    """Unique Power Dynamics body for one compromise channel (You/They hold full)."""
+    gset = frozenset(ch.get("gates") or [])
+    name = ch.get("channel") or "Channel"
+    full = ch.get("full", "self")
+    you_hold = full == "self"
+    holder = "You" if you_hold else "They"
+    other = "they" if you_hold else "you"
+
+    def pack(headline: str, para1: str, para2: str) -> dict[str, str]:
+        return {"headline": headline, "body": f"{para1}\n\n{para2}"}
+
+    if gset == CONCENTRATION_GATES:
+        if you_hold:
+            return pack(
+                "Concentration Tuning",
+                (
+                    f"{holder} hold the full Concentration channel (Sacral–Root focus under pressure). "
+                    "That means deep-work stamina and the urge to dig into one thing until it is done "
+                    f"lives more steadily in you; {other} may only catch the pressure half and feel "
+                    "restless or interrupted when you disappear into detail."
+                ),
+                (
+                    "What to do: before a long focus block, say out loud how long you need and what "
+                    f"counts as 'done for now.' Invite {other} to name one interruption that is allowed "
+                    "(meal, kids, a real emergency) so focus does not read as withdrawal. If pace "
+                    "starts to clash, pause and ask who is setting the focus thermostat today — same "
+                    "room, different set points — then agree a window instead of pushing through."
+                ),
+            )
+        return pack(
+            "Concentration Tuning",
+            (
+                f"{holder} hold the full Concentration channel (Sacral–Root focus under pressure). "
+                "Deep-work stamina and the urge to dig into one thing until it is done lives more "
+                "steadily in them; you may only catch the pressure half and feel restless, locked "
+                "out, or suddenly 'behind' when they disappear into detail."
+            ),
+            (
+                "What to do: before a long shared day, ask them how long they need heads-down and "
+                "what counts as 'done for now.' Name one interruption you need permission for "
+                "(meal, kids, a real emergency) so their focus does not feel like rejection. If "
+                "pace starts to clash, pause and ask who is setting the focus thermostat today — "
+                "same room, different set points — then agree a window instead of pushing through."
+            ),
+        )
+
+    if gset == EXPLORATION_GATES:
+        if you_hold:
+            return pack(
+                "Exploration Tuning",
+                (
+                    f"{holder} hold the full Exploration channel (self-directed sacral motion). "
+                    "Your body wants to follow your own code and try the next path; "
+                    f"{other} may only hold a hanging half and feel either pulled into your "
+                    "adventures or left watching from the shore."
+                ),
+                (
+                    "What to do: name the exploration before you accelerate — destination, time box, "
+                    "and whether this is solo scouting or a shared trip. Ask "
+                    f"{other} for a clear yes, soft maybe, or not-today before you book, buy, or "
+                    "drag the schedule. If either of you feels steamrolled, stop and say who is "
+                    "running the adventure thermostat right now, then slow to the slower person's "
+                    "real yes."
+                ),
+            )
+        return pack(
+            "Exploration Tuning",
+            (
+                f"{holder} hold the full Exploration channel (self-directed sacral motion). "
+                "Their body wants to follow their own code and try the next path; you may only "
+                "hold a hanging half and feel either pulled into their adventures or left watching "
+                "from the shore."
+            ),
+            (
+                "What to do: ask them to name the exploration before it accelerates — destination, "
+                "time box, and whether this is solo scouting or a shared trip. Give a clear yes, "
+                "soft maybe, or not-today before calendars or money move. If you feel steamrolled "
+                "(or they feel stalled), stop and say who is running the adventure thermostat "
+                "right now, then slow to the slower person's real yes."
+            ),
+        )
+
+    if gset == SYNTHESIS_GATES:
+        if you_hold:
+            return pack(
+                "Synthesis Tuning",
+                (
+                    f"{holder} hold the full Synthesis channel (needs, fairness, who is in or out). "
+                    "You feel consistent pressure around resources, belonging, and whether the deal "
+                    f"is fair; {other} may only hold a hanging gate and feel the mood of inclusion "
+                    "or exclusion without the same steady signal."
+                ),
+                (
+                    "What to do: before rewriting house rules, guest lists, or money plans, ride your "
+                    "emotional wave and then state the need in plain words — food, rest, loyalty, or "
+                    f"fair share — not as a sudden revolution. Ask {other} what they heard the need "
+                    "was, so principles do not get mistaken for attack. If the room heats up, name "
+                    "who is holding the belonging thermostat and pause big 'in/out' decisions until "
+                    "both of you feel the wave settle."
+                ),
+            )
+        return pack(
+            "Synthesis Tuning",
+            (
+                f"{holder} hold the full Synthesis channel (needs, fairness, who is in or out). "
+                "They feel consistent pressure around resources, belonging, and whether the deal "
+                "is fair; you may only hold a hanging gate and feel the mood of inclusion or "
+                "exclusion without the same steady signal."
+            ),
+            (
+                "What to do: when they raise house rules, guests, or money, treat it as a needs "
+                "signal first — food, rest, loyalty, fair share — not as a sudden attack on you. "
+                "Ask them to wait for emotional clarity before locking a revolution. If the room "
+                "heats up, name who is holding the belonging thermostat and pause big 'in/out' "
+                "decisions until both of you feel the wave settle."
+            ),
+        )
+
+    if gset == STRUCTURING_GATES:
+        if you_hold:
+            return pack(
+                "Structuring Tuning",
+                (
+                    f"{holder} hold the full Structuring channel (insight that needs the right words). "
+                    "Breakthrough knowing wants to leave your Ajna as a clear frame others can use; "
+                    f"{other} may only hold a hanging half and hear genius as weird if the packaging "
+                    "is rushed."
+                ),
+                (
+                    "What to do: protect a short incubation window, then translate the download into "
+                    "one sentence, one diagram, or one next step before you pitch it. Ask "
+                    f"{other} 'Did that land as useful or as odd?' and adjust the frame, not the "
+                    "insight. If either of you pushes pace on a half-baked idea, name who is running "
+                    "the clarity thermostat and wait for recognition before the next dump."
+                ),
+            )
+        return pack(
+            "Structuring Tuning",
+            (
+                f"{holder} hold the full Structuring channel (insight that needs the right words). "
+                "Breakthrough knowing wants to leave their Ajna as a clear frame others can use; "
+                "you may only hold a hanging half and hear genius as weird if the packaging is "
+                "rushed."
+            ),
+            (
+                "What to do: give them a short incubation window, then ask for one sentence, one "
+                "diagram, or one next step before you debate the idea. Say plainly whether it "
+                "landed as useful or as odd so they can reframe without feeling shut down. If "
+                "either of you pushes pace on a half-baked idea, name who is running the clarity "
+                "thermostat and wait for recognition before the next dump."
+            ),
+        )
+
+    if gset == STRUGGLE_GATES:
+        if you_hold:
+            return pack(
+                "Purpose & Tenacity Tuning",
+                (
+                    f"{holder} hold the full Struggle channel (purpose through challenge — also "
+                    "called the channel of Struggle). Stubborn courage and the hunt for what is "
+                    f"worth fighting for live more steadily in you; {other} may only hold a hanging "
+                    "gate and feel the pressure of a fight without the same sense of meaning."
+                ),
+                (
+                    "What to do: before locking into a solo battle (work, family, principle), check "
+                    "in out loud — 'Is this fight connected to purpose, or am I grinding for sport?' "
+                    f"If yes, invite {other} into the why so tenacity looks like devotion, not "
+                    "abandonment. If no, walk away together and save the spleen. Do not recruit "
+                    "them into a war they never named as theirs."
+                ),
+            )
+        return pack(
+            "Purpose & Tenacity Tuning",
+            (
+                f"{holder} hold the full Struggle channel (purpose through challenge — also "
+                "called the channel of Struggle). Stubborn courage and the hunt for what is "
+                "worth fighting for live more steadily in them; you may only hold a hanging "
+                "gate and feel the pressure of a fight without the same sense of meaning."
+            ),
+            (
+                "What to do: before they lock into a solo battle (work, family, principle), ask "
+                "them to check in out loud — 'Is this fight connected to purpose, or grinding for "
+                "sport?' If yes, ask to hear the why so their tenacity does not look like "
+                "abandonment. If no, help them walk away and save the spleen. You do not have to "
+                "enlist in a war you never named as yours."
+            ),
+        )
+
+    if gset == TRANSFORMATION_GATES:
+        if you_hold:
+            return pack(
+                "Transformation Tuning",
+                (
+                    f"{holder} hold the full Transformation channel (ambition guided by instinct). "
+                    "Drive to rise and change material or social position lives more steadily in you, "
+                    "tempered by splenic knowing about what will last; "
+                    f"{other} may only hold a hanging half and feel the climb without the same "
+                    "inner 'this will endure' meter."
+                ),
+                (
+                    "What to do: before a promotion push, move, or big spend, name both the ambition "
+                    "and the gut check — what must stay intact while you climb. Ask "
+                    f"{other} what stability they need on the other side of the change. If pace "
+                    "starts to feel like brittle striving, pause and say who is running the ambition "
+                    "thermostat, then slow until instinct and drive agree."
+                ),
+            )
+        return pack(
+            "Transformation Tuning",
+            (
+                f"{holder} hold the full Transformation channel (ambition guided by instinct). "
+                "Drive to rise and change material or social position lives more steadily in them, "
+                "tempered by splenic knowing about what will last; you may only hold a hanging "
+                "half and feel the climb without the same inner 'this will endure' meter."
+            ),
+            (
+                "What to do: before a promotion push, move, or big spend, ask them to name both "
+                "the ambition and the gut check — what must stay intact while they climb. Say "
+                "what stability you need on the other side of the change. If pace starts to feel "
+                "like brittle striving, pause and say who is running the ambition thermostat, "
+                "then slow until instinct and drive agree."
+            ),
+        )
+
+    if gset == COMMUNITY_GATES:
+        if you_hold:
+            return pack(
+                "Community Tuning",
+                (
+                    f"{holder} hold the full Community channel (loyalty, family deals, honest "
+                    "exchange). Emotional clarity and willpower meet in you around who is family, "
+                    "who owes what, and whether the bargain feels warm and fair; "
+                    f"{other} may only hold a hanging gate and feel the loyalty weather without "
+                    "the same deal-making signal."
+                ),
+                (
+                    "What to do: make the bargain explicit — time, money, care, holidays — before "
+                    f"resentment writes the contract in silence. Ask {other} what they think the "
+                    "deal is, and renegotiate out loud when life changes. If either of you feels "
+                    "used or locked in, name who is holding the loyalty thermostat and pause new "
+                    "commitments until the exchange feels mutual again."
+                ),
+            )
+        return pack(
+            "Community Tuning",
+            (
+                f"{holder} hold the full Community channel (loyalty, family deals, honest "
+                "exchange). Emotional clarity and willpower meet in them around who is family, "
+                "who owes what, and whether the bargain feels warm and fair; you may only hold a "
+                "hanging gate and feel the loyalty weather without the same deal-making signal."
+            ),
+            (
+                "What to do: ask them to make the bargain explicit — time, money, care, holidays "
+                "— before resentment writes the contract in silence. Say what you think the deal "
+                "is, and renegotiate out loud when life changes. If either of you feels used or "
+                "locked in, name who is holding the loyalty thermostat and pause new commitments "
+                "until the exchange feels mutual again."
+            ),
+        )
+
+    if gset == RECOGNITION_GATES:
+        if you_hold:
+            return pack(
+                "Desire & Imagination Tuning",
+                (
+                    f"{holder} hold the full Recognition channel (feeling + hunger for experience). "
+                    "Emotional pressure to desire, fantasize, and start new stories lives more "
+                    f"steadily in you; {other} may only hold a hanging half and get swept into the "
+                    "fantasy without knowing whether it is play or a real launch."
+                ),
+                (
+                    "What to do: label each spark out loud — casual fantasy vs ready-to-launch plan "
+                    "— and wait for the emotional wave before booking or promising. Invite "
+                    f"{other} to enjoy the dream without treating every mood as a commitment. If "
+                    "desire starts driving the schedule, pause and name who is running the hunger "
+                    "thermostat."
+                ),
+            )
+        return pack(
+            "Desire & Imagination Tuning",
+            (
+                f"{holder} hold the full Recognition channel (feeling + hunger for experience). "
+                "Emotional pressure to desire, fantasize, and start new stories lives more "
+                "steadily in them; you may only hold a hanging half and get swept into the "
+                "fantasy without knowing whether it is play or a real launch."
+            ),
+            (
+                "What to do: ask them to label each spark out loud — casual fantasy vs "
+                "ready-to-launch plan — and wait for the emotional wave before booking or "
+                "promising. Enjoy the dream without treating every mood as a commitment. If "
+                "desire starts driving the schedule, pause and name who is running the hunger "
+                "thermostat."
+            ),
+        )
+
+    return pack(
+        f"{name} Tuning",
+        (
+            f"{holder} hold the full {name} channel while {other} only holds a hanging gate on "
+            "the same path. That is a compromise dynamic: one person's set point for this theme "
+            "is steadier (the 'thermostat'), and the other adapts more from moment to moment — "
+            "not a verdict that one of you is in charge of the relationship."
+        ),
+        (
+            "What to do: before you push pace on this theme, name who is holding the full "
+            "channel today and what each of you needs to feel tuned rather than overridden. "
+            "Slow down, make the set point explicit, and decide together — these are "
+            "high-awareness zones, not scoreboards."
+        ),
+    )
+
 
 
 def clamp(n: float, lo: float = 0.0, hi: float = 100.0) -> float:
@@ -1161,27 +1478,15 @@ def build_cards(
     }
 
     # Card 3 — power_dynamics
-    power_blocks: list[dict[str, str]] = []
-    for ch in roles["compromise"]:
-        gset = frozenset(ch.get("gates") or [])
-        name = ch.get("channel") or "Channel"
-        if gset == STRUGGLE_GATES:
-            headline = "Purpose & Tenacity Tuning"
-            proto = "Check in before locking into stubborn solo battles."
-        elif gset == RECOGNITION_GATES:
-            headline = "Desire & Imagination Tuning"
-            proto = "Label casual fantasies vs ready-to-launch plans."
-        else:
-            headline = f"{name} Tuning"
-            proto = "Name who is running the full thermostat before pushing pace."
-        full = ch.get("full", "self")
-        who = "You hold the full channel" if full == "self" else "They hold the full channel"
-        power_blocks.append(
-            {
-                "headline": headline,
-                "body": f"{who} ({name}). {proto}",
-            }
-        )
+    power_blocks: list[dict[str, str]] = [
+        _compromise_tuning_block(ch) for ch in roles["compromise"]
+    ]
+    steady_body = (
+        "No compromise channels on this pair — neither of you is holding a full channel "
+        "while the other only holds a hanging gate on the same path. Fewer 'thermostat' "
+        "collisions on paper (same room, different set points). Keep using Spark & Glue and "
+        "the Somatic Playbook when pace still needs tuning."
+    )
     power_card: dict[str, Any] = {
         "id": "power_dynamics",
         "title": "Power Dynamics to Tune",
@@ -1189,14 +1494,12 @@ def build_cards(
         or [
             {
                 "headline": "Steady thermostats",
-                "body": "No compromise channels — fewer thermostat collisions on paper.",
+                "body": steady_body,
             }
         ],
     }
     if not power_blocks:
-        power_card["empty_body"] = (
-            "No compromise channels — fewer thermostat collisions on paper."
-        )
+        power_card["empty_body"] = steady_body
 
     # Card 4 — somatic_playbook
     protocols: list[dict[str, str]] = []
