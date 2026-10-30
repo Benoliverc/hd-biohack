@@ -516,12 +516,41 @@ def _slot_from_stack(
     owned: set[str],
     why_fallback: str,
     priority: int = 1,
+    *,
+    moment: dict | None = None,
+    avoid_ids: set[str] | None = None,
 ) -> dict | None:
-    """Prefer an owned inventory hit from a center stack; else first stack item."""
+    """Prefer a rotated, moment-fit kit lead; else owned stack hit; else first stack item."""
+    if not stack_items and not owned:
+        return None
+    ctx = moment or {}
+    if owned:
+        from .kit_variety import pick_kit_lead
+
+        kit_hit = pick_kit_lead(
+            owned,
+            slot=str(ctx.get("slot") or when.split()[0].lower() or "morning"),
+            energy_label=str(ctx.get("energy_label") or "Steady"),
+            preferred_space=str(ctx.get("preferred_space") or "focus"),
+            focus_centers=list(ctx.get("focus_centers") or []),
+            signal_source=ctx.get("signal_source"),
+            day_key=str(ctx.get("day_key") or "1970-01-01"),
+            avoid_supplement_ids=avoid_ids,
+        )
+        if kit_hit:
+            return kit_hit
     if not stack_items:
         return None
     owned_hits = [it for it in stack_items if _inv_hit(it["name"], owned)]
-    pick = owned_hits[0] if owned_hits else stack_items[0]
+    # Rotate among owned stack hits across HKT days when bank missed.
+    if len(owned_hits) > 1 and ctx.get("day_key"):
+        import hashlib
+
+        key = f"stack|{ctx.get('day_key')}|{when}|{','.join(sorted(owned))}"
+        idx = int(hashlib.sha256(key.encode()).hexdigest()[:8], 16) % len(owned_hits)
+        pick = owned_hits[idx]
+    else:
+        pick = owned_hits[0] if owned_hits else stack_items[0]
     return _plan_item(
         when,
         pick["name"],
@@ -542,11 +571,14 @@ def _pick_timed_supports(
     evening_stack: list[dict],
     energy_label: str,
     preferred_space: str,
+    *,
+    day_key: str = "1970-01-01",
+    signal_source: str | None = None,
 ) -> tuple[dict, dict, dict]:
     """One Morning / Midday / Evening lead from energy × bridge × owned inventory.
 
     Always-on daylight / caffeine / magnesium are NOT the permanent lead trio —
-    they live in baseline_kit instead.
+    they live in baseline_kit instead. Kit leads rotate by HKT day + moment fit.
     """
     undefined = set(natal.get("undefined_centers", []))
     defined = set(natal.get("defined_centers", []))
@@ -559,6 +591,32 @@ def _pick_timed_supports(
     bridge = bridges[0] if bridges else None
     bridge_name = str(bridge.get("name") or "") if isinstance(bridge, dict) else ""
     bridge_centers = set(bridge.get("centers") or []) if isinstance(bridge, dict) else set()
+    used_kit_ids: set[str] = set()
+
+    def _moment(slot: str) -> dict:
+        return {
+            "slot": slot,
+            "energy_label": energy_label,
+            "preferred_space": preferred_space,
+            "focus_centers": list(focus_centers) + list(focus),
+            "signal_source": signal_source,
+            "day_key": day_key,
+        }
+
+    def _note_kit(row: dict | None) -> dict | None:
+        if row and row.get("kit_supplement_id"):
+            used_kit_ids.add(str(row["kit_supplement_id"]))
+        return row
+
+    def _kit_slot(when: str, stack_items: list[dict], why: str, slot: str) -> dict | None:
+        return _slot_from_stack(
+            when,
+            stack_items,
+            owned,
+            why,
+            moment=_moment(slot),
+            avoid_ids=used_kit_ids,
+        )
 
     # ── Morning ──────────────────────────────────────────────────────────
     morning: dict | None = None
@@ -573,11 +631,11 @@ def _pick_timed_supports(
             track_inventory=False,
         )
     elif "Spleen" in focus or "Spleen" in bridge_centers:
-        morning = _slot_from_stack(
+        morning = _kit_slot(
             "Morning",
             morning_stack,
-            owned,
             "Splenic weather is quiet — support instinct, don't override with tabs.",
+            "morning",
         )
         if morning is None or not morning.get("in_inventory"):
             # Prefer Zinc/D from evening/morning spleen stacks if owned
@@ -586,7 +644,7 @@ def _pick_timed_supports(
                 for it in (morning_stack + evening_stack)
                 if any(k in it["name"].lower() for k in ("zinc", "vitamin d", "vitamin d3"))
             ]
-            hit = _slot_from_stack("Morning", zincish, owned, "Immune / intuition pulse.")
+            hit = _kit_slot("Morning", zincish, "Immune / intuition pulse.", "morning")
             if hit and hit.get("in_inventory"):
                 morning = hit
             else:
@@ -600,11 +658,11 @@ def _pick_timed_supports(
                     track_inventory=False,
                 )
     elif focus & {"Head", "Ajna"} or bridge_centers & {"Head", "Ajna"}:
-        morning = _slot_from_stack(
+        morning = _kit_slot(
             "With breakfast",
             morning_stack,
-            owned,
             "Quiet Head/Ajna pressure before the day's certainty loops open.",
+            "morning",
         )
         if morning is None:
             morning = _plan_item(
@@ -617,12 +675,12 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
     elif "Root" in focus or "Root" in bridge_centers:
-        morning = _slot_from_stack(
+        morning = _kit_slot(
             "Morning",
             [it for it in (morning_stack + midday_stack) if "electrolyte" in it["name"].lower()]
             or morning_stack,
-            owned,
             "Open or busy Root amplifies hurry — minerals before other people's urgency.",
+            "morning",
         )
         if morning is None:
             morning = _plan_item(
@@ -635,11 +693,11 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
     if morning is None:
-        morning = _slot_from_stack(
+        morning = _kit_slot(
             "With breakfast",
             morning_stack,
-            owned,
             "From your chart focus this week.",
+            "morning",
         )
     if morning is None:
         if sacral_def:
@@ -662,6 +720,8 @@ def _pick_timed_supports(
                 1,
                 track_inventory=False,
             )
+
+        morning = _note_kit(morning)
 
     # ── Midday ───────────────────────────────────────────────────────────
     midday: dict | None = None
@@ -686,11 +746,11 @@ def _pick_timed_supports(
             track_inventory=False,
         )
     elif focus & {"Head", "Ajna"} or bridge_centers & {"Head", "Ajna"}:
-        midday = _slot_from_stack(
+        midday = _kit_slot(
             "Midday",
             midday_stack,
-            owned,
             "Reduce over-analysis loops while the mind channel is bridged.",
+            "midday",
         )
         if midday is None:
             midday = _plan_item(
@@ -703,11 +763,11 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
     if midday is None:
-        midday = _slot_from_stack(
+        midday = _kit_slot(
             "Midday / around training",
             midday_stack,
-            owned,
             "Transit-weighted midday support.",
+            "midday",
         )
     if midday is None:
         if hd_type in ("Generator", "Manifesting Generator"):
@@ -741,24 +801,25 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
 
+        midday = _note_kit(midday)
+
     # ── Evening ──────────────────────────────────────────────────────────
     evening: dict | None = None
     if energy_label in ("Hyper", "Charged"):
-        mag = _slot_from_stack(
+        mag = _kit_slot(
             "60–90 min before bed",
             [it for it in evening_stack if "magnesium" in it["name"].lower()] or evening_stack,
-            owned,
             "Downshift after a high-motor day.",
+            "evening",
         )
         if mag and mag.get("in_inventory"):
-            evening = _plan_item(
-                "Evening wind-down",
-                mag["item"].replace(" (consider adding)", ""),
-                mag.get("dose_hint") or "Per label",
-                f"{energy_label} anti-stim — use what you own; skip extra stim stacks.",
-                owned,
-                1,
+            evening = dict(mag)
+            evening["when"] = "Evening wind-down"
+            evening["item"] = str(mag.get("item") or "").replace(" (consider adding)", "")
+            evening["why"] = (
+                f"{energy_label} anti-stim — use what you own; skip extra stim stacks."
             )
+            evening["in_inventory"] = True
         else:
             evening = _plan_item(
                 "Evening",
@@ -780,11 +841,11 @@ def _pick_timed_supports(
             track_inventory=False,
         )
     else:
-        evening = _slot_from_stack(
+        evening = _kit_slot(
             "Evening wind-down",
             evening_stack,
-            owned,
             "Evening transit support.",
+            "evening",
         )
         if evening is None:
             evening = _plan_item(
@@ -797,6 +858,7 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
 
+    evening = _note_kit(evening)
     return morning, midday, evening
 
 
@@ -810,6 +872,8 @@ def _build_actionable_plans(
     evening_stack: list[dict],
     adjusts: list[str],
     indication: dict[str, Any] | None = None,
+    *,
+    day_key: str = "1970-01-01",
 ) -> tuple[dict, dict, dict]:
     """Sky-led daily plan: indication hero + 3 timed supports + demoted baseline kit."""
     hd_type = natal.get("type") or ""
@@ -834,6 +898,8 @@ def _build_actionable_plans(
             f"({strategy or 'Strategy'}). Keep open centers from borrowing urgency."
         )
 
+    daily_signal = ind.get("daily_signal") if isinstance(ind.get("daily_signal"), dict) else {}
+    signal_source = str(daily_signal.get("source") or "") or None
     morning, midday, evening = _pick_timed_supports(
         natal,
         overlay,
@@ -844,6 +910,8 @@ def _build_actionable_plans(
         evening_stack,
         energy_label,
         preferred_space,
+        day_key=day_key,
+        signal_source=signal_source,
     )
 
     # Demoted always-on hygiene — not the hero lead trio
@@ -1058,6 +1126,10 @@ def build_protocol(
     if indication is None:
         indication = derive_today_indication(natal, transit or {}, overlay)
 
+    from ..checkin.novelty import hkt_today
+    from .kit_variety import empty_kit_fact_cta, pick_kit_fact
+
+    day_key = str((indication or {}).get("day") or hkt_today().isoformat())
     summary, daily_plan, weekly_plan = _build_actionable_plans(
         natal,
         overlay,
@@ -1068,7 +1140,10 @@ def build_protocol(
         evening_d,
         adjusts,
         indication=indication,
+        day_key=day_key,
     )
+    kit_fact = pick_kit_fact(inventory_names or [], day_key=day_key)
+    kit_fact_cta = None if kit_fact or owned else empty_kit_fact_cta()
     # Align week sky_note with directive when bridges exist
     if daily_directive and weekly_plan.get("sky_note"):
         weekly_plan["sky_note"] = daily_directive if bridges else weekly_plan["sky_note"]
@@ -1091,6 +1166,8 @@ def build_protocol(
     daily_plan["midday"] = [midday_lead]
     daily_plan["evening"] = [evening_lead]
     daily_plan["whats_new"] = whats_new
+    daily_plan["kit_fact"] = kit_fact
+    daily_plan["kit_fact_cta"] = kit_fact_cta
     summary["top_actions"] = [
         f"Morning: {morning_lead['item']}",
         f"Midday: {midday_lead['item']}",
@@ -1117,6 +1194,8 @@ def build_protocol(
         "source": "deterministic_rules",
         "indication": indication,
         "whats_new": whats_new,
+        "kit_fact": kit_fact,
+        "kit_fact_cta": kit_fact_cta,
         "lead_fingerprint": whats_new.get("lead_fingerprint") or natural_fp,
         "natural_lead_fingerprint": natural_fp,
         "labels": {

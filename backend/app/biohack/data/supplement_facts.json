@@ -1,0 +1,1844 @@
+{
+  "version": 1,
+  "facts": [
+    {
+      "id": "magnesium_glycinate_f1",
+      "supplement_id": "magnesium_glycinate",
+      "supplement": "Magnesium Glycinate",
+      "aliases": [
+        "magnesium glycinate",
+        "magnesium",
+        "mag glycinate",
+        "mg glycinate"
+      ],
+      "body": "Glycinate pairs magnesium with glycine — a quiet amino often used in evening formulas."
+    },
+    {
+      "id": "magnesium_glycinate_f2",
+      "supplement_id": "magnesium_glycinate",
+      "supplement": "Magnesium Glycinate",
+      "aliases": [
+        "magnesium glycinate",
+        "magnesium",
+        "mag glycinate",
+        "mg glycinate"
+      ],
+      "body": "Magnesium sits in hundreds of enzyme reactions; glycinate is prized for gentleness, not drama."
+    },
+    {
+      "id": "magnesium_glycinate_f3",
+      "supplement_id": "magnesium_glycinate",
+      "supplement": "Magnesium Glycinate",
+      "aliases": [
+        "magnesium glycinate",
+        "magnesium",
+        "mag glycinate",
+        "mg glycinate"
+      ],
+      "body": "Athletes joke that 'mag' is the mineral you notice most when you skip it for a week."
+    },
+    {
+      "id": "magnesium_glycinate_f4",
+      "supplement_id": "magnesium_glycinate",
+      "supplement": "Magnesium Glycinate",
+      "aliases": [
+        "magnesium glycinate",
+        "magnesium",
+        "mag glycinate",
+        "mg glycinate"
+      ],
+      "body": "Ancient healers prized magnesium-rich springs long before anyone named the element."
+    },
+    {
+      "id": "magnesium_threonate_f1",
+      "supplement_id": "magnesium_threonate",
+      "supplement": "Magnesium L-Threonate",
+      "aliases": [
+        "magnesium l-threonate",
+        "mag threonate",
+        "threonate",
+        "magnesium threonate"
+      ],
+      "body": "L-threonate is studied for how magnesium reaches brain tissue — a wellness curiosity, not a clinician script."
+    },
+    {
+      "id": "magnesium_threonate_f2",
+      "supplement_id": "magnesium_threonate",
+      "supplement": "Magnesium L-Threonate",
+      "aliases": [
+        "magnesium l-threonate",
+        "mag threonate",
+        "threonate",
+        "magnesium threonate"
+      ],
+      "body": "Form hunters chase threonate for 'head' days; glycinate still wins most evening shelves."
+    },
+    {
+      "id": "magnesium_citrate_f1",
+      "supplement_id": "magnesium_citrate",
+      "supplement": "Magnesium Citrate",
+      "aliases": [
+        "magnesium citrate",
+        "mag citrate"
+      ],
+      "body": "Citrate is the 'get things moving' magnesium form in many kitchen cabinets."
+    },
+    {
+      "id": "magnesium_citrate_f2",
+      "supplement_id": "magnesium_citrate",
+      "supplement": "Magnesium Citrate",
+      "aliases": [
+        "magnesium citrate",
+        "mag citrate"
+      ],
+      "body": "Same mineral, different partner molecule — form changes feel more than chemistry textbooks admit."
+    },
+    {
+      "id": "omega3_f1",
+      "supplement_id": "omega3",
+      "supplement": "Omega-3",
+      "aliases": [
+        "omega-3",
+        "omega 3",
+        "omega3",
+        "fish oil",
+        "krill",
+        "krill oil",
+        "epa",
+        "dha"
+      ],
+      "body": "EPA and DHA are the long-chain omegas people mean when they say 'fish oil'."
+    },
+    {
+      "id": "omega3_f2",
+      "supplement_id": "omega3",
+      "supplement": "Omega-3",
+      "aliases": [
+        "omega-3",
+        "omega 3",
+        "omega3",
+        "fish oil",
+        "krill",
+        "krill oil",
+        "epa",
+        "dha"
+      ],
+      "body": "Krill vs fish oil is mostly delivery drama — both aim at the same fatty acids."
+    },
+    {
+      "id": "omega3_f3",
+      "supplement_id": "omega3",
+      "supplement": "Omega-3",
+      "aliases": [
+        "omega-3",
+        "omega 3",
+        "omega3",
+        "fish oil",
+        "krill",
+        "krill oil",
+        "epa",
+        "dha"
+      ],
+      "body": "Nordic diets made omega-3 famous decades before softgels hit airport shops."
+    },
+    {
+      "id": "omega3_f4",
+      "supplement_id": "omega3",
+      "supplement": "Omega-3",
+      "aliases": [
+        "omega-3",
+        "omega 3",
+        "omega3",
+        "fish oil",
+        "krill",
+        "krill oil",
+        "epa",
+        "dha"
+      ],
+      "body": "Your brain is roughly 60% fat by dry weight — which is why omegas show up in 'mind' stacks."
+    },
+    {
+      "id": "vitamin_d3_f1",
+      "supplement_id": "vitamin_d3",
+      "supplement": "Vitamin D3",
+      "aliases": [
+        "vitamin d3",
+        "vitamin d",
+        "d3",
+        "cholecalciferol"
+      ],
+      "body": "D3 is the form your skin makes from sunlight — softgels are the indoor backup."
+    },
+    {
+      "id": "vitamin_d3_f2",
+      "supplement_id": "vitamin_d3",
+      "supplement": "Vitamin D3",
+      "aliases": [
+        "vitamin d3",
+        "vitamin d",
+        "d3",
+        "cholecalciferol"
+      ],
+      "body": "Latitude and desk jobs made D status a modern conversation, not an ancient one."
+    },
+    {
+      "id": "vitamin_d3_f3",
+      "supplement_id": "vitamin_d3",
+      "supplement": "Vitamin D3",
+      "aliases": [
+        "vitamin d3",
+        "vitamin d",
+        "d3",
+        "cholecalciferol"
+      ],
+      "body": "D is fat-soluble: most labels whisper 'with food' for a reason."
+    },
+    {
+      "id": "vitamin_d3_f4",
+      "supplement_id": "vitamin_d3",
+      "supplement": "Vitamin D3",
+      "aliases": [
+        "vitamin d3",
+        "vitamin d",
+        "d3",
+        "cholecalciferol"
+      ],
+      "body": "Cod liver oil was the original D delivery system before capsules existed."
+    },
+    {
+      "id": "vitamin_k2_f1",
+      "supplement_id": "vitamin_k2",
+      "supplement": "Vitamin K2",
+      "aliases": [
+        "vitamin k2",
+        "k2",
+        "mk-7",
+        "mk7"
+      ],
+      "body": "K2 (MK-7) often rides shotgun with D3 in modern stacks — different vitamin, same 'with food' habit."
+    },
+    {
+      "id": "vitamin_k2_f2",
+      "supplement_id": "vitamin_k2",
+      "supplement": "Vitamin K2",
+      "aliases": [
+        "vitamin k2",
+        "k2",
+        "mk-7",
+        "mk7"
+      ],
+      "body": "Nattō made MK-7 famous; supplements made it less fragrant."
+    },
+    {
+      "id": "creatine_f1",
+      "supplement_id": "creatine",
+      "supplement": "Creatine",
+      "aliases": [
+        "creatine",
+        "creatine monohydrate"
+      ],
+      "body": "Creatine is one of the most studied sports supplements — and still mostly about phosphocreatine recycling."
+    },
+    {
+      "id": "creatine_f2",
+      "supplement_id": "creatine",
+      "supplement": "Creatine",
+      "aliases": [
+        "creatine",
+        "creatine monohydrate"
+      ],
+      "body": "Monohydrate won the form wars; fancy esters rarely beat the plain tub."
+    },
+    {
+      "id": "creatine_f3",
+      "supplement_id": "creatine",
+      "supplement": "Creatine",
+      "aliases": [
+        "creatine",
+        "creatine monohydrate"
+      ],
+      "body": "Your body already makes some creatine — the tub is just a top-up for training days."
+    },
+    {
+      "id": "creatine_f4",
+      "supplement_id": "creatine",
+      "supplement": "Creatine",
+      "aliases": [
+        "creatine",
+        "creatine monohydrate"
+      ],
+      "body": "It holds water in muscle cells; the 'scale jump' is often fluid, not fat."
+    },
+    {
+      "id": "ashwagandha_f1",
+      "supplement_id": "ashwagandha",
+      "supplement": "Ashwagandha",
+      "aliases": [
+        "ashwagandha",
+        "withania",
+        "ksm-66",
+        "sensoril"
+      ],
+      "body": "Ashwagandha is an Ayurvedic root whose name roughly nods at 'horse smell / horse strength'."
+    },
+    {
+      "id": "ashwagandha_f2",
+      "supplement_id": "ashwagandha",
+      "supplement": "Ashwagandha",
+      "aliases": [
+        "ashwagandha",
+        "withania",
+        "ksm-66",
+        "sensoril"
+      ],
+      "body": "KSM-66 and Sensoril are branded extracts — same plant, different marketing stories."
+    },
+    {
+      "id": "ashwagandha_f3",
+      "supplement_id": "ashwagandha",
+      "supplement": "Ashwagandha",
+      "aliases": [
+        "ashwagandha",
+        "withania",
+        "ksm-66",
+        "sensoril"
+      ],
+      "body": "Adaptogen culture loves it for 'wired-tired' weeks; cycling beats forever-daily dogma."
+    },
+    {
+      "id": "ashwagandha_f4",
+      "supplement_id": "ashwagandha",
+      "supplement": "Ashwagandha",
+      "aliases": [
+        "ashwagandha",
+        "withania",
+        "ksm-66",
+        "sensoril"
+      ],
+      "body": "Withanolides are the chemistry buzzword on the label; your body just notices calm or not."
+    },
+    {
+      "id": "b_complex_f1",
+      "supplement_id": "b_complex",
+      "supplement": "B-Complex",
+      "aliases": [
+        "b-complex",
+        "b complex",
+        "b-complex (pulse)",
+        "vitamin b",
+        "b vitamins",
+        "b50",
+        "b100"
+      ],
+      "body": "B-complex is eight related vitamins — 'pulse' beats megadosing every morning forever."
+    },
+    {
+      "id": "b_complex_f2",
+      "supplement_id": "b_complex",
+      "supplement": "B-Complex",
+      "aliases": [
+        "b-complex",
+        "b complex",
+        "b-complex (pulse)",
+        "vitamin b",
+        "b vitamins",
+        "b50",
+        "b100"
+      ],
+      "body": "Methylated Bs matter most if your genetics or diet make conversion sluggish."
+    },
+    {
+      "id": "b_complex_f3",
+      "supplement_id": "b_complex",
+      "supplement": "B-Complex",
+      "aliases": [
+        "b-complex",
+        "b complex",
+        "b-complex (pulse)",
+        "vitamin b",
+        "b vitamins",
+        "b50",
+        "b100"
+      ],
+      "body": "Yellow urine after B2 (riboflavin) is famous, harmless theatre."
+    },
+    {
+      "id": "b_complex_f4",
+      "supplement_id": "b_complex",
+      "supplement": "B-Complex",
+      "aliases": [
+        "b-complex",
+        "b complex",
+        "b-complex (pulse)",
+        "vitamin b",
+        "b vitamins",
+        "b50",
+        "b100"
+      ],
+      "body": "Yeast and leafy greens were B delivery systems before the supermarket vitamin aisle."
+    },
+    {
+      "id": "b12_f1",
+      "supplement_id": "b12",
+      "supplement": "Vitamin B12",
+      "aliases": [
+        "vitamin b12",
+        "b12",
+        "methylcobalamin",
+        "cyanocobalamin",
+        "adenosylcobalamin"
+      ],
+      "body": "B12 is the only vitamin with a metal ion (cobalt) at its centre — hence 'cobalamin'."
+    },
+    {
+      "id": "b12_f2",
+      "supplement_id": "b12",
+      "supplement": "Vitamin B12",
+      "aliases": [
+        "vitamin b12",
+        "b12",
+        "methylcobalamin",
+        "cyanocobalamin",
+        "adenosylcobalamin"
+      ],
+      "body": "Methylcobalamin vs cyano is a form debate; deficiency care belongs with a clinician."
+    },
+    {
+      "id": "methylfolate_f1",
+      "supplement_id": "methylfolate",
+      "supplement": "Methylfolate",
+      "aliases": [
+        "methylfolate",
+        "5-mthf",
+        "folate",
+        "l-methylfolate"
+      ],
+      "body": "Methylfolate is the 'already active' folate form popular in methylation conversations."
+    },
+    {
+      "id": "methylfolate_f2",
+      "supplement_id": "methylfolate",
+      "supplement": "Methylfolate",
+      "aliases": [
+        "methylfolate",
+        "5-mthf",
+        "folate",
+        "l-methylfolate"
+      ],
+      "body": "Folic acid and folate are cousins — food, fortification, and supplements tell different stories."
+    },
+    {
+      "id": "nac_f1",
+      "supplement_id": "nac",
+      "supplement": "NAC",
+      "aliases": [
+        "nac",
+        "n-acetylcysteine",
+        "n-acetyl cysteine",
+        "n acetyl cysteine"
+      ],
+      "body": "NAC is a cysteine donor — glutathione's favourite building block in biochemistry lore."
+    },
+    {
+      "id": "nac_f2",
+      "supplement_id": "nac",
+      "supplement": "NAC",
+      "aliases": [
+        "nac",
+        "n-acetylcysteine",
+        "n-acetyl cysteine",
+        "n acetyl cysteine"
+      ],
+      "body": "Hospital NAC protocols for paracetamol are a different universe from wellness capsules."
+    },
+    {
+      "id": "nac_f3",
+      "supplement_id": "nac",
+      "supplement": "NAC",
+      "aliases": [
+        "nac",
+        "n-acetylcysteine",
+        "n-acetyl cysteine",
+        "n acetyl cysteine"
+      ],
+      "body": "Smells faintly sulphurous in some bottles — chemistry, not a bad batch."
+    },
+    {
+      "id": "berberine_f1",
+      "supplement_id": "berberine",
+      "supplement": "Berberine",
+      "aliases": [
+        "berberine",
+        "berberine hcl",
+        "dihydroberberine"
+      ],
+      "body": "Berberine is a bright yellow plant alkaloid — it will stain a white spoon without apology."
+    },
+    {
+      "id": "berberine_f2",
+      "supplement_id": "berberine",
+      "supplement": "Berberine",
+      "aliases": [
+        "berberine",
+        "berberine hcl",
+        "dihydroberberine"
+      ],
+      "body": "Metabolic wellness circles talk about AMPK; your job is still food, sleep, and labels."
+    },
+    {
+      "id": "berberine_f3",
+      "supplement_id": "berberine",
+      "supplement": "Berberine",
+      "aliases": [
+        "berberine",
+        "berberine hcl",
+        "dihydroberberine"
+      ],
+      "body": "Dihydroberberine is the 'newer cousin' marketed for gentler stomachs."
+    },
+    {
+      "id": "l_theanine_f1",
+      "supplement_id": "l_theanine",
+      "supplement": "L-Theanine",
+      "aliases": [
+        "l-theanine",
+        "theanine",
+        "l theanine"
+      ],
+      "body": "L-theanine is the tea amino that made 'calm focus' a softgel category."
+    },
+    {
+      "id": "l_theanine_f2",
+      "supplement_id": "l_theanine",
+      "supplement": "L-Theanine",
+      "aliases": [
+        "l-theanine",
+        "theanine",
+        "l theanine"
+      ],
+      "body": "Often paired with caffeine in studies — the yin to coffee's yang."
+    },
+    {
+      "id": "l_theanine_f3",
+      "supplement_id": "l_theanine",
+      "supplement": "L-Theanine",
+      "aliases": [
+        "l-theanine",
+        "theanine",
+        "l theanine"
+      ],
+      "body": "Green tea leaves hold it naturally; capsules just concentrate the same catechin story."
+    },
+    {
+      "id": "zinc_f1",
+      "supplement_id": "zinc",
+      "supplement": "Zinc",
+      "aliases": [
+        "zinc",
+        "zinc picolinate",
+        "zinc bisglycinate",
+        "zinc citrate",
+        "zinc (pulse)"
+      ],
+      "body": "Zinc is a quiet enzyme cofactor — immune folklore made it famous for colds."
+    },
+    {
+      "id": "zinc_f2",
+      "supplement_id": "zinc",
+      "supplement": "Zinc",
+      "aliases": [
+        "zinc",
+        "zinc picolinate",
+        "zinc bisglycinate",
+        "zinc citrate",
+        "zinc (pulse)"
+      ],
+      "body": "Picolinate and bisglycinate are absorption-form debates; food still matters."
+    },
+    {
+      "id": "zinc_f3",
+      "supplement_id": "zinc",
+      "supplement": "Zinc",
+      "aliases": [
+        "zinc",
+        "zinc picolinate",
+        "zinc bisglycinate",
+        "zinc citrate",
+        "zinc (pulse)"
+      ],
+      "body": "Very high zinc intake long-term can crowd out copper — another reason pulse beats forever."
+    },
+    {
+      "id": "electrolytes_f1",
+      "supplement_id": "electrolytes",
+      "supplement": "Electrolytes",
+      "aliases": [
+        "electrolytes",
+        "electrolyte",
+        "lmnt",
+        "sodium potassium",
+        "hydration + electrolytes"
+      ],
+      "body": "Sodium, potassium, magnesium — the three headlines on most electrolyte sticks."
+    },
+    {
+      "id": "electrolytes_f2",
+      "supplement_id": "electrolytes",
+      "supplement": "Electrolytes",
+      "aliases": [
+        "electrolytes",
+        "electrolyte",
+        "lmnt",
+        "sodium potassium",
+        "hydration + electrolytes"
+      ],
+      "body": "Sweat is salty for a reason; desk dehydration is quieter but real."
+    },
+    {
+      "id": "electrolytes_f3",
+      "supplement_id": "electrolytes",
+      "supplement": "Electrolytes",
+      "aliases": [
+        "electrolytes",
+        "electrolyte",
+        "lmnt",
+        "sodium potassium",
+        "hydration + electrolytes"
+      ],
+      "body": "Packet culture turned 'minerals in water' into a lifestyle brand."
+    },
+    {
+      "id": "coq10_f1",
+      "supplement_id": "coq10",
+      "supplement": "CoQ10",
+      "aliases": [
+        "coq10",
+        "coenzyme q10",
+        "ubiquinol",
+        "ubiquinone"
+      ],
+      "body": "CoQ10 lives in mitochondrial membranes — ubiquinol is the reduced form on many labels."
+    },
+    {
+      "id": "coq10_f2",
+      "supplement_id": "coq10",
+      "supplement": "CoQ10",
+      "aliases": [
+        "coq10",
+        "coenzyme q10",
+        "ubiquinol",
+        "ubiquinone"
+      ],
+      "body": "Statins and CoQ10 show up in the same internet arguments; clinicians own that call."
+    },
+    {
+      "id": "coq10_f3",
+      "supplement_id": "coq10",
+      "supplement": "CoQ10",
+      "aliases": [
+        "coq10",
+        "coenzyme q10",
+        "ubiquinol",
+        "ubiquinone"
+      ],
+      "body": "Fat-soluble: take it with a meal that has some fat."
+    },
+    {
+      "id": "lions_mane_f1",
+      "supplement_id": "lions_mane",
+      "supplement": "Lion's Mane",
+      "aliases": [
+        "lion's mane",
+        "lions mane",
+        "lion’s mane",
+        "hericium"
+      ],
+      "body": "Lion's Mane is the shaggy white mushroom that looks like a cheerleading pom-pom."
+    },
+    {
+      "id": "lions_mane_f2",
+      "supplement_id": "lions_mane",
+      "supplement": "Lion's Mane",
+      "aliases": [
+        "lion's mane",
+        "lions mane",
+        "lion’s mane",
+        "hericium"
+      ],
+      "body": "Nootropic culture loves its nerve-growth folklore; food use is older than softgels."
+    },
+    {
+      "id": "rhodiola_f1",
+      "supplement_id": "rhodiola",
+      "supplement": "Rhodiola",
+      "aliases": [
+        "rhodiola",
+        "rhodiola rosea",
+        "arctic root"
+      ],
+      "body": "Rhodiola grows in cold mountains — 'arctic root' is earned geography."
+    },
+    {
+      "id": "rhodiola_f2",
+      "supplement_id": "rhodiola",
+      "supplement": "Rhodiola",
+      "aliases": [
+        "rhodiola",
+        "rhodiola rosea",
+        "arctic root"
+      ],
+      "body": "Adaptogen lore says 'stress buffer'; morning use is common so it doesn't steal sleep."
+    },
+    {
+      "id": "taurine_f1",
+      "supplement_id": "taurine",
+      "supplement": "Taurine",
+      "aliases": [
+        "taurine"
+      ],
+      "body": "Taurine is in energy drinks and calm stacks — context decides the story."
+    },
+    {
+      "id": "taurine_f2",
+      "supplement_id": "taurine",
+      "supplement": "Taurine",
+      "aliases": [
+        "taurine"
+      ],
+      "body": "It's a sulphur amino acid abundant in heart and retina tissue in textbooks."
+    },
+    {
+      "id": "astaxanthin_f1",
+      "supplement_id": "astaxanthin",
+      "supplement": "Astaxanthin",
+      "aliases": [
+        "astaxanthin"
+      ],
+      "body": "Astaxanthin is the pigment that turns salmon pink — a carotenoid with a cult following."
+    },
+    {
+      "id": "astaxanthin_f2",
+      "supplement_id": "astaxanthin",
+      "supplement": "Astaxanthin",
+      "aliases": [
+        "astaxanthin"
+      ],
+      "body": "It's fat-soluble and stubborn about staining plastic spoons."
+    },
+    {
+      "id": "vitamin_c_f1",
+      "supplement_id": "vitamin_c",
+      "supplement": "Vitamin C",
+      "aliases": [
+        "vitamin c",
+        "ascorbic acid",
+        "ascorbate"
+      ],
+      "body": "Linus Pauling made high-C folklore famous; oranges made it friendly."
+    },
+    {
+      "id": "vitamin_c_f2",
+      "supplement_id": "vitamin_c",
+      "supplement": "Vitamin C",
+      "aliases": [
+        "vitamin c",
+        "ascorbic acid",
+        "ascorbate"
+      ],
+      "body": "Ascorbate is water-soluble — your body shares surplus generously with the bathroom."
+    },
+    {
+      "id": "vitamin_a_f1",
+      "supplement_id": "vitamin_a",
+      "supplement": "Vitamin A",
+      "aliases": [
+        "vitamin a",
+        "retinol",
+        "beta carotene"
+      ],
+      "body": "Fat-soluble A is not a 'more is merrier' vitamin — food and labels matter."
+    },
+    {
+      "id": "vitamin_e_f1",
+      "supplement_id": "vitamin_e",
+      "supplement": "Vitamin E",
+      "aliases": [
+        "vitamin e",
+        "tocopherol",
+        "tocotrienol"
+      ],
+      "body": "Tocopherols vs tocotrienols is the quiet form war inside vitamin E bottles."
+    },
+    {
+      "id": "selenium_f1",
+      "supplement_id": "selenium",
+      "supplement": "Selenium",
+      "aliases": [
+        "selenium",
+        "selenomethionine"
+      ],
+      "body": "Brazil nuts are the meme selenium delivery system — one or two, not a handful."
+    },
+    {
+      "id": "iodine_f1",
+      "supplement_id": "iodine",
+      "supplement": "Iodine",
+      "aliases": [
+        "iodine",
+        "kelp iodine",
+        "potassium iodide"
+      ],
+      "body": "Iodine and thyroid conversations belong with labs and clinicians, not vibes."
+    },
+    {
+      "id": "iron_f1",
+      "supplement_id": "iron",
+      "supplement": "Iron",
+      "aliases": [
+        "iron",
+        "ferrous",
+        "bisglycinate iron",
+        "iron bisglycinate"
+      ],
+      "body": "Iron deficiency fatigue is real; surplus iron is also real — test, don't guess."
+    },
+    {
+      "id": "iron_f2",
+      "supplement_id": "iron",
+      "supplement": "Iron",
+      "aliases": [
+        "iron",
+        "ferrous",
+        "bisglycinate iron",
+        "iron bisglycinate"
+      ],
+      "body": "Vitamin C often rides along to help absorption in classic pairings."
+    },
+    {
+      "id": "calcium_f1",
+      "supplement_id": "calcium",
+      "supplement": "Calcium",
+      "aliases": [
+        "calcium",
+        "calcium citrate",
+        "calcium carbonate"
+      ],
+      "body": "Calcium is bone folklore and label math — timing with other minerals gets opinionated."
+    },
+    {
+      "id": "potassium_f1",
+      "supplement_id": "potassium",
+      "supplement": "Potassium",
+      "aliases": [
+        "potassium",
+        "potassium citrate",
+        "potassium chloride"
+      ],
+      "body": "Banana memes aside, potassium is an electrolyte headline for a reason."
+    },
+    {
+      "id": "chromium_f1",
+      "supplement_id": "chromium",
+      "supplement": "Chromium",
+      "aliases": [
+        "chromium",
+        "chromium picolinate"
+      ],
+      "body": "Chromium shows up in 'carb metabolism' softgel aisles next to berberine."
+    },
+    {
+      "id": "probiotics_f1",
+      "supplement_id": "probiotics",
+      "supplement": "Probiotics",
+      "aliases": [
+        "probiotic",
+        "probiotics",
+        "lactobacillus",
+        "bifido"
+      ],
+      "body": "Colony-forming units are marketing theatre; strain specificity is the quieter science."
+    },
+    {
+      "id": "probiotics_f2",
+      "supplement_id": "probiotics",
+      "supplement": "Probiotics",
+      "aliases": [
+        "probiotic",
+        "probiotics",
+        "lactobacillus",
+        "bifido"
+      ],
+      "body": "Fermented foods were probiotics before refrigerators existed."
+    },
+    {
+      "id": "prebiotics_f1",
+      "supplement_id": "prebiotics",
+      "supplement": "Prebiotics",
+      "aliases": [
+        "prebiotic",
+        "prebiotics",
+        "inulin",
+        "fos"
+      ],
+      "body": "Prebiotics feed the bugs; probiotics try to be the bugs."
+    },
+    {
+      "id": "collagen_f1",
+      "supplement_id": "collagen",
+      "supplement": "Collagen",
+      "aliases": [
+        "collagen",
+        "collagen peptides",
+        "hydrolyzed collagen"
+      ],
+      "body": "Collagen peptides dissolve into coffee culture — glycine comes along for the ride."
+    },
+    {
+      "id": "collagen_f2",
+      "supplement_id": "collagen",
+      "supplement": "Collagen",
+      "aliases": [
+        "collagen",
+        "collagen peptides",
+        "hydrolyzed collagen"
+      ],
+      "body": "Type I/II/III on labels is more taxonomy than magic."
+    },
+    {
+      "id": "protein_powder_f1",
+      "supplement_id": "protein_powder",
+      "supplement": "Protein powder",
+      "aliases": [
+        "protein powder",
+        "whey",
+        "casein",
+        "pea protein"
+      ],
+      "body": "Whey is fast; casein is slow; pea is the plant compromise in most tubs."
+    },
+    {
+      "id": "glycine_f1",
+      "supplement_id": "glycine",
+      "supplement": "Glycine",
+      "aliases": [
+        "glycine"
+      ],
+      "body": "Glycine is the sweet amino hiding inside collagen and mag glycinate stories."
+    },
+    {
+      "id": "gaba_f1",
+      "supplement_id": "gaba",
+      "supplement": "GABA",
+      "aliases": [
+        "gaba"
+      ],
+      "body": "GABA is the brain's 'ease up' neurotransmitter; oral GABA's journey is debated."
+    },
+    {
+      "id": "melatonin_f1",
+      "supplement_id": "melatonin",
+      "supplement": "Melatonin",
+      "aliases": [
+        "melatonin"
+      ],
+      "body": "Melatonin is a darkness signal, not a 'knockout punch' — more isn't always better."
+    },
+    {
+      "id": "melatonin_f2",
+      "supplement_id": "melatonin",
+      "supplement": "Melatonin",
+      "aliases": [
+        "melatonin"
+      ],
+      "body": "Jet-lag lore made it famous; bedroom light still matters more."
+    },
+    {
+      "id": "apigenin_f1",
+      "supplement_id": "apigenin",
+      "supplement": "Apigenin",
+      "aliases": [
+        "apigenin"
+      ],
+      "body": "Apigenin is the chamomile flavonoid that escaped into sleep-stack Twitter."
+    },
+    {
+      "id": "quercetin_f1",
+      "supplement_id": "quercetin",
+      "supplement": "Quercetin",
+      "aliases": [
+        "quercetin"
+      ],
+      "body": "Quercetin is an onion-and-apple flavonoid that wellness turned into a capsule."
+    },
+    {
+      "id": "curcumin_f1",
+      "supplement_id": "curcumin",
+      "supplement": "Curcumin",
+      "aliases": [
+        "curcumin",
+        "turmeric",
+        "turmeric extract"
+      ],
+      "body": "Curcumin is turmeric's poster child; black pepper extract is the classic absorption buddy."
+    },
+    {
+      "id": "curcumin_f2",
+      "supplement_id": "curcumin",
+      "supplement": "Curcumin",
+      "aliases": [
+        "curcumin",
+        "turmeric",
+        "turmeric extract"
+      ],
+      "body": "Golden milk was the food version before softgels."
+    },
+    {
+      "id": "ginger_f1",
+      "supplement_id": "ginger",
+      "supplement": "Ginger",
+      "aliases": [
+        "ginger",
+        "ginger extract"
+      ],
+      "body": "Ginger settled stomachs on ships long before it settled in supplement aisles."
+    },
+    {
+      "id": "elderberry_f1",
+      "supplement_id": "elderberry",
+      "supplement": "Elderberry",
+      "aliases": [
+        "elderberry",
+        "sambucus"
+      ],
+      "body": "Elderberry syrups are folk winter rituals in softgel clothing."
+    },
+    {
+      "id": "echinacea_f1",
+      "supplement_id": "echinacea",
+      "supplement": "Echinacea",
+      "aliases": [
+        "echinacea"
+      ],
+      "body": "Echinacea is the purple coneflower that launched a thousand immune teas."
+    },
+    {
+      "id": "multivitamin_f1",
+      "supplement_id": "multivitamin",
+      "supplement": "Multivitamin",
+      "aliases": [
+        "multivitamin",
+        "multi vitamin",
+        "multi"
+      ],
+      "body": "A multi is a safety net, not a personality."
+    },
+    {
+      "id": "multivitamin_f2",
+      "supplement_id": "multivitamin",
+      "supplement": "Multivitamin",
+      "aliases": [
+        "multivitamin",
+        "multi vitamin",
+        "multi"
+      ],
+      "body": "One well-chosen multi beats five overlapping 'immune' bottles."
+    },
+    {
+      "id": "ala_f1",
+      "supplement_id": "ala",
+      "supplement": "Alpha-Lipoic Acid",
+      "aliases": [
+        "alpha-lipoic acid",
+        "ala",
+        "r-ala"
+      ],
+      "body": "ALA is water-and-fat amphoteric — a biochemical bridge mineral fans like to name-drop."
+    },
+    {
+      "id": "alcar_f1",
+      "supplement_id": "alcar",
+      "supplement": "Acetyl-L-Carnitine",
+      "aliases": [
+        "acetyl-l-carnitine",
+        "alcar",
+        "acetyl l carnitine"
+      ],
+      "body": "ALCAR is carnitine with an acetyl group — nootropic aisles love the acronym."
+    },
+    {
+      "id": "l_carnitine_f1",
+      "supplement_id": "l_carnitine",
+      "supplement": "L-Carnitine",
+      "aliases": [
+        "l-carnitine",
+        "carnitine",
+        "l carnitine"
+      ],
+      "body": "Carnitine shuttles fatty acids in textbook mitochondria stories."
+    },
+    {
+      "id": "beta_alanine_f1",
+      "supplement_id": "beta_alanine",
+      "supplement": "Beta-Alanine",
+      "aliases": [
+        "beta-alanine",
+        "beta alanine"
+      ],
+      "body": "The beta-alanine itch (paresthesia) is famous and usually harmless theatre."
+    },
+    {
+      "id": "citrulline_f1",
+      "supplement_id": "citrulline",
+      "supplement": "Citrulline",
+      "aliases": [
+        "citrulline",
+        "l-citrulline"
+      ],
+      "body": "Citrulline is named after watermelon (Citrullus) — nature's pre-workout lore."
+    },
+    {
+      "id": "beetroot_f1",
+      "supplement_id": "beetroot",
+      "supplement": "Beetroot",
+      "aliases": [
+        "beetroot",
+        "beet root",
+        "beet juice",
+        "nitrates"
+      ],
+      "body": "Dietary nitrates in beetroot are the endurance world's pink secret."
+    },
+    {
+      "id": "cordyceps_f1",
+      "supplement_id": "cordyceps",
+      "supplement": "Cordyceps",
+      "aliases": [
+        "cordyceps",
+        "cordyceps militaris"
+      ],
+      "body": "Cordyceps has a dramatic fungal life cycle — wellness kept the stamina story."
+    },
+    {
+      "id": "cordyceps_f2",
+      "supplement_id": "cordyceps",
+      "supplement": "Cordyceps",
+      "aliases": [
+        "cordyceps",
+        "cordyceps militaris"
+      ],
+      "body": "Militaris is the lab-friendly cousin of the wild caterpillar fungus lore."
+    },
+    {
+      "id": "reishi_f1",
+      "supplement_id": "reishi",
+      "supplement": "Reishi",
+      "aliases": [
+        "reishi",
+        "ganoderma"
+      ],
+      "body": "Reishi is the 'mushroom of immortality' in classical texts — modern softgels are humbler."
+    },
+    {
+      "id": "chaga_f1",
+      "supplement_id": "chaga",
+      "supplement": "Chaga",
+      "aliases": [
+        "chaga"
+      ],
+      "body": "Chaga looks like burnt charcoal on birch — tea culture got there before capsules."
+    },
+    {
+      "id": "turkey_tail_f1",
+      "supplement_id": "turkey_tail",
+      "supplement": "Turkey Tail",
+      "aliases": [
+        "turkey tail",
+        "trametes"
+      ],
+      "body": "Turkey Tail's zonked concentric rings made it a forest-floor celebrity."
+    },
+    {
+      "id": "bacopa_f1",
+      "supplement_id": "bacopa",
+      "supplement": "Bacopa",
+      "aliases": [
+        "bacopa",
+        "bacopa monnieri"
+      ],
+      "body": "Bacopa is an Ayurvedic 'medhya' herb — memory folklore with a slow-build reputation."
+    },
+    {
+      "id": "ginkgo_f1",
+      "supplement_id": "ginkgo",
+      "supplement": "Ginkgo",
+      "aliases": [
+        "ginkgo",
+        "ginkgo biloba"
+      ],
+      "body": "Ginkgo trees outlived dinosaurs in botanical lore; extracts chase circulation stories."
+    },
+    {
+      "id": "ps_f1",
+      "supplement_id": "ps",
+      "supplement": "Phosphatidylserine",
+      "aliases": [
+        "phosphatidylserine",
+        "ps"
+      ],
+      "body": "PS is a phospholipid concentrated in brain cell membranes in textbooks."
+    },
+    {
+      "id": "pqq_f1",
+      "supplement_id": "pqq",
+      "supplement": "PQQ",
+      "aliases": [
+        "pqq",
+        "pyrroloquinoline"
+      ],
+      "body": "PQQ shows up in mitochondrial-biogenesis conversations next to CoQ10."
+    },
+    {
+      "id": "nmn_f1",
+      "supplement_id": "nmn",
+      "supplement": "NMN",
+      "aliases": [
+        "nmn",
+        "nicotinamide mononucleotide"
+      ],
+      "body": "NMN is an NAD+ precursor that rode the longevity podcast wave."
+    },
+    {
+      "id": "nmn_f2",
+      "supplement_id": "nmn",
+      "supplement": "NMN",
+      "aliases": [
+        "nmn",
+        "nicotinamide mononucleotide"
+      ],
+      "body": "Expensive pink powders are still not a personality."
+    },
+    {
+      "id": "resveratrol_f1",
+      "supplement_id": "resveratrol",
+      "supplement": "Resveratrol",
+      "aliases": [
+        "resveratrol"
+      ],
+      "body": "Red wine made resveratrol famous; a glass never matched the softgel aisle."
+    },
+    {
+      "id": "spermidine_f1",
+      "supplement_id": "spermidine",
+      "supplement": "Spermidine",
+      "aliases": [
+        "spermidine"
+      ],
+      "body": "Spermidine is in wheat germ and longevity blogs — autophagy is the buzzword."
+    },
+    {
+      "id": "fisetin_f1",
+      "supplement_id": "fisetin",
+      "supplement": "Fisetin",
+      "aliases": [
+        "fisetin"
+      ],
+      "body": "Fisetin is a strawberry flavonoid that senolytic Twitter adopted."
+    },
+    {
+      "id": "sulforaphane_f1",
+      "supplement_id": "sulforaphane",
+      "supplement": "Sulforaphane",
+      "aliases": [
+        "sulforaphane",
+        "broccoli sprout",
+        "myrosinase"
+      ],
+      "body": "Sulforaphane comes from broccoli sprouts when myrosinase does its party trick."
+    },
+    {
+      "id": "olive_leaf_f1",
+      "supplement_id": "olive_leaf",
+      "supplement": "Olive leaf",
+      "aliases": [
+        "olive leaf",
+        "oleuropein"
+      ],
+      "body": "Oleuropein is the bitter compound olive-leaf extracts brag about."
+    },
+    {
+      "id": "garlic_f1",
+      "supplement_id": "garlic",
+      "supplement": "Garlic extract",
+      "aliases": [
+        "garlic",
+        "aged garlic",
+        "allicin"
+      ],
+      "body": "Aged garlic tries to keep the benefits and lose the vampire jokes."
+    },
+    {
+      "id": "psyllium_f1",
+      "supplement_id": "psyllium",
+      "supplement": "Psyllium",
+      "aliases": [
+        "psyllium",
+        "metamucil",
+        "fiber supplement",
+        "fibre"
+      ],
+      "body": "Psyllium husk is old-school fibre with a glass-of-water mandatory clause."
+    },
+    {
+      "id": "mct_f1",
+      "supplement_id": "mct",
+      "supplement": "MCT oil",
+      "aliases": [
+        "mct",
+        "mct oil",
+        "c8",
+        "c10"
+      ],
+      "body": "MCT (C8/C10) is coconut's bulletproof-coffee era souvenir."
+    },
+    {
+      "id": "evening_primrose_f1",
+      "supplement_id": "evening_primrose",
+      "supplement": "Evening Primrose",
+      "aliases": [
+        "evening primrose",
+        "epo",
+        "gla"
+      ],
+      "body": "Evening primrose oil is a GLA story dressed in floral branding."
+    },
+    {
+      "id": "cla_f1",
+      "supplement_id": "cla",
+      "supplement": "CLA",
+      "aliases": [
+        "cla",
+        "conjugated linoleic"
+      ],
+      "body": "CLA rode 2000s fat-loss marketing; food sources still include grass-fed lore."
+    },
+    {
+      "id": "hmb_f1",
+      "supplement_id": "hmb",
+      "supplement": "HMB",
+      "aliases": [
+        "hmb"
+      ],
+      "body": "HMB is a leucine metabolite popular in hard-training recovery stacks."
+    },
+    {
+      "id": "tart_cherry_f1",
+      "supplement_id": "tart_cherry",
+      "supplement": "Tart cherry",
+      "aliases": [
+        "tart cherry",
+        "montmorency",
+        "cherry extract"
+      ],
+      "body": "Montmorency cherry juice earned a recovery-and-sleep niche among athletes."
+    },
+    {
+      "id": "valerian_f1",
+      "supplement_id": "valerian",
+      "supplement": "Valerian",
+      "aliases": [
+        "valerian"
+      ],
+      "body": "Valerian smells like old socks and old herbalism — sleep folklore persists anyway."
+    },
+    {
+      "id": "passionflower_f1",
+      "supplement_id": "passionflower",
+      "supplement": "Passionflower",
+      "aliases": [
+        "passionflower",
+        "passiflora"
+      ],
+      "body": "Passionflower's alien bloom hides a surprisingly calming herbal reputation."
+    },
+    {
+      "id": "lemon_balm_f1",
+      "supplement_id": "lemon_balm",
+      "supplement": "Lemon balm",
+      "aliases": [
+        "lemon balm",
+        "melissa"
+      ],
+      "body": "Melissa (lemon balm) is mint-family calm in tea form."
+    },
+    {
+      "id": "chamomile_f1",
+      "supplement_id": "chamomile",
+      "supplement": "Chamomile",
+      "aliases": [
+        "chamomile",
+        "matricaria"
+      ],
+      "body": "Chamomile tea is the gateway herbal — apigenin is its modern name-drop."
+    },
+    {
+      "id": "inositol_f1",
+      "supplement_id": "inositol",
+      "supplement": "Inositol",
+      "aliases": [
+        "inositol",
+        "myo-inositol",
+        "d-chiro"
+      ],
+      "body": "Myo-inositol shows up in both calm stacks and metabolic conversations."
+    },
+    {
+      "id": "tyrosine_f1",
+      "supplement_id": "tyrosine",
+      "supplement": "L-Tyrosine",
+      "aliases": [
+        "tyrosine",
+        "l-tyrosine",
+        "n-acetyl tyrosine",
+        "nat"
+      ],
+      "body": "Tyrosine is a dopamine/catecholamine building block in textbook pathways."
+    },
+    {
+      "id": "green_tea_extract_f1",
+      "supplement_id": "green_tea_extract",
+      "supplement": "Green tea extract",
+      "aliases": [
+        "green tea extract",
+        "egcg",
+        "green tea"
+      ],
+      "body": "EGCG is green tea's catechin celebrity — capsules are louder than cups."
+    },
+    {
+      "id": "shilajit_f1",
+      "supplement_id": "shilajit",
+      "supplement": "Shilajit",
+      "aliases": [
+        "shilajit"
+      ],
+      "body": "Shilajit is mountain exudate folklore — sourcing and purity stories matter."
+    },
+    {
+      "id": "tongkat_f1",
+      "supplement_id": "tongkat",
+      "supplement": "Tongkat Ali",
+      "aliases": [
+        "tongkat",
+        "tongkat ali",
+        "eurycoma"
+      ],
+      "body": "Tongkat Ali is a Southeast Asian root that testosterone Twitter adopted."
+    },
+    {
+      "id": "maca_f1",
+      "supplement_id": "maca",
+      "supplement": "Maca",
+      "aliases": [
+        "maca",
+        "lepidium"
+      ],
+      "body": "Maca is a Peruvian highland root that tastes like butterscotch earth."
+    },
+    {
+      "id": "fenugreek_f1",
+      "supplement_id": "fenugreek",
+      "supplement": "Fenugreek",
+      "aliases": [
+        "fenugreek"
+      ],
+      "body": "Fenugreek makes sweat smell like maple syrup — a fun party trick of plant chemistry."
+    },
+    {
+      "id": "dim_f1",
+      "supplement_id": "dim",
+      "supplement": "DIM",
+      "aliases": [
+        "dim",
+        "diindolylmethane"
+      ],
+      "body": "DIM comes from cruciferous veggies' indole story — brassica chemistry in a pill."
+    },
+    {
+      "id": "choline_f1",
+      "supplement_id": "choline",
+      "supplement": "Choline",
+      "aliases": [
+        "choline",
+        "alpha-gpc",
+        "cdp-choline",
+        "citicoline",
+        "phosphatidylcholine"
+      ],
+      "body": "Alpha-GPC and CDP-choline are the nootropic spellings of 'choline donor'."
+    },
+    {
+      "id": "glutamine_f1",
+      "supplement_id": "glutamine",
+      "supplement": "Glutamine",
+      "aliases": [
+        "glutamine",
+        "l-glutamine"
+      ],
+      "body": "Glutamine is abundant in muscle and gut conversations after hard training."
+    },
+    {
+      "id": "spirulina_f1",
+      "supplement_id": "spirulina",
+      "supplement": "Spirulina",
+      "aliases": [
+        "spirulina"
+      ],
+      "body": "Spirulina is blue-green pond power in powder form — chlorophyll vibes included."
+    },
+    {
+      "id": "chlorella_f1",
+      "supplement_id": "chlorella",
+      "supplement": "Chlorella",
+      "aliases": [
+        "chlorella"
+      ],
+      "body": "Chlorella's cracked-cell-wall claim is the absorption marketing classic."
+    },
+    {
+      "id": "moringa_f1",
+      "supplement_id": "moringa",
+      "supplement": "Moringa",
+      "aliases": [
+        "moringa"
+      ],
+      "body": "Moringa oleifera is the 'drumstick tree' nutrient folklore from South Asia."
+    },
+    {
+      "id": "beta_glucan_f1",
+      "supplement_id": "beta_glucan",
+      "supplement": "Beta-glucan",
+      "aliases": [
+        "beta-glucan",
+        "beta glucan",
+        "yeast beta"
+      ],
+      "body": "Beta-glucans are fibre-shaped immune conversations from yeast and oats."
+    },
+    {
+      "id": "fulvic_f1",
+      "supplement_id": "fulvic",
+      "supplement": "Fulvic / humic",
+      "aliases": [
+        "fulvic",
+        "humic",
+        "fulvic acid"
+      ],
+      "body": "Fulvic/humic products borrow soil chemistry aesthetics — purity sourcing matters."
+    },
+    {
+      "id": "cbd_f1",
+      "supplement_id": "cbd",
+      "supplement": "CBD",
+      "aliases": [
+        "cbd",
+        "cannabidiol",
+        "hemp extract"
+      ],
+      "body": "CBD is the non-intoxicating cannabis cousin — legality and labels vary by place."
+    },
+    {
+      "id": "cbd_f2",
+      "supplement_id": "cbd",
+      "supplement": "CBD",
+      "aliases": [
+        "cbd",
+        "cannabidiol",
+        "hemp extract"
+      ],
+      "body": "Full-spectrum vs isolate is the endless menu argument."
+    },
+    {
+      "id": "pea_f1",
+      "supplement_id": "pea",
+      "supplement": "PEA",
+      "aliases": [
+        "pea",
+        "palmitoylethanolamide"
+      ],
+      "body": "PEA is an endocannabinoid-related lipid the wellness world quietly adopted."
+    },
+    {
+      "id": "5htp_f1",
+      "supplement_id": "5htp",
+      "supplement": "5-HTP",
+      "aliases": [
+        "5-htp",
+        "5htp",
+        "hydroxytryptophan"
+      ],
+      "body": "5-HTP is a serotonin pathway intermediate — stacking with other serotonergic stuff is a clinician topic."
+    },
+    {
+      "id": "phenylalanine_f1",
+      "supplement_id": "phenylalanine",
+      "supplement": "Phenylalanine",
+      "aliases": [
+        "phenylalanine",
+        "dl-phenylalanine",
+        "dlpa"
+      ],
+      "body": "Phenylalanine is an essential amino upstream of tyrosine in textbooks."
+    },
+    {
+      "id": "vitamin_b6_f1",
+      "supplement_id": "vitamin_b6",
+      "supplement": "Vitamin B6",
+      "aliases": [
+        "vitamin b6",
+        "p5p",
+        "pyridoxine"
+      ],
+      "body": "P5P is the active B6 form on many 'methylation' labels."
+    },
+    {
+      "id": "vitamin_b1_f1",
+      "supplement_id": "vitamin_b1",
+      "supplement": "Vitamin B1",
+      "aliases": [
+        "vitamin b1",
+        "thiamine",
+        "benfotiamine"
+      ],
+      "body": "Thiamine was the original 'vital amine' that helped name vitamins."
+    },
+    {
+      "id": "vitamin_b2_f1",
+      "supplement_id": "vitamin_b2",
+      "supplement": "Vitamin B2",
+      "aliases": [
+        "vitamin b2",
+        "riboflavin"
+      ],
+      "body": "Riboflavin is why high-B urine turns highlighter yellow."
+    },
+    {
+      "id": "vitamin_b3_f1",
+      "supplement_id": "vitamin_b3",
+      "supplement": "Vitamin B3",
+      "aliases": [
+        "vitamin b3",
+        "niacin",
+        "niacinamide"
+      ],
+      "body": "Niacin flush is a blood-flow sensation some chase and others avoid."
+    },
+    {
+      "id": "vitamin_b5_f1",
+      "supplement_id": "vitamin_b5",
+      "supplement": "Vitamin B5",
+      "aliases": [
+        "vitamin b5",
+        "pantothenic"
+      ],
+      "body": "Pantothenic acid is named from 'everywhere' — it's widely distributed in food."
+    },
+    {
+      "id": "biotin_f1",
+      "supplement_id": "biotin",
+      "supplement": "Biotin",
+      "aliases": [
+        "biotin",
+        "vitamin b7"
+      ],
+      "body": "Very high biotin can mess with some lab assays — a famous quiet gotcha."
+    },
+    {
+      "id": "copper_f1",
+      "supplement_id": "copper",
+      "supplement": "Copper",
+      "aliases": [
+        "copper",
+        "copper bisglycinate"
+      ],
+      "body": "Copper and zinc play seesaw — high zinc diets made copper status a conversation."
+    },
+    {
+      "id": "boron_f1",
+      "supplement_id": "boron",
+      "supplement": "Boron",
+      "aliases": [
+        "boron"
+      ],
+      "body": "Boron shows up in bone-and-hormone forum lore more than kitchen talk."
+    },
+    {
+      "id": "bromelain_f1",
+      "supplement_id": "bromelain",
+      "supplement": "Bromelain",
+      "aliases": [
+        "bromelain"
+      ],
+      "body": "Bromelain is pineapple's proteolytic enzyme in capsule form."
+    },
+    {
+      "id": "digestive_enzymes_f1",
+      "supplement_id": "digestive_enzymes",
+      "supplement": "Digestive enzymes",
+      "aliases": [
+        "digestive enzymes",
+        "protease",
+        "lipase",
+        "amylase"
+      ],
+      "body": "Enzyme blends try to match a meal's macros — marketing often overpromises."
+    },
+    {
+      "id": "lysine_f1",
+      "supplement_id": "lysine",
+      "supplement": "Lysine",
+      "aliases": [
+        "lysine",
+        "l-lysine"
+      ],
+      "body": "Lysine is the amino acid cold-sore folklore made famous."
+    },
+    {
+      "id": "arginine_f1",
+      "supplement_id": "arginine",
+      "supplement": "Arginine",
+      "aliases": [
+        "arginine",
+        "l-arginine"
+      ],
+      "body": "Arginine is the older nitric-oxide story; citrulline often stole its thunder."
+    },
+    {
+      "id": "ornithine_f1",
+      "supplement_id": "ornithine",
+      "supplement": "Ornithine",
+      "aliases": [
+        "ornithine",
+        "l-ornithine"
+      ],
+      "body": "Ornithine shows up in some sleep and ammonia-cycle conversations."
+    },
+    {
+      "id": "serrapeptase_f1",
+      "supplement_id": "serrapeptase",
+      "supplement": "Serrapeptase",
+      "aliases": [
+        "serrapeptase",
+        "serratiopeptidase"
+      ],
+      "body": "Serrapeptase began as a silkworm enzyme story in supplement marketing."
+    },
+    {
+      "id": "oregano_oil_f1",
+      "supplement_id": "oregano_oil",
+      "supplement": "Oregano oil",
+      "aliases": [
+        "oregano oil",
+        "oil of oregano"
+      ],
+      "body": "Oil of oregano is spicy folklore — dilute stories exist for a reason."
+    },
+    {
+      "id": "monolaurin_f1",
+      "supplement_id": "monolaurin",
+      "supplement": "Monolaurin",
+      "aliases": [
+        "monolaurin"
+      ],
+      "body": "Monolaurin is a lauric-acid derivative from coconut chemistry stories."
+    },
+    {
+      "id": "betaine_f1",
+      "supplement_id": "betaine",
+      "supplement": "Betaine",
+      "aliases": [
+        "betaine hcl",
+        "betaine",
+        "tmg"
+      ],
+      "body": "Betaine HCl is a stomach-acid conversation; TMG is the methyl-donor cousin."
+    },
+    {
+      "id": "molybdenum_f1",
+      "supplement_id": "molybdenum",
+      "supplement": "Molybdenum",
+      "aliases": [
+        "molybdenum"
+      ],
+      "body": "Molybdenum is a cofactor mineral most people never name at dinner."
+    },
+    {
+      "id": "lithium_orotate_f1",
+      "supplement_id": "lithium_orotate",
+      "supplement": "Lithium orotate",
+      "aliases": [
+        "lithium orotate"
+      ],
+      "body": "Lithium orotate in wellness niches is a different universe from clinical lithium care."
+    },
+    {
+      "id": "saw_palmetto_f1",
+      "supplement_id": "saw_palmetto",
+      "supplement": "Saw palmetto",
+      "aliases": [
+        "saw palmetto"
+      ],
+      "body": "Saw palmetto is a palm berry with a long men's-health shelf presence."
+    },
+    {
+      "id": "nettle_f1",
+      "supplement_id": "nettle",
+      "supplement": "Nettle",
+      "aliases": [
+        "nettle",
+        "stinging nettle"
+      ],
+      "body": "Nettle tea is mineral-rich folk food that forgot it was a weed."
+    },
+    {
+      "id": "milk_thistle_f1",
+      "supplement_id": "milk_thistle",
+      "supplement": "Milk thistle",
+      "aliases": [
+        "milk thistle",
+        "silymarin"
+      ],
+      "body": "Silymarin is milk thistle's branded chemistry — liver folklore in a softgel."
+    },
+    {
+      "id": "artichoke_f1",
+      "supplement_id": "artichoke",
+      "supplement": "Artichoke extract",
+      "aliases": [
+        "artichoke",
+        "cynarin"
+      ],
+      "body": "Artichoke leaf extracts borrow bitterness as a digestion cue."
+    },
+    {
+      "id": "peppermint_f1",
+      "supplement_id": "peppermint",
+      "supplement": "Peppermint",
+      "aliases": [
+        "peppermint",
+        "menthol oil"
+      ],
+      "body": "Peppermint is kitchen calm that also shows up in gut softgels."
+    },
+    {
+      "id": "lavender_f1",
+      "supplement_id": "lavender",
+      "supplement": "Lavender",
+      "aliases": [
+        "lavender"
+      ],
+      "body": "Lavender jumped from linen closets to calm softgels without losing the scent story."
+    }
+  ],
+  "empty_kit_cta": "Add what you own — Move can prefer your shelf",
+  "fact_foot": "Informational — not medical advice"
+}

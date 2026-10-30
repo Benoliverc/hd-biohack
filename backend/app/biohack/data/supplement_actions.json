@@ -1,0 +1,5046 @@
+{
+  "version": 1,
+  "supplements": [
+    {
+      "id": "magnesium_glycinate",
+      "display": "Magnesium Glycinate",
+      "aliases": [
+        "magnesium glycinate",
+        "magnesium",
+        "mag glycinate",
+        "mg glycinate"
+      ],
+      "actions": [
+        {
+          "id": "magnesium_glycinate_a1",
+          "when": "60–90 min before bed",
+          "line": "Magnesium Glycinate — close the motor loop",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "High-energy day — wind down with what you own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "sleep",
+              "recovery",
+              "motor"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone",
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "magnesium_glycinate_a2",
+          "when": "Evening wind-down",
+          "line": "Magnesium Glycinate — soft landing",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Steady night cue from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Steady",
+              "Low"
+            ],
+            "themes": [
+              "sleep",
+              "calm"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "magnesium_glycinate_a3",
+          "when": "Evening",
+          "line": "Magnesium Glycinate before the second wind",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Emotional weather — minerals before late tabs.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave",
+              "calm"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        },
+        {
+          "id": "magnesium_glycinate_a4",
+          "when": "With breakfast",
+          "line": "Magnesium Glycinate with food if your label allows",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — gentle mineral, no new stack.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Drained",
+              "Low"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "magnesium_threonate",
+      "display": "Magnesium L-Threonate",
+      "aliases": [
+        "magnesium l-threonate",
+        "mag threonate",
+        "threonate",
+        "magnesium threonate"
+      ],
+      "actions": [
+        {
+          "id": "magnesium_threonate_a1",
+          "when": "Evening wind-down",
+          "line": "Magnesium L-Threonate — mind downshift",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Head/Ajna weather — quiet the loop you already own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "focus",
+              "sleep"
+            ],
+            "centers": [
+              "Ajna",
+              "Head"
+            ],
+            "space": [
+              "focus",
+              "alone"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "magnesium_threonate_a2",
+          "when": "With breakfast",
+          "line": "Magnesium L-Threonate if your label is daytime-ok",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus corner — minerals before more tabs.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Steady"
+            ],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "magnesium_citrate",
+      "display": "Magnesium Citrate",
+      "aliases": [
+        "magnesium citrate",
+        "mag citrate"
+      ],
+      "actions": [
+        {
+          "id": "magnesium_citrate_a1",
+          "when": "Evening",
+          "line": "Magnesium Citrate — per your usual timing",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Use the form you already bought; skip doubling up.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "omega3",
+      "display": "Omega-3",
+      "aliases": [
+        "omega-3",
+        "omega 3",
+        "omega3",
+        "fish oil",
+        "krill",
+        "krill oil",
+        "epa",
+        "dha"
+      ],
+      "actions": [
+        {
+          "id": "omega3_a1",
+          "when": "With breakfast",
+          "line": "Omega-3 with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind-bridge day — fat-soluble support you already own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Heart"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "omega3_a2",
+          "when": "With lunch",
+          "line": "Omega-3 with the midday meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Keep the Head quiet without a new nootropic.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Steady",
+              "Charged"
+            ],
+            "themes": [
+              "focus",
+              "calm"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Heart"
+            ],
+            "space": [
+              "focus",
+              "alone"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "omega3_a3",
+          "when": "With dinner",
+          "line": "Omega-3 with dinner if you skipped morning",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery day — use the bottle on the shelf.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Heart"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "omega3_a4",
+          "when": "With breakfast",
+          "line": "Omega-3 — steady fats on a wave day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Emotional weather — basics before extras.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Heart"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_d3",
+      "display": "Vitamin D3",
+      "aliases": [
+        "vitamin d3",
+        "vitamin d",
+        "d3",
+        "cholecalciferol"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_d3_a1",
+          "when": "With breakfast",
+          "line": "Vitamin D3 with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Spleen/immune weather — daylight in a softgel you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune",
+              "energy_support"
+            ],
+            "centers": [
+              "Spleen",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "vitamin_d3_a2",
+          "when": "With breakfast",
+          "line": "Vitamin D3 — morning with a meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low sky day — stick to the bottle you already trust.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Spleen",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "vitamin_d3_a3",
+          "when": "With lunch",
+          "line": "Vitamin D3 if you missed breakfast",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Catch-up with food; skip megadosing.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_k2",
+      "display": "Vitamin K2",
+      "aliases": [
+        "vitamin k2",
+        "k2",
+        "mk-7",
+        "mk7"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_k2_a1",
+          "when": "With breakfast",
+          "line": "Vitamin K2 with your D3 meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Pair what you own; don't invent a new stack.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Heart",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "creatine",
+      "display": "Creatine",
+      "aliases": [
+        "creatine",
+        "creatine monohydrate"
+      ],
+      "actions": [
+        {
+          "id": "creatine_a1",
+          "when": "Around training / midday",
+          "line": "Creatine — Sacral-yes training day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Body said yes to effort — use the tub you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Hyper",
+              "Steady"
+            ],
+            "themes": [
+              "sacral_yes",
+              "motor"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart",
+              "Root"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "creatine_a2",
+          "when": "With breakfast",
+          "line": "Creatine with your morning meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Capacity support without a stim stack.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Steady",
+              "Charged"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "creatine_a3",
+          "when": "Midday",
+          "line": "Creatine only if training still feels like a yes",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — skip heroic sets; keep the habit light.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Low"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "ashwagandha",
+      "display": "Ashwagandha",
+      "aliases": [
+        "ashwagandha",
+        "withania",
+        "ksm-66",
+        "sensoril"
+      ],
+      "actions": [
+        {
+          "id": "ashwagandha_a1",
+          "when": "Evening",
+          "line": "Ashwagandha — pulse on a loud Root day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "High pressure — adaptogen you own, not more coffee.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "calm",
+              "sleep"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "ashwagandha_a2",
+          "when": "Evening wind-down",
+          "line": "Ashwagandha if you're cycling it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Wave day — support calm; skip if it wires you.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave",
+              "calm"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        },
+        {
+          "id": "ashwagandha_a3",
+          "when": "Morning",
+          "line": "Ashwagandha only if it doesn't flatten you",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — notice body response before a second dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "b_complex",
+      "display": "B-Complex",
+      "aliases": [
+        "b-complex",
+        "b complex",
+        "b-complex (pulse)",
+        "vitamin b",
+        "b vitamins",
+        "b50",
+        "b100"
+      ],
+      "actions": [
+        {
+          "id": "b_complex_a1",
+          "when": "With breakfast",
+          "line": "B-Complex pulse with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Head weather — methylation support you own, not more tabs.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "b_complex_a2",
+          "when": "Morning",
+          "line": "B-Complex — skip if already wired",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "High day — Bs aren't a substitute for fewer inputs.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "b_complex_a3",
+          "when": "With lunch",
+          "line": "B-Complex with a meal if mornings felt flat",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low fuel day — food first, then the B you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "b_complex_a4",
+          "when": "With breakfast",
+          "line": "B-Complex — one pulse, then stop researching",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Borrowed Head pressure — don't open a new stack tab.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "conditioning"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "b12",
+      "display": "Vitamin B12",
+      "aliases": [
+        "vitamin b12",
+        "b12",
+        "methylcobalamin",
+        "cyanocobalamin",
+        "adenosylcobalamin"
+      ],
+      "actions": [
+        {
+          "id": "b12_a1",
+          "when": "Morning",
+          "line": "Vitamin B12 as you usually take it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low/steady day — stick to your known dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Drained",
+              "Steady"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Head",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "methylfolate",
+      "display": "Methylfolate",
+      "aliases": [
+        "methylfolate",
+        "5-mthf",
+        "folate",
+        "l-methylfolate"
+      ],
+      "actions": [
+        {
+          "id": "methylfolate_a1",
+          "when": "With breakfast",
+          "line": "Methylfolate with your B routine",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind day — use what you own; no new rabbit holes.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "nac",
+      "display": "NAC",
+      "aliases": [
+        "nac",
+        "n-acetylcysteine",
+        "n-acetyl cysteine",
+        "n acetyl cysteine"
+      ],
+      "actions": [
+        {
+          "id": "nac_a1",
+          "when": "Evening",
+          "line": "NAC on a wave evening",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Emotional weather — gut-brain buffer you already own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave",
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Spleen",
+              "Ajna"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        },
+        {
+          "id": "nac_a2",
+          "when": "Midday",
+          "line": "NAC away from big mineral piles if your label says so",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery day — one known support.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Steady",
+              "Low"
+            ],
+            "themes": [
+              "recovery",
+              "immune"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Spleen",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "nac_a3",
+          "when": "Evening wind-down",
+          "line": "NAC instead of another stim stack",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hyper day — clear chemistry you trust.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Hyper"
+            ],
+            "themes": [
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Spleen",
+              "Ajna"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "berberine",
+      "display": "Berberine",
+      "aliases": [
+        "berberine",
+        "berberine hcl",
+        "dihydroberberine"
+      ],
+      "actions": [
+        {
+          "id": "berberine_a1",
+          "when": "With a main meal",
+          "line": "Berberine with food as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Sacral/metabolic day — use your bottle, watch the meal.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support",
+              "sacral_yes"
+            ],
+            "centers": [
+              "Sacral",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "berberine_a2",
+          "when": "With dinner",
+          "line": "Berberine with dinner if that's your timing",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Keep the habit; skip experimenting tonight.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Steady"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "l_theanine",
+      "display": "L-Theanine",
+      "aliases": [
+        "l-theanine",
+        "theanine",
+        "l theanine"
+      ],
+      "actions": [
+        {
+          "id": "l_theanine_a1",
+          "when": "Morning",
+          "line": "L-Theanine before the tab storm",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Head/Ajna bridge — calm focus from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus",
+              "calm"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Solar_Plexus",
+              "Throat"
+            ],
+            "space": [
+              "focus",
+              "alone"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "l_theanine_a2",
+          "when": "Midday work block",
+          "line": "L-Theanine for a single-task window",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "High energy — smooth the edges, don't add stim.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Solar_Plexus",
+              "Throat"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "l_theanine_a3",
+          "when": "Early evening",
+          "line": "L-Theanine after social load",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Borrowed feelings — clear what isn't yours.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave",
+              "calm"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Solar_Plexus",
+              "Throat"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "zinc",
+      "display": "Zinc",
+      "aliases": [
+        "zinc",
+        "zinc picolinate",
+        "zinc bisglycinate",
+        "zinc citrate",
+        "zinc (pulse)"
+      ],
+      "actions": [
+        {
+          "id": "zinc_a1",
+          "when": "Evening",
+          "line": "Zinc pulse away from coffee",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Spleen weather — instinct support you own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "zinc_a2",
+          "when": "With food",
+          "line": "Zinc with food if mornings are your slot",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — basics, not a new immune rabbit hole.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low"
+            ],
+            "themes": [
+              "immune",
+              "recovery"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "electrolytes",
+      "display": "Electrolytes",
+      "aliases": [
+        "electrolytes",
+        "electrolyte",
+        "lmnt",
+        "sodium potassium",
+        "hydration + electrolytes"
+      ],
+      "actions": [
+        {
+          "id": "electrolytes_a1",
+          "when": "Morning",
+          "line": "Electrolytes before other people's urgency",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Root weather — minerals before Slack.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "motor",
+              "energy_support"
+            ],
+            "centers": [
+              "Root",
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "electrolytes_a2",
+          "when": "Midday",
+          "line": "Electrolytes around the high-output block",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Motor day — hydrate the effort you already chose.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Root",
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "electrolytes_a3",
+          "when": "Midday",
+          "line": "Electrolytes + water, then reassess",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — fluids before another coffee.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Drained",
+              "Low"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Sacral",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "coq10",
+      "display": "CoQ10",
+      "aliases": [
+        "coq10",
+        "coenzyme q10",
+        "ubiquinol",
+        "ubiquinone"
+      ],
+      "actions": [
+        {
+          "id": "coq10_a1",
+          "when": "With breakfast",
+          "line": "CoQ10 / Ubiquinol with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Heart/will weather — cellular energy you already own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support",
+              "motor"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "coq10_a2",
+          "when": "With lunch",
+          "line": "CoQ10 with the midday meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low output day — support, don't force.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "lions_mane",
+      "display": "Lion's Mane",
+      "aliases": [
+        "lion's mane",
+        "lions mane",
+        "lion’s mane",
+        "hericium"
+      ],
+      "actions": [
+        {
+          "id": "lions_mane_a1",
+          "when": "Morning",
+          "line": "Lion's Mane on a mind-bridge morning",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Ajna weather — one cognitive support you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "lions_mane_a2",
+          "when": "Midday",
+          "line": "Lion's Mane before a single-task block",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus corner — mushroom, not more tabs.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Steady",
+              "Charged"
+            ],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "rhodiola",
+      "display": "Rhodiola",
+      "aliases": [
+        "rhodiola",
+        "rhodiola rosea",
+        "arctic root"
+      ],
+      "actions": [
+        {
+          "id": "rhodiola_a1",
+          "when": "Morning",
+          "line": "Rhodiola earlier in the day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low/steady — adaptogen you own, not late caffeine.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Drained",
+              "Steady"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Root",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        },
+        {
+          "id": "rhodiola_a2",
+          "when": "Morning",
+          "line": "Skip Rhodiola if already wired",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hyper day — more drive isn't the missing piece.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Hyper"
+            ],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Root",
+              "Sacral"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "taurine",
+      "display": "Taurine",
+      "aliases": [
+        "taurine"
+      ],
+      "actions": [
+        {
+          "id": "taurine_a1",
+          "when": "Evening",
+          "line": "Taurine for a quieter GABA tone",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Wave evening — calm support from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "emotional_wave"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Heart",
+              "Root"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        },
+        {
+          "id": "taurine_a2",
+          "when": "Midday",
+          "line": "Taurine instead of another coffee",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hyper weather — smooth, don't spike.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Hyper"
+            ],
+            "themes": [
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Heart",
+              "Root"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "astaxanthin",
+      "display": "Astaxanthin",
+      "aliases": [
+        "astaxanthin"
+      ],
+      "actions": [
+        {
+          "id": "astaxanthin_a1",
+          "when": "With breakfast",
+          "line": "Astaxanthin with a meal that has fat",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery day — use what you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Heart",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_c",
+      "display": "Vitamin C",
+      "aliases": [
+        "vitamin c",
+        "ascorbic acid",
+        "ascorbate"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_c_a1",
+          "when": "Morning",
+          "line": "Vitamin C with breakfast",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune basics from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_a",
+      "display": "Vitamin A",
+      "aliases": [
+        "vitamin a",
+        "retinol",
+        "beta carotene"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_a_a1",
+          "when": "With food",
+          "line": "Vitamin A with a meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Stick to your known dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_e",
+      "display": "Vitamin E",
+      "aliases": [
+        "vitamin e",
+        "tocopherol",
+        "tocotrienol"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_e_a1",
+          "when": "With food",
+          "line": "Vitamin E with a fatty meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Antioxidant you own — no stacking race.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Heart",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "selenium",
+      "display": "Selenium",
+      "aliases": [
+        "selenium",
+        "selenomethionine"
+      ],
+      "actions": [
+        {
+          "id": "selenium_a1",
+          "when": "Morning",
+          "line": "Selenium as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Trace mineral — pulse, don't pile.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "iodine",
+      "display": "Iodine",
+      "aliases": [
+        "iodine",
+        "kelp iodine",
+        "potassium iodide"
+      ],
+      "actions": [
+        {
+          "id": "iodine_a1",
+          "when": "Morning",
+          "line": "Iodine only as you already dose it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Throat center day — no DIY thyroid experiments.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "iron",
+      "display": "Iron",
+      "aliases": [
+        "iron",
+        "ferrous",
+        "bisglycinate iron",
+        "iron bisglycinate"
+      ],
+      "actions": [
+        {
+          "id": "iron_a1",
+          "when": "Away from tea/coffee if labelled",
+          "line": "Iron as prescribed/labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low day — only your known iron, never a friend's protocol.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Drained"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "calcium",
+      "display": "Calcium",
+      "aliases": [
+        "calcium",
+        "calcium citrate",
+        "calcium carbonate"
+      ],
+      "actions": [
+        {
+          "id": "calcium_a1",
+          "when": "Evening with food if labelled",
+          "line": "Calcium as you usually take it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Baseline mineral — skip doubling with tonight's mag blindly.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "potassium",
+      "display": "Potassium",
+      "aliases": [
+        "potassium",
+        "potassium citrate",
+        "potassium chloride"
+      ],
+      "actions": [
+        {
+          "id": "potassium_a1",
+          "when": "Midday",
+          "line": "Potassium per label / food first",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Motor weather — food potassium still counts.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Heart",
+              "Root"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "chromium",
+      "display": "Chromium",
+      "aliases": [
+        "chromium",
+        "chromium picolinate"
+      ],
+      "actions": [
+        {
+          "id": "chromium_a1",
+          "when": "With a carb-heavy meal",
+          "line": "Chromium with food if that's your habit",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Metabolic curiosity — use your bottle, watch the meal.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "probiotics",
+      "display": "Probiotics",
+      "aliases": [
+        "probiotic",
+        "probiotics",
+        "lactobacillus",
+        "bifido"
+      ],
+      "actions": [
+        {
+          "id": "probiotics_a1",
+          "when": "Morning away from hot drinks if labelled",
+          "line": "Probiotics as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut-brain day — culture you already own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave",
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Sacral"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "prebiotics",
+      "display": "Prebiotics",
+      "aliases": [
+        "prebiotic",
+        "prebiotics",
+        "inulin",
+        "fos"
+      ],
+      "actions": [
+        {
+          "id": "prebiotics_a1",
+          "when": "With a meal",
+          "line": "Prebiotic fibre as tolerated",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut support — start with what your shelf already has.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "collagen",
+      "display": "Collagen",
+      "aliases": [
+        "collagen",
+        "collagen peptides",
+        "hydrolyzed collagen"
+      ],
+      "actions": [
+        {
+          "id": "collagen_a1",
+          "when": "Morning in coffee/tea if that's your ritual",
+          "line": "Collagen in your usual drink",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Tissue/recovery day — ritual you already like.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Throat",
+              "Spleen",
+              "G"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "protein_powder",
+      "display": "Protein powder",
+      "aliases": [
+        "protein powder",
+        "whey",
+        "casein",
+        "pea protein"
+      ],
+      "actions": [
+        {
+          "id": "protein_powder_a1",
+          "when": "With breakfast",
+          "line": "Protein powder / shake as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Sacral fuel — food first principles in a scoop.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "sacral_yes",
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "protein_powder_a2",
+          "when": "Post-training or lunch",
+          "line": "Protein around the effort block",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Body said yes — recover with what you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Steady"
+            ],
+            "themes": [
+              "sacral_yes"
+            ],
+            "centers": [
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "glycine",
+      "display": "Glycine",
+      "aliases": [
+        "glycine"
+      ],
+      "actions": [
+        {
+          "id": "glycine_a1",
+          "when": "Evening",
+          "line": "Glycine before bed if that's your habit",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Sleep cue from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "sleep",
+              "calm"
+            ],
+            "centers": [
+              "Head",
+              "Root",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "gaba",
+      "display": "GABA",
+      "aliases": [
+        "gaba"
+      ],
+      "actions": [
+        {
+          "id": "gaba_a1",
+          "when": "Evening",
+          "line": "GABA as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Calm evening — no stacking with new sedatives.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "sleep"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Ajna"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "melatonin",
+      "display": "Melatonin",
+      "aliases": [
+        "melatonin"
+      ],
+      "actions": [
+        {
+          "id": "melatonin_a1",
+          "when": "Near bedtime",
+          "line": "Melatonin only at your known low dose",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hyper day — darkness cue, not a new rabbit hole.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [
+              "Hyper",
+              "Charged"
+            ],
+            "themes": [
+              "sleep"
+            ],
+            "centers": [
+              "Head",
+              "Ajna",
+              "Spleen"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "apigenin",
+      "display": "Apigenin",
+      "aliases": [
+        "apigenin"
+      ],
+      "actions": [
+        {
+          "id": "apigenin_a1",
+          "when": "Evening",
+          "line": "Apigenin as you dose it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind quiet — flavonoid you own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "sleep",
+              "calm"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "quercetin",
+      "display": "Quercetin",
+      "aliases": [
+        "quercetin"
+      ],
+      "actions": [
+        {
+          "id": "quercetin_a1",
+          "when": "With food",
+          "line": "Quercetin with a meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune curiosity — stick to your bottle.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "curcumin",
+      "display": "Curcumin",
+      "aliases": [
+        "curcumin",
+        "turmeric",
+        "turmeric extract"
+      ],
+      "actions": [
+        {
+          "id": "curcumin_a1",
+          "when": "With dinner",
+          "line": "Curcumin / turmeric with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery evening — spice you already take.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery",
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Root",
+              "Spleen"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        },
+        {
+          "id": "curcumin_a2",
+          "when": "With lunch",
+          "line": "Curcumin with a fatty meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Inflammation folklore — use your known product.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Root",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "ginger",
+      "display": "Ginger",
+      "aliases": [
+        "ginger",
+        "ginger extract"
+      ],
+      "actions": [
+        {
+          "id": "ginger_a1",
+          "when": "Morning tea or capsule",
+          "line": "Ginger as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut weather — warmth you trust.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Sacral"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "elderberry",
+      "display": "Elderberry",
+      "aliases": [
+        "elderberry",
+        "sambucus"
+      ],
+      "actions": [
+        {
+          "id": "elderberry_a1",
+          "when": "Morning",
+          "line": "Elderberry as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Seasonal support from your kit — not a cure claim.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "echinacea",
+      "display": "Echinacea",
+      "aliases": [
+        "echinacea"
+      ],
+      "actions": [
+        {
+          "id": "echinacea_a1",
+          "when": "Morning",
+          "line": "Echinacea pulse if that's your habit",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Short courses beat forever-daily folklore.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "multivitamin",
+      "display": "Multivitamin",
+      "aliases": [
+        "multivitamin",
+        "multi vitamin",
+        "multi"
+      ],
+      "actions": [
+        {
+          "id": "multivitamin_a1",
+          "when": "With breakfast",
+          "line": "Multivitamin with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Coverage day — one known multi, then stop shopping.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery",
+              "energy_support"
+            ],
+            "centers": [
+              "G",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "ala",
+      "display": "Alpha-Lipoic Acid",
+      "aliases": [
+        "alpha-lipoic acid",
+        "ala",
+        "r-ala"
+      ],
+      "actions": [
+        {
+          "id": "ala_a1",
+          "when": "Away from minerals if labelled",
+          "line": "ALA as you usually time it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Metabolic support from your shelf.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Ajna",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "alcar",
+      "display": "Acetyl-L-Carnitine",
+      "aliases": [
+        "acetyl-l-carnitine",
+        "alcar",
+        "acetyl l carnitine"
+      ],
+      "actions": [
+        {
+          "id": "alcar_a1",
+          "when": "Morning",
+          "line": "ALCAR earlier in the day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind + motor curiosity — your known dose only.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus",
+              "energy_support"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Sacral"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "l_carnitine",
+      "display": "L-Carnitine",
+      "aliases": [
+        "l-carnitine",
+        "carnitine",
+        "l carnitine"
+      ],
+      "actions": [
+        {
+          "id": "l_carnitine_a1",
+          "when": "Around training",
+          "line": "L-Carnitine if training is a yes",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Effort day — use the bottle, honour fatigue.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Steady"
+            ],
+            "themes": [
+              "sacral_yes"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "beta_alanine",
+      "display": "Beta-Alanine",
+      "aliases": [
+        "beta-alanine",
+        "beta alanine"
+      ],
+      "actions": [
+        {
+          "id": "beta_alanine_a1",
+          "when": "Pre-training",
+          "line": "Beta-Alanine only around real effort",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Motor weather — tingling isn't a productivity hack.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Hyper"
+            ],
+            "themes": [
+              "motor",
+              "sacral_yes"
+            ],
+            "centers": [
+              "Sacral",
+              "Root"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "citrulline",
+      "display": "Citrulline",
+      "aliases": [
+        "citrulline",
+        "l-citrulline"
+      ],
+      "actions": [
+        {
+          "id": "citrulline_a1",
+          "when": "Pre-training",
+          "line": "Citrulline around the session",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Pump day — kit first, ego second.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged"
+            ],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "beetroot",
+      "display": "Beetroot",
+      "aliases": [
+        "beetroot",
+        "beet root",
+        "beet juice",
+        "nitrates"
+      ],
+      "actions": [
+        {
+          "id": "beetroot_a1",
+          "when": "Before effort",
+          "line": "Beetroot as you usually time it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Endurance weather — pink fuel you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Steady"
+            ],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral",
+              "Root"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cordyceps",
+      "display": "Cordyceps",
+      "aliases": [
+        "cordyceps",
+        "cordyceps militaris"
+      ],
+      "actions": [
+        {
+          "id": "cordyceps_a1",
+          "when": "Morning",
+          "line": "Cordyceps earlier if it agrees with you",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Drive support — notice if it steals sleep.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Steady"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "reishi",
+      "display": "Reishi",
+      "aliases": [
+        "reishi",
+        "ganoderma"
+      ],
+      "actions": [
+        {
+          "id": "reishi_a1",
+          "when": "Evening",
+          "line": "Reishi for a softer landing",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Calm evening — fungus you already trust.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "sleep"
+            ],
+            "centers": [
+              "Spleen",
+              "Root",
+              "Head"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaga",
+      "display": "Chaga",
+      "aliases": [
+        "chaga"
+      ],
+      "actions": [
+        {
+          "id": "chaga_a1",
+          "when": "Morning tea/capsule",
+          "line": "Chaga as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune folklore — your known prep.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "turkey_tail",
+      "display": "Turkey Tail",
+      "aliases": [
+        "turkey tail",
+        "trametes"
+      ],
+      "actions": [
+        {
+          "id": "turkey_tail_a1",
+          "when": "Morning",
+          "line": "Turkey Tail as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune mushroom from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "bacopa",
+      "display": "Bacopa",
+      "aliases": [
+        "bacopa",
+        "bacopa monnieri"
+      ],
+      "actions": [
+        {
+          "id": "bacopa_a1",
+          "when": "With food",
+          "line": "Bacopa with breakfast",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind day — herb you own, patience required.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ginkgo",
+      "display": "Ginkgo",
+      "aliases": [
+        "ginkgo",
+        "ginkgo biloba"
+      ],
+      "actions": [
+        {
+          "id": "ginkgo_a1",
+          "when": "Morning",
+          "line": "Ginkgo as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus support — skip if it disagrees with you.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "G"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ps",
+      "display": "Phosphatidylserine",
+      "aliases": [
+        "phosphatidylserine",
+        "ps"
+      ],
+      "actions": [
+        {
+          "id": "ps_a1",
+          "when": "Evening",
+          "line": "Phosphatidylserine as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind wind-down from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "focus",
+              "alone"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pqq",
+      "display": "PQQ",
+      "aliases": [
+        "pqq",
+        "pyrroloquinoline"
+      ],
+      "actions": [
+        {
+          "id": "pqq_a1",
+          "when": "With breakfast",
+          "line": "PQQ with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Cellular curiosity — known dose only.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Heart",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "nmn",
+      "display": "NMN",
+      "aliases": [
+        "nmn",
+        "nicotinamide mononucleotide"
+      ],
+      "actions": [
+        {
+          "id": "nmn_a1",
+          "when": "Morning",
+          "line": "NMN as you already dose it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Longevity aisle — stick to your protocol, skip hype tabs.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart",
+              "Ajna"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "resveratrol",
+      "display": "Resveratrol",
+      "aliases": [
+        "resveratrol"
+      ],
+      "actions": [
+        {
+          "id": "resveratrol_a1",
+          "when": "With dinner",
+          "line": "Resveratrol with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Polyphenol evening — wine optional, hype optional.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Heart",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "spermidine",
+      "display": "Spermidine",
+      "aliases": [
+        "spermidine"
+      ],
+      "actions": [
+        {
+          "id": "spermidine_a1",
+          "when": "Morning",
+          "line": "Spermidine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Cellular housekeeping lore — your known product.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Sacral",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisetin",
+      "display": "Fisetin",
+      "aliases": [
+        "fisetin"
+      ],
+      "actions": [
+        {
+          "id": "fisetin_a1",
+          "when": "With fat if labelled",
+          "line": "Fisetin as you pulse it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Longevity curiosity — pulse beats daily forever.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Ajna",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "sulforaphane",
+      "display": "Sulforaphane",
+      "aliases": [
+        "sulforaphane",
+        "broccoli sprout",
+        "myrosinase"
+      ],
+      "actions": [
+        {
+          "id": "sulforaphane_a1",
+          "when": "Morning",
+          "line": "Sulforaphane / sprout extract as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Green chemistry from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune",
+              "recovery"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "olive_leaf",
+      "display": "Olive leaf",
+      "aliases": [
+        "olive leaf",
+        "oleuropein"
+      ],
+      "actions": [
+        {
+          "id": "olive_leaf_a1",
+          "when": "Morning",
+          "line": "Olive leaf as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mediterranean folklore in a capsule.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Heart"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "garlic",
+      "display": "Garlic extract",
+      "aliases": [
+        "garlic",
+        "aged garlic",
+        "allicin"
+      ],
+      "actions": [
+        {
+          "id": "garlic_a1",
+          "when": "With dinner",
+          "line": "Garlic extract with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Kitchen medicine you already take.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Heart",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "psyllium",
+      "display": "Psyllium",
+      "aliases": [
+        "psyllium",
+        "metamucil",
+        "fiber supplement",
+        "fibre"
+      ],
+      "actions": [
+        {
+          "id": "psyllium_a1",
+          "when": "With plenty of water",
+          "line": "Psyllium as tolerated",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut timing — water is not optional.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "mct",
+      "display": "MCT oil",
+      "aliases": [
+        "mct",
+        "mct oil",
+        "c8",
+        "c10"
+      ],
+      "actions": [
+        {
+          "id": "mct_a1",
+          "when": "In coffee/tea if that's your ritual",
+          "line": "MCT in your morning drink",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Quick fuel — start low if your gut complains.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus",
+              "energy_support"
+            ],
+            "centers": [
+              "Ajna",
+              "Sacral"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "evening_primrose",
+      "display": "Evening Primrose",
+      "aliases": [
+        "evening primrose",
+        "epo",
+        "gla"
+      ],
+      "actions": [
+        {
+          "id": "evening_primrose_a1",
+          "when": "Evening",
+          "line": "Evening Primrose as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Wave support — oil you already bought.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "emotional_wave"
+            ],
+            "centers": [
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cla",
+      "display": "CLA",
+      "aliases": [
+        "cla",
+        "conjugated linoleic"
+      ],
+      "actions": [
+        {
+          "id": "cla_a1",
+          "when": "With a meal",
+          "line": "CLA as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Metabolic aisle — no miracle claims.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "hmb",
+      "display": "HMB",
+      "aliases": [
+        "hmb"
+      ],
+      "actions": [
+        {
+          "id": "hmb_a1",
+          "when": "Around training",
+          "line": "HMB on hard-effort days",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery chemistry you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged"
+            ],
+            "themes": [
+              "recovery",
+              "sacral_yes"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "tart_cherry",
+      "display": "Tart cherry",
+      "aliases": [
+        "tart cherry",
+        "montmorency",
+        "cherry extract"
+      ],
+      "actions": [
+        {
+          "id": "tart_cherry_a1",
+          "when": "Evening",
+          "line": "Tart cherry as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery evening — juice or capsule you trust.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery",
+              "sleep"
+            ],
+            "centers": [
+              "Sacral",
+              "Root",
+              "Spleen"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "valerian",
+      "display": "Valerian",
+      "aliases": [
+        "valerian"
+      ],
+      "actions": [
+        {
+          "id": "valerian_a1",
+          "when": "Near bedtime",
+          "line": "Valerian as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Sleep herb — skip mixing with new sedatives.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "sleep"
+            ],
+            "centers": [
+              "Head",
+              "Root"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "passionflower",
+      "display": "Passionflower",
+      "aliases": [
+        "passionflower",
+        "passiflora"
+      ],
+      "actions": [
+        {
+          "id": "passionflower_a1",
+          "when": "Evening",
+          "line": "Passionflower tea/capsule",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Wave night — gentle herb you own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "emotional_wave"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "lemon_balm",
+      "display": "Lemon balm",
+      "aliases": [
+        "lemon balm",
+        "melissa"
+      ],
+      "actions": [
+        {
+          "id": "lemon_balm_a1",
+          "when": "Evening",
+          "line": "Lemon balm as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Soft landing from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Ajna"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "chamomile",
+      "display": "Chamomile",
+      "aliases": [
+        "chamomile",
+        "matricaria"
+      ],
+      "actions": [
+        {
+          "id": "chamomile_a1",
+          "when": "Evening",
+          "line": "Chamomile tea ritual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Low-tech wind-down you already know.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "sleep",
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "inositol",
+      "display": "Inositol",
+      "aliases": [
+        "inositol",
+        "myo-inositol",
+        "d-chiro"
+      ],
+      "actions": [
+        {
+          "id": "inositol_a1",
+          "when": "Evening",
+          "line": "Inositol as you dose it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Quiet mind — powder or capsule you own.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "emotional_wave"
+            ],
+            "centers": [
+              "Ajna",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        },
+        {
+          "id": "inositol_a2",
+          "when": "Morning",
+          "line": "Inositol with breakfast if daytime-ok",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Steady focus without a stim story.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus",
+              "calm"
+            ],
+            "centers": [
+              "Ajna",
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "focus",
+              "alone"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tyrosine",
+      "display": "L-Tyrosine",
+      "aliases": [
+        "tyrosine",
+        "l-tyrosine",
+        "n-acetyl tyrosine",
+        "nat"
+      ],
+      "actions": [
+        {
+          "id": "tyrosine_a1",
+          "when": "Morning away from big protein if labelled",
+          "line": "L-Tyrosine earlier in the day",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus fuel — skip if already wired.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Steady"
+            ],
+            "themes": [
+              "focus",
+              "energy_support"
+            ],
+            "centers": [
+              "Ajna",
+              "Throat",
+              "Head"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "green_tea_extract",
+      "display": "Green tea extract",
+      "aliases": [
+        "green tea extract",
+        "egcg",
+        "green tea"
+      ],
+      "actions": [
+        {
+          "id": "green_tea_extract_a1",
+          "when": "Morning",
+          "line": "Green tea extract earlier",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus + gentle stim you already chose — cutoff still applies.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Heart",
+              "Sacral"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "shilajit",
+      "display": "Shilajit",
+      "aliases": [
+        "shilajit"
+      ],
+      "actions": [
+        {
+          "id": "shilajit_a1",
+          "when": "Morning",
+          "line": "Shilajit as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Earthy drive — known product only.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Low",
+              "Steady"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Root",
+              "Sacral",
+              "Heart"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "tongkat",
+      "display": "Tongkat Ali",
+      "aliases": [
+        "tongkat",
+        "tongkat ali",
+        "eurycoma"
+      ],
+      "actions": [
+        {
+          "id": "tongkat_a1",
+          "when": "Morning",
+          "line": "Tongkat only on your cycle days",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hormone-adjacent — stick to your plan; clinicians for labs.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [
+              "Steady",
+              "Charged"
+            ],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Heart",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "maca",
+      "display": "Maca",
+      "aliases": [
+        "maca",
+        "lepidium"
+      ],
+      "actions": [
+        {
+          "id": "maca_a1",
+          "when": "Morning",
+          "line": "Maca in your usual smoothie",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Andean energy folklore — food-first root you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Root",
+              "G"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "fenugreek",
+      "display": "Fenugreek",
+      "aliases": [
+        "fenugreek"
+      ],
+      "actions": [
+        {
+          "id": "fenugreek_a1",
+          "when": "With a meal",
+          "line": "Fenugreek as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Kitchen-spice supplement — known dose.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "dim",
+      "display": "DIM",
+      "aliases": [
+        "dim",
+        "diindolylmethane"
+      ],
+      "actions": [
+        {
+          "id": "dim_a1",
+          "when": "With food",
+          "line": "DIM with a meal",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hormone-metabolism aisle — no DIY endocrinology.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "choline",
+      "display": "Choline",
+      "aliases": [
+        "choline",
+        "alpha-gpc",
+        "cdp-choline",
+        "citicoline",
+        "phosphatidylcholine"
+      ],
+      "actions": [
+        {
+          "id": "choline_a1",
+          "when": "Morning",
+          "line": "Choline donor as you usually take it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind bridge — acetylcholine lore, your known form.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Throat"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        },
+        {
+          "id": "choline_a2",
+          "when": "Midday",
+          "line": "Choline before a deep-work block",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Single thread — support you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged",
+              "Steady"
+            ],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Head",
+              "Throat"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "glutamine",
+      "display": "Glutamine",
+      "aliases": [
+        "glutamine",
+        "l-glutamine"
+      ],
+      "actions": [
+        {
+          "id": "glutamine_a1",
+          "when": "Post-effort / evening",
+          "line": "Glutamine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery amino from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Sacral",
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "spirulina",
+      "display": "Spirulina",
+      "aliases": [
+        "spirulina"
+      ],
+      "actions": [
+        {
+          "id": "spirulina_a1",
+          "when": "Morning",
+          "line": "Spirulina in your usual drink",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Green powder day — start with what mixes well for you.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Spleen",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "chlorella",
+      "display": "Chlorella",
+      "aliases": [
+        "chlorella"
+      ],
+      "actions": [
+        {
+          "id": "chlorella_a1",
+          "when": "Morning",
+          "line": "Chlorella as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Green disc from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "moringa",
+      "display": "Moringa",
+      "aliases": [
+        "moringa"
+      ],
+      "actions": [
+        {
+          "id": "moringa_a1",
+          "when": "Morning",
+          "line": "Moringa powder/capsule",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Leaf nutrition you already bought.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Spleen",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "beta_glucan",
+      "display": "Beta-glucan",
+      "aliases": [
+        "beta-glucan",
+        "beta glucan",
+        "yeast beta"
+      ],
+      "actions": [
+        {
+          "id": "beta_glucan_a1",
+          "when": "Morning",
+          "line": "Beta-glucan as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune fibre lore — your known product.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "fulvic",
+      "display": "Fulvic / humic",
+      "aliases": [
+        "fulvic",
+        "humic",
+        "fulvic acid"
+      ],
+      "actions": [
+        {
+          "id": "fulvic_a1",
+          "when": "Morning",
+          "line": "Fulvic as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Earth extract — stick to a trusted brand you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Root",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cbd",
+      "display": "CBD",
+      "aliases": [
+        "cbd",
+        "cannabidiol",
+        "hemp extract"
+      ],
+      "actions": [
+        {
+          "id": "cbd_a1",
+          "when": "Evening",
+          "line": "CBD at your known dose",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Calm evening — local rules apply; no new experiments tonight.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "sleep",
+              "emotional_wave"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Root",
+              "Spleen"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pea",
+      "display": "PEA",
+      "aliases": [
+        "pea",
+        "palmitoylethanolamide"
+      ],
+      "actions": [
+        {
+          "id": "pea_a1",
+          "when": "Evening",
+          "line": "PEA as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Comfort support from your kit.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "recovery"
+            ],
+            "centers": [
+              "Spleen",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5htp",
+      "display": "5-HTP",
+      "aliases": [
+        "5-htp",
+        "5htp",
+        "hydroxytryptophan"
+      ],
+      "actions": [
+        {
+          "id": "5htp_a1",
+          "when": "Evening",
+          "line": "5-HTP only as you already use it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mood/sleep aisle — no DIY combining tonight.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "sleep"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "phenylalanine",
+      "display": "Phenylalanine",
+      "aliases": [
+        "phenylalanine",
+        "dl-phenylalanine",
+        "dlpa"
+      ],
+      "actions": [
+        {
+          "id": "phenylalanine_a1",
+          "when": "Morning",
+          "line": "Phenylalanine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Focus amino — known dose only.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Ajna",
+              "Throat"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_b6",
+      "display": "Vitamin B6",
+      "aliases": [
+        "vitamin b6",
+        "p5p",
+        "pyridoxine"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_b6_a1",
+          "when": "With food",
+          "line": "Vitamin B6 / P5P with breakfast",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mind support — part of a B story you own.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "focus"
+            ],
+            "centers": [
+              "Head",
+              "Ajna"
+            ],
+            "space": [
+              "focus"
+            ],
+            "signal": [
+              "sun_line",
+              "sun_gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_b1",
+      "display": "Vitamin B1",
+      "aliases": [
+        "vitamin b1",
+        "thiamine",
+        "benfotiamine"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_b1_a1",
+          "when": "Morning",
+          "line": "Vitamin B1 as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Energy chemistry history in a tablet.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Head",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_b2",
+      "display": "Vitamin B2",
+      "aliases": [
+        "vitamin b2",
+        "riboflavin"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_b2_a1",
+          "when": "Morning",
+          "line": "Vitamin B2 with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Yellow pee is the classic harmless sign.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Head",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_b3",
+      "display": "Vitamin B3",
+      "aliases": [
+        "vitamin b3",
+        "niacin",
+        "niacinamide"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_b3_a1",
+          "when": "Morning",
+          "line": "B3 form you already tolerate",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Skip experimenting with flush doses.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Heart",
+              "Head"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vitamin_b5",
+      "display": "Vitamin B5",
+      "aliases": [
+        "vitamin b5",
+        "pantothenic"
+      ],
+      "actions": [
+        {
+          "id": "vitamin_b5_a1",
+          "when": "Morning",
+          "line": "Vitamin B5 as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Adrenal folklore — stick to your dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Sacral",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "biotin",
+      "display": "Biotin",
+      "aliases": [
+        "biotin",
+        "vitamin b7"
+      ],
+      "actions": [
+        {
+          "id": "biotin_a1",
+          "when": "Morning",
+          "line": "Biotin as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Hair/skin aisle — labs need honesty about dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Throat",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "copper",
+      "display": "Copper",
+      "aliases": [
+        "copper",
+        "copper bisglycinate"
+      ],
+      "actions": [
+        {
+          "id": "copper_a1",
+          "when": "Away from high zinc if labelled",
+          "line": "Copper as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Trace mineral balance — don't freestyle.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "energy_support"
+            ],
+            "centers": [
+              "Spleen",
+              "Heart"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "boron",
+      "display": "Boron",
+      "aliases": [
+        "boron"
+      ],
+      "actions": [
+        {
+          "id": "boron_a1",
+          "when": "Morning",
+          "line": "Boron as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Trace support — known dose.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "bromelain",
+      "display": "Bromelain",
+      "aliases": [
+        "bromelain"
+      ],
+      "actions": [
+        {
+          "id": "bromelain_a1",
+          "when": "Between meals if labelled",
+          "line": "Bromelain as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Pineapple chemistry from your kit.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "digestive_enzymes",
+      "display": "Digestive enzymes",
+      "aliases": [
+        "digestive enzymes",
+        "protease",
+        "lipase",
+        "amylase"
+      ],
+      "actions": [
+        {
+          "id": "digestive_enzymes_a1",
+          "when": "With a heavy meal",
+          "line": "Digestive enzymes with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut ease — use when the meal needs it.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "lysine",
+      "display": "Lysine",
+      "aliases": [
+        "lysine",
+        "l-lysine"
+      ],
+      "actions": [
+        {
+          "id": "lysine_a1",
+          "when": "Morning",
+          "line": "Lysine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Amino habit — not a treatment claim.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "arginine",
+      "display": "Arginine",
+      "aliases": [
+        "arginine",
+        "l-arginine"
+      ],
+      "actions": [
+        {
+          "id": "arginine_a1",
+          "when": "Pre-effort if that's your habit",
+          "line": "Arginine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Pump lore — known timing only.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [
+              "Charged"
+            ],
+            "themes": [
+              "motor"
+            ],
+            "centers": [
+              "Heart",
+              "Sacral",
+              "Throat"
+            ],
+            "space": [
+              "out",
+              "nature"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "ornithine",
+      "display": "Ornithine",
+      "aliases": [
+        "ornithine",
+        "l-ornithine"
+      ],
+      "actions": [
+        {
+          "id": "ornithine_a1",
+          "when": "Evening",
+          "line": "Ornithine as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Recovery amino from your shelf.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "sleep",
+              "recovery"
+            ],
+            "centers": [
+              "Root",
+              "Sacral"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "serrapeptase",
+      "display": "Serrapeptase",
+      "aliases": [
+        "serrapeptase",
+        "serratiopeptidase"
+      ],
+      "actions": [
+        {
+          "id": "serrapeptase_a1",
+          "when": "Empty stomach if labelled",
+          "line": "Serrapeptase as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Enzyme curiosity — follow your bottle.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "oregano_oil",
+      "display": "Oregano oil",
+      "aliases": [
+        "oregano oil",
+        "oil of oregano"
+      ],
+      "actions": [
+        {
+          "id": "oregano_oil_a1",
+          "when": "As labelled",
+          "line": "Oregano oil cautiously as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Potent botanical — stick to your known use.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen",
+              "Throat"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "monolaurin",
+      "display": "Monolaurin",
+      "aliases": [
+        "monolaurin"
+      ],
+      "actions": [
+        {
+          "id": "monolaurin_a1",
+          "when": "Morning",
+          "line": "Monolaurin as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Immune lipid lore from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "immune"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "betaine",
+      "display": "Betaine",
+      "aliases": [
+        "betaine hcl",
+        "betaine",
+        "tmg"
+      ],
+      "actions": [
+        {
+          "id": "betaine_a1",
+          "when": "With protein-heavy meals if labelled",
+          "line": "Betaine as you already use it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Digestion / methyl support — stop if it burns.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "molybdenum",
+      "display": "Molybdenum",
+      "aliases": [
+        "molybdenum"
+      ],
+      "actions": [
+        {
+          "id": "molybdenum_a1",
+          "when": "Morning",
+          "line": "Molybdenum as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Obscure mineral — keep the dose boring.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Spleen"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "lithium_orotate",
+      "display": "Lithium orotate",
+      "aliases": [
+        "lithium orotate"
+      ],
+      "actions": [
+        {
+          "id": "lithium_orotate_a1",
+          "when": "Evening",
+          "line": "Lithium orotate only as you already use it",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Mood mineral niche — clinicians for anything stronger.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "emotional_wave"
+            ],
+            "centers": [
+              "Head",
+              "Ajna",
+              "Solar_Plexus"
+            ],
+            "space": [
+              "alone",
+              "alone"
+            ],
+            "signal": [
+              "conditioning"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "saw_palmetto",
+      "display": "Saw palmetto",
+      "aliases": [
+        "saw palmetto"
+      ],
+      "actions": [
+        {
+          "id": "saw_palmetto_a1",
+          "when": "Morning",
+          "line": "Saw palmetto as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Botanical habit — known product only.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Sacral"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "nettle",
+      "display": "Nettle",
+      "aliases": [
+        "nettle",
+        "stinging nettle"
+      ],
+      "actions": [
+        {
+          "id": "nettle_a1",
+          "when": "Morning tea/capsule",
+          "line": "Nettle as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Leaf mineral folklore from your kit.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Spleen",
+              "Root"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "milk_thistle",
+      "display": "Milk thistle",
+      "aliases": [
+        "milk thistle",
+        "silymarin"
+      ],
+      "actions": [
+        {
+          "id": "milk_thistle_a1",
+          "when": "Morning",
+          "line": "Milk thistle as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Botanical support — not a detox cleanse claim.",
+          "moments": {
+            "slots": [
+              "morning"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "artichoke",
+      "display": "Artichoke extract",
+      "aliases": [
+        "artichoke",
+        "cynarin"
+      ],
+      "actions": [
+        {
+          "id": "artichoke_a1",
+          "when": "With a meal",
+          "line": "Artichoke extract with food",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Digestive bitter from your shelf.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "recovery"
+            ],
+            "centers": [
+              "Solar_Plexus"
+            ],
+            "space": [],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "peppermint",
+      "display": "Peppermint",
+      "aliases": [
+        "peppermint",
+        "menthol oil"
+      ],
+      "actions": [
+        {
+          "id": "peppermint_a1",
+          "when": "After a heavy meal",
+          "line": "Peppermint as usual",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Gut ease — tea or capsule you own.",
+          "moments": {
+            "slots": [
+              "midday"
+            ],
+            "energy": [],
+            "themes": [
+              "calm"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Ajna"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "lavender",
+      "display": "Lavender",
+      "aliases": [
+        "lavender"
+      ],
+      "actions": [
+        {
+          "id": "lavender_a1",
+          "when": "Evening",
+          "line": "Lavender as labelled",
+          "dose_hint": "Per label / clinician guidance",
+          "why": "Soft landing scent/chemistry you trust.",
+          "moments": {
+            "slots": [
+              "evening"
+            ],
+            "energy": [],
+            "themes": [
+              "calm",
+              "sleep"
+            ],
+            "centers": [
+              "Solar_Plexus",
+              "Head"
+            ],
+            "space": [
+              "alone"
+            ],
+            "signal": []
+          }
+        }
+      ]
+    }
+  ]
+}
