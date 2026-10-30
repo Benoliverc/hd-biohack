@@ -53,14 +53,16 @@ function DevChrome() {
           checked={enforcePaywall}
           onChange={(e) => setEnforcePaywall(e.target.checked)}
         />
-        Enforce paywall
+        Enforce paywall (legacy flag)
       </label>
+      <p className="text-[10px] leading-snug text-fg-muted">
+        UI Free/Pro gating follows subscription_tier even when this is off.
+      </p>
       <label className="flex min-h-10 items-center gap-1.5">
         <input
           type="checkbox"
           checked={previewAsFree}
           onChange={(e) => setPreviewAsFree(e.target.checked)}
-          disabled={!enforcePaywall}
         />
         Preview as Free
       </label>
@@ -71,8 +73,14 @@ function DevChrome() {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { biohackingUnlocked, user, signOut } = useApp();
+  const { user, previewAsFree, signOut } = useApp();
   const headerRef = useRef<HTMLElement>(null);
+
+  // Badge follows subscription_tier (and Preview as Free) — never "Pro" just because paywall env is off.
+  const tierIsPro =
+    !previewAsFree &&
+    Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
+  const tierBadge = tierIsPro ? "Pro" : "Free";
 
   useEffect(() => {
     const el = headerRef.current;
@@ -91,7 +99,7 @@ export function Header() {
       ro.disconnect();
       window.removeEventListener("resize", publish);
     };
-  }, [pathname, user, biohackingUnlocked]);
+  }, [pathname, user, tierBadge]);
 
   if (pathname === "/login") return null;
 
@@ -154,26 +162,26 @@ export function Header() {
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                className="min-h-10 rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
-                onClick={() =>
-                  alert("Google OAuth via Supabase Auth — stub UI. Wire SUPABASE_* keys to enable.")
-                }
+              <Link
+                href="/login"
+                data-testid="header-sign-in"
+                className="inline-flex min-h-10 items-center rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
               >
-                <span className="sm:hidden">Sign in</span>
-                <span className="hidden sm:inline">Sign in with Google</span>
-              </button>
+                Sign in
+              </Link>
             )}
-            <span
-              className={`rounded-full px-2 py-1 ${
-                biohackingUnlocked
-                  ? "bg-growth/20 text-growth"
-                  : "bg-energy/15 text-energy-ink"
-              }`}
-            >
-              {biohackingUnlocked ? "Pro unlocked" : "Free tier"}
-            </span>
+            {user && (
+              <span
+                data-testid="tier-badge"
+                className={`rounded-full px-2 py-1 ${
+                  tierIsPro
+                    ? "bg-growth/20 text-growth"
+                    : "bg-energy/15 text-energy-ink"
+                }`}
+              >
+                {tierBadge}
+              </span>
+            )}
           </div>
         </div>
 

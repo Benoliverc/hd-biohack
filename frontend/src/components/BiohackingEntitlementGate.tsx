@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Lock, Sparkles } from "lucide-react";
 import { useApp } from "@/lib/store";
 
@@ -12,6 +13,7 @@ export function BiohackingEntitlementGate({
   blurredPreview?: React.ReactNode;
 }) {
   const { biohackingUnlocked } = useApp();
+  const [waitlistJoined, setWaitlistJoined] = useState(false);
 
   if (biohackingUnlocked) return <>{children}</>;
 
@@ -34,18 +36,31 @@ export function BiohackingEntitlementGate({
             you already own
           </li>
         </ul>
-        <button
-          type="button"
-          data-testid="unlock-protocols"
-          className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
-          onClick={() => alert("Stripe checkout stub — wire Stripe later.")}
-        >
-          <Sparkles className="h-4 w-4" />
-          Unlock protocols
-        </button>
-        <p className="mt-2 text-xs text-fg-muted">
-          Chart + daily transits stay free. Pro unlocks Today’s Move and your kit.
-        </p>
+        {waitlistJoined ? (
+          <p
+            role="status"
+            data-testid="unlock-waitlist-joined"
+            className="rounded-xl border border-growth/30 bg-canvas/60 px-4 py-3 text-sm text-fg-secondary"
+          >
+            You’re on the Pro waitlist. We’ll notify you when checkout is live — nothing was
+            charged. Chart + Today stay free.
+          </p>
+        ) : (
+          <>
+            <button
+              type="button"
+              data-testid="unlock-protocols"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+              onClick={() => setWaitlistJoined(true)}
+            >
+              <Sparkles className="h-4 w-4" />
+              Join Pro waitlist
+            </button>
+            <p className="mt-2 text-xs text-fg-muted">
+              Coming soon — not a live checkout. Chart + daily transits stay free.
+            </p>
+          </>
+        )}
       </div>
 
       <div className="relative">
