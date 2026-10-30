@@ -57,7 +57,24 @@ export type User = {
   subscription_tier: "free" | "biohacker_pro" | string;
   stripe_customer_id: string | null;
   biohacking_enabled: boolean;
+  preferred_timezone?: string | null;
   is_admin?: boolean;
+};
+
+export type DailyIntention = {
+  day: string;
+  text: string;
+};
+
+export type ProtocolCompletionRow = {
+  chart_id: number;
+  day: string;
+  item_id: string;
+  kind: string;
+  label: string;
+  done: boolean;
+  note?: string | null;
+  updated_at?: string | null;
 };
 
 export type GeoPlace = {
@@ -397,6 +414,48 @@ export const api = {
         protocols: [],
         ...body,
       }),
+    }),
+  getUser: (userId: number) => req<User>(`/users/${userId}`),
+  patchUserSettings: (userId: number, body: { preferred_timezone?: string | null }) =>
+    req<User>(`/users/${userId}/settings`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  getIntention: (userId: number, day: string) =>
+    req<DailyIntention>(`/users/${userId}/intention?day=${encodeURIComponent(day)}`),
+  putIntention: (userId: number, day: string, text: string) =>
+    req<DailyIntention>(`/users/${userId}/intention`, {
+      method: "PUT",
+      body: JSON.stringify({ day, text }),
+    }),
+  listProtocolCompletions: (
+    userId: number,
+    chartId: number,
+    opts?: { day?: string; from?: string; to?: string }
+  ) => {
+    const q = new URLSearchParams({ chart_id: String(chartId) });
+    if (opts?.day) q.set("day", opts.day);
+    if (opts?.from) q.set("from", opts.from);
+    if (opts?.to) q.set("to", opts.to);
+    return req<{ items: ProtocolCompletionRow[] }>(
+      `/users/${userId}/protocol-completions?${q}`
+    );
+  },
+  putProtocolCompletion: (
+    userId: number,
+    body: {
+      chart_id: number;
+      day: string;
+      item_id: string;
+      kind: "move" | "baseline";
+      label: string;
+      done: boolean;
+      note?: string | null;
+    }
+  ) =>
+    req<ProtocolCompletionRow>(`/users/${userId}/protocol-completions`, {
+      method: "PUT",
+      body: JSON.stringify(body),
     }),
 };
 

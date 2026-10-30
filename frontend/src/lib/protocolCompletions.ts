@@ -1,9 +1,14 @@
 /**
- * Local-only Protocols completion store (HKT day + week rollup).
- * No server sync — Prove-it checklist (proposal C).
+ * Protocols completion store — local cache + server sync.
+ *
+ * Day/week boundaries use the account preferred timezone (fallback Asia/Hong_Kong).
+ * Daily Novelty buckets stay HKT — see timezone.ts; do not retarget novelty here.
  *
  * Day key (v2): hd-biohack:protocol-done:v2:{userId}:{chartId}:{YYYY-MM-DD}
  * Migrates boolean maps from v1 keys on first read.
+ *
+ * Note: existing v2 keys written under HKT may orphan mid-day when the user
+ * switches timezone — acceptable for v1 (no migration).
  */
 
 export type CompletionKind = "move" | "baseline";
@@ -22,38 +27,90 @@ export type WeekCompletedRow = {
   label: string;
   kind: CompletionKind;
   note?: string;
-  day: string; // YYYY-MM-DD HKT
+  day: string; // YYYY-MM-DD in account TZ
 };
 
 const V1_PREFIX = "hd-biohack:protocol-done:v1:";
 const V2_PREFIX = "hd-biohack:protocol-done:v2:";
 
-export function hkDayKey(d = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Hong_Kong",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
+/** Fallback when preferred_timezone is unset — matches prior HKT behaviour. */
+export const DEFAULT_PROTOCOLS_TZ = "Asia/Hong_Kong";
+
+export function resolveProtocolsTz(tz?: string | null): string {
+  const cleaned = (tz || "").trim();
+  return cleaned || DEFAULT_PROTOCOLS_TZ;
 }
 
-/** Monday–Sunday date keys for the HKT calendar week containing `d`. */
-export function hkWeekDayKeys(d = new Date()): string[] {
-  const today = hkDayKey(d);
-  const [y, m, day] = today.split("-").map(Number);
-  // 04:00 UTC = 12:00 HKT same calendar day (HKT is fixed UTC+8).
-  const noonUtc = Date.UTC(y, m - 1, day, 4, 0, 0);
-  const weekday = new Date(noonUtc).getUTCDay(); // 0=Sun … 6=Sat
+/** Calendar day key (YYYY-MM-DD) in an IANA timezone. */
+export function dayKeyInZone(timeZone: string, d = new Date()): string {
+  const zone = resolveProtocolsTz(timeZone);
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  } catch {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: DEFAULT_PROTOCOLS_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  }
+}
+
+/** @deprecated Prefer dayKeyInZone — kept for Daily Novelty / lead-fingerprint HKT keys. */
+export function hkDayKey(d = new Date()): string {
+  return dayKeyInZone(DEFAULT_PROTOCOLS_TZ, d);
+}
+
+function weekdayInZone(timeZone: string, d: Date): number {
+  const zone = resolveProtocolsTz(timeZone);
+  try {
+    const wd = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      weekday: "short",
+    }).format(d);
+    const map: Record<string, number> = {
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    };
+    return map[wd] ?? 0;
+  } catch {
+    return d.getUTCDay();
+  }
+}
+
+/** Monday–Sunday date keys for the calendar week containing `d` in `timeZone`. */
+export function weekDayKeysInZone(timeZone: string, d = new Date()): string[] {
+  const zone = resolveProtocolsTz(timeZone);
+  const weekday = weekdayInZone(zone, d);
   const mondayOffset = weekday === 0 ? -6 : 1 - weekday;
   const keys: string[] = [];
   for (let i = 0; i < 7; i++) {
-    const t = new Date(noonUtc + (mondayOffset + i) * 86_400_000);
-    const yy = t.getUTCFullYear();
-    const mm = String(t.getUTCMonth() + 1).padStart(2, "0");
-    const dd = String(t.getUTCDate()).padStart(2, "0");
-    keys.push(`${yy}-${mm}-${dd}`);
+    const t = new Date(d.getTime() + (mondayOffset + i) * 86_400_000);
+    keys.push(dayKeyInZone(zone, t));
   }
   return keys;
+}
+
+/** @deprecated Prefer weekDayKeysInZone. */
+export function hkWeekDayKeys(d = new Date()): string[] {
+  return weekDayKeysInZone(DEFAULT_PROTOCOLS_TZ, d);
+}
+
+/** Week rollup label — never claims HKT when account TZ ≠ HKT. */
+export function weekRangeLabel(timeZone?: string | null): string {
+  const zone = resolveProtocolsTz(timeZone);
+  if (zone === DEFAULT_PROTOCOLS_TZ) return "Mon–Sun HKT";
+  return `Mon–Sun · ${zone}`;
 }
 
 export function dayStorageKey(userId: number, chartId: number, day: string): string {
@@ -142,6 +199,30 @@ export function saveDayCompletions(
   }
 }
 
+/** Merge server rows into a day map (server wins on conflict). */
+export function mergeServerCompletions(
+  local: DayCompletions,
+  serverItems: Array<{
+    item_id: string;
+    kind?: string;
+    label?: string;
+    done: boolean;
+    note?: string | null;
+  }>
+): DayCompletions {
+  const next: DayCompletions = { ...local };
+  for (const row of serverItems) {
+    next[row.item_id] = {
+      done: Boolean(row.done),
+      label: String(row.label || row.item_id),
+      kind: row.kind === "baseline" ? "baseline" : "move",
+      note:
+        typeof row.note === "string" && row.note.trim() ? row.note.trim() : undefined,
+    };
+  }
+  return next;
+}
+
 export function toggleCompletion(
   map: DayCompletions,
   id: string,
@@ -183,14 +264,16 @@ export function doneMapFromCompletions(map: DayCompletions): Record<string, bool
   return out;
 }
 
-/** Completed rows for the HKT week containing `now`, Mon→Sun order. */
+/** Completed rows for the week containing `now` in `timeZone`, Mon→Sun order. */
 export function loadWeekCompleted(
   userId: number,
   chartId: number,
-  now = new Date()
+  now = new Date(),
+  timeZone?: string | null
 ): WeekCompletedRow[] {
+  const zone = resolveProtocolsTz(timeZone);
   const rows: WeekCompletedRow[] = [];
-  for (const day of hkWeekDayKeys(now)) {
+  for (const day of weekDayKeysInZone(zone, now)) {
     const map = loadDayCompletions(userId, chartId, day);
     for (const [id, item] of Object.entries(map)) {
       if (!item.done) continue;
@@ -206,13 +289,14 @@ export function loadWeekCompleted(
   return rows;
 }
 
-export function formatWeekDayLabel(day: string): string {
+export function formatWeekDayLabel(day: string, _timeZone?: string | null): string {
   const [y, m, d] = day.split("-").map(Number);
   if (!y || !m || !d) return day;
-  const utc = new Date(Date.UTC(y, m - 1, d, 4, 0, 0));
+  // Date-only key → format as calendar date in UTC (weekday matches the YYYY-MM-DD).
+  const utc = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   try {
     return new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Hong_Kong",
+      timeZone: "UTC",
       weekday: "short",
       day: "numeric",
       month: "short",

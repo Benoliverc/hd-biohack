@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
@@ -15,9 +16,11 @@ from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
 from ..hd.soul_sync import CONTEXT_IDS, compute_soul_sync
 from ..models import (
     NatalChart,
+    ProtocolCompletion,
     SupplementInventory,
     User,
     UserBiometricsDaily,
+    UserDailyIntention,
     WeeklyProtocol,
 )
 from ..auth import verify_password
@@ -34,10 +37,15 @@ from ..schemas import (
     BirthDataIn,
     ChartLabelPatch,
     ChartResponse,
+    DailyIntentionIn,
+    DailyIntentionOut,
     GeocodeOut,
     GeocodeSuggestOut,
     InventoryItemIn,
     LoginIn,
+    ProtocolCompletionIn,
+    ProtocolCompletionOut,
+    ProtocolCompletionsOut,
     ProtocolRequest,
     TelemetryIn,
     TransitResponse,
@@ -49,6 +57,7 @@ from ..schemas import (
     SoulSyncOut,
     UserCreate,
     UserOut,
+    UserSettingsPatch,
 )
 
 MAX_CHARTS_PER_USER = 10
@@ -123,6 +132,171 @@ def set_tier(user_id: int, tier: str = Query(...), db: Session = Depends(get_db)
     db.commit()
     db.refresh(user)
     return user
+
+
+
+def _validate_iana_timezone(tz: str | None) -> str | None:
+    """Return stripped IANA name, or None when cleared. Reject unknown zones."""
+    if tz is None:
+        return None
+    cleaned = tz.strip()
+    if not cleaned:
+        return None
+    try:
+        ZoneInfo(cleaned)
+    except ZoneInfoNotFoundError as e:
+        raise HTTPException(400, f"Invalid IANA timezone: {cleaned}") from e
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(400, f"Invalid IANA timezone: {cleaned}") from e
+    return cleaned
+
+
+@router.get("/users/{user_id}", response_model=UserOut)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    return user
+
+
+@router.patch("/users/{user_id}/settings", response_model=UserOut)
+def patch_user_settings(
+    user_id: int, body: UserSettingsPatch, db: Session = Depends(get_db)
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    if "preferred_timezone" in body.model_fields_set:
+        user.preferred_timezone = _validate_iana_timezone(body.preferred_timezone)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.get("/users/{user_id}/intention", response_model=DailyIntentionOut)
+def get_daily_intention(
+    user_id: int,
+    day: date = Query(..., description="YYYY-MM-DD in account timezone"),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    row = (
+        db.query(UserDailyIntention)
+        .filter(UserDailyIntention.user_id == user_id, UserDailyIntention.day == day)
+        .first()
+    )
+    if not row:
+        return DailyIntentionOut(day=day, text="")
+    return row
+
+
+@router.put("/users/{user_id}/intention", response_model=DailyIntentionOut)
+def upsert_daily_intention(
+    user_id: int, body: DailyIntentionIn, db: Session = Depends(get_db)
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    text = (body.text or "").strip()[:200]
+    row = (
+        db.query(UserDailyIntention)
+        .filter(UserDailyIntention.user_id == user_id, UserDailyIntention.day == body.day)
+        .first()
+    )
+    if row:
+        row.text = text
+        row.updated_at = datetime.utcnow()
+    else:
+        row = UserDailyIntention(user_id=user_id, day=body.day, text=text)
+        db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.get(
+    "/users/{user_id}/protocol-completions", response_model=ProtocolCompletionsOut
+)
+def list_protocol_completions(
+    user_id: int,
+    chart_id: int = Query(...),
+    day_from: date | None = Query(None, alias="from"),
+    day_to: date | None = Query(None, alias="to"),
+    day: date | None = Query(None, description="Single day shorthand"),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    chart = db.get(NatalChart, chart_id)
+    if not chart or chart.user_id != user_id:
+        raise HTTPException(404, "Chart not found")
+    q = db.query(ProtocolCompletion).filter(
+        ProtocolCompletion.user_id == user_id,
+        ProtocolCompletion.chart_id == chart_id,
+    )
+    if day is not None:
+        q = q.filter(ProtocolCompletion.day == day)
+    else:
+        if day_from is not None:
+            q = q.filter(ProtocolCompletion.day >= day_from)
+        if day_to is not None:
+            q = q.filter(ProtocolCompletion.day <= day_to)
+    rows = q.order_by(ProtocolCompletion.day, ProtocolCompletion.item_id).all()
+    return ProtocolCompletionsOut(items=rows)
+
+
+@router.put(
+    "/users/{user_id}/protocol-completions", response_model=ProtocolCompletionOut
+)
+def upsert_protocol_completion(
+    user_id: int, body: ProtocolCompletionIn, db: Session = Depends(get_db)
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    chart = db.get(NatalChart, body.chart_id)
+    if not chart or chart.user_id != user_id:
+        raise HTTPException(404, "Chart not found")
+    kind = body.kind if body.kind in ("move", "baseline") else "move"
+    label = (body.label or "").strip()[:255] or body.item_id
+    note = None
+    if body.note is not None:
+        trimmed = body.note.strip()[:120]
+        note = trimmed or None
+    row = (
+        db.query(ProtocolCompletion)
+        .filter(
+            ProtocolCompletion.user_id == user_id,
+            ProtocolCompletion.chart_id == body.chart_id,
+            ProtocolCompletion.day == body.day,
+            ProtocolCompletion.item_id == body.item_id,
+        )
+        .first()
+    )
+    if row:
+        row.kind = kind
+        row.label = label
+        row.done = bool(body.done)
+        row.note = note if body.done else None
+        row.updated_at = datetime.utcnow()
+    else:
+        row = ProtocolCompletion(
+            user_id=user_id,
+            chart_id=body.chart_id,
+            day=body.day,
+            item_id=body.item_id,
+            kind=kind,
+            label=label,
+            done=bool(body.done),
+            note=note if body.done else None,
+        )
+        db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
 
 
 @router.get("/geocode", response_model=GeocodeOut)

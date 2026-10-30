@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, FlaskConical, LogOut, Orbit, Shield, Sparkles, UserRound } from "lucide-react";
+import { Activity, FlaskConical, LogOut, Orbit, Settings, Shield, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
 
@@ -148,6 +148,19 @@ export function Header() {
                     <span>Admin</span>
                   </Link>
                 )}
+                <Link
+                  href="/settings"
+                  data-testid="nav-settings"
+                  title="Settings"
+                  className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
+                    pathname === "/settings"
+                      ? "border-growth/40 bg-growth/15 text-growth"
+                      : "border-border text-fg-muted hover:border-growth hover:text-fg-secondary"
+                  }`}
+                >
+                  <Settings className="h-3.5 w-3.5" aria-hidden />
+                  <span className="hidden sm:inline">Settings</span>
+                </Link>
                 <button
                   type="button"
                   data-testid="sign-out"

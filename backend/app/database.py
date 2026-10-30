@@ -37,6 +37,7 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_natal_chart_columns()
     _ensure_user_auth_columns()
+    _ensure_user_settings_columns()
 
 
 def _ensure_natal_chart_columns() -> None:
@@ -73,3 +74,16 @@ def _ensure_user_auth_columns() -> None:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON users (username)"))
         except Exception:
             pass
+
+
+def _ensure_user_settings_columns() -> None:
+    """SQLite-friendly ALTER for preferred_timezone when upgrading an existing DB."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    if "users" not in insp.get_table_names():
+        return
+    cols = {c["name"] for c in insp.get_columns("users")}
+    with engine.begin() as conn:
+        if "preferred_timezone" not in cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN preferred_timezone VARCHAR(128)"))
