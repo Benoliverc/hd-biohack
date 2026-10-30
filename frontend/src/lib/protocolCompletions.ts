@@ -289,7 +289,7 @@ export function loadWeekCompleted(
   return rows;
 }
 
-export function formatWeekDayLabel(day: string, _timeZone?: string | null): string {
+export function formatWeekDayLabel(day: string): string {
   const [y, m, d] = day.split("-").map(Number);
   if (!y || !m || !d) return day;
   // Date-only key → format as calendar date in UTC (weekday matches the YYYY-MM-DD).
