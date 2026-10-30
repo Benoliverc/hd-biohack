@@ -1,4 +1,4 @@
-# Current build — Thin self-betterment loop (READY FOR UX)
+# Current build — Thin self-betterment loop (SHIP GATE PASS — awaiting merge)
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/43
 - **Branch:** `feat/self-betterment-loop`
