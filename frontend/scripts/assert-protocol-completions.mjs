@@ -4,26 +4,28 @@
  */
 import assert from "node:assert/strict";
 
-// Inline minimal re-implementations mirrored from the module for node assert,
-// then import the real TS via dynamic path after transpile isn't available —
-// instead we duplicate the pure helpers we care about by importing compiled? 
-// Use tsx to import TS directly.
 const mod = await import("../src/lib/protocolCompletions.ts");
 
 const {
   hkDayKey,
   hkWeekDayKeys,
+  dayKeyInZone,
+  weekDayKeysInZone,
+  weekRangeLabel,
   parseDayCompletions,
   toggleCompletion,
   setCompletionNote,
   doneMapFromCompletions,
   progressPct,
   formatWeekDayLabel,
+  resolveProtocolsTz,
+  DEFAULT_PROTOCOLS_TZ,
 } = mod;
 
 // Fixed instant: 2026-10-27 12:00 HKT = 2026-10-27 04:00 UTC (Tue)
 const tue = new Date("2026-10-27T04:00:00.000Z");
 assert.equal(hkDayKey(tue), "2026-10-27");
+assert.equal(dayKeyInZone(DEFAULT_PROTOCOLS_TZ, tue), "2026-10-27");
 const week = hkWeekDayKeys(tue);
 assert.deepEqual(week, [
   "2026-10-26",
@@ -39,6 +41,21 @@ assert.deepEqual(week, [
 const sun = new Date("2026-11-01T04:00:00.000Z");
 assert.equal(hkWeekDayKeys(sun)[0], "2026-10-26");
 assert.equal(hkWeekDayKeys(sun)[6], "2026-11-01");
+
+// Non-HKT: America/New_York — 2026-10-27 02:30 UTC = still Mon 26 evening EDT (UTC-4)
+const nyEvening = new Date("2026-10-27T02:30:00.000Z");
+assert.equal(dayKeyInZone("America/New_York", nyEvening), "2026-10-26");
+assert.equal(dayKeyInZone("Asia/Hong_Kong", nyEvening), "2026-10-27");
+const nyWeek = weekDayKeysInZone("America/New_York", nyEvening);
+assert.equal(nyWeek[0], "2026-10-26"); // Monday of that week
+assert.equal(nyWeek.length, 7);
+
+// Empty / null TZ falls back to HKT
+assert.equal(resolveProtocolsTz(null), DEFAULT_PROTOCOLS_TZ);
+assert.equal(resolveProtocolsTz(""), DEFAULT_PROTOCOLS_TZ);
+assert.equal(weekRangeLabel(null), "Mon–Sun HKT");
+assert.equal(weekRangeLabel("America/New_York"), "Mon–Sun · America/New_York");
+assert.notEqual(weekRangeLabel("America/New_York"), "Mon–Sun HKT");
 
 // v1 boolean migrate parse
 const v1 = parseDayCompletions(JSON.stringify({ hero: true, morning: false }));

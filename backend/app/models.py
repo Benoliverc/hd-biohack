@@ -32,12 +32,15 @@ class User(Base):
     subscription_tier: Mapped[str] = mapped_column(String(32), default="free")  # free | biohacker_pro
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     biohacking_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    preferred_timezone: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     natal_charts: Mapped[list[NatalChart]] = relationship(back_populates="user")
     inventory: Mapped[list[SupplementInventory]] = relationship(back_populates="user")
     protocols: Mapped[list[WeeklyProtocol]] = relationship(back_populates="user")
     biometrics: Mapped[list[UserBiometricsDaily]] = relationship(back_populates="user")
+    daily_intentions: Mapped[list["UserDailyIntention"]] = relationship(back_populates="user")
+    protocol_completions: Mapped[list["ProtocolCompletion"]] = relationship(back_populates="user")
 
     @property
     def is_admin(self) -> bool:
@@ -135,3 +138,43 @@ class UsageEvent(Base):
     event_type: Mapped[str] = mapped_column(String(32), index=True)  # login | chart_generated | protocol_generated
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+
+class UserDailyIntention(Base):
+    """Optional one-line daily intention (account calendar day)."""
+
+    __tablename__ = "user_daily_intentions"
+    __table_args__ = (UniqueConstraint("user_id", "day", name="uq_user_intention_day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    day: Mapped[date] = mapped_column(Date)
+    text: Mapped[str] = mapped_column(String(200), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user: Mapped[User] = relationship(back_populates="daily_intentions")
+
+
+class ProtocolCompletion(Base):
+    """Synced Protocols checklist completion + optional reflection note."""
+
+    __tablename__ = "protocol_completions"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "chart_id", "day", "item_id", name="uq_protocol_completion_item"
+        ),
+        Index("ix_protocol_completions_user_chart_day", "user_id", "chart_id", "day"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    chart_id: Mapped[int] = mapped_column(ForeignKey("natal_charts.id"), index=True)
+    day: Mapped[date] = mapped_column(Date)
+    item_id: Mapped[str] = mapped_column(String(128))
+    kind: Mapped[str] = mapped_column(String(32), default="move")  # move | baseline
+    label: Mapped[str] = mapped_column(String(255), default="")
+    done: Mapped[bool] = mapped_column(Boolean, default=False)
+    note: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user: Mapped[User] = relationship(back_populates="protocol_completions")

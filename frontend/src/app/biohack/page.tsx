@@ -12,15 +12,20 @@ import {
   type CompletionKind,
   type DayCompletions,
   type WeekCompletedRow,
+  dayKeyInZone,
   doneMapFromCompletions,
   formatWeekDayLabel,
   hkDayKey,
   loadDayCompletions,
   loadWeekCompleted,
+  mergeServerCompletions,
   progressPct,
+  resolveProtocolsTz,
   saveDayCompletions,
   setCompletionNote,
   toggleCompletion,
+  weekDayKeysInZone,
+  weekRangeLabel,
 } from "@/lib/protocolCompletions";
 
 type InvItem = { id: number; name: string; notes: string };
@@ -246,9 +251,14 @@ export default function BiohackPage() {
   const [completions, setCompletions] = useState<DayCompletions>({});
   const [weekRows, setWeekRows] = useState<WeekCompletedRow[]>([]);
   const [completeFlash, setCompleteFlash] = useState(false);
+  const [intention, setIntention] = useState("");
+  const [intentionSaving, setIntentionSaving] = useState(false);
   const inventoryRef = useRef<HTMLDivElement | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dayKey = hkDayKey();
+  const protocolsTz = resolveProtocolsTz(user?.preferred_timezone);
+  const dayKey = dayKeyInZone(protocolsTz);
+  /** Lead-fingerprint / novelty day keys stay HKT (Daily Novelty Contract). */
+  const noveltyDayKey = hkDayKey();
 
   const refreshInventory = useCallback(async () => {
     if (!user) {
@@ -345,19 +355,82 @@ export default function BiohackPage() {
       setWeekRows([]);
       return;
     }
-    setWeekRows(loadWeekCompleted(user.id, youChart.id));
-  }, [user, youChart]);
+    setWeekRows(loadWeekCompleted(user.id, youChart.id, new Date(), protocolsTz));
+  }, [user, youChart, protocolsTz]);
 
-  // Persist completions per user+chart+HKT day (+ week rollup read)
+  const syncCompletionToServer = useCallback(
+    (
+      itemId: string,
+      item: { done: boolean; label: string; kind: CompletionKind; note?: string }
+    ) => {
+      if (!user || !youChart) return;
+      void api
+        .putProtocolCompletion(user.id, {
+          chart_id: youChart.id,
+          day: dayKey,
+          item_id: itemId,
+          kind: item.kind,
+          label: item.label,
+          done: item.done,
+          note: item.done ? item.note ?? null : null,
+        })
+        .catch(() => {
+          /* local cache remains; silent for v1 */
+        });
+    },
+    [user, youChart, dayKey]
+  );
+
+  // Local cache first, then hydrate from server (account TZ day/week)
   useEffect(() => {
     if (!user || !youChart) {
       setCompletions({});
       setWeekRows([]);
+      setIntention("");
       return;
     }
-    setCompletions(loadDayCompletions(user.id, youChart.id, dayKey));
-    setWeekRows(loadWeekCompleted(user.id, youChart.id));
-  }, [user?.id, youChart?.id, dayKey]);
+    const local = loadDayCompletions(user.id, youChart.id, dayKey);
+    setCompletions(local);
+    setWeekRows(loadWeekCompleted(user.id, youChart.id, new Date(), protocolsTz));
+
+    let cancelled = false;
+    const weekKeys = weekDayKeysInZone(protocolsTz);
+    const from = weekKeys[0];
+    const to = weekKeys[6];
+    (async () => {
+      try {
+        const [dayRes, weekRes, intentionRes] = await Promise.all([
+          api.listProtocolCompletions(user.id, youChart.id, { day: dayKey }),
+          api.listProtocolCompletions(user.id, youChart.id, { from, to }),
+          api.getIntention(user.id, dayKey),
+        ]);
+        if (cancelled) return;
+        const merged = mergeServerCompletions(local, dayRes.items);
+        setCompletions(merged);
+        saveDayCompletions(user.id, youChart.id, dayKey, merged);
+
+        // Write each server day into local cache, then rebuild week rows
+        const byDay = new Map<string, typeof weekRes.items>();
+        for (const row of weekRes.items) {
+          const list = byDay.get(row.day) || [];
+          list.push(row);
+          byDay.set(row.day, list);
+        }
+        for (const [d, rows] of Array.from(byDay.entries())) {
+          const base = d === dayKey ? merged : loadDayCompletions(user.id, youChart.id, d);
+          const m = mergeServerCompletions(base, rows);
+          saveDayCompletions(user.id, youChart.id, d, m);
+        }
+        setWeekRows(loadWeekCompleted(user.id, youChart.id, new Date(), protocolsTz));
+        setIntention(intentionRes.text || "");
+      } catch {
+        /* offline / API error — keep local */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, youChart?.id, dayKey, protocolsTz]);
 
   useEffect(() => {
     return () => {
@@ -371,11 +444,29 @@ export default function BiohackPage() {
       setCompletions((prev) => {
         const next = setCompletionNote(prev, id, note);
         saveDayCompletions(user.id, youChart.id, dayKey, next);
+        const item = next[id];
+        if (item) syncCompletionToServer(id, item);
         return next;
       });
       queueMicrotask(() => refreshWeek());
     },
-    [user, youChart, dayKey, refreshWeek]
+    [user, youChart, dayKey, refreshWeek, syncCompletionToServer]
+  );
+
+  const saveIntention = useCallback(
+    (text: string) => {
+      if (!user) return;
+      const trimmed = text.trim().slice(0, 200);
+      setIntention(trimmed);
+      setIntentionSaving(true);
+      void api
+        .putIntention(user.id, dayKey, trimmed)
+        .catch(() => {
+          /* keep local draft */
+        })
+        .finally(() => setIntentionSaving(false));
+    },
+    [user, dayKey]
   );
 
   const loadProtocol = useCallback(
@@ -407,7 +498,7 @@ export default function BiohackPage() {
           wn?.lead_fingerprint ||
           null;
         if (fp) {
-          saveLeadFingerprint(leadFpKey(user.id, youChart.id, dayKey), fp, wn);
+          saveLeadFingerprint(leadFpKey(user.id, youChart.id, noveltyDayKey), fp, wn);
         }
         setNatalOpen(false);
         await refreshInventory();
@@ -422,7 +513,7 @@ export default function BiohackPage() {
         setLoading(false);
       }
     },
-    [user, youChart, refreshInventory, dayKey]
+    [user, youChart, refreshInventory, noveltyDayKey]
   );
 
   // Auto-load today's protocol on enter (no Generate ritual)
@@ -576,6 +667,8 @@ export default function BiohackPage() {
           checkItems.length > 0 && checkItems.every((c) => Boolean(prev[c.id]?.done));
         const next = toggleCompletion(prev, it.id, { label: it.label, kind: it.kind });
         saveDayCompletions(user.id, youChart.id, dayKey, next);
+        const item = next[it.id];
+        if (item) syncCompletionToServer(it.id, item);
         const nowComplete =
           checkItems.length > 0 &&
           checkItems.every((c) =>
@@ -590,7 +683,7 @@ export default function BiohackPage() {
       });
       queueMicrotask(() => refreshWeek());
     },
-    [user, youChart, dayKey, checkItems, refreshWeek]
+    [user, youChart, dayKey, checkItems, refreshWeek, syncCompletionToServer]
   );
 
   const refreshDisabled =
@@ -714,6 +807,14 @@ export default function BiohackPage() {
       )}
 
       {protocol && daily && (
+        <DailyIntentionField
+          value={intention}
+          saving={intentionSaving}
+          onCommit={saveIntention}
+        />
+      )}
+
+      {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
           baselineItems={baselineCheckItems}
@@ -739,6 +840,7 @@ export default function BiohackPage() {
           theme={String(weekly.theme || "")}
           skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
           weekRows={weekRows}
+          weekLabel={weekRangeLabel(protocolsTz)}
         />
       )}
 
@@ -931,6 +1033,56 @@ function WeatherStrip({
   );
 }
 
+
+/* ─── Daily intention ───────────────────────────────────────────────────── */
+
+function DailyIntentionField({
+  value,
+  saving,
+  onCommit,
+}: {
+  value: string;
+  saving: boolean;
+  onCommit: (text: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  return (
+    <section
+      className="rounded-2xl border border-border bg-elevated p-4"
+      data-testid="daily-intention"
+    >
+      <label
+        htmlFor="daily-intention-input"
+        className="block text-sm font-semibold text-fg"
+      >
+        Today&apos;s intention
+        <span className="ml-2 text-xs font-normal text-fg-muted">optional</span>
+      </label>
+      <input
+        id="daily-intention-input"
+        type="text"
+        maxLength={200}
+        value={draft}
+        disabled={saving}
+        placeholder="What are you aiming for today?"
+        data-testid="daily-intention-input"
+        className="mt-2 min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (draft.trim() !== (value || "").trim()) onCommit(draft);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+      />
+    </section>
+  );
+}
+
 /* ─── Today's Move ──────────────────────────────────────────────────────── */
 
 function TodaysMoveCard({
@@ -1099,14 +1251,14 @@ function TodaysMoveCard({
                 {checked && (
                   <div className="mt-2 pl-7">
                     <label className="block text-[11px] text-fg-muted" htmlFor={`note-${it.id}`}>
-                      Optional note
+                      Reflection
                     </label>
                     <input
                       id={`note-${it.id}`}
                       type="text"
                       maxLength={120}
                       defaultValue={note}
-                      placeholder="How it went…"
+                      placeholder="How did it go?"
                       className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted"
                       data-testid={`protocol-note-${it.id}`}
                       onBlur={(e) => {
@@ -1379,10 +1531,12 @@ function WeekSkyCard({
   theme,
   skyNote,
   weekRows,
+  weekLabel,
 }: {
   theme: string;
   skyNote: string;
   weekRows: WeekCompletedRow[];
+  weekLabel: string;
 }) {
   const moveRows = weekRows.filter((r) => r.kind === "move");
   const baselineRows = weekRows.filter((r) => r.kind === "baseline");
@@ -1419,7 +1573,7 @@ function WeekSkyCard({
             Completed this week
           </p>
           <span className="text-[11px] text-fg-muted" data-testid="week-completed-count">
-            {weekRows.length} checked · Mon–Sun HKT
+            {weekRows.length} checked · {weekLabel}
           </span>
         </div>
         {weekRows.length === 0 ? (
@@ -1455,7 +1609,7 @@ function WeekSkyCard({
         )}
         {(moveRows.length > 0 || baselineRows.length > 0) && (
           <p className="mt-2 text-[11px] text-fg-muted">
-            {moveRows.length} move · {baselineRows.length} baseline · stored on this device
+            {moveRows.length} move · {baselineRows.length} baseline · synced to your account
           </p>
         )}
       </div>

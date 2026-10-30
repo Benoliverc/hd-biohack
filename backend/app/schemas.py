@@ -102,10 +102,60 @@ class UserOut(BaseModel):
     subscription_tier: str
     stripe_customer_id: str | None
     biohacking_enabled: bool
+    preferred_timezone: str | None = None
     is_admin: bool = False
 
     class Config:
         from_attributes = True
+
+
+class UserSettingsPatch(BaseModel):
+    preferred_timezone: str | None = Field(
+        None,
+        description="IANA timezone for Protocols day/week; null clears to Asia/Hong_Kong fallback",
+        max_length=128,
+    )
+
+
+class DailyIntentionIn(BaseModel):
+    day: date = Field(..., description="YYYY-MM-DD in account timezone")
+    text: str = Field("", max_length=200)
+
+
+class DailyIntentionOut(BaseModel):
+    day: date
+    text: str
+
+    class Config:
+        from_attributes = True
+
+
+class ProtocolCompletionIn(BaseModel):
+    chart_id: int
+    day: date
+    item_id: str = Field(..., min_length=1, max_length=128)
+    kind: Literal["move", "baseline"] = "move"
+    label: str = Field("", max_length=255)
+    done: bool = False
+    note: str | None = Field(None, max_length=120)
+
+
+class ProtocolCompletionOut(BaseModel):
+    chart_id: int
+    day: date
+    item_id: str
+    kind: str
+    label: str
+    done: bool
+    note: str | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProtocolCompletionsOut(BaseModel):
+    items: list[ProtocolCompletionOut] = Field(default_factory=list)
 
 
 class LoginIn(BaseModel):

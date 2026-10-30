@@ -52,6 +52,7 @@ const FALLBACK_USER: User = {
   subscription_tier: "free",
   stripe_customer_id: null,
   biohacking_enabled: false,
+  preferred_timezone: null,
   is_admin: false,
 };
 
