@@ -497,7 +497,6 @@ export default function BiohackPage() {
     });
   };
 
-  const summary = (protocol?.summary as Record<string, unknown>) || null;
   const daily = (protocol?.daily_plan as Record<string, unknown>) || null;
   const weekly = (protocol?.weekly_plan as Record<string, unknown>) || null;
   const baseline = (protocol?.natal_baseline as Record<string, unknown>) || null;
@@ -511,25 +510,9 @@ export default function BiohackPage() {
     ((daily as { whats_new?: WhatsNew } | null)?.whats_new ?? null);
 
   const checkItems = useMemo(() => {
-    if (!daily || !summary) return [] as CheckItem[];
-    const heroTitle = String(
-      (daily.hero as { title?: string } | undefined)?.title || summary.headline || "Today's move"
-    );
-    const heroWhy = String(
-      (daily.hero as { why?: string } | undefined)?.why || summary.in_short || ""
-    );
-    const heroMicro = String(
-      (daily.hero as { micro?: string } | undefined)?.micro || summary.micro || ""
-    );
-    const items: CheckItem[] = [
-      {
-        id: "hero",
-        label: heroTitle,
-        sub: heroMicro || undefined,
-        why: heroWhy || undefined,
-        kind: "move",
-      },
-    ];
+    // Timed leads only — Main action stays on Today; never checklist item #1.
+    if (!daily) return [] as CheckItem[];
+    const items: CheckItem[] = [];
     for (const slot of ["morning", "midday", "evening"] as const) {
       const row = ((daily[slot] as PlanItem[]) || [])[0];
       if (!row) continue;
@@ -545,7 +528,7 @@ export default function BiohackPage() {
       });
     }
     return items;
-  }, [daily, summary]);
+  }, [daily]);
 
   const baselineCheckItems = useMemo(() => {
     if (!daily) return [] as CheckItem[];
@@ -564,8 +547,7 @@ export default function BiohackPage() {
   }, [daily]);
 
   const timedLeadsAllBehavior = useMemo(() => {
-    const timed = checkItems.filter((it) => it.id !== "hero");
-    return timed.length > 0 && timed.every((it) => !it.inInventory);
+    return checkItems.length > 0 && checkItems.every((it) => !it.inInventory);
   }, [checkItems]);
 
   const doneMap = useMemo(() => doneMapFromCompletions(completions), [completions]);
@@ -982,15 +964,10 @@ function TodaysMoveCard({
             What&apos;s new vs yesterday
           </p>
           <p className="mt-0.5 text-sm text-fg">
-            {whatsNew.chip || "Sky-rotated lead"}
+            {whatsNew.chip || "What's new vs yesterday"}
           </p>
           {whatsNew.body && (
             <p className="mt-1 text-xs text-fg-secondary">{whatsNew.body}</p>
-          )}
-          {whatsNew.forced_rotation && rotatedSlot && (
-            <p className="mt-1 text-[11px] text-fg-muted" data-testid="forced-rotation-note">
-              Rotated {rotatedSlot} lead so today isn&apos;t a copy of yesterday.
-            </p>
           )}
         </div>
       )}
@@ -1598,7 +1575,7 @@ function LockedPaywallMock() {
       </div>
       <div className="rounded-2xl border border-growth/40 bg-growth-soft p-5">
         <p className="text-lg font-semibold text-growth-ink">Today&apos;s Move</p>
-        <p className="mt-2 text-sm text-fg-secondary">Main action + Morning · Midday · Evening</p>
+        <p className="mt-2 text-sm text-fg-secondary">Morning · Midday · Evening checklist</p>
         <div className="mt-3 space-y-2">
           {[1, 2, 3, 4].map((n) => (
             <div key={n} className="h-10 rounded-xl border border-border bg-elevated/80" />
