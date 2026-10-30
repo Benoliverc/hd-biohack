@@ -401,10 +401,40 @@ def test_main_action_sky_on_hyper_and_charged():
             transit=transit,
             overlay={"newly_defined_centers": [], "bridged_channels": []},
         )
-        blob = text.lower()
-        assert "sun 12.3" in blob or "moon 44.2" in blob, (level, text)
-        assert "notice" in blob
-    print("PASS: sky clause on Low/Drained/Charged/Hyper")
+        # Sky / gate mechanics live in Why — Main stays plain ≤20 words.
+        why_l = why.lower()
+        assert "sun 12.3" in why_l or "moon 44.2" in why_l, (level, why)
+        assert "notice" in why_l
+        assert "sun 12.3" not in text.lower()
+        assert "moon 44.2" not in text.lower()
+        assert "gate" not in text.lower()
+        assert "sacral" not in text.lower()
+        assert len(text.split()) <= 20, (level, text, len(text.split()))
+    print("PASS: sky clause in Why; Main plain ≤20 words")
+
+
+def test_main_action_plain_english_max_words():
+    from app.checkin.rules import MAIN_ACTION_MAX_WORDS
+
+    natal = {"type": "Generator", "strategy": "To Respond"}
+    transit = _transit(sun_g=1, sun_l=1, moon_g=2, moon_l=2)
+    for level in (1, 2, 3, 4, 5):
+        text, why, _micro = compute_main_action(
+            level,
+            "alone",
+            natal=natal,
+            transit=transit,
+            overlay={"newly_defined_centers": ["Sacral"], "bridged_channels": []},
+        )
+        words = len(text.replace("—", " ").split())
+        assert words <= MAIN_ACTION_MAX_WORDS, (level, words, text)
+        # Mechanics stay out of the doable sentence
+        low = text.lower()
+        assert "strategy:" not in low
+        assert "sacral" not in low
+        assert "gate" not in low
+        assert why.strip()
+    print("PASS: Main action ≤20 words plain English across bands")
 
 
 def test_consecutive_hkt_days_different_daily_signal_keys():

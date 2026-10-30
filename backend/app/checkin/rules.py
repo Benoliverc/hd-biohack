@@ -8,6 +8,7 @@ PreferredSpace = Literal["people", "alone", "nature", "focus", "out"]
 
 ENERGY_MIN = 1
 ENERGY_MAX = 5
+MAIN_ACTION_MAX_WORDS = 20
 
 SPACE_MICRO: dict[str, str] = {
     "alone": "Carve 20 minutes without chat.",
@@ -17,6 +18,36 @@ SPACE_MICRO: dict[str, str] = {
     "out": "Batch errands near natural thresholds (commute, lunch).",
 }
 
+# Plain-English Main action (≤20 words). HD jargon lives in Why.
+TYPE_RECOVER_TEXT: dict[str, str] = {
+    "Generator": "Rest first. Only say yes to what clearly lights you up.",
+    "Manifesting Generator": "Slow down. One clear yes at a time, then pause.",
+    "Manifestor": "Guard quiet time. Tell only who must know, then rest.",
+    "Projector": "Rest and wait. Don't chase or give unsolicited advice.",
+    "Reflector": "Change rooms before forcing output today.",
+}
+
+TYPE_STEADY_TEXT: dict[str, str] = {
+    "Generator": "Respond to what shows up — one focus, then stop.",
+    "Manifesting Generator": "Respond, then inform — one focus, then stop.",
+    "Manifestor": "Inform first, then start one clear move.",
+    "Projector": "Wait for a real invitation before you lean in.",
+    "Reflector": "Sample the right room — don't lock big decisions yet.",
+}
+
+TYPE_SURPLUS_TEXT: dict[str, str] = {
+    "Generator": "Use extra energy on one clear yes — not a longer list.",
+    "Manifesting Generator": "Channel the charge into one clear yes, then inform.",
+    "Manifestor": "Spend surplus on one informed start — then leave margin.",
+    "Projector": "Offer guidance only where you're invited — not more volume.",
+    "Reflector": "Use the high day to sample the right room — don't rush.",
+}
+
+GENERIC_RECOVER = "Protect your battery today — fewer inputs, slower pace."
+GENERIC_STEADY = "Run a simple day — one clear focus, then stop."
+GENERIC_SURPLUS = "Use the extra energy on one deliberate move — then rest."
+HYPER_TEXT = "Skip stimulants. Channel the charge into one deliberate move."
+
 TYPE_BATTERY: dict[str, str] = {
     "Generator": "Your battery fills when you respond — not when you push.",
     "Manifesting Generator": "Your battery needs a Sacral yes first — then inform — not constant acceleration.",
@@ -25,17 +56,15 @@ TYPE_BATTERY: dict[str, str] = {
     "Reflector": "Your battery is the room you're in — change place before forcing output.",
 }
 
-# Energy 1–2: protect / recover (no "push" sky framing)
-TYPE_RECOVER: dict[str, str] = {
-    "Generator": "Protect Sacral rest today — only respond to what clearly lights you up; skip forced starts.",
+TYPE_RECOVER_WHY: dict[str, str] = {
+    "Generator": "Protect Sacral rest — only respond to what clearly lights you up; skip forced starts.",
     "Manifesting Generator": "Downshift: one Sacral yes at a time, inform, then rest between bursts.",
     "Manifestor": "Guard a quiet initiation window — inform only who must know, then recover.",
     "Projector": "Prioritise rest and recognition hygiene — no chasing, no unsolicited advice.",
     "Reflector": "Change the room before forcing output — sample a calmer place today.",
 }
 
-# Energy 4–5: use surplus carefully, Strategy-aligned
-TYPE_SURPLUS: dict[str, str] = {
+TYPE_SURPLUS_WHY: dict[str, str] = {
     "Generator": "Use surplus to respond to one clear Sacral yes — not a longer to-do list.",
     "Manifesting Generator": "Channel the charge into one Sacral yes, then inform before you accelerate.",
     "Manifestor": "Spend surplus on one informed initiation — then protect the recovery gap.",
@@ -43,9 +72,6 @@ TYPE_SURPLUS: dict[str, str] = {
     "Reflector": "Use the high day to sample the right room — don't lock big decisions yet.",
 }
 
-GENERIC_RECOVER = "Protect your battery today — fewer inputs, slower pace, no forced push."
-GENERIC_STEADY = "Run a simple operating day — one clear focus, then stop."
-GENERIC_SURPLUS = "Use the extra energy on one deliberate move — then leave margin."
 HYPER_NOTE = "Skip extra stimulants and stacked commitments — ride the charge without overloading."
 
 
@@ -55,11 +81,15 @@ def _type_strategy(natal: dict[str, Any] | None) -> tuple[str, str]:
     return str(natal.get("type") or ""), str(natal.get("strategy") or "")
 
 
+def _word_count(text: str) -> int:
+    return len([w for w in text.replace("—", " ").replace("-", " ").split() if w.strip()])
+
+
 def sky_bullet_one(
     transit: dict[str, Any] | None,
     overlay: dict[str, Any] | None,
 ) -> str | None:
-    """Mirror the first Today sky bullet (informational, not medical)."""
+    """Mirror the first Today sky bullet (informational, not medical). For Why, not Main."""
     transit = transit or {}
     overlay = overlay or {}
     sun_earth = transit.get("sun_earth")
@@ -91,14 +121,25 @@ def sky_bullet_one(
     return None
 
 
-def _sky_clause(transit: dict[str, Any] | None) -> str | None:
-    """Sun and/or Moon gate.line clause for every energy band."""
+def _sky_why_bits(
+    transit: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+) -> list[str]:
+    """HD / sky mechanics for the collapsed Why — never the Main action line."""
+    bits: list[str] = []
     from .novelty import sky_notice_sun_moon
 
     notice = sky_notice_sun_moon(transit)
-    if not notice:
-        return None
-    return f"{notice} while you"
+    if notice:
+        bits.append(f"{notice} — colour the day without forcing it.")
+    sky = sky_bullet_one(transit, overlay)
+    if sky:
+        # Skip redundant Sun-theme bullet when compact notice already names Sun.
+        if notice and "Sun " in notice and "Sun theme" in sky:
+            pass
+        else:
+            bits.append(sky)
+    return bits
 
 
 def compute_main_action(
@@ -113,8 +154,9 @@ def compute_main_action(
     """
     Return (main_action_text, main_action_why, main_action_micro).
 
-    main_action_text is the title only — space micro-move is separate for its own UI line.
-    Sky clause applies on ALL energy bands (not only Steady).
+    main_action_text is a plain doable sentence (≤20 words) — no gate/Sacral/Strategy soup.
+    HD mechanics and sky clauses live in main_action_why (collapsed Why in the UI).
+    Space micro-move is separate for its own UI line.
     Deterministic only — never calls Protocol generate or an LLM.
     """
     if energy_level < ENERGY_MIN or energy_level > ENERGY_MAX:
@@ -125,47 +167,67 @@ def compute_main_action(
     hd_type, strategy = _type_strategy(natal)
     micro = SPACE_MICRO[preferred_space]
     battery = TYPE_BATTERY.get(hd_type, "Protect your energy map today.")
-    sky_prefix = _sky_clause(transit)
+    why_bits = _sky_why_bits(transit, overlay)
 
     if energy_level <= 2:
-        primary = TYPE_RECOVER.get(hd_type, GENERIC_RECOVER)
-        why = f"Protect and recover — {battery}"
-        if sky_prefix:
-            # Soft notice — recover framing stays primary
-            primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}" if primary else sky_prefix
+        primary = TYPE_RECOVER_TEXT.get(hd_type, GENERIC_RECOVER)
+        why_bits.insert(0, f"Protect and recover — {battery}")
+        recover_mech = TYPE_RECOVER_WHY.get(hd_type)
+        if recover_mech:
+            why_bits.append(recover_mech)
     elif energy_level == 3:
         sky = sky_bullet_one(transit, overlay)
         if sky:
-            primary = sky
-            why = "Follow today's sky cue as your OS guide."
+            primary = "Follow today's sky cue — one clear focus, then stop."
+            why_bits.insert(0, "Follow today's sky cue as your OS guide.")
         elif cached_top_action:
-            primary = cached_top_action.strip()
-            why = "Lean on your last protocol focus (read-only)."
+            # Keep cached focus plain; mechanics stay in Why.
+            cached = cached_top_action.strip().rstrip(".")
+            words = cached.split()
+            primary = (
+                " ".join(words[:MAIN_ACTION_MAX_WORDS]).rstrip(".,;") + "."
+                if len(words) > MAIN_ACTION_MAX_WORDS
+                else cached + "."
+            )
+            why_bits.insert(0, "Lean on your last protocol focus (read-only).")
         elif strategy:
-            primary = f"Follow Strategy: {strategy} — one clear focus, then stop."
-            why = f"Run your {hd_type or 'chart'} operating system."
+            primary = TYPE_STEADY_TEXT.get(hd_type, GENERIC_STEADY)
+            why_bits.insert(
+                0,
+                f"Run your {hd_type or 'chart'} operating system — Strategy: {strategy}.",
+            )
         else:
             primary = GENERIC_STEADY
-            why = "Keep the day simple — no natal overlay yet."
-        # Steady already sky-led when sun present; if sky_bullet fell through,
-        # still attach Sun/Moon clause when available.
-        if sky_prefix and not (sky and "Sun theme" in (sky or "")):
-            if sky_prefix.lower() not in primary.lower():
-                primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}"
+            why_bits.insert(0, "Keep the day simple — no natal overlay yet.")
     else:
-        primary = TYPE_SURPLUS.get(hd_type, GENERIC_SURPLUS)
-        if strategy and hd_type:
-            primary = f"{primary.rstrip('.')} (Strategy: {strategy})."
         if energy_level == 5:
-            primary = f"{primary.rstrip('.')}. {HYPER_NOTE}"
-            why = f"Use surplus carefully; avoid more stimulation. {battery}"
+            primary = HYPER_TEXT
+            why_bits.insert(0, f"Use surplus carefully; avoid more stimulation. {battery}")
+            why_bits.append(HYPER_NOTE)
         else:
-            why = f"Use surplus carefully, Strategy-aligned. {battery}"
-        if sky_prefix:
-            primary = f"{sky_prefix} {primary[0].lower() + primary[1:]}"
+            primary = TYPE_SURPLUS_TEXT.get(hd_type, GENERIC_SURPLUS)
+            why_bits.insert(0, f"Use surplus carefully, Strategy-aligned. {battery}")
+        surplus_mech = TYPE_SURPLUS_WHY.get(hd_type)
+        if surplus_mech:
+            why_bits.append(surplus_mech)
+        if strategy and hd_type:
+            why_bits.append(f"Strategy: {strategy}.")
 
     text = primary.rstrip(".") + "."
-    # Why is one plain "because" — do not restate Energy/Space chip labels
-    # (space micro-move lives on its own UI line).
-    why = why.rstrip(".") + "."
+    # Soft enforce ≤20 words (templates are designed under the cap).
+    if _word_count(text) > MAIN_ACTION_MAX_WORDS:
+        words = text.replace("—", " ").split()
+        text = " ".join(words[:MAIN_ACTION_MAX_WORDS]).rstrip(".,;") + "."
+
+    # Why is mechanics + sky — do not restate Energy/Space chip labels.
+    # Dedupe while preserving order.
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for bit in why_bits:
+        key = bit.strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        ordered.append(bit.strip().rstrip(".") + ".")
+    why = " ".join(ordered)
     return text, why, micro
