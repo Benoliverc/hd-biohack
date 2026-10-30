@@ -263,6 +263,8 @@ export default function ProfilePage() {
   const [saveAs, setSaveAs] = useState<SaveAs>("self");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [personEditorOpen, setPersonEditorOpen] = useState(true);
+  /** True while DEMO_BIRTH is loaded into the form (never implied as "your" chart). */
+  const [demoBirthActive, setDemoBirthActive] = useState(false);
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
   const hadChartRef = useRef(false);
   const peopleFetchGen = useRef(0);
@@ -291,6 +293,25 @@ export default function ProfilePage() {
     setEditingChartId(null);
     editingChartIdRef.current = null;
     viewModeRef.current = null;
+    setDemoBirthActive(true);
+    setPersonEditorOpen(true);
+  }, []);
+
+  const clearDemoBirth = useCallback(() => {
+    setBirthDate("");
+    setBirthTime("");
+    setBirthCity("");
+    setLat(null);
+    setLon(null);
+    setTimezone(null);
+    setChart(null);
+    setViewMode(null);
+    setSavedForm(null);
+    setEditingChartId(null);
+    editingChartIdRef.current = null;
+    viewModeRef.current = null;
+    setDemoBirthActive(false);
+    setPersonEditorOpen(true);
   }, []);
 
   const applyRow = useCallback(
@@ -316,6 +337,7 @@ export default function ProfilePage() {
         (typeof c.timezone === "string" ? c.timezone : null);
       const kind: SaveAs = latest.slot_kind === "friend" ? "friend" : "self";
       const bindStore = opts?.bindStore ?? true;
+      setDemoBirthActive(false);
 
       setBirthDate(nextDate);
       setBirthTime(nextTime);
@@ -377,7 +399,7 @@ export default function ProfilePage() {
         viewModeRef.current = null;
         return;
       }
-      // Wait so we do not lock in DEMO/empty while /charts is still in flight in the store.
+      // Wait so we do not lock empty form while /charts is still in flight in the store.
       if (natalBindingLoading) return;
       if (hydratedUserId === user.id) return;
 
@@ -401,7 +423,8 @@ export default function ProfilePage() {
         const rows = await refreshPeople(user.id);
         if (cancelled || peopleFetchGen.current !== gen) return;
         if (!rows.length) {
-          applyDemoBirth();
+          // Leave birth fields empty — demo only via labeled "Try demo chart" control.
+          setDemoBirthActive(false);
           setHydratedUserId(user.id);
           return;
         }
@@ -424,7 +447,6 @@ export default function ProfilePage() {
     natalBindingLoading,
     refreshPeople,
     applyRow,
-    applyDemoBirth,
     pickPreferredRow,
   ]);
 
@@ -602,6 +624,7 @@ export default function ProfilePage() {
     setError(null);
     setFriendName("");
     setSaveAs(hasSelfSaved ? "friend" : "self");
+    setDemoBirthActive(false);
     setPersonEditorOpen(true);
   };
 
@@ -715,6 +738,7 @@ export default function ProfilePage() {
           setError("Chart calculated but save did not return an id. Try again.");
           return;
         }
+        setDemoBirthActive(false);
         const newId = Number(res.natal_chart_id);
         // Pin selection refs before any await flush so refreshPeopleOnOpen cannot re-apply Me.
         if (saveIntent === "create") {
@@ -1126,6 +1150,43 @@ export default function ProfilePage() {
       {user && formReady && (
         <div data-testid={stateBar.testId} className={stateBar.className}>
           {stateBar.body}
+        </div>
+      )}
+
+      {user && formReady && demoBirthActive && (
+        <div
+          role="status"
+          data-testid="demo-chart-banner"
+          className="flex flex-col gap-2 rounded-xl border border-energy/40 bg-energy/10 px-4 py-3 text-sm text-energy-ink sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p>
+            <span className="font-semibold">Demo / reference chart</span> — Ra Uru Hu
+            (Montreal, 9 Apr 1948). Not your natal. Clear or save your own birth data when ready.
+          </p>
+          <button
+            type="button"
+            data-testid="clear-demo-chart"
+            disabled={busy}
+            onClick={clearDemoBirth}
+            className="min-h-10 shrink-0 rounded-lg border border-energy-ink/40 px-3 py-2 text-xs font-medium hover:bg-energy/15 disabled:opacity-60"
+          >
+            Clear demo
+          </button>
+        </div>
+      )}
+
+      {user && formReady && !demoBirthActive && !editingChartId && !birthDate && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-testid="try-demo-chart"
+            disabled={busy}
+            onClick={() => applyDemoBirth()}
+            className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
+          >
+            Try demo chart (Ra Uru Hu)
+          </button>
+          <span className="text-xs text-fg-muted">Reference only — never treated as your chart</span>
         </div>
       )}
 

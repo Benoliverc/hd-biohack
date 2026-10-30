@@ -261,11 +261,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     writeSelectedId(user.id, natalChart?.id ?? null);
   }, [user?.id, natalChart?.id]);
 
+  // Tier truth: Free stays gated even when NEXT_PUBLIC_ENFORCE_PAYWALL is soft-false.
+  // Dev "Preview as Free" still forces the locked Protocols path for Pro accounts.
   const biohackingUnlocked = useMemo(() => {
-    if (!enforcePaywall) return true;
     if (previewAsFree) return false;
     return Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
-  }, [enforcePaywall, previewAsFree, user]);
+  }, [previewAsFree, user]);
 
   return (
     <Ctx.Provider

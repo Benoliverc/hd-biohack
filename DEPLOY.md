@@ -45,7 +45,7 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 | `SQLITE_PATH` | `/data/hd_biohack.db` |
 | `NOMINATIM_USER_AGENT` | `hd-biohack/1.0 (you@email.com)` |
 | `SEED_DEV_USERS` | `true` until Google auth exists (seeds Dev Free / Dev Pro) |
-| `ENFORCE_PAYWALL` | `false` until Stripe is real |
+| `ENFORCE_PAYWALL` | `false` until Stripe is real (backend flag; **FE Free/Pro gates on `subscription_tier` even when this / `NEXT_PUBLIC_ENFORCE_PAYWALL` are soft-false**) |
 | `DATABASE_URL` | leave empty for SQLite; set later for Postgres |
 | `LLM_PROVIDER` / `LLM_API_KEY` | optional |
 | `SUPABASE_URL` / `SUPABASE_ANON_KEY` | optional stubs |
@@ -75,12 +75,14 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 | Variable | Value |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `https://YOUR-RAILWAY-HOST` (no trailing slash, **not** `/api/backend`) |
-| `NEXT_PUBLIC_ENFORCE_PAYWALL` | `false` |
+| `NEXT_PUBLIC_ENFORCE_PAYWALL` | `false` (legacy; UI still gates Free users by tier — see below) |
 | `NEXT_PUBLIC_SHOW_DEV_CONTROLS` | `false` or omit |
 
 5. Deploy. Open the `*.vercel.app` URL.
 6. **Update Railway `CORS_ORIGINS`** to include that Vercel URL (and preview URLs if you use them), then redeploy the API.
 7. Hard-refresh the Vercel site → Chart / Protocols should hit Railway (Network tab: requests to the Railway host).
+
+> **Tier gating note (Feature 1):** Protocols entitlement and the header Free/Pro badge follow `subscription_tier` / `biohacking_enabled`, not `NEXT_PUBLIC_ENFORCE_PAYWALL`. Leaving that env soft-false no longer unlocks Protocols for Free accounts.
 
 ### Custom domain
 
@@ -111,7 +113,7 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | **Yes** | Railway HTTPS origin |
 | `NEXT_PUBLIC_SHOW_DEV_CONTROLS` | No | Must stay false/omitted for real users |
-| `NEXT_PUBLIC_ENFORCE_PAYWALL` | No | UI paywall gate |
+| `NEXT_PUBLIC_ENFORCE_PAYWALL` | No | Legacy UI flag. **Free users are gated by `subscription_tier` even when this is unset/false.** Dev “Preview as Free” still works for Pro. |
 
 Dry-run locally (after exporting vars):
 
@@ -150,7 +152,7 @@ Do not point production at `127.0.0.1` or leave `/api/backend` without a rewrite
 - [ ] Dev chrome hidden (`NEXT_PUBLIC_SHOW_DEV_CONTROLS` unset/false)
 - [ ] Informational / not-medical disclaimer still visible on Protocols
 - [ ] Google OAuth still stub — users rely on seeded Dev users or you add auth (deferred)
-- [ ] Paywall / Stripe still stub — keep `ENFORCE_PAYWALL=false` or expect upgrade modal stubs
+- [ ] Paywall / Stripe still stub — Unlock is a Pro waitlist (no live checkout). Free users see the Protocols gate even when `NEXT_PUBLIC_ENFORCE_PAYWALL` is soft-false; badge follows `subscription_tier`
 - [ ] Nominatim: datacenter IPs often 403 — seeded cities + manual lat/lon still work
 - [ ] Custom domain + HTTPS (optional)
 - [ ] Privacy / ToS pages (deferred — add before broad marketing)

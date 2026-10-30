@@ -167,24 +167,19 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center" aria-hidden>
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase tracking-wide">
-                <span className="bg-elevated px-2 text-fg-muted">or</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="flex min-h-12 w-full items-center justify-center rounded-xl border border-border bg-canvas px-4 text-sm font-medium text-fg-secondary hover:border-growth hover:text-fg"
-              onClick={() =>
-                alert("Google OAuth via Supabase Auth — stub UI. Wire SUPABASE_* keys to enable.")
-              }
+            <p
+              className="mt-5 rounded-xl border border-border bg-canvas/60 px-3.5 py-3 text-sm text-fg-muted"
+              data-testid="login-invite-only"
             >
-              Sign in with Google
-            </button>
+              Invite-only for now — no self-serve signup. Ask your host for an account, or email{" "}
+              <a
+                className="font-medium text-growth underline-offset-2 hover:underline"
+                href="mailto:benjaminlammens@gmail.com?subject=Baseline%20invite%20request"
+              >
+                benjaminlammens@gmail.com
+              </a>{" "}
+              to join the waitlist.
+            </p>
           </div>
         </section>
       </div>

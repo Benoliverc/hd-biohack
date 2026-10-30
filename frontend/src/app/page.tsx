@@ -39,7 +39,9 @@ export default function HomePage() {
             </h1>
             <p className="max-w-2xl text-fg-muted">
               {hasChart
-                ? "Chart and today’s sky stay free. Protocols turn the sky into a checkable move — using your kit when you own it."
+                ? biohackingUnlocked
+                  ? "Chart and today’s sky stay free. Protocols turn the sky into a checkable move — using your kit when you own it."
+                  : "Chart and today’s sky stay free. Protocols (Today’s Move + kit) unlock with Pro."
                 : "Save your natal free. Today’s sky stays free. Protocols unlock with Pro when you’re ready."}
             </p>
             <p className="mt-2 text-xs font-medium tracking-wide text-fg-muted/80">
@@ -94,7 +96,9 @@ export default function HomePage() {
                 Open Protocols
               </Link>
               <p className="text-[11px] text-fg-muted">
-                Auto-loads from today’s sky · Refresh rebuilds
+                {biohackingUnlocked
+                  ? "Auto-loads from today’s sky · Refresh rebuilds"
+                  : "Pro unlocks the live move — Free sees a preview"}
               </p>
             </div>
           </div>
