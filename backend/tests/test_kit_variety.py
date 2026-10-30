@@ -73,6 +73,27 @@ def test_fact_only_for_kit_members():
     print(f"PASS: fact for kit member → {fact['supplement']!r}")
 
 
+def test_vitamin_d3_does_not_match_b12_or_b_complex():
+    """Soft P1 UX: shared 'vitamin' token must not cross D3 ↔ B12 / B-complex."""
+    from app.biohack.kit_variety import _match_score, _names_match
+
+    assert _match_score("Vitamin D3", "vitamin b12") == 0
+    assert not _names_match("Vitamin D3", "Vitamin B12")
+    assert not _names_match("Vitamin D3", "vitamin b complex")
+    assert not _names_match("Vitamin D3", "B-Complex")
+    assert _names_match("Vitamin D3", "vitamin d3")
+    assert _names_match("Vitamin D3", "vitamin d")
+    assert _names_match("D3", "vitamin d3")
+    for day_i in range(1, 15):
+        day = f"2026-10-{day_i:02d}"
+        fact = pick_kit_fact(["Vitamin D3"], day_key=day)
+        assert fact is not None, day
+        name = (fact.get("supplement") or "").lower()
+        assert "b12" not in name and "b-complex" not in name and "b complex" not in name
+        assert "d3" in name or name.startswith("vitamin d")
+    print("PASS: D3 kit facts stay on D family across days")
+
+
 def test_empty_kit_null_fact_and_cta():
     assert pick_kit_fact([], day_key="2026-10-24") is None
     assert pick_kit_fact([], day_key="2026-10-25") is None

@@ -27,6 +27,48 @@ def _norm(s: str) -> str:
     return " ".join(str(s or "").lower().replace("_", " ").replace("-", " ").split())
 
 
+# Shared class words alone must not match Vitamin D3 ↔ Vitamin B12 / B-complex.
+_GENERIC_TOKENS = frozenset(
+    {
+        "vitamin",
+        "vitamins",
+        "complex",
+        "oil",
+        "oils",
+        "extract",
+        "extracts",
+        "acid",
+        "acids",
+        "supplement",
+        "supplements",
+        "capsules",
+        "softgels",
+        "powder",
+        "liquid",
+        "multi",
+        "with",
+        "and",
+        "the",
+        "for",
+    }
+)
+
+
+def _is_form_token(t: str) -> bool:
+    """Letter+digit forms: d3, b12, k2, mk7, b5, …"""
+    return bool(re.fullmatch(r"[a-z]{1,3}\d+[a-z0-9]*", t or ""))
+
+
+def _diff_tokens(toks: set[str], meaningful: set[str]) -> set[str]:
+    return {
+        t
+        for t in toks
+        if t not in meaningful
+        and t not in _GENERIC_TOKENS
+        and (len(t) >= 4 or _is_form_token(t))
+    }
+
+
 def _match_score(owned: str, alias: str) -> int:
     """Higher is better. 0 = no match. Prefers specific forms over bare mineral names."""
     o, a = _norm(owned), _norm(alias)
@@ -43,17 +85,29 @@ def _match_score(owned: str, alias: str) -> int:
     a_toks = [t for t in a.split() if t]
     o_set, a_set = set(o_toks), set(a_toks)
     shared = o_set & a_set
-    meaningful = {t for t in shared if len(t) >= 4 or (len(t) >= 2 and t.isalnum() and t == a)}
+    meaningful = {
+        t
+        for t in shared
+        if t not in _GENERIC_TOKENS
+        and (len(t) >= 4 or _is_form_token(t) or (len(t) >= 2 and t.isalnum() and t == a))
+    }
+    o_forms = {t for t in o_set if _is_form_token(t)}
+    a_forms = {t for t in a_set if _is_form_token(t)}
+    if o_forms and a_forms:
+        if o_forms & a_forms:
+            return 95
+        return 0  # d3 vs b12 etc.
     if not meaningful:
         # Exact short alias equals a full owned token (b12, d3, nac, k2)
         if len(a) <= 3 and a in o_set:
             return 90
+        if _is_form_token(a) and a in o_set:
+            return 90
+        if o_forms and any(f in a_set or f in a for f in o_forms):
+            return 90
         return 0
-    # If both sides have a differentiating token the other lacks, require
-    # the owned side to be a generic subset (owned='magnesium' → any mag form)
-    # or a strong overlap. 'magnesium glycinate' vs 'magnesium threonate' → weak.
-    o_extra = {t for t in o_set if len(t) >= 4} - meaningful
-    a_extra = {t for t in a_set if len(t) >= 4} - meaningful
+    o_extra = _diff_tokens(o_set, meaningful)
+    a_extra = _diff_tokens(a_set, meaningful)
     if o_extra and a_extra:
         return 0  # conflicting specific forms
     score = 40 + 15 * len(meaningful) + sum(len(t) for t in meaningful)
