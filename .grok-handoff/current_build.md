@@ -2,7 +2,7 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/42 — **not merged** (awaiting UX → Ship Gate → Benjamin yes)
 - **Branch:** `feat/free-pro-identity-truth`
-- **Tip SHA:** `59149ad` (`59149ad5139b736493d21e21005f298ac2d17fe1`)
+- **Tip SHA:** `1c70a81` (`1c70a81e19b20ef4dff1ccc726d635604fab0d62`) · feature commit `59149ad`
 - **Base:** `main` @ `17b5c99` (PR #41 shipped)
 - **Handoff:** `.grok-handoff/free-pro-identity-truth.md`
 - **Status:** ready for UX UI Review, then Ship Gate. Do **not** merge/deploy without Benjamin yes via Grok Bot.
