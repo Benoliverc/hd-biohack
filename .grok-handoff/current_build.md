@@ -1,10 +1,13 @@
-# Current build — Free / Pro truth + first-run identity (IN PROGRESS)
+# Current build — Free / Pro truth + first-run identity (PR OPEN)
 
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/42 — **not merged** (awaiting UX → Ship Gate → Benjamin yes)
 - **Branch:** `feat/free-pro-identity-truth`
+- **Tip SHA:** `59149ad` (`59149ad5139b736493d21e21005f298ac2d17fe1`)
 - **Base:** `main` @ `17b5c99` (PR #41 shipped)
 - **Handoff:** `.grok-handoff/free-pro-identity-truth.md`
-- **Status:** implementing ACs → open PR → UX UI Review → Ship Gate (do **not** merge without Benjamin yes)
+- **Status:** ready for UX UI Review, then Ship Gate. Do **not** merge/deploy without Benjamin yes via Grok Bot.
 - **Out of scope:** real Stripe, Google OAuth wiring, account settings
+- **tsc:** `npx tsc --noEmit` (frontend) — pass
 
 ## Files touched
 - `frontend/src/lib/store.tsx` — `biohackingUnlocked` follows tier / `biohacking_enabled`; ignore soft-false paywall env
@@ -16,9 +19,9 @@
 - `DEPLOY.md` — tier gates even when `ENFORCE_PAYWALL` / `NEXT_PUBLIC_ENFORCE_PAYWALL` soft-false
 
 ## Preview notes
-- Local: `frontend` `npm run dev` + API; sign in as Free Sam vs Pro; empty-chart user for demo path
-- Vercel preview: after PR open (if CI previews enabled)
+- Vercel: opens preview for PR #42 when CI/previews are enabled (`hd-biohack-*.vercel.app`)
+- Local: `frontend` `npm run dev` + Railway/local API; Free Sam vs Pro; empty-chart user for demo path
 
 ## Open questions / risks
-- Waitlist is client-only (session memory) — no backend notify yet (intentional stub)
+- Waitlist is client-only (in-session) — no backend notify yet (intentional stub)
 - `enforcePaywall` Dev toggle kept as legacy flag; no longer unlocks Free UI
