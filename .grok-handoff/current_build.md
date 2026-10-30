@@ -1,9 +1,11 @@
 # Current build — Thin self-betterment loop (READY FOR UX)
 
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/43
 - **Branch:** `feat/self-betterment-loop`
+- **Tip SHA:** `8e06b13` (`8e06b133ec08b06a6e73d28820afaaa9b8a499bf`)
 - **Handoff:** `.grok-handoff/self-betterment-loop.md`
 - **Base:** main @ `ae3c328` (PR #42 Free/Pro identity)
-- **Status:** implementing complete — awaiting PR / UX UI Review
+- **Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin yes
 - **Out of scope:** password/delete-account, reminders/push/streaks, Daily Novelty HKT buckets, Stripe/signup
 
 ## ACs
@@ -12,7 +14,7 @@
 3. Optional daily intention (server, per user+day) — done
 4. Move reflection synced server-side — done
 5. Trust/density; Settings free; Protocols extras Pro-gated — done
-6. Tests + smoke — done (backend 3 new; FE assert NY day-key; full pytest 91)
+6. Tests + smoke — done (pytest 91; FE assert NY day-key; tsc clean)
 
 ## Smoke notes
 - Settings → set America/New_York → Protocols week label is `Mon–Sun · America/New_York` (not HKT)
