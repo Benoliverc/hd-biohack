@@ -2,7 +2,7 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/43
 - **Branch:** `feat/self-betterment-loop`
-- **Tip SHA:** `52215bd` (`52215bd262718a4751dd9ed7c4025608e1777c9b`)
+- **Tip SHA:** `4175cd9` (`4175cd9602ede0cb112454d0d308c8f0507bbf2b`)
 - **Feature commit:** `8e06b13`
 - **Handoff:** `.grok-handoff/self-betterment-loop.md`
 - **Base:** main @ `ae3c328` (PR #42 Free/Pro identity)
