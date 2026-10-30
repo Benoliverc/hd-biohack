@@ -1,5 +1,7 @@
 # Protocols kit variety + daily fact library
 
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/41
+**SHA:** `e445ce6`
 **Branch:** `feat/protocols-kit-variety-facts`  
 **Base:** `main` @ `063a980` (post PR #40)  
 **Status:** PR open · **awaiting UX** re-review (notes folded from `protocols-kit-variety-facts-ux-notes.md`) · **do not merge** · do not deploy · Ship Gate not pinged by executor  

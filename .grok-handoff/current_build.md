@@ -1,6 +1,8 @@
 # Current build — Protocols kit variety + daily fact
 
-- **Branch:** `feat/protocols-kit-variety-facts`
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/41
+**SHA:** `e445ce6`
+**Branch:** `feat/protocols-kit-variety-facts`
 - **Base:** `main` @ `063a980`
 - **Handoff:** `.grok-handoff/protocols-kit-variety-facts.md`
 - **UX notes (folded):** `.grok-handoff/protocols-kit-variety-facts-ux-notes.md`
