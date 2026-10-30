@@ -2,7 +2,8 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/43
 - **Branch:** `feat/self-betterment-loop`
-- **Tip SHA:** `8e06b13` (`8e06b133ec08b06a6e73d28820afaaa9b8a499bf`)
+- **Tip SHA:** `52215bd` (`52215bd262718a4751dd9ed7c4025608e1777c9b`)
+- **Feature commit:** `8e06b13`
 - **Handoff:** `.grok-handoff/self-betterment-loop.md`
 - **Base:** main @ `ae3c328` (PR #42 Free/Pro identity)
 - **Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin yes
