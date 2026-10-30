@@ -1,10 +1,9 @@
-# Current build — Today Daily Novelty Contract (Option 2)
+# Current build — Protocols kit variety + daily fact
 
-- **Branch:** `feat/today-daily-novelty`
-- **Base:** `main` @ `7aeca75` (post BodyGraph SSOT #30)
-- **Spec:** `.grok-handoff/today-daily-novelty-ux-2026-10-24.md` (Option 2)
-- **Handoff:** `.grok-handoff/today-daily-novelty.md`
-- **SHA:** 2ef074fdcfdae835307ed73663474b2a08bca9c5
-- **Tests:** `pytest tests/test_checkin.py` → 23 passed; `npx tsc --noEmit` → green
-- **Preview:** HKT 07:00 bucket; hero = daily_signal → vs_yesterday → main → Still conditioning
-- **Do not merge** until PO yes; no deploy from this handoff.
+- **Branch:** `feat/protocols-kit-variety-facts`
+- **Base:** `main` @ `063a980`
+- **Handoff:** `.grok-handoff/protocols-kit-variety-facts.md`
+- **UX notes (folded):** `.grok-handoff/protocols-kit-variety-facts-ux-notes.md`
+- **Status:** awaiting UX re-review · do **not** merge · Ship Gate not requested by executor
+- **Library:** 119 supplements × ~1.27 actions / ~1.41 facts
+- **Tests:** kit_variety + protocols_redesign + sky_rotation green; `tsc --noEmit` green

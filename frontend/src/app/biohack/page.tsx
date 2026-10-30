@@ -32,6 +32,7 @@ type PlanItem = {
   why?: string;
   in_inventory?: boolean;
   priority?: number;
+  moment_chip?: string;
 };
 
 type WhatsNew = {
@@ -45,6 +46,13 @@ type WhatsNew = {
   lead_fingerprint?: string;
   yesterday_lead_fingerprint?: string | null;
   fingerprint_matched?: boolean;
+};
+
+type KitFact = {
+  supplement: string;
+  body: string;
+  source_id: string;
+  foot?: string;
 };
 
 type StackItem = {
@@ -144,6 +152,7 @@ type CheckItem = {
   sub?: string;
   why?: string;
   inInventory?: boolean;
+  momentChip?: string;
   kind: CompletionKind;
 };
 
@@ -151,14 +160,17 @@ type TimedLeadSnap = { id: string; item: string; inInventory?: boolean };
 
 function sanitizeWhy(why: string | undefined, inInventory: boolean | undefined): string | undefined {
   if (!why) return undefined;
-  // Never claim shelf ownership on unowned / behavior rows without a kit badge.
-  if (inInventory) return why;
+  // Badge already says "From your kit" — don't restate ownership in why.
   const cleaned = why
     .replace(/\s*You already own something like this[^.]*\.\s*/gi, " ")
     .replace(/\s*[Pp]refer what you already own[^.]*\.?\s*/gi, " ")
+    .replace(/\s*From your kit[^.]*\.\s*/gi, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
-  return cleaned || undefined;
+  if (!cleaned) return undefined;
+  // Behaviors: never claim shelf ownership.
+  if (!inInventory) return cleaned;
+  return cleaned;
 }
 
 function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] {
@@ -524,6 +536,7 @@ export default function BiohackPage() {
         sub: row.when || undefined,
         why: sanitizeWhy(row.why, inInv),
         inInventory: inInv,
+        momentChip: inInv ? row.moment_chip || undefined : undefined,
         kind: "move",
       });
     }
@@ -680,6 +693,23 @@ export default function BiohackPage() {
           onAddStarter={(name) => void addInv(name)}
           adding={adding}
           disabled={!user || adding || inventoryLoading || resolvingYou}
+        />
+      )}
+
+      {(protocol || youChart) && (
+        <KitFactCallout
+          fact={
+            ((protocol?.kit_fact as KitFact | null | undefined) ||
+              ((daily as { kit_fact?: KitFact | null } | null)?.kit_fact ?? null)) ?? null
+          }
+          cta={
+            inventory.length === 0
+              ? ((protocol?.kit_fact_cta as string | null | undefined) ||
+                  ((daily as { kit_fact_cta?: string | null } | null)?.kit_fact_cta ?? null) ||
+                  "Add what you own — Move can prefer your shelf")
+              : null
+          }
+          onOpenKit={openInventory}
         />
       )}
 
@@ -1039,6 +1069,16 @@ function TodaysMoveCard({
                           From your kit
                         </span>
                       )}
+                      {it.inInventory &&
+                        it.momentChip &&
+                        !(rotatedSlot && it.id === rotatedSlot) && (
+                          <span
+                            className="inline-flex items-center rounded-full border border-border/70 bg-elevated/80 px-2 py-0.5 text-[11px] font-medium text-fg-muted"
+                            data-testid={`moment-chip-${it.id}`}
+                          >
+                            {it.momentChip}
+                          </span>
+                        )}
                     </span>
                     {it.sub && (
                       <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
@@ -1048,7 +1088,7 @@ function TodaysMoveCard({
                     )}
                     {rotatedSlot && it.id === rotatedSlot && (
                       <span
-                        className="inline-flex items-center rounded-full bg-energy/15 px-2 py-0.5 text-[12px] font-medium text-energy-ink ring-1 ring-energy/30"
+                        className="mt-1 inline-flex items-center rounded-full bg-energy/15 px-2 py-0.5 text-[12px] font-medium text-energy-ink ring-1 ring-energy/30"
                         data-testid={`new-vs-yesterday-badge-${it.id}`}
                       >
                         New vs yesterday
@@ -1214,6 +1254,62 @@ function TodaysMoveCard({
   );
 }
 
+
+/* ─── Kit fact (between Kit strip and Today's Move) ─────────────────────── */
+
+function KitFactCallout({
+  fact,
+  cta,
+  onOpenKit,
+}: {
+  fact: KitFact | null;
+  cta: string | null;
+  onOpenKit: () => void;
+}) {
+  if (fact?.body) {
+    const body =
+      fact.body.length > 140 ? `${fact.body.slice(0, 137).replace(/\s+\S*$/, "")}…` : fact.body;
+    return (
+      <aside
+        className="rounded-xl border border-border/70 bg-elevated/60 px-3 py-2"
+        data-testid="kit-fact-callout"
+        aria-label="Kit fact"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+          Kit fact · today
+          {fact.supplement ? (
+            <span className="ml-1.5 rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 text-[10px] font-medium normal-case tracking-normal text-fg-secondary">
+              {fact.supplement}
+            </span>
+          ) : null}
+        </p>
+        <p className="mt-1 text-sm leading-snug text-fg-secondary line-clamp-2">{body}</p>
+        <p className="mt-1 text-[10px] text-fg-muted">
+          {fact.foot || "Informational — not medical advice"}
+        </p>
+      </aside>
+    );
+  }
+  if (cta) {
+    return (
+      <aside
+        className="rounded-xl border border-dashed border-border bg-elevated/40 px-3 py-2"
+        data-testid="kit-fact-empty-cta"
+      >
+        <p className="text-sm text-fg-secondary">{cta}</p>
+        <button
+          type="button"
+          onClick={onOpenKit}
+          className="mt-1 text-xs font-medium text-growth underline-offset-2 hover:underline"
+          data-testid="kit-fact-open-kit"
+        >
+          Edit kit
+        </button>
+      </aside>
+    );
+  }
+  return null;
+}
 
 /* ─── Kit strip (above-fold) ─────────────────────────────────────────────── */
 
