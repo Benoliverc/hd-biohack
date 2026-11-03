@@ -1,12 +1,12 @@
 # Current build — Today vs Protocols IA split (P0)
 
-- **PR:** (pending — fill after open)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/45
 - **Branch:** `feat/today-protocols-ia-split`
-- **Tip SHA:** (pending)
+- **Tip SHA:** `3b20bf3` (`3b20bf30a8738d3ce650e03e2050a59ce1a191be`)
 - **Handoff:** `.grok-handoff/today-protocols-ia-split.md`
 - **Spec Page:** https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/cb29692c-348a-475d-a74f-8a71ee16c63b
 - **Base:** main @ `7c1ec46` (PR #44 Meenakshi Pro)
-- **Status:** implementing → PR for UX UI Review
+- **Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin yes
 - **Out of scope:** Pro Move N/M strip (P0.5), baseline-pause (P1)
 
 ## ACs
@@ -21,4 +21,4 @@
 
 ## Verify
 - frontend tsc clean
-- assert:today-protocols-ia / assert:resets-in-hkt / assert:protocol-completions
+- assert:today-protocols-ia / assert:resets-in-hkt / assert:protocol-completions PASS
