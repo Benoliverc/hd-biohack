@@ -2,7 +2,8 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/45
 - **Branch:** `feat/today-protocols-ia-split`
-- **Tip SHA:** `3b20bf3` (`3b20bf30a8738d3ce650e03e2050a59ce1a191be`)
+- **Tip SHA:** `3971ba3` (`3971ba3ec05905cebbc61c0fad3054b497843977`)
+- **Feature commit:** `3b20bf3` (`3971ba3ec05905cebbc61c0fad3054b497843977`)
 - **Handoff:** `.grok-handoff/today-protocols-ia-split.md`
 - **Spec Page:** https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/cb29692c-348a-475d-a74f-8a71ee16c63b
 - **Base:** main @ `7c1ec46` (PR #44 Meenakshi Pro)
