@@ -130,27 +130,25 @@ export default function TransitsPage() {
 
   const bridged = ((overlay?.bridged_channels as Array<Record<string, unknown>>) || []);
   const newlyDefined = ((overlay?.newly_defined_centers as string[]) || []);
-  // Sun theme lives in daily_signal / Main action — do not duplicate here.
-  const todayBullets: string[] = [];
+  // Overlay tips only — Main action owns the primary do-statement (TodayIndication).
+  // Never parallel Main action with a competing do-list section.
+  const conditioningNotes: string[] = [];
   if (newlyDefined.length > 0) {
-    todayBullets.push(
+    conditioningNotes.push(
       `Temporary energy in ${newlyDefined.map(displayCenter).join(", ")} — expect unfamiliar pressure; don't over-identify.`
     );
   } else if (bridged.length > 0) {
     const first = bridged[0];
-    todayBullets.push(
+    conditioningNotes.push(
       `A bridge may be active (${String(first.name)}) — watch who/what feels magnetic today.`
     );
   }
-  if (todayBullets.length === 0 && !loading) {
-    todayBullets.push(
+  if (conditioningNotes.length === 0 && !loading) {
+    conditioningNotes.push(
       youChart
         ? "No strong personal overlay spike — skim today's planetary gates below."
         : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
     );
-  }
-  if (!loading) {
-    todayBullets.push("Open Protocols for Today's Move.");
   }
 
   return (
@@ -205,14 +203,16 @@ export default function TransitsPage() {
         asOfLabel={asOfLabel}
       />
 
-      {!loading && todayBullets.length > 0 && (
-        <div className="rounded-2xl border border-border bg-elevated p-5">
+      {!loading && conditioningNotes.length > 0 && (
+        <div
+          className="rounded-2xl border border-border bg-elevated/70 p-5"
+          data-testid="conditioning-notes"
+        >
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-            What to do today
+            Conditioning notes
           </h2>
-          <p className="mb-2 text-xs text-fg-muted">Protocols cue — sky novelty leads in Today&apos;s indication</p>
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
-            {todayBullets.slice(0, 3).map((b) => (
+            {conditioningNotes.slice(0, 3).map((b) => (
               <li key={b}>{b}</li>
             ))}
           </ul>
