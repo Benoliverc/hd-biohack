@@ -4,7 +4,7 @@
 **Spec Page:** https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/cb29692c-348a-475d-a74f-8a71ee16c63b  
 **Branch:** `feat/today-protocols-ia-split`  
 **PR:** https://github.com/Benoliverc/hd-biohack/pull/45  
-**Tip SHA:** `3971ba3` (`3971ba3ec05905cebbc61c0fad3054b497843977`)  
+**Tip SHA:** `67d3e6b` (`67d3e6be0b6853a2baa9488276f5a97186d2bd34`)  
 **Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin yes  
 
 ## Goal
