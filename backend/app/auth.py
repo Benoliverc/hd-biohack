@@ -15,6 +15,7 @@ PASSWORD_USERS: list[tuple[str, str, str]] = [
     ("Liesa", "Jean", "biohacker_pro"),
     ("Leana", "Struggle", "biohacker_pro"),
     ("Nutcha", "Matcha", "biohacker_pro"),
+    ("Meenakshi", "Transformation", "biohacker_pro"),
     ("Sam", "sam123", "free"),
     ("Alex", "alex123", "free"),
     ("Jordan", "jordan123", "biohacker_pro"),
