@@ -19,7 +19,6 @@ import {
   loadDayCompletions,
   loadWeekCompleted,
   mergeServerCompletions,
-  progressPct,
   resolveProtocolsTz,
   saveDayCompletions,
   setCompletionNote,
@@ -27,6 +26,14 @@ import {
   weekDayKeysInZone,
   weekRangeLabel,
 } from "@/lib/protocolCompletions";
+import {
+  WeatherStrip,
+  TodaysMoveCard,
+  KitStrip,
+  STARTER_SUPPLEMENTS,
+  type WhatsNew,
+  type CheckItem,
+} from "@/components/protocols";
 
 type InvItem = { id: number; name: string; notes: string };
 
@@ -40,18 +47,6 @@ type PlanItem = {
   moment_chip?: string;
 };
 
-type WhatsNew = {
-  chip?: string;
-  body?: string;
-  source?: string;
-  key?: string;
-  rotated?: boolean;
-  rotated_slot?: string | null;
-  forced_rotation?: boolean;
-  lead_fingerprint?: string;
-  yesterday_lead_fingerprint?: string | null;
-  fingerprint_matched?: boolean;
-};
 
 type KitFact = {
   supplement: string;
@@ -69,13 +64,6 @@ type StackItem = {
   in_inventory?: boolean;
 };
 
-const STARTER_SUPPLEMENTS = [
-  "Magnesium Glycinate",
-  "Omega-3",
-  "Vitamin D3",
-  "Creatine",
-  "Ashwagandha",
-] as const;
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
   return row.slot_kind !== "friend";
@@ -140,26 +128,7 @@ function prevHkDayKey(d = new Date()): string {
   return hkDayKey(new Date(d.getTime() - 24 * 60 * 60 * 1000));
 }
 
-function vsPillLabel(d: { field: string; from: string; to: string }): string {
-  if (d.field === "moon") return `Moon ${d.from} → ${d.to}`;
-  if (d.field === "sun") return `Sun ${d.from} → ${d.to}`;
-  if (d.field === "hanging_pressure") return `Hanging ${d.from} → ${d.to}`;
-  if (d.field === "bridge") return `Bridge ${d.from} → ${d.to}`;
-  if (d.field === "newly_defined") return `Centers ${d.from} → ${d.to}`;
-  if (d.field === "energy") return `Energy ${d.from} → ${d.to}`;
-  if (d.field === "space") return `Space ${d.from} → ${d.to}`;
-  return `${d.from} → ${d.to}`;
-}
 
-type CheckItem = {
-  id: string;
-  label: string;
-  sub?: string;
-  why?: string;
-  inInventory?: boolean;
-  momentChip?: string;
-  kind: CompletionKind;
-};
 
 type TimedLeadSnap = { id: string; item: string; inInventory?: boolean };
 
@@ -604,7 +573,6 @@ export default function BiohackPage() {
   const weekly = (protocol?.weekly_plan as Record<string, unknown>) || null;
   const baseline = (protocol?.natal_baseline as Record<string, unknown>) || null;
   const labels = (protocol?.labels as Record<string, string>) || {};
-  const weeklyThemeObj = (protocol?.weekly_theme as Record<string, unknown>) || null;
 
   const asOfLabel = formatResetsInHkt();
   const resolvingYou = natalBindingLoading || !youReady;
@@ -765,17 +733,7 @@ export default function BiohackPage() {
       )}
 
       {protocol && indication && (
-        <WeatherStrip
-          indication={indication}
-          asOfLabel={asOfLabel}
-          weeklyTheme={weeklyThemeObj}
-          skyNote={String(
-            (weekly as { sky_note?: string } | null)?.sky_note ||
-              protocol.daily_directive ||
-              ""
-          )}
-          whatsNew={whatsNew}
-        />
+        <WeatherStrip indication={indication} whatsNew={whatsNew} />
       )}
 
       {(protocol || youChart) && (
@@ -831,7 +789,7 @@ export default function BiohackPage() {
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
-          whatsNew={whatsNew}
+          rotatedSlot={whatsNew?.rotated_slot || null}
         />
       )}
 
@@ -913,7 +871,7 @@ function ProtocolsHeader({
       <div>
         <h1 className="text-2xl font-bold text-fg">Protocols</h1>
         {asOfLabel && <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>}
-        <p className="mt-1 text-sm text-fg-muted">Do the sky — timed plan for today.</p>
+        <p className="mt-1 text-sm text-fg-muted">Your stack — prove today&apos;s timed leads.</p>
       </div>
       <div className="flex flex-col items-start gap-1.5 sm:items-end">
         {resolvingYou ? (
@@ -951,88 +909,6 @@ function ProtocolsHeader({
     </header>
   );
 }
-
-/* ─── Weather strip ─────────────────────────────────────────────────────── */
-
-function WeatherStrip({
-  indication,
-  asOfLabel,
-  weeklyTheme,
-  skyNote,
-  whatsNew,
-}: {
-  indication: TodayIndicationPayload;
-  asOfLabel: string | null;
-  weeklyTheme: Record<string, unknown> | null;
-  skyNote: string;
-  whatsNew?: WhatsNew | null;
-}) {
-  const sunEarth =
-    weeklyTheme && (weeklyTheme.summary || weeklyTheme.sun_gate)
-      ? String(weeklyTheme.summary || `Sun ${weeklyTheme.sun_gate} / Earth ${weeklyTheme.earth_gate}`)
-      : null;
-  const bridgeBit = skyNote.includes("Channel")
-    ? skyNote.split(".")[0]
-    : skyNote.slice(0, 120);
-  const vs = indication.vs_yesterday || [];
-  const chip =
-    whatsNew?.chip ||
-    indication.daily_signal?.headline ||
-    "What's new vs yesterday";
-
-  return (
-    <section
-      className="rounded-2xl border border-energy/40 bg-energy/10 px-4 py-3"
-      data-testid="protocols-weather"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-energy/50 bg-elevated px-2.5 py-0.5 text-xs font-semibold text-energy-ink">
-          {indication.energy_label}
-        </span>
-        <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg">
-          {indication.preferred_space_label}
-        </span>
-        <span
-          className="rounded-full border border-growth/40 bg-growth-soft px-2.5 py-0.5 text-xs font-semibold text-growth-ink"
-          data-testid="whats-new-chip"
-          title={whatsNew?.body || indication.daily_signal?.body || undefined}
-        >
-          {chip}
-        </span>
-        {asOfLabel && <span className="text-[11px] text-fg-muted">{asOfLabel}</span>}
-      </div>
-      {vs.length > 0 && (
-        <div
-          className="mt-2 flex flex-wrap gap-1.5"
-          data-testid="protocols-vs-yesterday"
-          role="list"
-          aria-label="Vs yesterday"
-        >
-          {vs.map((d) => (
-            <span
-              key={`${d.field}-${d.from}-${d.to}`}
-              role="listitem"
-              className="inline-flex items-center rounded-full border border-border bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary"
-              data-testid={`protocols-vs-${d.field}`}
-            >
-              {vsPillLabel(d)}
-            </span>
-          ))}
-        </div>
-      )}
-      {sunEarth && <p className="mt-2 text-sm text-fg">{sunEarth}</p>}
-      {bridgeBit && <p className="mt-1 text-xs text-fg-muted">{bridgeBit}</p>}
-      <p className="mt-2 text-[11px] text-fg-muted">
-        Same Energy / Space as{" "}
-        <Link href="/transits" className="text-growth underline-offset-2 hover:underline">
-          Today
-        </Link>
-        .
-      </p>
-    </section>
-  );
-}
-
 
 /* ─── Daily intention ───────────────────────────────────────────────────── */
 
@@ -1082,330 +958,6 @@ function DailyIntentionField({
     </section>
   );
 }
-
-/* ─── Today's Move ──────────────────────────────────────────────────────── */
-
-function TodaysMoveCard({
-  items,
-  baselineItems,
-  completions,
-  doneMap,
-  onToggle,
-  onNote,
-  doneCount,
-  baselineDoneCount,
-  moveComplete,
-  completeFlash,
-  doList,
-  dontList,
-  baselineKitOpen,
-  onToggleBaseline,
-  showNoKitFootnote,
-  whatsNew,
-}: {
-  items: CheckItem[];
-  baselineItems: CheckItem[];
-  completions: DayCompletions;
-  doneMap: Record<string, boolean>;
-  onToggle: (it: CheckItem) => void;
-  onNote: (id: string, note: string) => void;
-  doneCount: number;
-  baselineDoneCount: number;
-  moveComplete: boolean;
-  completeFlash: boolean;
-  doList: string[];
-  dontList: string[];
-  baselineKitOpen: boolean;
-  onToggleBaseline: () => void;
-  showNoKitFootnote?: boolean;
-  whatsNew?: WhatsNew | null;
-}) {
-  const pct = progressPct(doneCount, items.length);
-  const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
-  const rotatedSlot = whatsNew?.rotated_slot || null;
-
-  return (
-    <section
-      className="space-y-4 rounded-2xl border border-growth/40 bg-growth-soft p-5"
-      data-testid="todays-move"
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold text-growth-ink">Today&apos;s Move</h2>
-        {items.length > 0 && (
-          <span className="text-xs text-fg-muted" data-testid="protocol-done-count">
-            {doneCount}/{items.length} done · {pct}%
-          </span>
-        )}
-      </div>
-      {whatsNew && (
-        <div
-          className="rounded-xl border border-growth/30 bg-elevated/80 px-3 py-2"
-          data-testid="todays-move-whats-new"
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-growth-ink">
-            What&apos;s new vs yesterday
-          </p>
-          <p className="mt-0.5 text-sm text-fg">
-            {whatsNew.chip || "What's new vs yesterday"}
-          </p>
-          {whatsNew.body && (
-            <p className="mt-1 text-xs text-fg-secondary">{whatsNew.body}</p>
-          )}
-        </div>
-      )}
-
-      {items.length > 0 && (
-        <div
-          className="h-2 overflow-hidden rounded-full bg-elevated/80 ring-1 ring-growth/20"
-          data-testid="protocol-progress"
-          role="progressbar"
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Today's move progress"
-        >
-          <div
-            className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      )}
-
-      {(completeFlash || moveComplete) && items.length > 0 && (
-        <div
-          className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 text-sm font-medium text-growth-ink ${
-            completeFlash ? "animate-pulse" : ""
-          }`}
-          data-testid="protocol-move-complete"
-          role="status"
-        >
-          Today&apos;s move complete — nice work.
-        </div>
-      )}
-
-      <ul className="space-y-2">
-        {items.map((it, idx) => {
-          const checked = Boolean(doneMap[it.id]);
-          const note = completions[it.id]?.note || "";
-          return (
-            <li key={it.id}>
-              <div
-                className={`rounded-xl border px-3 py-2.5 ${
-                  checked
-                    ? "border-growth/50 bg-elevated/60 opacity-90"
-                    : "border-growth/30 bg-elevated/90"
-                } ${idx === 0 ? "shadow-soft" : ""}`}
-              >
-                <label className="flex cursor-pointer gap-3">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
-                    checked={checked}
-                    onChange={() => onToggle(it)}
-                    data-testid={`protocol-check-${it.id}`}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`text-sm ${
-                          idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"
-                        } ${checked ? "line-through" : ""}`}
-                      >
-                        {it.label}
-                      </span>
-                      {it.inInventory && (
-                        <span
-                          className="inline-flex items-center rounded-full bg-growth-soft px-2 py-0.5 text-[12px] font-medium text-growth-ink ring-1 ring-growth/30"
-                          data-testid={`from-kit-badge-${it.id}`}
-                        >
-                          From your kit
-                        </span>
-                      )}
-                      {it.inInventory &&
-                        it.momentChip &&
-                        !(rotatedSlot && it.id === rotatedSlot) && (
-                          <span
-                            className="inline-flex items-center rounded-full border border-border/70 bg-elevated/80 px-2 py-0.5 text-[11px] font-medium text-fg-muted"
-                            data-testid={`moment-chip-${it.id}`}
-                          >
-                            {it.momentChip}
-                          </span>
-                        )}
-                    </span>
-                    {it.sub && (
-                      <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
-                    )}
-                    {it.why && (
-                      <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>
-                    )}
-                    {rotatedSlot && it.id === rotatedSlot && (
-                      <span
-                        className="mt-1 inline-flex items-center rounded-full bg-energy/15 px-2 py-0.5 text-[12px] font-medium text-energy-ink ring-1 ring-energy/30"
-                        data-testid={`new-vs-yesterday-badge-${it.id}`}
-                      >
-                        New vs yesterday
-                      </span>
-                    )}
-                  </span>
-                </label>
-                {checked && (
-                  <div className="mt-2 pl-7">
-                    <label className="block text-[11px] text-fg-muted" htmlFor={`note-${it.id}`}>
-                      Reflection
-                    </label>
-                    <input
-                      id={`note-${it.id}`}
-                      type="text"
-                      maxLength={120}
-                      defaultValue={note}
-                      placeholder="How did it go?"
-                      className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted"
-                      data-testid={`protocol-note-${it.id}`}
-                      onBlur={(e) => {
-                        if (e.target.value.trim() !== (note || "").trim()) {
-                          onNote(it.id, e.target.value);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          (e.target as HTMLInputElement).blur();
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      {showNoKitFootnote && (
-        <p className="text-xs text-fg-muted" data-testid="no-kit-match-footnote">
-          No kit item matched today&apos;s weather
-        </p>
-      )}
-
-      {(doList.length > 0 || dontList.length > 0) && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-growth/30 bg-elevated/70 p-3">
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-growth-ink">
-              Do
-            </h3>
-            <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
-              {doList.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="rounded-xl border border-energy/40 bg-energy/10 p-3">
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-              Don&apos;t
-            </h3>
-            <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
-              {dontList.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {baselineItems.length > 0 && (
-        <div className="rounded-xl border border-border/80 bg-elevated/50" data-testid="baseline-kit">
-          <button
-            type="button"
-            onClick={onToggleBaseline}
-            className="flex min-h-10 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-fg-muted"
-            aria-expanded={baselineKitOpen}
-          >
-            <span>
-              Baseline kit (always-on defaults)
-              <span className="ml-1 text-fg-muted" data-testid="baseline-done-count">
-                · {baselineDoneCount}/{baselineItems.length}
-              </span>
-            </span>
-            <span>{baselineKitOpen ? "Hide" : "Show"}</span>
-          </button>
-          {baselineKitOpen && (
-            <div className="space-y-2 border-t border-border px-3 pb-3 pt-2">
-              <div
-                className="h-1.5 overflow-hidden rounded-full bg-sunken"
-                data-testid="baseline-progress"
-                role="progressbar"
-                aria-valuenow={baselinePct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Baseline kit progress"
-              >
-                <div
-                  className="h-full rounded-full bg-growth/70 transition-[width] duration-300 ease-out"
-                  style={{ width: `${baselinePct}%` }}
-                />
-              </div>
-              <ul className="space-y-2">
-                {baselineItems.map((it) => {
-                  const checked = Boolean(doneMap[it.id]);
-                  const note = completions[it.id]?.note || "";
-                  return (
-                    <li key={it.id}>
-                      <div className="rounded-lg border border-border/60 bg-elevated/80 px-2.5 py-2">
-                        <label className="flex cursor-pointer gap-2.5">
-                          <input
-                            type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
-                            checked={checked}
-                            onChange={() => onToggle(it)}
-                            data-testid={`protocol-check-${it.id}`}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span
-                              className={`text-sm font-medium text-fg ${checked ? "line-through" : ""}`}
-                            >
-                              {it.label}
-                            </span>
-                            {it.sub && (
-                              <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
-                            )}
-                            {it.why && (
-                              <span className="mt-0.5 block text-xs text-fg-muted">{it.why}</span>
-                            )}
-                          </span>
-                        </label>
-                        {checked && (
-                          <div className="mt-1.5 pl-6">
-                            <input
-                              type="text"
-                              maxLength={120}
-                              defaultValue={note}
-                              placeholder="Optional note…"
-                              className="w-full rounded-lg border border-border bg-sunken px-2 py-1 text-xs text-fg placeholder:text-fg-muted"
-                              data-testid={`protocol-note-${it.id}`}
-                              onBlur={(e) => {
-                                if (e.target.value.trim() !== (note || "").trim()) {
-                                  onNote(it.id, e.target.value);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  (e.target as HTMLInputElement).blur();
-                                }
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
-
 
 /* ─── Kit fact (between Kit strip and Today's Move) ─────────────────────── */
 
@@ -1461,68 +1013,6 @@ function KitFactCallout({
     );
   }
   return null;
-}
-
-/* ─── Kit strip (above-fold) ─────────────────────────────────────────────── */
-
-function KitStrip({
-  count,
-  loading,
-  onEdit,
-  onAddStarter,
-  adding,
-  disabled,
-}: {
-  count: number;
-  loading: boolean;
-  onEdit: () => void;
-  onAddStarter: (name: string) => void;
-  adding: boolean;
-  disabled: boolean;
-}) {
-  const empty = !loading && count === 0;
-  return (
-    <div
-      className="rounded-2xl border border-border bg-elevated px-4 py-3"
-      data-testid="kit-strip"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-fg">
-          <span className="font-semibold">Your kit</span>
-          <span className="text-fg-muted"> · {loading ? "…" : count}</span>
-        </p>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="min-h-9 rounded-lg border border-border bg-sunken px-3 py-1.5 text-xs font-medium text-fg hover:border-growth"
-          data-testid="kit-strip-edit"
-        >
-          {empty ? "Add items" : "Edit"}
-        </button>
-      </div>
-      {empty && (
-        <div className="mt-2 space-y-2" data-testid="kit-strip-empty">
-          <p className="text-xs text-fg-secondary">
-            Add what you own — timed supports prefer your shelf
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {STARTER_SUPPLEMENTS.map((name) => (
-              <button
-                key={name}
-                type="button"
-                disabled={disabled || adding}
-                onClick={() => onAddStarter(name)}
-                className="rounded-full border border-border bg-sunken px-2.5 py-1 text-[11px] text-fg-secondary hover:border-growth disabled:opacity-50"
-                data-testid={`kit-starter-${name}`}
-              >
-                +{name.split(" ")[0]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 /* ─── Week: theme + sky + completed ─────────────────────────────────────── */

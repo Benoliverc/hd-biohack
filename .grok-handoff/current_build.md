@@ -1,24 +1,24 @@
-# Current build — Thin self-betterment loop (SHIP GATE PASS — awaiting merge)
+# Current build — Today vs Protocols IA split (P0)
 
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/43
-- **Branch:** `feat/self-betterment-loop`
-- **Tip SHA:** `4175cd9` (`4175cd9602ede0cb112454d0d308c8f0507bbf2b`)
-- **Feature commit:** `8e06b13`
-- **Handoff:** `.grok-handoff/self-betterment-loop.md`
-- **Base:** main @ `ae3c328` (PR #42 Free/Pro identity)
-- **Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin yes
-- **Out of scope:** password/delete-account, reminders/push/streaks, Daily Novelty HKT buckets, Stripe/signup
+- **PR:** (pending — fill after open)
+- **Branch:** `feat/today-protocols-ia-split`
+- **Tip SHA:** (pending)
+- **Handoff:** `.grok-handoff/today-protocols-ia-split.md`
+- **Spec Page:** https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/cb29692c-348a-475d-a74f-8a71ee16c63b
+- **Base:** main @ `7c1ec46` (PR #44 Meenakshi Pro)
+- **Status:** implementing → PR for UX UI Review
+- **Out of scope:** Pro Move N/M strip (P0.5), baseline-pause (P1)
 
 ## ACs
-1. Account `preferred_timezone` + Settings UI (fallback Asia/Hong_Kong) — done
-2. Protocols day/week use account TZ; novelty stays HKT — done
-3. Optional daily intention (server, per user+day) — done
-4. Move reflection synced server-side — done
-5. Trust/density; Settings free; Protocols extras Pro-gated — done
-6. Tests + smoke — done (pytest 91; FE assert NY day-key; tsc clean)
+1. Today one primary do-statement; no competing “What to do today” — done
+2. Protocols header blueprint language — done
+3. WeatherStrip chips + Full sky link only — done
+4. ≤1 What's-new on Protocols — done
+5. Checkboxes only /biohack — done
+6. Main action ≠ checklist #1 — preserved
+7. preferred_timezone completions; HKT novelty — preserved
+8. Me-only both tabs — preserved
 
-## Smoke notes
-- Settings → set America/New_York → Protocols week label is `Mon–Sun · America/New_York` (not HKT)
-- Complete a Move + reflection → reload / other session shows same
-- Novelty countdown still HKT (`formatResetsInHkt`)
-- Free user can open Settings; intention/reflection live behind Pro Protocols gate
+## Verify
+- frontend tsc clean
+- assert:today-protocols-ia / assert:resets-in-hkt / assert:protocol-completions
