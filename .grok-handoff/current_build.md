@@ -2,7 +2,7 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
 - **Branch:** `feat/admin-pro-free-toggle`
-- **Tip SHA:** `cade240` (`cade2408d4e8156cdd34b786a5e11385ee959fd4`) — feat; docs tip `fd058fe` (`fd058fed1e250179544015ebe97424e105a8e90d`)
+- **Tip SHA:** `cade240` (`cade2408d4e8156cdd34b786a5e11385ee959fd4`) — feat; docs/head `869e793` (`869e793d84739458a0a0d1acbf0c21cd684f66ac`)
 - **Handoff:** `.grok-handoff/admin-pro-free-toggle-2026-11-04.md`
 - **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.”
 - **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
