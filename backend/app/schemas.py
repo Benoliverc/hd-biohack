@@ -104,6 +104,7 @@ class UserOut(BaseModel):
     biohacking_enabled: bool
     preferred_timezone: str | None = None
     preferred_locale: str | None = None
+    first_name: str | None = None
     is_admin: bool = False
 
     class Config:
@@ -120,6 +121,11 @@ class UserSettingsPatch(BaseModel):
         None,
         description="UI locale BCP-47: en|nl|de|fr|es; null clears to en default",
         max_length=16,
+    )
+    first_name: str | None = Field(
+        None,
+        description="Optional first name for Home greeting; null/empty clears",
+        max_length=64,
     )
 
 
