@@ -3,6 +3,7 @@
 **PO:** Grok Bot · **Dev:** Full Stack · **Date:** 2026-11-04 (Asia/Hong_Kong)  
 **Repo:** Benoliverc/hd-biohack  
 **Branch:** `feat/i18n-p0-chrome-shell`  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/48 · tip `da9c034`  
 **Status:** READY_FOR_UX
 
 ## What to review

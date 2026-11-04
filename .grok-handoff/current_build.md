@@ -1,6 +1,7 @@
 # Current build — i18n P0 chrome/shell — READY_FOR_UX
 
-- **PR:** (open) feat/i18n-p0-chrome-shell
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/48 — OPEN
+- **Tip:** `da9c034`
 - **Branch:** `feat/i18n-p0-chrome-shell`
 - **Base:** `main` @ `65e4a15` (post PR #47)
 - **Handoff:** `.grok-handoff/i18n-p0-chrome-shell.md`
