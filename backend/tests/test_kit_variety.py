@@ -289,6 +289,68 @@ def test_fact_has_foot_and_owned_only():
 
 
 
+def test_no_duplicate_supplement_across_morning_midday_evening():
+    """Regression: same kit supplement must not appear twice in one day's timed leads.
+
+    Bug: `_note_kit` lived only inside the morning/midday None-fallback blocks, so a
+    kit lead filled earlier never entered `used_kit_ids`. Hyper evenings then preferred
+    Magnesium Glycinate again.
+    """
+    natal = _mg_natal()
+    overlay = _head_overlay()
+    inventory = [
+        "Magnesium Glycinate",
+        "Omega-3",
+        "Zinc",
+        "Creatine",
+        "B-Complex",
+        "L-Theanine",
+        "Vitamin D3",
+        "Ashwagandha",
+    ]
+    dup_days = []
+    mag_twice = []
+    for i in range(21):
+        day = (date(2026, 10, 1) + timedelta(days=i)).isoformat()
+        indication = derive_today_indication(natal, {}, overlay)
+        indication = dict(indication)
+        indication["day"] = day
+        # Hyper forces evening magnesium preference — the path that double-served Mag
+        indication["energy_label"] = "Hyper"
+        indication["preferred_space"] = "focus"
+        indication["preferred_space_label"] = "Focus corner"
+        proto = build_protocol(
+            natal, overlay, inventory, indication=indication, transit={}
+        )
+        rows = [proto["daily_plan"][s][0] for s in ("morning", "midday", "evening")]
+        keys = []
+        bare_names = []
+        for row in rows:
+            kid = row.get("kit_supplement_id")
+            item = str(row.get("item") or "")
+            bare = (
+                item.replace(" (consider adding)", "")
+                .split("(")[0]
+                .strip()
+                .lower()
+            )
+            bare = " ".join(bare.split())
+            if kid:
+                keys.append(f"id:{kid}")
+                bare_names.append(bare)
+            elif row.get("in_inventory"):
+                keys.append(f"name:{bare}")
+                bare_names.append(bare)
+        if len(keys) != len(set(keys)):
+            dup_days.append((day, [r.get("item") for r in rows], keys))
+        mag_hits = [n for n in bare_names if "magnesium" in n]
+        if len(mag_hits) > 1:
+            mag_twice.append((day, [r.get("item") for r in rows]))
+    assert not dup_days, f"duplicate kit leads within a day: {dup_days[:3]}"
+    assert not mag_twice, f"magnesium twice in one day: {mag_twice[:3]}"
+    print("PASS: no duplicate supplements across timed slots (21 Hyper days)")
+
+
 if __name__ == "__main__":
     test_library_size()
     test_fact_only_for_kit_members()
@@ -302,3 +364,4 @@ if __name__ == "__main__":
     test_same_hkt_day_kit_lead_stable()
     test_multi_item_not_stuck_on_b_or_mag()
     test_fact_has_foot_and_owned_only()
+    test_no_duplicate_supplement_across_morning_midday_evening()

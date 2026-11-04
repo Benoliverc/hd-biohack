@@ -1,24 +1,20 @@
-# Current build — BOTH SHIPPED (#50 + #51)
+# Current build — Today's Move no-dup supplements (in flight)
 
-## SHIPPED — PR #51 Admin Pro/Free plan toggle
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
-- **Merge SHA:** `2590334` (`2590334bfe4e08b9b26604491a464cc0d25fbe90`)
-- **Feat tip:** `cade240` · prior head `9b74126` · conflict-resolve push `27f3f09`
-- **Branch:** `feat/admin-pro-free-toggle`
-- **Railway API:** SUCCESS `a6ec96b9-6109-451f-8d3e-eff05c205dde` @ commit `2590334`
-  - https://api-production-7527.up.railway.app · `/health` ok · tier missing actor → **422** (auth harden live)
-- **Vercel FE:** READY `dpl_FhC1TSpmu3bFkRrz4WS64u99qvi3`
-  - Alias: https://hd-biohack.vercel.app
-  - Deployment: https://hd-biohack-f93uxw3ac-hdbh1.vercel.app
-- **Smoke:** `/admin` `/` `/biohack` `/login` → all **200**
-- Soft residual (plan card under Usage H1) left optional.
+## IN FLIGHT — Today's Move: no duplicate supplements
+- **Branch:** `feat/todays-move-no-dup-supplements` (from clean `origin/main`)
+- **Handoff:** `.grok-handoff/todays-move-no-dup-supplements-2026-11-04.md`
+- **Scope:** API — `backend/app/biohack/rules.py` + `tests/test_kit_variety.py`
+- **Root cause:** `_note_kit` for morning/midday lived only inside None-fallback indent → Hyper evening re-picked Magnesium Glycinate
+- **Fix:** always register kit ids/names after each slot; cross-slot name+id dedupe; stack fallback attaches kit id; final safety pass
+- **Tests:** `pytest -q tests/test_kit_variety.py` → 14 passed
+- **Deploy:** Railway (API) after Benjamin merge yes; FE unchanged
+- Hold merge. Parent routes UX → Ship Gate.
 
-## SHIPPED — PR #50 Nav clarity A+B
-- **Merge SHA:** `9af2847` · docs tip `3a78466`
-- **Vercel:** READY `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4` (superseded by #51 FE deploy above)
-- **Railway:** skipped (FE-only)
-- **Smoke:** `/` `/biohack` `/transits` `/profile` `/soul` `/settings` → all **200**
+## PARALLEL (do not block)
+- **PR #52** Soul behind Pro — separate branch `feat/soul-behind-pro` (still in flight)
 
-## Prior
-- **PR #49** Visual density Option A — MERGED `48edf24`
-- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b`
+## SHIPPED
+- **PR #51** Admin Pro/Free — merge `2590334` · Railway + Vercel
+- **PR #50** Nav clarity A+B — merge `9af2847` · Vercel
+- **PR #49** Visual density Option A — merge `48edf24`
+- **PR #48** i18n P0 chrome/shell — merge `d633a3b`

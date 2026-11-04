@@ -1,6 +1,7 @@
 """Deterministic biohacking / supplement protocol engine (no personal health data)."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -478,6 +479,31 @@ def _inv_hit(name: str, owned: set[str]) -> bool:
     return any(o in n or n in o for o in owned)
 
 
+def _bare_supplement_name(item: str) -> str:
+    """Normalize display name for cross-slot dedupe (ignore consider-adding / trailing tags)."""
+    s = str(item or "")
+    s = s.replace(" (consider adding)", "")
+    # Strip a single trailing parenthetical tag, e.g. "(evening)" / "(wind-down)"
+    s = re.sub(r"\s*\([^)]*\)\s*$", "", s).strip()
+    return " ".join(s.lower().split())
+
+
+def _supplement_dedupe_key(row: dict | None) -> str | None:
+    """Stable key for an owned-kit supplement lead; None for behaviors / empty."""
+    if not row:
+        return None
+    kid = row.get("kit_supplement_id")
+    if kid:
+        return f"id:{kid}"
+    # Inventory-tagged stack fallback without kit id — still a supplement lead
+    if not row.get("in_inventory"):
+        return None
+    name = _bare_supplement_name(str(row.get("matched_as") or row.get("item") or ""))
+    if not name:
+        return None
+    return f"name:{name}"
+
+
 def _plan_item(
     when: str,
     item: str,
@@ -541,7 +567,23 @@ def _slot_from_stack(
             return kit_hit
     if not stack_items:
         return None
+    avoid = {str(x) for x in (avoid_ids or ())}
     owned_hits = [it for it in stack_items if _inv_hit(it["name"], owned)]
+    if avoid and owned_hits:
+        from .kit_variety import match_owned_supplements
+
+        filtered: list[dict] = []
+        for it in owned_hits:
+            matched = match_owned_supplements([it["name"]])
+            sid = str((matched[0].get("id") if matched else "") or "")
+            if sid and sid in avoid:
+                continue
+            filtered.append(it)
+        if filtered:
+            owned_hits = filtered
+        else:
+            # Every owned stack hit was already used earlier today — no duplicate
+            return None
     # Rotate among owned stack hits across HKT days when bank missed.
     if len(owned_hits) > 1 and ctx.get("day_key"):
         import hashlib
@@ -551,7 +593,7 @@ def _slot_from_stack(
         pick = owned_hits[idx]
     else:
         pick = owned_hits[0] if owned_hits else stack_items[0]
-    return _plan_item(
+    row = _plan_item(
         when,
         pick["name"],
         "As on your label / clinician guidance",
@@ -559,6 +601,16 @@ def _slot_from_stack(
         owned,
         priority,
     )
+    # Attach kit id when bank knows this name so used_kit_ids can track it
+    if row.get("in_inventory") and not row.get("kit_supplement_id"):
+        from .kit_variety import match_owned_supplements
+
+        matched = match_owned_supplements([pick["name"]])
+        if matched:
+            row = dict(row)
+            row["kit_supplement_id"] = str(matched[0].get("id") or "")
+            row["matched_as"] = str(matched[0].get("matched_as") or pick["name"])
+    return row
 
 
 def _pick_timed_supports(
@@ -603,13 +655,69 @@ def _pick_timed_supports(
             "day_key": day_key,
         }
 
+    used_names: set[str] = set()
+
     def _note_kit(row: dict | None) -> dict | None:
-        if row and row.get("kit_supplement_id"):
-            used_kit_ids.add(str(row["kit_supplement_id"]))
+        """Register a finalized slot's supplement so later slots cannot repeat it."""
+        key = _supplement_dedupe_key(row)
+        if key:
+            if key.startswith("id:"):
+                used_kit_ids.add(key[3:])
+            name = _bare_supplement_name(
+                str((row or {}).get("matched_as") or (row or {}).get("item") or "")
+            )
+            if name:
+                used_names.add(name)
+            elif key.startswith("name:"):
+                used_names.add(key[5:])
         return row
 
+    def _collides(row: dict | None) -> bool:
+        if not row:
+            return False
+        key = _supplement_dedupe_key(row)
+        if not key:
+            return False
+        if key.startswith("id:") and key[3:] in used_kit_ids:
+            return True
+        name = _bare_supplement_name(
+            str(row.get("matched_as") or row.get("item") or "")
+        )
+        return bool(name and name in used_names)
+
+    def _behavior_fallback(slot: str) -> dict:
+        if slot == "morning":
+            return _plan_item(
+                "Morning",
+                "Short alone reset before the day opens",
+                "5–10 min, no feed",
+                "Swap duplicate kit lead for a behavior — one supplement once per day.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+        if slot == "midday":
+            return _plan_item(
+                "Midday",
+                "Single-task window (25–50 min) · phone face-down",
+                "One focus only",
+                "Swap duplicate kit lead for a behavior — one supplement once per day.",
+                owned,
+                1,
+                track_inventory=False,
+            )
+        return _plan_item(
+            "Evening",
+            "No stim stack · early wind-down",
+            "Skip coffee, pre-workout, late research tabs",
+            "Swap duplicate kit lead for a behavior — one supplement once per day.",
+            owned,
+            1,
+            track_inventory=False,
+        )
+
     def _kit_slot(when: str, stack_items: list[dict], why: str, slot: str) -> dict | None:
-        return _slot_from_stack(
+        hit = _slot_from_stack(
             when,
             stack_items,
             owned,
@@ -617,6 +725,10 @@ def _pick_timed_supports(
             moment=_moment(slot),
             avoid_ids=used_kit_ids,
         )
+        # Name-level guard when stack fallback lacked kit id earlier in the day
+        if hit and _collides(hit):
+            return None
+        return hit
 
     # ── Morning ──────────────────────────────────────────────────────────
     morning: dict | None = None
@@ -721,7 +833,7 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
 
-        morning = _note_kit(morning)
+    morning = _note_kit(morning)
 
     # ── Midday ───────────────────────────────────────────────────────────
     midday: dict | None = None
@@ -801,7 +913,7 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
 
-        midday = _note_kit(midday)
+    midday = _note_kit(midday)
 
     # ── Evening ──────────────────────────────────────────────────────────
     evening: dict | None = None
@@ -858,8 +970,30 @@ def _pick_timed_supports(
                 track_inventory=False,
             )
 
+    # Reject evening kit lead that repeats an earlier slot (id or bare name)
+    if evening is not None and _collides(evening):
+        evening = _behavior_fallback("evening")
+
     evening = _note_kit(evening)
-    return morning, midday, evening
+
+    # Final safety: never leave two identical supplement leads in one day
+    slots = [("morning", morning), ("midday", midday), ("evening", evening)]
+    seen: set[str] = set()
+    out: list[dict] = []
+    for slot_name, row in slots:
+        key = _supplement_dedupe_key(row)
+        if key and key in seen:
+            row = _behavior_fallback(slot_name)
+        elif key:
+            seen.add(key)
+            # Also mark bare name so id:X and name:X collide across forms
+            name = _bare_supplement_name(
+                str((row or {}).get("matched_as") or (row or {}).get("item") or "")
+            )
+            if name:
+                seen.add(f"name:{name}")
+        out.append(row)  # type: ignore[arg-type]
+    return out[0], out[1], out[2]
 
 
 def _build_actionable_plans(
