@@ -816,6 +816,10 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
     user = db.get(User, body.user_id)
     if not user:
         raise HTTPException(404, "User not found")
+    # Soft Pro gate (same truth as Protocols FE): Free cannot run Soul sync.
+    # Preview-as-Free is FE-only; DB-Pro accounts still pass here.
+    if not (user.biohacking_enabled or user.subscription_tier == "biohacker_pro"):
+        raise HTTPException(403, "Soul sync requires Pro")
 
     self_row = db.get(NatalChart, body.self_chart_id)
     friend_row = db.get(NatalChart, body.friend_chart_id)
