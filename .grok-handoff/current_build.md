@@ -2,7 +2,7 @@
 
 - **PR:** (opening)
 - **Branch:** `feat/admin-pro-free-toggle`
-- **Tip SHA:** (pending commit)
+- **Tip SHA:**  ()
 - **Handoff:** `.grok-handoff/admin-pro-free-toggle-2026-11-04.md`
 - **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.”
 - **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
