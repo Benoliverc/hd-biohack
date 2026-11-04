@@ -2,38 +2,26 @@
 
 import Link from "next/link";
 import type { TodayIndicationPayload, VsYesterdayDelta } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import {
+  useI18n,
+  localizeEnergyLabel,
+  localizeSpaceLabel,
+  ENERGY_LEVELS,
+  SPACE_VALUES,
+  type MessageKey,
+} from "@/lib/i18n";
 
-const ENERGY_CHIPS: { level: 1 | 2 | 3 | 4 | 5; label: string }[] = [
-  { level: 1, label: "Drained" },
-  { level: 2, label: "Low" },
-  { level: 3, label: "Steady" },
-  { level: 4, label: "Charged" },
-  { level: 5, label: "Hyper" },
-];
+type TFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
-const SPACE_CHIPS: {
-  value: "people" | "alone" | "nature" | "focus" | "out";
-  label: string;
-}[] = [
-  { value: "people", label: "People" },
-  { value: "alone", label: "Alone" },
-  { value: "nature", label: "Nature" },
-  { value: "focus", label: "Focus corner" },
-  { value: "out", label: "Out & about" },
-];
-
-const DEFAULT_CONDITIONING_CAPTION =
-  "These update when bridges or temporary centers shift — often every few days.";
-
-function vsPillLabel(d: VsYesterdayDelta): string {
-  if (d.field === "moon") return `Moon ${d.from} → ${d.to}`;
-  if (d.field === "sun") return `Sun ${d.from} → ${d.to}`;
-  if (d.field === "hanging_pressure") return `Hanging ${d.from} → ${d.to}`;
-  if (d.field === "bridge") return `Bridge ${d.from} → ${d.to}`;
-  if (d.field === "newly_defined") return `Centers ${d.from} → ${d.to}`;
-  if (d.field === "energy") return `Energy ${d.from} → ${d.to}`;
-  if (d.field === "space") return `Space ${d.from} → ${d.to}`;
+function vsPillLabel(d: VsYesterdayDelta, t: TFn): string {
+  const vars = { from: d.from, to: d.to };
+  if (d.field === "moon") return t("vs.moon", vars);
+  if (d.field === "sun") return t("vs.sun", vars);
+  if (d.field === "hanging_pressure") return t("vs.hanging", vars);
+  if (d.field === "bridge") return t("vs.bridge", vars);
+  if (d.field === "newly_defined") return t("vs.centers", vars);
+  if (d.field === "energy") return t("vs.energy", vars);
+  if (d.field === "space") return t("vs.space", vars);
   return `${d.from} → ${d.to}`;
 }
 
@@ -64,7 +52,7 @@ export default function TodayIndication({
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
           {t("today.indication")}
         </h2>
-        <p className="text-sm text-fg-secondary">Reading your chart weather…</p>
+        <p className="text-sm text-fg-secondary">{t("today.reading")}</p>
       </div>
     );
   }
@@ -92,12 +80,9 @@ export default function TodayIndication({
   const daily = indication.daily_signal;
   const vs = indication.vs_yesterday || [];
   const caption =
-    indication.conditioning_caption?.trim() || DEFAULT_CONDITIONING_CAPTION;
-  const energyLabel =
-    ENERGY_CHIPS.find((c) => c.level === energy)?.label || indication.energy_label;
-  const spaceLabel =
-    SPACE_CHIPS.find((c) => c.value === space)?.label ||
-    indication.preferred_space_label;
+    indication.conditioning_caption?.trim() || t("today.conditioningCaptionFallback");
+  const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
+  const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
 
   const eyebrowBits = [t("today.indication")];
   if (youLabel) eyebrowBits.push(youLabel);
@@ -119,8 +104,7 @@ export default function TodayIndication({
           className="mt-1 text-sm text-fg-secondary"
           data-testid="indication-disclaimer"
         >
-          {indication.disclaimer ||
-            "Chart weather from your design × today's sky — not biometric or medical advice."}
+          {indication.disclaimer || t("today.disclaimerFallback")}
         </p>
       </div>
 
@@ -144,9 +128,9 @@ export default function TodayIndication({
       {vs.length > 0 ? (
         <div className="mb-4" data-testid="vs-yesterday">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-            Vs yesterday
+            {t("today.vsYesterday")}
           </p>
-          <div className="flex flex-wrap gap-2" role="list" aria-label="Vs yesterday">
+          <div className="flex flex-wrap gap-2" role="list" aria-label={t("today.vsYesterday")}>
             {vs.map((d) => (
               <span
                 key={`${d.field}-${d.from}-${d.to}`}
@@ -154,7 +138,7 @@ export default function TodayIndication({
                 className="inline-flex min-h-9 items-center rounded-full border border-border bg-sunken px-3 py-1.5 text-xs text-fg-secondary"
                 data-testid={`vs-${d.field}`}
               >
-                {vsPillLabel(d)}
+                {vsPillLabel(d, t)}
               </span>
             ))}
           </div>
@@ -166,7 +150,7 @@ export default function TodayIndication({
         data-testid="main-action"
       >
         <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-growth">
-          Main action
+          {t("today.mainAction")}
         </h3>
         <p className="text-sm font-medium text-fg" data-testid="main-action-text">
           {indication.main_action_text}
@@ -178,7 +162,7 @@ export default function TodayIndication({
                 <span aria-hidden className="text-fg-secondary group-open:rotate-90 transition-transform inline-block">
                   ▸
                 </span>
-                Why
+                {t("today.why")}
               </span>
             </summary>
             {indication.main_action_micro ? (
@@ -197,7 +181,7 @@ export default function TodayIndication({
             {indication.drivers?.length ? (
               <div className="mt-2" data-testid="indication-drivers">
                 <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
-                  Chart notes
+                  {t("today.chartNotes")}
                 </p>
                 <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
                   {indication.drivers.slice(0, 4).map((d) => (
@@ -214,7 +198,7 @@ export default function TodayIndication({
             className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
             data-testid="indication-save-chart-cta"
           >
-            Save natal chart
+            {t("today.saveNatal")}
           </Link>
         ) : (
           <Link
@@ -232,11 +216,11 @@ export default function TodayIndication({
         data-testid="still-conditioning"
       >
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          Still conditioning
+          {t("today.stillConditioning")}
         </p>
 
         <div className="mb-3">
-          <p className="mb-2 text-sm font-medium text-fg">Energy</p>
+          <p className="mb-2 text-sm font-medium text-fg">{t("today.energy")}</p>
           <div
             className="flex flex-wrap items-center gap-x-3 gap-y-1.5"
             role="status"
@@ -251,15 +235,15 @@ export default function TodayIndication({
               {energyLabel}
             </span>
             <span className="text-[11px] text-fg-muted cursor-default select-none">
-              {ENERGY_CHIPS.filter((c) => c.level !== energy)
-                .map((c) => c.label)
+              {ENERGY_LEVELS.filter((lvl) => lvl !== energy)
+                .map((lvl) => localizeEnergyLabel(t, lvl))
                 .join(" · ")}
             </span>
           </div>
         </div>
 
         <div className="mb-3">
-          <p className="mb-2 text-sm font-medium text-fg">Space</p>
+          <p className="mb-2 text-sm font-medium text-fg">{t("today.space")}</p>
           <div
             className="flex flex-wrap items-center gap-x-3 gap-y-1.5"
             role="status"
@@ -274,8 +258,8 @@ export default function TodayIndication({
               {spaceLabel}
             </span>
             <span className="text-[11px] text-fg-muted cursor-default select-none">
-              {SPACE_CHIPS.filter((c) => c.value !== space)
-                .map((c) => c.label)
+              {SPACE_VALUES.filter((v) => v !== space)
+                .map((v) => localizeSpaceLabel(t, v))
                 .join(" · ")}
             </span>
           </div>

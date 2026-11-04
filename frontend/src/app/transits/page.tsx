@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 "use client";
 
 import { useEffect, useState } from "react";
@@ -42,6 +43,7 @@ function resolveYouChart(
 }
 
 export default function TransitsPage() {
+  const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, setNatalChart } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   const [youReady, setYouReady] = useState(false);
@@ -146,8 +148,8 @@ export default function TransitsPage() {
   if (conditioningNotes.length === 0 && !loading) {
     conditioningNotes.push(
       youChart
-        ? "No strong personal overlay spike — skim today's planetary gates below."
-        : "Sky-only view — personal conditioning tips appear after a natal chart is saved."
+        ? t("page.today.noSpike")
+        : t("page.today.skyOnly")
     );
   }
 
@@ -155,29 +157,28 @@ export default function TransitsPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Today</h1>
+          <h1 className="text-2xl font-bold">{t("page.today.h1")}</h1>
           {resolvingYou ? (
-            <p className="text-sm text-fg-muted">Looking up your natal chart…</p>
+            <p className="text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
           ) : youChart ? (
             <div className="mt-1 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
-                  title="Today always uses your chart"
+                  title={t("page.today.alwaysUsesChart")}
                   data-testid="today-you-chip"
                 >
                   {youChipLabel(youChart)}
                 </span>
               </div>
-              <p className="text-xs text-fg-muted">Friends stay on Chart &amp; Soul</p>
+              <p className="text-xs text-fg-muted">{t("page.today.friendsStay")}</p>
               <p className="text-xs text-fg-muted">
                 Overlaying {formatNatalOverlayLabel(youChart)}
               </p>
             </div>
           ) : (
             <p className="text-sm text-fg-muted">
-              Save your chart on Chart to see personal conditioning overlays. Friends
-              never drive Today.
+              {t("page.today.savePrompt")}
             </p>
           )}
           {asOfLabel && (
@@ -188,7 +189,7 @@ export default function TransitsPage() {
 
       {resolvingYou && (
         <div className="rounded-xl border border-border bg-elevated px-4 py-3">
-          <p className="text-sm text-fg-muted">Looking up your natal chart…</p>
+          <p className="text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
         </div>
       )}
 
@@ -209,7 +210,7 @@ export default function TransitsPage() {
           data-testid="conditioning-notes"
         >
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-            Conditioning notes
+            {t("page.today.conditioningNotes")}
           </h2>
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
             {conditioningNotes.slice(0, 3).map((b) => (
@@ -221,7 +222,7 @@ export default function TransitsPage() {
 
       {sunEarth && (
         <div className="rounded-2xl border border-energy/40 bg-energy/10 p-5">
-          <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">Sun / Earth theme</h2>
+          <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">{t("page.today.sunEarth")}</h2>
           <p className="text-lg">
             Sun{" "}
             {formatGateLine(
@@ -240,7 +241,7 @@ export default function TransitsPage() {
       {overlay && (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-border p-4">
-            <h2 className="mb-2 font-semibold">Bridged channels (conditioning)</h2>
+            <h2 className="mb-2 font-semibold">{t("page.today.bridgedChannels")}</h2>
             <ul className="space-y-1 text-sm text-fg-secondary">
               {((overlay.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
                 <li className="text-fg-muted">None right now</li>
@@ -254,7 +255,7 @@ export default function TransitsPage() {
             </ul>
           </div>
           <div className="rounded-2xl border border-border p-4">
-            <h2 className="mb-2 font-semibold">Newly defined centers today</h2>
+            <h2 className="mb-2 font-semibold">{t("page.today.newlyDefined")}</h2>
             <div className="flex flex-wrap gap-2">
               {((overlay.newly_defined_centers as string[]) || []).length === 0 && (
                 <span className="text-sm text-fg-muted">No temporary definitions</span>

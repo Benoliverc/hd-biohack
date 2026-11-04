@@ -5,7 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
-import { useI18n, type Locale } from "@/lib/i18n";
+import { useI18n, translate, type Locale } from "@/lib/i18n";
 
 /** Curated common IANA zones — free-text still accepted below. */
 const COMMON_TIMEZONES = [
@@ -100,15 +100,16 @@ export default function SettingsPage() {
         preferred_locale: langSelect,
       });
       setSessionUser(updated);
+      // Use explicit locale so toast matches the language just applied (not stale `t`).
       setFeedback(
-        t("settings.savedLanguage", { label: labels[langSelect] })
+        translate(langSelect, "settings.savedLanguage", { label: labels[langSelect] })
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSavingLang(false);
     }
-  }, [user, langSelect, setLocale, setSessionUser, t, labels]);
+  }, [user, langSelect, setLocale, setSessionUser, labels]);
 
   const onLanguageChange = useCallback(
     async (next: Locale) => {
@@ -124,14 +125,16 @@ export default function SettingsPage() {
           preferred_locale: next,
         });
         setSessionUser(updated);
-        setFeedback(t("settings.savedLanguage", { label: labels[next] }));
+        setFeedback(
+          translate(next, "settings.savedLanguage", { label: labels[next] })
+        );
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
         setSavingLang(false);
       }
     },
-    [user, setLocale, setSessionUser, t, labels]
+    [user, setLocale, setSessionUser, labels]
   );
 
   if (!sessionReady) {
@@ -155,6 +158,21 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-semibold text-fg">{t("settings.title")}</h1>
         <p className="mt-1 text-sm text-fg-secondary">{t("settings.subtitle")}</p>
       </div>
+
+      {(feedback || error) && (
+        <div className="space-y-1" data-testid="settings-feedback-banner">
+          {feedback && (
+            <p className="text-sm text-growth-ink" role="status" data-testid="settings-feedback">
+              {feedback}
+            </p>
+          )}
+          {error && (
+            <p className="text-sm text-danger" role="alert" data-testid="settings-error">
+              {error}
+            </p>
+          )}
+        </div>
+      )}
 
       <section
         className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
@@ -274,16 +292,6 @@ export default function SettingsPage() {
           {savingTz ? t("common.saving") : t("settings.saveTimezone")}
         </button>
 
-        {feedback && (
-          <p className="text-sm text-growth-ink" role="status" data-testid="settings-feedback">
-            {feedback}
-          </p>
-        )}
-        {error && (
-          <p className="text-sm text-danger" role="alert" data-testid="settings-error">
-            {error}
-          </p>
-        )}
       </section>
 
       <p className="text-xs text-fg-muted">{t("settings.footerAccount")}</p>

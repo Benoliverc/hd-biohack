@@ -127,7 +127,7 @@ export function TodaysMoveCard({
                           className="inline-flex items-center rounded-full bg-growth-soft px-2 py-0.5 text-[12px] font-medium text-growth-ink ring-1 ring-growth/30"
                           data-testid={`from-kit-badge-${it.id}`}
                         >
-                          From your kit
+                          {t("protocols.fromKit")}
                         </span>
                       )}
                       {it.inInventory &&
@@ -152,7 +152,7 @@ export function TodaysMoveCard({
                         className="mt-1 inline-flex items-center rounded-full bg-energy/15 px-2 py-0.5 text-[12px] font-medium text-energy-ink ring-1 ring-energy/30"
                         data-testid={`new-vs-yesterday-badge-${it.id}`}
                       >
-                        New vs yesterday
+                        {t("protocols.newVsYesterday")}
                       </span>
                     )}
                   </span>
@@ -160,14 +160,14 @@ export function TodaysMoveCard({
                 {checked && (
                   <div className="mt-2 pl-7">
                     <label className="block text-[11px] text-fg-muted" htmlFor={`note-${it.id}`}>
-                      Reflection
+                      {t("protocols.reflection")}
                     </label>
                     <input
                       id={`note-${it.id}`}
                       type="text"
                       maxLength={120}
                       defaultValue={note}
-                      placeholder="How did it go?"
+                      placeholder={t("protocols.reflectionPlaceholder")}
                       className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted"
                       data-testid={`protocol-note-${it.id}`}
                       onBlur={(e) => {
@@ -190,7 +190,7 @@ export function TodaysMoveCard({
       </ul>
       {showNoKitFootnote && (
         <p className="text-xs text-fg-muted" data-testid="no-kit-match-footnote">
-          No kit item matched today&apos;s weather
+          {t("protocols.noKitMatch")}
         </p>
       )}
 
@@ -198,7 +198,7 @@ export function TodaysMoveCard({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-sunken/50 p-3">
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-growth-ink">
-              Do
+              {t("protocols.do")}
             </h3>
             <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
               {doList.map((d) => (
@@ -208,7 +208,7 @@ export function TodaysMoveCard({
           </div>
           <div className="rounded-xl border border-energy/40 bg-energy/10 p-3">
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-              Don&apos;t
+              {t("protocols.dont")}
             </h3>
             <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
               {dontList.map((d) => (
@@ -228,12 +228,12 @@ export function TodaysMoveCard({
             aria-expanded={baselineKitOpen}
           >
             <span>
-              Baseline kit (always-on defaults)
+              {t("protocols.baselineKit")}
               <span className="ml-1 text-fg-muted" data-testid="baseline-done-count">
                 · {baselineDoneCount}/{baselineItems.length}
               </span>
             </span>
-            <span>{baselineKitOpen ? "Hide" : "Show"}</span>
+            <span>{baselineKitOpen ? t("protocols.hide") : t("protocols.show")}</span>
           </button>
           {baselineKitOpen && (
             <div className="space-y-2 border-t border-border px-3 pb-3 pt-2">
@@ -244,7 +244,7 @@ export function TodaysMoveCard({
                 aria-valuenow={baselinePct}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label="Baseline kit progress"
+                aria-label={t("protocols.baselineProgress")}
               >
                 <div
                   className="h-full rounded-full bg-growth/70 transition-[width] duration-300 ease-out"
@@ -286,7 +286,7 @@ export function TodaysMoveCard({
                               type="text"
                               maxLength={120}
                               defaultValue={note}
-                              placeholder="Optional note…"
+                              placeholder={t("protocols.optionalNote")}
                               className="w-full rounded-lg border border-border bg-sunken px-2 py-1 text-xs text-fg placeholder:text-fg-muted"
                               data-testid={`protocol-note-${it.id}`}
                               onBlur={(e) => {

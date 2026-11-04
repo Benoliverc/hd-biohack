@@ -1,6 +1,7 @@
 "use client";
 
 import { STARTER_SUPPLEMENTS } from "./constants";
+import { useI18n } from "@/lib/i18n";
 
 export function KitStrip({
   count,
@@ -17,6 +18,7 @@ export function KitStrip({
   adding: boolean;
   disabled: boolean;
 }) {
+  const { t } = useI18n();
   const empty = !loading && count === 0;
   return (
     <div
@@ -25,7 +27,7 @@ export function KitStrip({
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-fg">
-          <span className="font-semibold">Your kit</span>
+          <span className="font-semibold">{t("protocols.yourKit")}</span>
           <span className="text-fg-muted"> · {loading ? "…" : count}</span>
         </p>
         <button
@@ -34,14 +36,12 @@ export function KitStrip({
           className="min-h-9 rounded-lg border border-border bg-sunken px-3 py-1.5 text-xs font-medium text-fg hover:border-growth"
           data-testid="kit-strip-edit"
         >
-          {empty ? "Add items" : "Edit"}
+          {empty ? t("protocols.addItems") : t("protocols.edit")}
         </button>
       </div>
       {empty && (
         <div className="mt-2 space-y-2" data-testid="kit-strip-empty">
-          <p className="text-xs text-fg-secondary">
-            Add what you own — timed supports prefer your shelf
-          </p>
+          <p className="text-xs text-fg-secondary">{t("protocols.kitEmptyHint")}</p>
           <div className="flex flex-wrap gap-1.5">
             {STARTER_SUPPLEMENTS.map((name) => (
               <button

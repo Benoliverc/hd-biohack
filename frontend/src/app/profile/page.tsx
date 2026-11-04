@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, SavedChartRow } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
@@ -234,6 +235,7 @@ function ChartSectionNav({
 }
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const {
     user,
     usersLoading,
@@ -1400,7 +1402,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Chart — your energy map</h1>
+      <h1 className="text-2xl font-bold">{t("page.chart.h1")}</h1>
       <p className="text-sm text-fg-muted">
         Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + friends).
         Plain language — how your battery and decisions work.
