@@ -1,7 +1,8 @@
 # Baseline Option A — Morning Ritual (P0)
 
-**Status:** PR open — awaiting UX UI Review → Ship Gate → Benjamin merge yes  
+**Status:** [PR #46](https://github.com/Benoliverc/hd-biohack/pull/46) open — awaiting UX UI Review → Ship Gate → Benjamin merge yes  
 **Branch:** `feat/morning-ritual-option-a`  
+**Tip:** `5679fd8` (`5679fd8bde05df61aabbca4a13030affe7ad8bf4`)  
 **Do not merge without Benjamin yes.**
 
 ## Specs

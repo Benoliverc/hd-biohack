@@ -1,7 +1,8 @@
 # Current build — Baseline Option A Morning Ritual (P0) — IN FLIGHT
 
-- **PR:** (see GitHub — feat/morning-ritual-option-a)
-- **Branch:** `feat/morning-ritual-option-a`
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/46
+- **Branch:** `feat/morning-ritual-option-a`  
+**Tip:** `5679fd8` (`5679fd8bde05df61aabbca4a13030affe7ad8bf4`)
 - **Base:** `70a8b27` Merge PR #45 Today vs Protocols IA
 - **Handoff:** `.grok-handoff/morning-ritual-option-a.md`
 - **Decision Page:** https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/891b1ff3-ee84-4631-8705-b87d3fb4e173
