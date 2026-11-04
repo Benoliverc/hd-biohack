@@ -127,7 +127,6 @@ async function jumpSoulSection(id: string) {
 }
 
 function SoulUnlockedContent() {
-  const { t } = useI18n();
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
