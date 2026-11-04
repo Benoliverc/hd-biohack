@@ -28,6 +28,7 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     display_name: Mapped[str] = mapped_column(String(255), default="")
+    first_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
     auth_provider: Mapped[str] = mapped_column(String(64), default="dev")  # google | dev | password
     subscription_tier: Mapped[str] = mapped_column(String(32), default="free")  # free | biohacker_pro
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

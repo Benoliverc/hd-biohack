@@ -1,4 +1,12 @@
-# Current build — PR #58 Home card order + copy SHIPPED
+# Current build — WIP first-name greeting · #56/#58 shipped
+
+## WIP — Settings first name + Home greeting (`feat/home-first-name-greeting`)
+- **Branch / worktree:** `feat/home-first-name-greeting` @ `/workspace/hd-biohack-wt-first-name`
+- **Scope:** FE + light API — nullable `User.first_name`, Settings “Your name”, Home daypart greeting when set
+- **Handoff:** `.grok-handoff/home-first-name-greeting-2026-11-05.md`
+- **Tip:** `ca7c204` (`ca7c2046923d9b37c3a4aff9b911b6197e63f958`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/60 — **hold merge** for UX → Ship Gate → Benjamin yes
+- **Deploy when shipped:** Railway + Vercel
 
 ## SHIPPED — PR #58 Home card order + copy
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/58
@@ -34,6 +42,7 @@
 - **Merge SHA:** `2ddbaaf` (+ hotfix #54 `a4de342`)
 
 ## Prior SHIPPED
+- **PR #62** docs ship-pr58 — merge `3888162`
 - **PR #59** docs ship-pr56 — merge `beb13f7`
 - **PR #57** docs ship-pr53 — merge `44c0d4d`
 - **PR #55** docs ship-pr52 — merge `4f135e4`

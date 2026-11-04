@@ -1,15 +1,57 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { Activity, FlaskConical, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
+import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
+
+type Daypart = "morning" | "afternoon" | "evening";
+
+function hourInZone(timeZone: string, now = new Date()): number | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const raw = parts.find((p) => p.type === "hour")?.value;
+    const hour = raw == null ? NaN : Number(raw);
+    return Number.isFinite(hour) ? hour : null;
+  } catch {
+    return null;
+  }
+}
+
+function daypartInZone(timeZone: string): Daypart {
+  const hour = hourInZone(timeZone);
+  if (hour == null) return "morning";
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
 
 export default function HomePage() {
-  const { natalChart, natalBindingLoading, biohackingUnlocked } = useApp();
+  const { user, natalChart, natalBindingLoading, biohackingUnlocked } = useApp();
   const { t } = useI18n();
   const ready = !natalBindingLoading;
   const hasChart = ready && Boolean(natalChart);
+
+  const firstName = user?.first_name?.trim() || "";
+  const greeting = useMemo(() => {
+    if (!firstName) return null;
+    const zone =
+      user?.preferred_timezone?.trim() || DEFAULT_PROTOCOLS_TZ;
+    const part = daypartInZone(zone);
+    const key =
+      part === "morning"
+        ? "home.greeting.morning"
+        : part === "afternoon"
+          ? "home.greeting.afternoon"
+          : "home.greeting.evening";
+    return t(key, { name: firstName });
+  }, [firstName, user?.preferred_timezone, t]);
 
   const chartLabel = natalChart?.label?.trim() || t("common.me");
   const chipParts = [
@@ -34,11 +76,23 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl md:leading-tight">
-              {hasChart
-                ? t("home.title.hasChart")
-                : t("home.title.noChart")}
+            <h1
+              className="mb-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl md:leading-tight"
+              data-testid={greeting ? "home-greeting" : "home-title"}
+            >
+              {greeting
+                ? greeting
+                : hasChart
+                  ? t("home.title.hasChart")
+                  : t("home.title.noChart")}
             </h1>
+            {greeting && (
+              <p className="mb-2 text-base font-medium text-fg sm:text-lg">
+                {hasChart
+                  ? t("home.title.hasChart")
+                  : t("home.title.noChart")}
+              </p>
+            )}
             <p className="max-w-2xl text-fg-secondary">
               {hasChart
                 ? biohackingUnlocked

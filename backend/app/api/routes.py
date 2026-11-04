@@ -181,6 +181,18 @@ def _validate_iana_timezone(tz: str | None) -> str | None:
     return cleaned
 
 
+def _validate_first_name(name: str | None) -> str | None:
+    """Trim optional first name; empty clears to None. Max 64 (schema-enforced)."""
+    if name is None:
+        return None
+    cleaned = name.strip()
+    if not cleaned:
+        return None
+    if len(cleaned) > 64:
+        raise HTTPException(400, "first_name must be at most 64 characters")
+    return cleaned
+
+
 @router.get("/users/{user_id}", response_model=UserOut)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.get(User, user_id)
@@ -200,6 +212,8 @@ def patch_user_settings(
         user.preferred_timezone = _validate_iana_timezone(body.preferred_timezone)
     if "preferred_locale" in body.model_fields_set:
         user.preferred_locale = _validate_preferred_locale(body.preferred_locale)
+    if "first_name" in body.model_fields_set:
+        user.first_name = _validate_first_name(body.first_name)
     db.commit()
     db.refresh(user)
     return user

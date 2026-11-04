@@ -77,7 +77,7 @@ def _ensure_user_auth_columns() -> None:
 
 
 def _ensure_user_settings_columns() -> None:
-    """SQLite-friendly ALTER for preferred_timezone / preferred_locale when upgrading an existing DB."""
+    """SQLite-friendly ALTER for preferred_timezone / preferred_locale / first_name when upgrading an existing DB."""
     from sqlalchemy import inspect, text
 
     insp = inspect(engine)
@@ -89,3 +89,5 @@ def _ensure_user_settings_columns() -> None:
             conn.execute(text("ALTER TABLE users ADD COLUMN preferred_timezone VARCHAR(128)"))
         if "preferred_locale" not in cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN preferred_locale VARCHAR(16)"))
+        if "first_name" not in cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN first_name VARCHAR(64)"))

@@ -59,6 +59,7 @@ export type User = {
   biohacking_enabled: boolean;
   preferred_timezone?: string | null;
   preferred_locale?: string | null;
+  first_name?: string | null;
   is_admin?: boolean;
 };
 
@@ -422,7 +423,11 @@ export const api = {
   getUser: (userId: number) => req<User>(`/users/${userId}`),
   patchUserSettings: (
     userId: number,
-    body: { preferred_timezone?: string | null; preferred_locale?: string | null }
+    body: {
+      preferred_timezone?: string | null;
+      preferred_locale?: string | null;
+      first_name?: string | null;
+    }
   ) =>
     req<User>(`/users/${userId}/settings`, {
       method: "PATCH",
