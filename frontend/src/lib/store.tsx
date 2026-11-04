@@ -35,6 +35,8 @@ type AppState = {
   setNatalChartId: (id: number | null) => void;
   setNatalChart: (chart: NatalChartSummary | null) => void;
   refreshUsers: () => Promise<User[]>;
+  /** Patch a user in the store without clearing natal / session (e.g. after tier change). */
+  mergeUser: (incoming: User) => void;
   ensureUser: () => Promise<User>;
   biohackingUnlocked: boolean;
   /** True after first users+session resolve (null user = signed out). */
@@ -313,6 +315,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setNatalChartId,
         setNatalChart,
         refreshUsers,
+        mergeUser: (incoming) => {
+          const u = hydrateAdminFlag(incoming);
+          setUsers((prev) => {
+            const others = prev.filter((x) => x.id !== u.id);
+            return [...others, u];
+          });
+        },
         ensureUser,
         biohackingUnlocked,
       }}

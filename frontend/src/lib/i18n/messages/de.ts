@@ -206,4 +206,13 @@ export const messages = {
   'gate.joinWaitlist': 'Pro-Warteliste beitreten',
   'gate.comingSoon': 'Demnächst — kein Live-Checkout. Chart + tägliche Transits bleiben kostenlos.',
   'gate.previewLock': "Vorschau — freischalten, um live Today's Move zu öffnen",
+  "admin.planEyebrow": "Admin",
+  "admin.planTitle": "Dein Plan",
+  "admin.planHelp": "Debug-Planwechsel f\u00fcr dein Konto \u2014 kein Stripe. \u00dcbersteht Reload. Header \u201ePreview as Free\u201c bleibt sitzungsweise.",
+  "admin.planCurrent": "Aktuell: {tier}",
+  "admin.planFree": "Free",
+  "admin.planPro": "Pro",
+  "admin.planSaving": "Aktualisiere\u2026",
+  "admin.planSaved": "Plan aktualisiert auf {tier}",
+  "admin.planError": "Plan konnte nicht aktualisiert werden",
 } as const;

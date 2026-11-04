@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
+import { useI18n } from "@/lib/i18n";
 
 type Period = "day" | "week" | "month";
 
@@ -51,10 +52,14 @@ function notesFor(ev: UsageEvent): string {
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, sessionReady } = useApp();
+  const { user, sessionReady, mergeUser } = useApp();
+  const { t } = useI18n();
   const allowed = isAdminUser(user);
 
   const [period, setPeriod] = useState<Period>("day");
+  const [planBusy, setPlanBusy] = useState(false);
+  const [planFeedback, setPlanFeedback] = useState<string | null>(null);
+  const [planError, setPlanError] = useState<string | null>(null);
   const [daily, setDaily] = useState<UsageStatsDay[]>([]);
   const [weekly, setWeekly] = useState<UsageStatsWeek[]>([]);
   const [monthly, setMonthly] = useState<UsageStatsMonth[]>([]);
@@ -165,6 +170,32 @@ export default function AdminPage() {
     };
   }, [period, daily, weekly, monthly]);
 
+  const currentTier =
+    user?.subscription_tier === "biohacker_pro" || user?.biohacking_enabled
+      ? "biohacker_pro"
+      : "free";
+
+  const setPlan = useCallback(
+    async (tier: "free" | "biohacker_pro") => {
+      if (!user || !allowed) return;
+      if (tier === currentTier) return;
+      setPlanBusy(true);
+      setPlanError(null);
+      setPlanFeedback(null);
+      try {
+        const updated = await api.setTier(user.id, tier, user.id);
+        mergeUser(updated);
+        const label = tier === "biohacker_pro" ? t("admin.planPro") : t("admin.planFree");
+        setPlanFeedback(t("admin.planSaved", { tier: label }));
+      } catch (e) {
+        setPlanError(e instanceof Error ? e.message : t("admin.planError"));
+      } finally {
+        setPlanBusy(false);
+      }
+    },
+    [user, allowed, currentTier, mergeUser, t]
+  );
+
   if (!sessionReady) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-10 text-sm text-fg-muted">Loading…</main>
@@ -221,6 +252,69 @@ export default function AdminPage() {
           ))}
         </div>
       </div>
+
+      <section className="mt-6 rounded-2xl border border-border bg-elevated p-4 shadow-soft sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
+              {t("admin.planEyebrow")}
+            </p>
+            <h2 className="text-lg font-semibold text-fg">{t("admin.planTitle")}</h2>
+            <p className="mt-1 text-sm text-fg-secondary">{t("admin.planHelp")}</p>
+            <p className="mt-2 text-sm text-fg">
+              {t("admin.planCurrent", {
+                tier:
+                  currentTier === "biohacker_pro" ? t("admin.planPro") : t("admin.planFree"),
+              })}
+            </p>
+          </div>
+          <div
+            className="inline-flex rounded-xl border border-border bg-canvas p-1"
+            role="group"
+            aria-label={t("admin.planTitle")}
+          >
+            {(
+              [
+                { id: "free" as const, label: t("admin.planFree") },
+                { id: "biohacker_pro" as const, label: t("admin.planPro") },
+              ]
+            ).map((opt) => {
+              const active = currentTier === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={planBusy}
+                  aria-pressed={active}
+                  className={`min-h-10 rounded-lg px-4 text-sm disabled:opacity-60 ${
+                    active
+                      ? "bg-growth-soft border border-growth/40 font-medium text-growth"
+                      : "border border-transparent text-fg-muted hover:text-fg"
+                  }`}
+                  onClick={() => void setPlan(opt.id)}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {planBusy && (
+          <p className="mt-3 text-sm text-fg-muted" role="status">
+            {t("admin.planSaving")}
+          </p>
+        )}
+        {planFeedback && !planBusy && (
+          <p className="mt-3 text-sm text-growth" role="status">
+            {planFeedback}
+          </p>
+        )}
+        {planError && (
+          <p className="mt-3 text-sm text-danger" role="alert">
+            {planError}
+          </p>
+        )}
+      </section>
 
       {error && (
         <div className="mt-4 rounded-xl border border-danger/40 bg-energy/10 px-4 py-3 text-sm text-danger">

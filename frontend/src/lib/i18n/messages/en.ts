@@ -206,6 +206,15 @@ export const messages = {
   'gate.joinWaitlist': 'Join Pro waitlist',
   'gate.comingSoon': 'Coming soon — not a live checkout. Chart + daily transits stay free.',
   'gate.previewLock': "Preview — unlock to open live Today's Move",
+  "admin.planEyebrow": "Admin",
+  "admin.planTitle": "Your plan",
+  "admin.planHelp": "Debug plan switch for your account \u2014 not Stripe. Survives refresh. Header \u201cPreview as Free\u201d stays session-only.",
+  "admin.planCurrent": "Current: {tier}",
+  "admin.planFree": "Free",
+  "admin.planPro": "Pro",
+  "admin.planSaving": "Updating\u2026",
+  "admin.planSaved": "Plan updated to {tier}",
+  "admin.planError": "Could not update plan",
 } as const;
 
 export type MessageKey = keyof typeof messages;

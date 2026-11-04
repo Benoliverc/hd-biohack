@@ -121,7 +121,16 @@ def create_user(body: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.patch("/users/{user_id}/tier", response_model=UserOut)
-def set_tier(user_id: int, tier: str = Query(...), db: Session = Depends(get_db)):
+def set_tier(
+    user_id: int,
+    tier: str = Query(...),
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    db: Session = Depends(get_db),
+):
+    """Admin-only plan switch. v1: actor must be allowlisted admin and may change self only."""
+    actor = require_admin_user(db, actor_user_id)
+    if actor.id != user_id:
+        raise HTTPException(403, "Admin may only change their own plan")
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")

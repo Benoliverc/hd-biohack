@@ -1,23 +1,34 @@
-# Current build — SHIPPED PR #50 · next #51
+# Current build — PR #51 Admin Pro/Free (post-#50)
 
 ## SHIPPED — PR #50 Nav clarity A+B
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/50
-- **Merge SHA:** `9af2847` (`9af28478368cb3b0df68410c8b95872afaf48c63`)
-- **Feat tip:** `29de444` · PR head `5cc7f1e`
-- **Branch:** `feat/nav-clarity-a-b`
-- **Deploy:** Vercel FE only — **READY** `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4`
-  - Alias: https://hd-biohack.vercel.app
-  - Deployment: https://hd-biohack-ebo2uctw4-hdbh1.vercel.app
+- **Merge SHA:** `9af2847` · docs tip `3a78466`
+- **Vercel:** READY `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4` · https://hd-biohack.vercel.app
 - **Railway:** skipped (FE-only)
-- **Smoke (prod):** `/` `/biohack` `/transits` `/profile` `/soul` `/settings` → all **200**
-- **What landed:** Active growth-soft pill + border + medium; order Home · Protocols · Today · Chart · Soul; mobile nowrap scroll.
 
-## NEXT — PR #51 Admin Pro/Free toggle
+## THIS PR — #51 Admin Pro/Free plan toggle
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
-- **Tip:** feat `cade240` / head `9b74126` · `feat/admin-pro-free-toggle`
-- **Needs:** FE + Railway API (`PATCH /users/{id}/tier` auth harden)
-- Soft residual (plan card under Usage H1) optional — leave it.
+- **Branch:** `feat/admin-pro-free-toggle`
+- **Tip SHA:** `cade240` (`cade2408d4e8156cdd34b786a5e11385ee959fd4`) — feat; docs/head was `869e793`
+- **Handoff:** `.grok-handoff/admin-pro-free-toggle-2026-11-04.md`
+- **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.” · merge yes granted
+- **Status:** Merging after #50 · FE + Railway
+- **Scope:** FE + API auth hardening (Railway needed for API)
 
-## Prior shipped
-- **PR #49** Visual density Option A — MERGED `48edf24` — FE live
-- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b`
+## What changed
+1. **Admin “Your plan” card** on `/admin` (allowlisted admin only): Free ↔ Pro segmented control targeting **self** via `api.setTier(user.id, tier, actorUserId)`.
+2. **Store `mergeUser`** — patches user in place so Header badge + Protocols gate update without clearing natal / logout.
+3. **API harden** `PATCH /users/{id}/tier`: requires `actor_user_id` allowlisted admin; **v1 self-only** (`actor.id == user_id`). Sets `subscription_tier` + `biohacking_enabled` consistently.
+4. **i18n** admin.plan* keys en + nl/de/fr/es.
+5. Header **Preview as Free** unchanged (session-only).
+
+## Files
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+- `frontend/src/lib/store.tsx`
+- `frontend/src/lib/i18n/messages/{en,nl,de,fr,es}.ts`
+- `backend/app/api/routes.py`
+- `backend/tests/test_usage_admin.py`
+
+## Deploy note
+- **FE (Vercel) + API (Railway)** — auth change on tier endpoint.
+- Soft residual (card under Usage H1) optional — leave it.
