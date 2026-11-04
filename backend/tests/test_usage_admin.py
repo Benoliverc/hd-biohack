@@ -362,3 +362,42 @@ if __name__ == "__main__":
     test_ac8_empty_events_ok()
     test_ac9_event_write_failure_does_not_break_login()
     print("ALL usage admin tests passed")
+
+def test_set_tier_requires_admin_and_self_only():
+    """PATCH /users/{id}/tier: admin + self only; open call rejected."""
+    admin, non = _ensure_users()
+
+    # Missing actor → 422
+    r0 = client.patch(f"/users/{admin.id}/tier?tier=free")
+    assert r0.status_code == 422, r0.text
+
+    # Non-admin actor → 403
+    r1 = client.patch(
+        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={non.id}"
+    )
+    assert r1.status_code == 403, r1.text
+
+    # Admin changing someone else → 403 (v1 self-only)
+    r2 = client.patch(
+        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}"
+    )
+    assert r2.status_code == 403, r2.text
+
+    # Admin self Free → Pro
+    r3 = client.patch(
+        f"/users/{admin.id}/tier?tier=free&actor_user_id={admin.id}"
+    )
+    assert r3.status_code == 200, r3.text
+    body = r3.json()
+    assert body["subscription_tier"] == "free"
+    assert body["biohacking_enabled"] is False
+
+    r4 = client.patch(
+        f"/users/{admin.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}"
+    )
+    assert r4.status_code == 200, r4.text
+    body4 = r4.json()
+    assert body4["subscription_tier"] == "biohacker_pro"
+    assert body4["biohacking_enabled"] is True
+    print("PASS: set_tier admin+self auth + Free↔Pro")
+

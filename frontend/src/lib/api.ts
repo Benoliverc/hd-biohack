@@ -314,8 +314,11 @@ export const api = {
       body: JSON.stringify({ username, password }),
     }),
   users: () => req<User[]>("/users"),
-  setTier: (id: number, tier: string) =>
-    req<User>(`/users/${id}/tier?tier=${encodeURIComponent(tier)}`, { method: "PATCH" }),
+  setTier: (id: number, tier: string, actorUserId: number) =>
+    req<User>(
+      `/users/${id}/tier?tier=${encodeURIComponent(tier)}&actor_user_id=${actorUserId}`,
+      { method: "PATCH" }
+    ),
   geocode: (q: string) =>
     req<GeoPlace>(`/geocode?q=${encodeURIComponent(q)}`),
   geocodeSuggest: (q: string) =>

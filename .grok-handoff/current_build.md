@@ -1,30 +1,37 @@
-# Current build — Visual density Option A — SHIPPED
+# Current build — Admin Pro/Free plan toggle
 
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/49 — **MERGED**
-- **Branch tip:** `4573f91` (`4573f91b28b2fcb498a39941987600853c4c9fc5`) — docs tip; feat tip `88cd64e` confirmed at merge
-- **Merge commit:** `48edf24` (`48edf242ff2aca520d099b463f5d43283296c53a`)
-- **Handoff:** `.grok-handoff/visual-density-option-a.md`
-- **Product handoff:** `.grok-handoff/visual-density-option-a-2026-11-04.md`
-- **Status:** SHIPPED 2026-11-04 Asia/Hong_Kong — FE only. Soft residuals optional (0% progress ring vs first Move row; Settings dual Save weight).
+- **PR:** (opening)
+- **Branch:** `feat/admin-pro-free-toggle`
+- **Tip SHA:** (pending commit)
+- **Handoff:** `.grok-handoff/admin-pro-free-toggle-2026-11-04.md`
+- **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.”
+- **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
+- **Scope:** FE + API auth hardening (Railway needed for API)
 
-## Deploy
-- **Vercel:** READY `dpl_cZzqCJ6vBXm5eWKZPP6XQkMVjSyv` → https://hd-biohack.vercel.app (alias of https://hd-biohack-33nhp6u4t-hdbh1.vercel.app)
-- **Railway:** skipped — FE-only (no API/schema paths in PR #49)
-- **Smoke:** `/` 200 · `/settings` 200 · `/transits` 200 · `/biohack` 200 · `/login` 200. Hard-refresh advised for FE.
+## Parallel
+- **PR #50** Nav clarity A+B — awaiting Ship Gate / Benjamin yes (separate branch; do not mix).
 
-## Scope shipped
-1. Hierarchy / one primary + card lift (`shadow-soft`)
-2. Thin Lucide (~12) — Settings, Today signal/centers, Protocols kit/slots/chevrons
-3. Status glyphs — progress strip, Main Action energy/space cluster, center chips
-4. Emptiness hotspots — Settings denser; Today MAIN ACTION right pane; Home orphan labels; Protocols Shelf/Intention/kit affordance
-5. AC5 tighter max-width — deferred (not needed)
+## What changed
+1. **Admin “Your plan” card** on `/admin` (allowlisted admin only): Free ↔ Pro segmented control targeting **self** via `api.setTier(user.id, tier, actorUserId)`.
+2. **Store `mergeUser`** — patches user in place so Header badge + Protocols gate update without clearing natal / logout.
+3. **API harden** `PATCH /users/{id}/tier`: requires `actor_user_id` allowlisted admin; **v1 self-only** (`actor.id == user_id`). Sets `subscription_tier` + `biohacking_enabled` consistently.
+4. **i18n** admin.plan* keys en + nl/de/fr/es.
+5. Header **Preview as Free** unchanged (session-only).
 
-## Soft / deferred
-- Soft: 0% progress ring vs first Move row; Settings dual Save weight
-- Chart / nav / login nits pre-existing
-- Photos / illustration; BodyGraph; Move DO/DON'T; planet table; login pillars; nav icons; soft i18n / API bodies
+## Files
+- `frontend/src/app/admin/page.tsx`
+- `frontend/src/lib/api.ts`
+- `frontend/src/lib/store.tsx`
+- `frontend/src/lib/i18n/messages/{en,nl,de,fr,es}.ts`
+- `backend/app/api/routes.py`
+- `backend/tests/test_usage_admin.py`
 
-## Prior shipped
-- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b` — FE live
-- **PR #47** Settings language — MERGED `8351ee5`
-- **PR #46** Morning Ritual Option A — MERGED `81d2de8`
+## Assert
+- `cd frontend && npx tsc --noEmit` → pass
+- `backend/.venv/bin/python -m pytest tests/test_usage_admin.py::test_set_tier_requires_admin_and_self_only -q` → pass
+
+## Deploy note
+- **FE (Vercel) + API (Railway)** — auth change on tier endpoint.
+
+## Open questions
+- Hold merge for Benjamin yes after UX → Ship Gate.

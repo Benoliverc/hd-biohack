@@ -206,4 +206,13 @@ export const messages = {
   'gate.joinWaitlist': "Rejoindre la liste d'attente Pro",
   'gate.comingSoon': 'Bientôt — pas un paiement en direct. Chart + transits quotidiens restent gratuits.',
   'gate.previewLock': "Aperçu — débloquez pour ouvrir Today's Move en direct",
+  "admin.planEyebrow": "Admin",
+  "admin.planTitle": "Votre forfait",
+  "admin.planHelp": "Basculer Free/Pro pour votre compte (debug) \u2014 pas Stripe. Persiste au rechargement. \u00ab Preview as Free \u00bb dans l\u2019en-t\u00eate reste session seule.",
+  "admin.planCurrent": "Actuel : {tier}",
+  "admin.planFree": "Free",
+  "admin.planPro": "Pro",
+  "admin.planSaving": "Mise \u00e0 jour\u2026",
+  "admin.planSaved": "Forfait mis \u00e0 jour : {tier}",
+  "admin.planError": "Impossible de mettre \u00e0 jour le forfait",
 } as const;

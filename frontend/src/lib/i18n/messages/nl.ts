@@ -206,4 +206,13 @@ export const messages = {
   'gate.joinWaitlist': 'Word lid van Pro-wachtlijst',
   'gate.comingSoon': 'Binnenkort — geen live checkout. Chart + dagelijkse transits blijven gratis.',
   'gate.previewLock': "Voorbeeld — ontgrendel om live Today's Move te openen",
+  "admin.planEyebrow": "Admin",
+  "admin.planTitle": "Jouw plan",
+  "admin.planHelp": "Debug-planswitch voor jouw account \u2014 geen Stripe. Blijft na vernieuwen. Header \u201cPreview as Free\u201d blijft alleen voor de sessie.",
+  "admin.planCurrent": "Huidig: {tier}",
+  "admin.planFree": "Free",
+  "admin.planPro": "Pro",
+  "admin.planSaving": "Bijwerken\u2026",
+  "admin.planSaved": "Plan bijgewerkt naar {tier}",
+  "admin.planError": "Plan kon niet worden bijgewerkt",
 } as const;
