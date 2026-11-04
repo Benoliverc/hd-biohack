@@ -1,6 +1,6 @@
 # UX handoff — Visual density Option A
 
-**PR:** (fill after open) · **Branch:** `feat/visual-density-option-a`  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/49 · **Branch:** `feat/visual-density-option-a`  
 **PO ticket:** `.grok-handoff/visual-density-option-a-2026-11-04.md`  
 **Date:** 2026-11-04 (Asia/Hong_Kong)  
 **FE-only** — no API / Railway

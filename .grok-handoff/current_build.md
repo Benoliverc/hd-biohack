@@ -1,8 +1,8 @@
 # Current build — Visual density Option A — READY_FOR_UX
 
-- **PR:** (fill after open)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/49
 - **Branch:** `feat/visual-density-option-a`
-- **Tip:** (fill after push)
+- **Tip:** `88cd64e` (`88cd64e396efdbb41954fca3593f882a672b970f`)
 - **Handoff:** `.grok-handoff/visual-density-option-a.md`
 - **Product handoff:** `.grok-handoff/visual-density-option-a-2026-11-04.md`
 - **Status:** READY_FOR_UX 2026-11-04 Asia/Hong_Kong — FE only. Do not merge without Benjamin yes.
