@@ -15,6 +15,7 @@ import { useI18n } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import LiteracyCoach from "@/components/LiteracyCoach";
+import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -125,7 +126,7 @@ async function jumpSoulSection(id: string) {
   }
 }
 
-export default function SoulPage() {
+function SoulUnlockedContent() {
   const { t } = useI18n();
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
@@ -246,14 +247,7 @@ export default function SoulPage() {
   }, [result]);
 
   return (
-    <div className="space-y-6" data-testid="soul-page">
-      <div>
-        <h1 className="text-2xl font-bold">{t("page.soul.h1")}</h1>
-        <p className="text-sm text-fg-muted">
-          {t("page.soul.subtitle")}
-        </p>
-      </div>
-
+    <div className="space-y-6" data-testid="soul-unlocked">
       {!sessionReady || chartsLoading ? (
         <div
           className="rounded-2xl border border-border bg-elevated p-5"
@@ -517,6 +511,67 @@ export default function SoulPage() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+
+function LockedSoulMock() {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4" aria-hidden data-testid="soul-locked-mock">
+      <div className="rounded-2xl border border-border bg-elevated p-5">
+        <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+        <p className="mt-1 text-3xl font-bold text-growth">⚡ Magnetic Alchemy</p>
+        <p className="mt-2 text-sm text-fg-secondary">
+          Static preview — live pair sync unlocks with Pro.
+        </p>
+        <div className="mt-3 h-12 rounded-xl border border-growth/30 bg-growth/5" />
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {[1, 2, 3].map((n) => (
+          <div key={n} className="rounded-xl border border-border bg-sunken/40 p-4">
+            <div className="mb-2 h-3 w-24 rounded bg-elevated/80" />
+            <div className="h-2 rounded-full bg-elevated" />
+            <div className="mt-2 h-8 rounded bg-elevated/60" />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-2xl border border-border bg-elevated p-5">
+        <p className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
+          {t("page.soul.h1")} Playbook
+        </p>
+        <div className="mt-3 space-y-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-16 rounded-xl border border-border bg-sunken/50" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SoulPage() {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-6" data-testid="soul-page">
+      <div>
+        <h1 className="text-2xl font-bold">{t("page.soul.h1")}</h1>
+        <p className="text-sm text-fg-muted">{t("page.soul.subtitle")}</p>
+      </div>
+
+      <BiohackingEntitlementGate
+        blurredPreview={<LockedSoulMock />}
+        teaserTitle={t("gate.unlockTitle")}
+        teaserLines={[
+          t("gate.soul.signature"),
+          t("gate.soul.spectrums"),
+          t("gate.soul.playbook"),
+        ]}
+        previewLockLabel={t("gate.soul.previewLock")}
+      >
+        <SoulUnlockedContent />
+      </BiohackingEntitlementGate>
     </div>
   );
 }
