@@ -2,7 +2,7 @@
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/50
 - **Branch:** `feat/nav-clarity-a-b`
-- **Tip SHA:** `66bf5ac` (`66bf5ac55426b77b12f8ecc904a8f342e67a745a`) — docs tip; feat tip `29de444`
+- **Tip SHA:** `29de444` (`29de44409e75ab486df4b82e5839ee43d168c5d2`) — feat; docs tip `7273fa9` (`7273fa94f7619517990fea7c2ab0cf5354730052`)
 - **Handoff:** `.grok-handoff/nav-clarity-a-plus-b-2026-11-04.md`
 - **Expert panel (context):** `.grok-handoff/nav-clarity-protocols-expert-panel-2026-11-04.md`
 - **Benjamin:** “A+B ship”
