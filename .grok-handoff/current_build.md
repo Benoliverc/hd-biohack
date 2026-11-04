@@ -1,19 +1,29 @@
-# Current build — PR #52 Soul behind Pro SHIPPED
+# Current build — PR #53 Today's Move no-dup SHIPPED
+
+## SHIPPED — PR #53 Today's Move no-dup supplements
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/53
+- **Merge SHA:** `ad702f5` (`ad702f589a6d23e04980681dbd8d087abd0278aa`)
+- **Feat tip:** `cf80f87` · conflict-resolve tip `1b55f14` (merged main after #52/#54)
+- **Branch:** `feat/todays-move-no-dup-supplements`
+- **Scope:** API only — `backend/app/biohack/rules.py` + `backend/tests/test_kit_variety.py` (+ handoff docs)
+- **Root cause:** `_note_kit` for morning/midday lived only inside None-fallback indent → Hyper evening re-picked Magnesium Glycinate
+- **Fix:** always register kit ids/names after each slot; cross-slot name+id dedupe; stack fallback attaches kit id; final safety pass
+- **Tests:** Ship Gate PASS — kit pytest 14 + live Move unique keys; FE unchanged
+- **Railway API:** SUCCESS `eaa52175-6625-4dc1-a0be-56fc0a533c2c` @ commit `ad702f5`
+  - https://api-production-7527.up.railway.app · `/health` → 200 `{"status":"ok","service":"baseline"}`
+- **Vercel FE:** skipped (no FE files in #53). Prod still Ready from #52/#54:
+  - Alias: https://hd-biohack.vercel.app → 200
+  - Deployment: https://hd-biohack-66ut5p3q5-hdbh1.vercel.app · `dpl_G6cyMLew6BwtDLM9Ci8ibwVBH3Cz`
+- Soft residuals left optional.
 
 ## SHIPPED — PR #52 Soul behind Pro
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/52
 - **Merge SHA:** `2ddbaaf` (`2ddbaafa116ad0596c98ce2bc5123f3d0e5b5744`)
-- **Feat tip:** `3c42de9` · head `60fe2d2`
-- **Branch:** `feat/soul-behind-pro`
-- **Hotfix:** PR #54 unused `t` lint unblock — merge `a4de342` (FE Vercel needed this; no API change)
-- **Railway API:** SUCCESS `bbf2cbd7-4723-4f76-a684-fabe798c8278` @ commit `2ddbaaf`
-  - https://api-production-7527.up.railway.app · `/health` ok
-  - Free `POST /soul/sync` (user_id=1 Dev Free) → **403** `"Soul sync requires Pro"`
-- **Vercel FE:** READY `dpl_G6cyMLew6BwtDLM9Ci8ibwVBH3Cz` (built from main incl. #54)
+- **Hotfix:** PR #54 unused `t` lint unblock — merge `a4de342`
+- **Railway (superseded by #53):** was SUCCESS `bbf2cbd7-…` @ `2ddbaaf`
+- **Vercel FE:** READY `dpl_G6cyMLew6BwtDLM9Ci8ibwVBH3Cz`
   - Alias: https://hd-biohack.vercel.app
   - Deployment: https://hd-biohack-66ut5p3q5-hdbh1.vercel.app
-- **Smoke:** `/` `/soul` `/biohack` `/profile` `/transits` `/login` → all **200**
-- Soft residuals left optional (hardcoded EN mock; mobile nav clip; Home chip `needsChart` when 0 charts).
 
 ## Prior SHIPPED
 - **PR #51** Admin Pro/Free — MERGED `2590334`
