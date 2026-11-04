@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
+import { Hexagon } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { api, type SavedChartRow } from "@/lib/api";
@@ -207,7 +208,7 @@ export default function TransitsPage() {
 
       {!loading && conditioningNotes.length > 0 && (
         <div
-          className="rounded-2xl border border-border bg-elevated/70 p-5"
+          className="rounded-2xl border border-border bg-elevated p-5 shadow-soft"
           data-testid="conditioning-notes"
         >
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
@@ -241,7 +242,7 @@ export default function TransitsPage() {
 
       {overlay && (
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-border p-4">
+          <div className="rounded-2xl border border-border bg-elevated p-4 shadow-soft">
             <h2 className="mb-2 font-semibold">{t("page.today.bridgedChannels")}</h2>
             <ul className="space-y-1 text-sm text-fg-secondary">
               {((overlay.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
@@ -255,14 +256,21 @@ export default function TransitsPage() {
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl border border-border p-4">
-            <h2 className="mb-2 font-semibold">{t("page.today.newlyDefined")}</h2>
+          <div className="rounded-2xl border border-border bg-elevated p-4 shadow-soft">
+            <h2 className="mb-2 inline-flex items-center gap-1.5 font-semibold">
+              <Hexagon className="h-4 w-4 shrink-0 text-energy-ink" aria-hidden />
+              {t("page.today.newlyDefined")}
+            </h2>
             <div className="flex flex-wrap gap-2">
               {((overlay.newly_defined_centers as string[]) || []).length === 0 && (
                 <span className="text-sm text-fg-muted">No temporary definitions</span>
               )}
               {((overlay.newly_defined_centers as string[]) || []).map((c) => (
-                <span key={c} className="rounded-full bg-energy/15 px-3 py-1 text-xs text-energy-ink">
+                <span
+                  key={c}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-energy/30 bg-energy/15 px-3 py-1.5 text-xs font-medium text-energy-ink"
+                >
+                  <Hexagon className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
                   {displayCenter(c)}
                 </span>
               ))}

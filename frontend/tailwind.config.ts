@@ -43,7 +43,7 @@ const config: Config = {
         "3xl": "1.25rem",
       },
       boxShadow: {
-        soft: "0 1px 2px color-mix(in srgb, var(--fg) 4%, transparent)",
+        soft: "0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent), 0 4px 14px color-mix(in srgb, var(--fg) 6%, transparent)",
       },
     },
   },

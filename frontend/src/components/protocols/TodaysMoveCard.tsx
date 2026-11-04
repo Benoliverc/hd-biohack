@@ -4,6 +4,14 @@ import type { DayCompletions } from "@/lib/protocolCompletions";
 import { progressPct } from "@/lib/protocolCompletions";
 import type { CheckItem } from "./types";
 import { useI18n } from "@/lib/i18n";
+import { Sunrise, Sun, Moon } from "lucide-react";
+
+function SlotGlyph({ slot }: { slot?: "morning" | "midday" | "evening" }) {
+  if (slot === "morning") return <Sunrise className="h-3.5 w-3.5 shrink-0 text-energy-ink" aria-hidden />;
+  if (slot === "midday") return <Sun className="h-3.5 w-3.5 shrink-0 text-energy-ink" aria-hidden />;
+  if (slot === "evening") return <Moon className="h-3.5 w-3.5 shrink-0 text-fg-secondary" aria-hidden />;
+  return null;
+}
 
 /**
  * Prove-it checklist for Protocols. Keeps "Today's Move" naming.
@@ -57,7 +65,7 @@ export function TodaysMoveCard({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold text-growth-ink">{t("protocols.moveTitle")}</h2>
         {items.length > 0 && (
-          <span className="text-xs text-fg-secondary" data-testid="protocol-done-count">
+          <span className="sr-only" data-testid="protocol-done-count">
             {t("protocols.donePct", { done: doneCount, total: items.length, pct })}
           </span>
         )}
@@ -65,18 +73,31 @@ export function TodaysMoveCard({
 
       {items.length > 0 && (
         <div
-          className="h-2 overflow-hidden rounded-full bg-elevated/80 ring-1 ring-growth/20"
-          data-testid="protocol-progress"
-          role="progressbar"
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={t("protocols.moveProgress")}
+          className="rounded-xl border border-growth/25 bg-sunken/60 px-3 py-2.5"
+          data-testid="protocol-progress-strip"
         >
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-growth-ink">
+              {t("protocols.moveProgress")}
+            </span>
+            <span className="text-xs font-semibold tabular-nums text-fg" data-testid="protocol-done-count-inline">
+              {t("protocols.donePct", { done: doneCount, total: items.length, pct })}
+            </span>
+          </div>
           <div
-            className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
-            style={{ width: `${pct}%` }}
-          />
+            className="h-2.5 overflow-hidden rounded-full bg-elevated ring-1 ring-growth/25"
+            data-testid="protocol-progress"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t("protocols.moveProgress")}
+          >
+            <div
+              className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
       )}
 
@@ -115,6 +136,7 @@ export function TodaysMoveCard({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-2">
+                      <SlotGlyph slot={it.slot} />
                       <span
                         className={`text-sm ${
                           idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"

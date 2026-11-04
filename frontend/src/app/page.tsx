@@ -22,7 +22,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8 pb-4">
       {/* Hero */}
-      <section className="rounded-3xl border border-border bg-elevated p-6 sm:p-8">
+      <section className="rounded-3xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
         <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-growth">
           {t("home.eyebrow")}
         </p>
@@ -154,36 +154,38 @@ export default function HomePage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/profile"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
           data-testid="home-card-chart"
         >
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
             <UserRound className="h-5 w-5" aria-hidden />
           </span>
-          <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            {t("home.outcome.chart.title")}
-          </h2>
-          <div className="flex-1 text-sm text-fg-secondary">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h2 className="font-semibold text-fg group-hover:text-growth-deep">
+              {t("home.outcome.chart.title")}
+            </h2>
+            <span className="inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-secondary">
+              {!ready
+                ? "…"
+                : hasChart
+                  ? natalChart?.label?.trim()
+                    ? chartLabel
+                    : t("home.status.saved")
+                  : t("home.status.notSaved")}
+            </span>
+          </div>
+          <div className="text-sm text-fg-secondary">
             <p>{t("home.outcome.chart.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.chart.b1")}</li>
               <li>{t("home.outcome.chart.b2")}</li>
             </ul>
           </div>
-          <p className="mt-3 text-xs font-medium text-fg-secondary">
-            {!ready
-              ? "…"
-              : hasChart
-                ? natalChart?.label?.trim()
-                  ? chartLabel
-                  : t("home.status.saved")
-                : t("home.status.notSaved")}
-          </p>
         </Link>
 
         <Link
           href="/transits"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-energy"
+          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-energy"
           data-testid="home-card-today"
         >
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-energy-ink">
@@ -195,7 +197,7 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
             {t("home.outcome.today.title")}
           </h2>
-          <div className="flex-1 text-sm text-fg-secondary">
+          <div className="text-sm text-fg-secondary">
             <p>{t("home.outcome.today.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.today.b1")}</li>
@@ -207,35 +209,37 @@ export default function HomePage() {
         <Link
           href="/biohack"
           data-testid="home-view-protocols"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
         >
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
             <FlaskConical className="h-5 w-5" aria-hidden />
           </span>
-          <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            {t("home.outcome.protocols.title")}
-          </h2>
-          <div className="flex-1 text-sm text-fg-secondary">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h2 className="font-semibold text-fg group-hover:text-growth-deep">
+              {t("home.outcome.protocols.title")}
+            </h2>
+            <span className="inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-secondary">
+              {!ready
+                ? "…"
+                : !hasChart
+                  ? t("home.status.needsChart")
+                  : biohackingUnlocked
+                    ? t("home.status.ready")
+                    : t("home.status.proUnlock")}
+            </span>
+          </div>
+          <div className="text-sm text-fg-secondary">
             <p>{t("home.outcome.protocols.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.protocols.b1")}</li>
               <li>{t("home.outcome.protocols.b2")}</li>
             </ul>
           </div>
-          <p className="mt-3 text-xs font-medium text-fg-secondary">
-            {!ready
-              ? "…"
-              : !hasChart
-                ? t("home.status.needsChart")
-                : biohackingUnlocked
-                  ? t("home.status.ready")
-                  : t("home.status.proUnlock")}
-          </p>
         </Link>
 
         <Link
           href="/soul"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
           data-testid="home-card-soul"
         >
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
@@ -244,7 +248,7 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
             {t("home.outcome.soul.title")}
           </h2>
-          <div className="flex-1 text-sm text-fg-secondary">
+          <div className="text-sm text-fg-secondary">
             <p>{t("home.outcome.soul.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.soul.b1")}</li>
