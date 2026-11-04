@@ -160,7 +160,7 @@ export default function TodayIndication({
       ) : null}
 
       <div
-        className="mb-4 rounded-xl border border-growth/30 bg-growth-soft p-4"
+        className="mb-4 rounded-xl border border-border bg-canvas p-4 shadow-soft"
         data-testid="main-action"
       >
         <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-growth">
@@ -169,19 +169,29 @@ export default function TodayIndication({
         <p className="text-sm font-medium text-fg" data-testid="main-action-text">
           {indication.main_action_text}
         </p>
-        {indication.main_action_why ? (
+        {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
           <details className="mt-2 group" data-testid="main-action-why-details">
-            <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-fg-muted marker:content-none [&::-webkit-details-marker]:hidden">
+            <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
               <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden className="text-fg-muted group-open:rotate-90 transition-transform inline-block">
+                <span aria-hidden className="text-fg-secondary group-open:rotate-90 transition-transform inline-block">
                   ▸
                 </span>
                 Why
               </span>
             </summary>
-            <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
-              {indication.main_action_why}
-            </p>
+            {indication.main_action_micro ? (
+              <p
+                className="mt-2 text-sm text-fg-secondary"
+                data-testid="main-action-micro"
+              >
+                {indication.main_action_micro}
+              </p>
+            ) : null}
+            {indication.main_action_why ? (
+              <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
+                {indication.main_action_why}
+              </p>
+            ) : null}
             {indication.drivers?.length ? (
               <div className="mt-2" data-testid="indication-drivers">
                 <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
@@ -195,25 +205,6 @@ export default function TodayIndication({
               </div>
             ) : null}
           </details>
-        ) : indication.drivers?.length ? (
-          <div className="mt-2" data-testid="indication-drivers">
-            <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
-              Chart notes
-            </p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
-              {indication.drivers.slice(0, 4).map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {indication.main_action_micro ? (
-          <p
-            className="mt-1.5 text-sm text-fg-secondary"
-            data-testid="main-action-micro"
-          >
-            {indication.main_action_micro}
-          </p>
         ) : null}
         {indication.save_chart_cta ? (
           <Link
@@ -226,7 +217,7 @@ export default function TodayIndication({
         ) : (
           <Link
             href="/biohack"
-            className="mt-3 inline-flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium text-growth underline-offset-2 hover:underline"
+            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
             data-testid="open-protocols-secondary"
           >
             Open Protocols

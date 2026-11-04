@@ -49,13 +49,13 @@ export function TodaysMoveCard({
 
   return (
     <section
-      className="space-y-4 rounded-2xl border border-growth/40 bg-growth-soft p-5"
+      className="space-y-4 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
       data-testid="todays-move"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold text-growth-ink">Today&apos;s Move</h2>
         {items.length > 0 && (
-          <span className="text-xs text-fg-muted" data-testid="protocol-done-count">
+          <span className="text-xs text-fg-secondary" data-testid="protocol-done-count">
             {doneCount}/{items.length} done · {pct}%
           </span>
         )}
@@ -99,9 +99,9 @@ export function TodaysMoveCard({
               <div
                 className={`rounded-xl border px-3 py-2.5 ${
                   checked
-                    ? "border-growth/50 bg-elevated/60 opacity-90"
-                    : "border-growth/30 bg-elevated/90"
-                } ${idx === 0 ? "shadow-soft" : ""}`}
+                    ? "border-growth/50 bg-growth-soft/70 opacity-95"
+                    : "border-border bg-canvas"
+                } ${idx === 0 && !checked ? "ring-1 ring-growth/25 shadow-soft" : ""}`}
               >
                 <label className="flex cursor-pointer gap-3">
                   <input
@@ -194,7 +194,7 @@ export function TodaysMoveCard({
 
       {(doList.length > 0 || dontList.length > 0) && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-growth/30 bg-elevated/70 p-3">
+          <div className="rounded-xl border border-border bg-sunken/50 p-3">
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-growth-ink">
               Do
             </h3>
@@ -222,7 +222,7 @@ export function TodaysMoveCard({
           <button
             type="button"
             onClick={onToggleBaseline}
-            className="flex min-h-10 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-fg-muted"
+            className="flex min-h-10 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-fg-secondary"
             aria-expanded={baselineKitOpen}
           >
             <span>

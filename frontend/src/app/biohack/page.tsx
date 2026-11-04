@@ -591,7 +591,7 @@ export default function BiohackPage() {
       const inInv = Boolean(row.in_inventory);
       items.push({
         id: slot,
-        label: `${slotLabel}: ${row.item}`,
+        label: `${slotLabel}: ${bareItemName(row.item)}`,
         sub: row.when || undefined,
         why: sanitizeWhy(row.why, inInv),
         inInventory: inInv,
@@ -609,7 +609,7 @@ export default function BiohackPage() {
       const inInv = Boolean(row.in_inventory);
       return {
         id: `baseline:${i}`,
-        label: row.item,
+        label: bareItemName(row.item),
         sub: row.when || undefined,
         why: sanitizeWhy(row.why, inInv),
         inInventory: inInv,
@@ -736,42 +736,7 @@ export default function BiohackPage() {
         <WeatherStrip indication={indication} whatsNew={whatsNew} />
       )}
 
-      {(protocol || youChart) && (
-        <KitStrip
-          count={inventory.length}
-          loading={inventoryLoading}
-          onEdit={openInventory}
-          onAddStarter={(name) => void addInv(name)}
-          adding={adding}
-          disabled={!user || adding || inventoryLoading || resolvingYou}
-        />
-      )}
-
-      {(protocol || youChart) && (
-        <KitFactCallout
-          fact={
-            ((protocol?.kit_fact as KitFact | null | undefined) ||
-              ((daily as { kit_fact?: KitFact | null } | null)?.kit_fact ?? null)) ?? null
-          }
-          cta={
-            inventory.length === 0
-              ? ((protocol?.kit_fact_cta as string | null | undefined) ||
-                  ((daily as { kit_fact_cta?: string | null } | null)?.kit_fact_cta ?? null) ||
-                  "Add what you own — Move can prefer your shelf")
-              : null
-          }
-          onOpenKit={openInventory}
-        />
-      )}
-
-      {protocol && daily && (
-        <DailyIntentionField
-          value={intention}
-          saving={intentionSaving}
-          onCommit={saveIntention}
-        />
-      )}
-
+      {/* Morning Ritual: Move first above the fold; shelf + intention deferred. */}
       {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
@@ -791,6 +756,67 @@ export default function BiohackPage() {
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
           rotatedSlot={whatsNew?.rotated_slot || null}
         />
+      )}
+
+      {(protocol || youChart) && (
+        <details
+          className="rounded-2xl border border-border bg-elevated px-4 py-3"
+          data-testid="shelf-disclosure"
+        >
+          <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex flex-wrap items-center gap-2">
+              <span aria-hidden className="text-fg-secondary">▸</span>
+              <span>Shelf</span>
+              <span className="text-xs font-normal text-fg-secondary">
+                · {inventoryLoading ? "…" : inventory.length}
+                {!inventoryLoading && inventory.length === 0 ? " · Add what you own" : ""}
+              </span>
+            </span>
+          </summary>
+          <div className="mt-3 space-y-3">
+            <KitStrip
+              count={inventory.length}
+              loading={inventoryLoading}
+              onEdit={openInventory}
+              onAddStarter={(name) => void addInv(name)}
+              adding={adding}
+              disabled={!user || adding || inventoryLoading || resolvingYou}
+            />
+            <KitFactCallout
+              fact={
+                ((protocol?.kit_fact as KitFact | null | undefined) ||
+                  ((daily as { kit_fact?: KitFact | null } | null)?.kit_fact ?? null)) ?? null
+              }
+              cta={null}
+              onOpenKit={openInventory}
+            />
+          </div>
+        </details>
+      )}
+
+      {protocol && daily && (
+        <details
+          className="rounded-2xl border border-border bg-elevated px-4 py-3"
+          data-testid="intention-disclosure"
+        >
+          <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex flex-wrap items-center gap-2">
+              <span aria-hidden className="text-fg-secondary">▸</span>
+              <span>Intention</span>
+              <span className="text-xs font-normal text-fg-secondary">
+                · {intention.trim() ? "set" : "optional"}
+              </span>
+            </span>
+          </summary>
+          <div className="mt-3">
+            <DailyIntentionField
+              value={intention}
+              saving={intentionSaving}
+              onCommit={saveIntention}
+              embedded
+            />
+          </div>
+        </details>
       )}
 
       {protocol && weekly && (
@@ -916,10 +942,12 @@ function DailyIntentionField({
   value,
   saving,
   onCommit,
+  embedded = false,
 }: {
   value: string;
   saving: boolean;
   onCommit: (text: string) => void;
+  embedded?: boolean;
 }) {
   const [draft, setDraft] = useState(value);
   useEffect(() => {
@@ -928,7 +956,7 @@ function DailyIntentionField({
 
   return (
     <section
-      className="rounded-2xl border border-border bg-elevated p-4"
+      className={embedded ? "space-y-0" : "rounded-2xl border border-border bg-elevated p-4"}
       data-testid="daily-intention"
     >
       <label
@@ -936,7 +964,7 @@ function DailyIntentionField({
         className="block text-sm font-semibold text-fg"
       >
         Today&apos;s intention
-        <span className="ml-2 text-xs font-normal text-fg-muted">optional</span>
+        <span className="ml-2 text-xs font-normal text-fg-secondary">optional</span>
       </label>
       <input
         id="daily-intention-input"
@@ -959,7 +987,7 @@ function DailyIntentionField({
   );
 }
 
-/* ─── Kit fact (between Kit strip and Today's Move) ─────────────────────── */
+/* ─── Kit fact (inside Shelf disclosure; no empty twin CTA) ─────────────── */
 
 function KitFactCallout({
   fact,
@@ -1043,31 +1071,31 @@ function WeekSkyCard({
         </p>
       )}
       {skyNote && (
-        <div
-          className="rounded-xl border border-energy/40 bg-energy/10 px-4 py-3"
-          data-testid="week-sky-note"
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-energy-ink">
-            Sky · this week
-          </p>
+        <details className="rounded-xl border border-border bg-sunken/40 px-4 py-3" data-testid="week-sky-note">
+          <summary className="cursor-pointer list-none text-[10px] font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden>▸</span>
+              Sky note · this week
+            </span>
+          </summary>
           <p className="mt-1.5 text-sm text-fg-secondary">{skyNote}</p>
-        </div>
+        </details>
       )}
 
       <div
-        className="rounded-xl border border-growth/30 bg-growth-soft/40 px-4 py-3"
+        className="rounded-xl border border-border bg-elevated/80 px-4 py-3"
         data-testid="week-completed"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-growth-ink">
             Completed this week
           </p>
-          <span className="text-[11px] text-fg-muted" data-testid="week-completed-count">
+          <span className="text-[11px] text-fg-secondary" data-testid="week-completed-count">
             {weekRows.length} checked · {weekLabel}
           </span>
         </div>
         {weekRows.length === 0 ? (
-          <p className="mt-2 text-sm text-fg-muted" data-testid="week-completed-empty">
+          <p className="mt-2 text-sm text-fg-secondary" data-testid="week-completed-empty">
             Nothing checked yet — tick Today&apos;s Move or baseline kit items as you go.
           </p>
         ) : (

@@ -34,7 +34,7 @@ export function WeatherStrip({
         </span>
         {chip && (
           <span
-            className="rounded-full border border-growth/40 bg-growth-soft px-2.5 py-0.5 text-xs font-semibold text-growth-ink"
+            className="rounded-full border border-energy/50 bg-energy/15 px-2.5 py-0.5 text-xs font-semibold text-energy-ink"
             data-testid="whats-new-chip"
             title={whatsNew?.body || indication.daily_signal?.body || undefined}
           >
@@ -42,7 +42,7 @@ export function WeatherStrip({
           </span>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-fg-muted">
+      <p className="mt-2 text-[11px] text-fg-secondary">
         <Link
           href="/transits"
           className="text-growth underline-offset-2 hover:underline"
