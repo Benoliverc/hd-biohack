@@ -135,6 +135,27 @@ def set_tier(user_id: int, tier: str = Query(...), db: Session = Depends(get_db)
 
 
 
+
+SUPPORTED_LOCALES = frozenset({"en", "nl", "de", "fr", "es"})
+
+
+def _validate_preferred_locale(locale: str | None) -> str | None:
+    """Return normalised locale code, or None when cleared. Reject unknown codes."""
+    if locale is None:
+        return None
+    cleaned = locale.strip().lower().replace("_", "-")
+    if not cleaned:
+        return None
+    # Accept bare language tags only for v1 (en, nl, de, fr, es).
+    primary = cleaned.split("-", 1)[0]
+    if primary not in SUPPORTED_LOCALES:
+        raise HTTPException(
+            400,
+            f"Invalid preferred_locale: {locale!r}. Allowed: {', '.join(sorted(SUPPORTED_LOCALES))}",
+        )
+    return primary
+
+
 def _validate_iana_timezone(tz: str | None) -> str | None:
     """Return stripped IANA name, or None when cleared. Reject unknown zones."""
     if tz is None:
@@ -168,6 +189,8 @@ def patch_user_settings(
         raise HTTPException(404, "User not found")
     if "preferred_timezone" in body.model_fields_set:
         user.preferred_timezone = _validate_iana_timezone(body.preferred_timezone)
+    if "preferred_locale" in body.model_fields_set:
+        user.preferred_locale = _validate_preferred_locale(body.preferred_locale)
     db.commit()
     db.refresh(user)
     return user

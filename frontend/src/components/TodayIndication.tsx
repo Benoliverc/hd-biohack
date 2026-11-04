@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { TodayIndicationPayload, VsYesterdayDelta } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 const ENERGY_CHIPS: { level: 1 | 2 | 3 | 4 | 5; label: string }[] = [
   { level: 1, label: "Drained" },
@@ -53,6 +54,7 @@ export default function TodayIndication({
   youLabel = null,
   asOfLabel = null,
 }: Props) {
+  const { t } = useI18n();
   if (bindingLoading || loading) {
     return (
       <div
@@ -60,7 +62,7 @@ export default function TodayIndication({
         data-testid="today-indication-loading"
       >
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-          Today&apos;s indication
+          {t("today.indication")}
         </h2>
         <p className="text-sm text-fg-secondary">Reading your chart weather…</p>
       </div>
@@ -74,7 +76,7 @@ export default function TodayIndication({
         data-testid="today-indication-error"
       >
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-          Today&apos;s indication
+          {t("today.indication")}
         </h2>
         <p className="text-sm text-danger">{error}</p>
       </div>
@@ -97,7 +99,7 @@ export default function TodayIndication({
     SPACE_CHIPS.find((c) => c.value === space)?.label ||
     indication.preferred_space_label;
 
-  const eyebrowBits = ["Today's indication"];
+  const eyebrowBits = [t("today.indication")];
   if (youLabel) eyebrowBits.push(youLabel);
   if (asOfLabel) eyebrowBits.push(asOfLabel);
 
@@ -125,7 +127,7 @@ export default function TodayIndication({
       {daily ? (
         <div className="mb-4" data-testid="daily-signal">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-            Today&apos;s new signal
+            {t("today.newSignal")}
           </p>
           <h3
             className="text-lg font-semibold text-fg"
@@ -220,7 +222,7 @@ export default function TodayIndication({
             className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
             data-testid="open-protocols-secondary"
           >
-            Open Protocols
+            {t("protocols.openProtocols")}
           </Link>
         )}
       </div>

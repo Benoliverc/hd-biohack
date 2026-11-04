@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { api, SavedChartRow, User } from "./api";
 import { readSessionUserId, writeSessionUserId } from "./session";
 import { isAdminUser } from "./admin";
+import { I18nProvider } from "./i18n";
 
 export type NatalChartSummary = {
   id: number;
@@ -53,6 +54,7 @@ const FALLBACK_USER: User = {
   stripe_customer_id: null,
   biohacking_enabled: false,
   preferred_timezone: null,
+  preferred_locale: null,
   is_admin: false,
 };
 
@@ -315,7 +317,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         biohackingUnlocked,
       }}
     >
-      {children}
+      <I18nProvider accountLocale={user?.preferred_locale ?? null}>{children}</I18nProvider>
     </Ctx.Provider>
   );
 }

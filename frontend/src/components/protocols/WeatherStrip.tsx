@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { TodayIndicationPayload } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import type { WhatsNew } from "./types";
 
 /**
@@ -15,6 +16,8 @@ export function WeatherStrip({
   indication: TodayIndicationPayload;
   whatsNew?: WhatsNew | null;
 }) {
+  const { t } = useI18n();
+
   const chip =
     whatsNew?.chip ||
     indication.daily_signal?.headline ||
@@ -48,7 +51,7 @@ export function WeatherStrip({
           className="text-growth underline-offset-2 hover:underline"
           data-testid="weather-full-sky-link"
         >
-          Full sky on Today
+          {t("protocols.fullSkyOnToday")}
         </Link>
       </p>
     </section>

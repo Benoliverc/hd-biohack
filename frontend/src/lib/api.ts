@@ -58,6 +58,7 @@ export type User = {
   stripe_customer_id: string | null;
   biohacking_enabled: boolean;
   preferred_timezone?: string | null;
+  preferred_locale?: string | null;
   is_admin?: boolean;
 };
 
@@ -416,7 +417,10 @@ export const api = {
       }),
     }),
   getUser: (userId: number) => req<User>(`/users/${userId}`),
-  patchUserSettings: (userId: number, body: { preferred_timezone?: string | null }) =>
+  patchUserSettings: (
+    userId: number,
+    body: { preferred_timezone?: string | null; preferred_locale?: string | null }
+  ) =>
     req<User>(`/users/${userId}/settings`, {
       method: "PATCH",
       body: JSON.stringify(body),

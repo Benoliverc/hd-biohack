@@ -103,6 +103,7 @@ class UserOut(BaseModel):
     stripe_customer_id: str | None
     biohacking_enabled: bool
     preferred_timezone: str | None = None
+    preferred_locale: str | None = None
     is_admin: bool = False
 
     class Config:
@@ -114,6 +115,11 @@ class UserSettingsPatch(BaseModel):
         None,
         description="IANA timezone for Protocols day/week; null clears to Asia/Hong_Kong fallback",
         max_length=128,
+    )
+    preferred_locale: str | None = Field(
+        None,
+        description="UI locale BCP-47: en|nl|de|fr|es; null clears to en default",
+        max_length=16,
     )
 
 
