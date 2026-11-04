@@ -8,10 +8,19 @@ import { useI18n } from "@/lib/i18n";
 export function BiohackingEntitlementGate({
   children,
   blurredPreview,
+  teaserTitle,
+  teaserLines,
+  previewLockLabel,
 }: {
   children: React.ReactNode;
   /** Non-interactive mock shown behind the lock. Prefer static UI over live controls. */
   blurredPreview?: React.ReactNode;
+  /** Optional surface-specific unlock title (defaults to Protocols gate copy). */
+  teaserTitle?: string;
+  /** Optional three teaser bullets (defaults to Protocols natal / week / kit lines). */
+  teaserLines?: [string, string, string];
+  /** Optional lock pill label (defaults to Protocols Today's Move preview copy). */
+  previewLockLabel?: string;
 }) {
   const { biohackingUnlocked } = useApp();
   const { t } = useI18n();
@@ -19,21 +28,26 @@ export function BiohackingEntitlementGate({
 
   if (biohackingUnlocked) return <>{children}</>;
 
+  const title = teaserTitle ?? t("gate.unlockTitle");
+  const lines = teaserLines ?? [
+    t("gate.natalBaseline"),
+    t("gate.weekTweaks"),
+    t("gate.kitAware"),
+  ];
+  const lineClasses = ["text-growth", "text-energy-ink", "text-fg"] as const;
+  const lockLabel = previewLockLabel ?? t("gate.previewLock");
+
   return (
     <div className="space-y-4">
       {/* Clear value teaser above the lock — readable, not blurred */}
       <div className="rounded-2xl border border-growth/30 bg-growth-soft p-5">
-        <h2 className="mb-2 text-sm font-semibold text-growth">{t("gate.unlockTitle")}</h2>
+        <h2 className="mb-2 text-sm font-semibold text-growth">{title}</h2>
         <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
-          <li>
-            <span className="text-growth">{t("gate.natalBaseline")}</span>
-          </li>
-          <li>
-            <span className="text-energy-ink">{t("gate.weekTweaks")}</span>
-          </li>
-          <li>
-            <span className="text-fg">{t("gate.kitAware")}</span>
-          </li>
+          {lines.map((line, i) => (
+            <li key={i}>
+              <span className={lineClasses[i] ?? "text-fg"}>{line}</span>
+            </li>
+          ))}
         </ul>
         {waitlistJoined ? (
           <p
@@ -74,7 +88,7 @@ export function BiohackingEntitlementGate({
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
           <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-growth/40 bg-canvas/90 px-3 py-1.5 text-xs text-growth shadow-soft backdrop-blur">
             <Lock className="h-3.5 w-3.5" />
-            {t("gate.previewLock")}
+            {lockLabel}
           </div>
         </div>
       </div>

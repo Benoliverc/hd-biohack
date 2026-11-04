@@ -1,4 +1,14 @@
-# Current build — BOTH SHIPPED (#50 + #51)
+# Current build — IN REVIEW (hold merge)
+
+## OPEN — PR #52 Move Soul behind Pro
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/52
+- **Branch:** `feat/soul-behind-pro`
+- **Tip SHA:** `3c42de9` (`3c42de988b6c1cbefd814704bbb78976d8df278f`)
+- **Base:** `origin/main` @ `7543c76`
+- **Scope:** FE + **Railway** (soft `403` on `POST /soul/sync` for Free)
+- **Hold merge** for Benjamin yes after UX → Ship Gate
+- **Changes:** Gate `/soul` with `BiohackingEntitlementGate` + static locked mock + Soul teaser i18n; Home Soul status chip mirrors Protocols `proUnlock`; same `biohackingUnlocked` truth; API Free → 403
+- **Assert:** `cd frontend && npx tsc --noEmit` → pass
 
 ## SHIPPED — PR #51 Admin Pro/Free plan toggle
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
@@ -10,14 +20,12 @@
 - **Vercel FE:** READY `dpl_FhC1TSpmu3bFkRrz4WS64u99qvi3`
   - Alias: https://hd-biohack.vercel.app
   - Deployment: https://hd-biohack-f93uxw3ac-hdbh1.vercel.app
-- **Smoke:** `/admin` `/` `/biohack` `/login` → all **200**
 - Soft residual (plan card under Usage H1) left optional.
 
 ## SHIPPED — PR #50 Nav clarity A+B
 - **Merge SHA:** `9af2847` · docs tip `3a78466`
-- **Vercel:** READY `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4` (superseded by #51 FE deploy above)
+- **Vercel:** READY (superseded by later FE deploys)
 - **Railway:** skipped (FE-only)
-- **Smoke:** `/` `/biohack` `/transits` `/profile` `/soul` `/settings` → all **200**
 
 ## Prior
 - **PR #49** Visual density Option A — MERGED `48edf24`
