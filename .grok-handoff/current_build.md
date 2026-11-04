@@ -1,34 +1,22 @@
-# Current build — Nav clarity A+B (active chrome + reorder)
+# Current build — SHIPPED PR #50 · next #51
 
+## SHIPPED — PR #50 Nav clarity A+B
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/50
+- **Merge SHA:** `9af2847` (`9af28478368cb3b0df68410c8b95872afaf48c63`)
+- **Feat tip:** `29de444` · PR head `5cc7f1e`
 - **Branch:** `feat/nav-clarity-a-b`
-- **Tip SHA:** `29de444` (`29de44409e75ab486df4b82e5839ee43d168c5d2`) — feat; docs tip `7273fa9` (`7273fa94f7619517990fea7c2ab0cf5354730052`)
-- **Handoff:** `.grok-handoff/nav-clarity-a-plus-b-2026-11-04.md`
-- **Expert panel (context):** `.grok-handoff/nav-clarity-protocols-expert-panel-2026-11-04.md`
-- **Benjamin:** “A+B ship”
-- **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
-- **Scope:** FE-only
+- **Deploy:** Vercel FE only — **READY** `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4`
+  - Alias: https://hd-biohack.vercel.app
+  - Deployment: https://hd-biohack-ebo2uctw4-hdbh1.vercel.app
+- **Railway:** skipped (FE-only)
+- **Smoke (prod):** `/` `/biohack` `/transits` `/profile` `/soul` `/settings` → all **200**
+- **What landed:** Active growth-soft pill + border + medium; order Home · Protocols · Today · Chart · Soul; mobile nowrap scroll.
 
-## What changed
-1. **A — Active chrome:** Primary tabs use opaque `bg-growth-soft` + `border-growth/40` + `font-medium text-growth` when active (replaces weak `bg-growth/20` color-only). Inactive stays `text-fg-muted` with transparent border; hover unchanged. Icons + labels kept. Light + dark via existing `growth-soft` / `growth` tokens.
-2. **B — Reorder:** `Home · Protocols · Today · Chart · Soul` (Settings/Admin utility unchanged). Paths unchanged (`/biohack` still Protocols). Label stays Protocols (i18n keys unchanged).
-3. **Optional mobile:** `flex-nowrap` + `overflow-x-auto` + hidden scrollbar — prevents Soul orphaning on wrap.
-
-Skipped Option C soft Protocols inactive tint (would fight A).
-
-## Files
-- `frontend/src/components/Header.tsx`
-
-## Assert
-- `cd frontend && npx tsc --noEmit` → pass
-- No hardcoded nav-order assert scripts to update
-
-## Preview / smoke
-Hard-refresh preview once Vercel builds the PR. Mentally: `/` `/biohack` `/transits` `/profile` `/soul` `/settings` — order + active pill paint.
-
-## Open questions
-- Await UX → Ship Gate → **Benjamin yes** before merge.
-- Soft residuals from #49 still optional (out of scope here).
+## NEXT — PR #51 Admin Pro/Free toggle
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
+- **Tip:** feat `cade240` / head `9b74126` · `feat/admin-pro-free-toggle`
+- **Needs:** FE + Railway API (`PATCH /users/{id}/tier` auth harden)
+- Soft residual (plan card under Usage H1) optional — leave it.
 
 ## Prior shipped
 - **PR #49** Visual density Option A — MERGED `48edf24` — FE live
