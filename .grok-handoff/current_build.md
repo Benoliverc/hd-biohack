@@ -1,15 +1,18 @@
-# Current build — Admin Pro/Free plan toggle
+# Current build — PR #51 Admin Pro/Free (post-#50)
 
+## SHIPPED — PR #50 Nav clarity A+B
+- **Merge SHA:** `9af2847` · docs tip `3a78466`
+- **Vercel:** READY `dpl_C1xXnA9Sn88Tb792ae4qZUjGWjZ4` · https://hd-biohack.vercel.app
+- **Railway:** skipped (FE-only)
+
+## THIS PR — #51 Admin Pro/Free plan toggle
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/51
 - **Branch:** `feat/admin-pro-free-toggle`
-- **Tip SHA:** `cade240` (`cade2408d4e8156cdd34b786a5e11385ee959fd4`) — feat; docs/head `869e793` (`869e793d84739458a0a0d1acbf0c21cd684f66ac`)
+- **Tip SHA:** `cade240` (`cade2408d4e8156cdd34b786a5e11385ee959fd4`) — feat; docs/head was `869e793`
 - **Handoff:** `.grok-handoff/admin-pro-free-toggle-2026-11-04.md`
-- **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.”
-- **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
+- **Benjamin:** “Also in the admin profile, Benjamin.. Create a toggle so I can change between Pro and Free.” · merge yes granted
+- **Status:** Merging after #50 · FE + Railway
 - **Scope:** FE + API auth hardening (Railway needed for API)
-
-## Parallel
-- **PR #50** Nav clarity A+B — awaiting Ship Gate / Benjamin yes (separate branch; do not mix).
 
 ## What changed
 1. **Admin “Your plan” card** on `/admin` (allowlisted admin only): Free ↔ Pro segmented control targeting **self** via `api.setTier(user.id, tier, actorUserId)`.
@@ -26,12 +29,6 @@
 - `backend/app/api/routes.py`
 - `backend/tests/test_usage_admin.py`
 
-## Assert
-- `cd frontend && npx tsc --noEmit` → pass
-- `backend/.venv/bin/python -m pytest tests/test_usage_admin.py::test_set_tier_requires_admin_and_self_only -q` → pass
-
 ## Deploy note
 - **FE (Vercel) + API (Railway)** — auth change on tier endpoint.
-
-## Open questions
-- Hold merge for Benjamin yes after UX → Ship Gate.
+- Soft residual (card under Usage H1) optional — leave it.
