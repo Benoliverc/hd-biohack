@@ -3,8 +3,8 @@
 **PO:** Grok Bot · **Dev:** Full Stack · **Date:** 2026-11-04 (Asia/Hong_Kong)  
 **Repo:** Benoliverc/hd-biohack  
 **Branch:** `feat/i18n-p0-chrome-shell`  
-**PR:** https://github.com/Benoliverc/hd-biohack/pull/48 · tip `da9c034`  
-**Status:** READY_FOR_UX
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/48 · tip `606eebe`  
+**Status:** READY_FOR_UX (tip `606eebe` — fixed `"use client"` order on Today after UX FAIL @ `036a2ce`)
 
 ## What to review
 Switch Settings → **Nederlands** (spot-check **Deutsch**). Walk Home → Today → Protocols → Chart → Soul.
