@@ -1,30 +1,35 @@
-# Current build — Visual density Option A — SHIPPED
+# Current build — Nav clarity A+B (active chrome + reorder)
 
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/49 — **MERGED**
-- **Branch tip:** `4573f91` (`4573f91b28b2fcb498a39941987600853c4c9fc5`) — docs tip; feat tip `88cd64e` confirmed at merge
-- **Merge commit:** `48edf24` (`48edf242ff2aca520d099b463f5d43283296c53a`)
-- **Handoff:** `.grok-handoff/visual-density-option-a.md`
-- **Product handoff:** `.grok-handoff/visual-density-option-a-2026-11-04.md`
-- **Status:** SHIPPED 2026-11-04 Asia/Hong_Kong — FE only. Soft residuals optional (0% progress ring vs first Move row; Settings dual Save weight).
+- **PR:** (pending — fill after `gh pr create`)
+- **Branch:** `feat/nav-clarity-a-b`
+- **Tip SHA:** (pending — fill after commit)
+- **Handoff:** `.grok-handoff/nav-clarity-a-plus-b-2026-11-04.md`
+- **Expert panel (context):** `.grok-handoff/nav-clarity-protocols-expert-panel-2026-11-04.md`
+- **Benjamin:** “A+B ship”
+- **Status:** READY FOR UX → Ship Gate → Benjamin merge yes. **Hold merge.**
+- **Scope:** FE-only
 
-## Deploy
-- **Vercel:** READY `dpl_cZzqCJ6vBXm5eWKZPP6XQkMVjSyv` → https://hd-biohack.vercel.app (alias of https://hd-biohack-33nhp6u4t-hdbh1.vercel.app)
-- **Railway:** skipped — FE-only (no API/schema paths in PR #49)
-- **Smoke:** `/` 200 · `/settings` 200 · `/transits` 200 · `/biohack` 200 · `/login` 200. Hard-refresh advised for FE.
+## What changed
+1. **A — Active chrome:** Primary tabs use opaque `bg-growth-soft` + `border-growth/40` + `font-medium text-growth` when active (replaces weak `bg-growth/20` color-only). Inactive stays `text-fg-muted` with transparent border; hover unchanged. Icons + labels kept. Light + dark via existing `growth-soft` / `growth` tokens.
+2. **B — Reorder:** `Home · Protocols · Today · Chart · Soul` (Settings/Admin utility unchanged). Paths unchanged (`/biohack` still Protocols). Label stays Protocols (i18n keys unchanged).
+3. **Optional mobile:** `flex-nowrap` + `overflow-x-auto` + hidden scrollbar — prevents Soul orphaning on wrap.
 
-## Scope shipped
-1. Hierarchy / one primary + card lift (`shadow-soft`)
-2. Thin Lucide (~12) — Settings, Today signal/centers, Protocols kit/slots/chevrons
-3. Status glyphs — progress strip, Main Action energy/space cluster, center chips
-4. Emptiness hotspots — Settings denser; Today MAIN ACTION right pane; Home orphan labels; Protocols Shelf/Intention/kit affordance
-5. AC5 tighter max-width — deferred (not needed)
+Skipped Option C soft Protocols inactive tint (would fight A).
 
-## Soft / deferred
-- Soft: 0% progress ring vs first Move row; Settings dual Save weight
-- Chart / nav / login nits pre-existing
-- Photos / illustration; BodyGraph; Move DO/DON'T; planet table; login pillars; nav icons; soft i18n / API bodies
+## Files
+- `frontend/src/components/Header.tsx`
+
+## Assert
+- `cd frontend && npx tsc --noEmit` → pass
+- No hardcoded nav-order assert scripts to update
+
+## Preview / smoke
+Hard-refresh preview once Vercel builds the PR. Mentally: `/` `/biohack` `/transits` `/profile` `/soul` `/settings` — order + active pill paint.
+
+## Open questions
+- Await UX → Ship Gate → **Benjamin yes** before merge.
+- Soft residuals from #49 still optional (out of scope here).
 
 ## Prior shipped
-- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b` — FE live
-- **PR #47** Settings language — MERGED `8351ee5`
-- **PR #46** Morning Ritual Option A — MERGED `81d2de8`
+- **PR #49** Visual density Option A — MERGED `48edf24` — FE live
+- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b`

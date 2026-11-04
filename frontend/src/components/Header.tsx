@@ -10,9 +10,9 @@ import { useI18n } from "@/lib/i18n";
 
 const nav = [
   { href: "/", labelKey: "nav.home" as const, icon: Orbit, testId: "nav-home" },
-  { href: "/profile", labelKey: "nav.chart" as const, icon: UserRound, testId: "nav-chart" },
-  { href: "/transits", labelKey: "nav.today" as const, icon: Activity, testId: "nav-today" },
   { href: "/biohack", labelKey: "nav.protocols" as const, icon: FlaskConical, testId: "nav-protocols" },
+  { href: "/transits", labelKey: "nav.today" as const, icon: Activity, testId: "nav-today" },
+  { href: "/profile", labelKey: "nav.chart" as const, icon: UserRound, testId: "nav-chart" },
   { href: "/soul", labelKey: "nav.soul" as const, icon: Sparkles, testId: "nav-soul" },
 ];
 
@@ -200,7 +200,10 @@ export function Header() {
           </div>
         </div>
 
-        <nav className="mt-2 flex flex-wrap gap-1" aria-label={t("nav.primary")}>
+        <nav
+          className="mt-2 flex flex-nowrap gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label={t("nav.primary")}
+        >
           {nav.map(({ href, labelKey, icon: Icon, testId }) => {
             const active = pathname === href;
             return (
@@ -209,10 +212,10 @@ export function Header() {
                 href={href}
                 data-testid={testId}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs sm:gap-1.5 sm:px-3 sm:text-sm ${
+                className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs sm:gap-1.5 sm:px-3 sm:text-sm ${
                   active
-                    ? "bg-growth/20 text-growth"
-                    : "text-fg-muted hover:bg-sunken hover:text-fg"
+                    ? "border-growth/40 bg-growth-soft font-medium text-growth"
+                    : "border-transparent text-fg-muted hover:bg-sunken hover:text-fg"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
