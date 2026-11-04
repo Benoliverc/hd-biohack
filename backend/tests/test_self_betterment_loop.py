@@ -115,6 +115,37 @@ def test_timezone_update_and_clear():
     print("PASS: timezone update/clear")
 
 
+def test_first_name_update_and_clear():
+    user = _ensure_user()
+    r = client.patch(
+        f"/users/{user.id}/settings",
+        json={"first_name": "  Benjamin  "},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["first_name"] == "Benjamin"
+
+    got = client.get(f"/users/{user.id}")
+    assert got.status_code == 200
+    assert got.json()["first_name"] == "Benjamin"
+    # first_name must not overwrite display_name
+    assert got.json()["display_name"] == user.display_name
+
+    cleared = client.patch(
+        f"/users/{user.id}/settings",
+        json={"first_name": "   "},
+    )
+    assert cleared.status_code == 200
+    assert cleared.json()["first_name"] is None
+
+    nulled = client.patch(
+        f"/users/{user.id}/settings",
+        json={"first_name": None},
+    )
+    assert nulled.status_code == 200
+    assert nulled.json()["first_name"] is None
+    print("PASS: first_name update/clear")
+
+
 def test_intention_upsert():
     user = _ensure_user()
     day = "2026-10-30"

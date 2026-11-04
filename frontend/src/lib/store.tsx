@@ -57,6 +57,7 @@ const FALLBACK_USER: User = {
   biohacking_enabled: false,
   preferred_timezone: null,
   preferred_locale: null,
+  first_name: null,
   is_admin: false,
 };
 

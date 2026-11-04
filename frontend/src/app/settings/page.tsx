@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
 import { useI18n, translate, type Locale } from "@/lib/i18n";
-import { Languages, Clock } from "lucide-react";
+import { Languages, Clock, UserRound } from "lucide-react";
 
 /** Curated common IANA zones — free-text still accepted below. */
 const COMMON_TIMEZONES = [
@@ -38,8 +38,10 @@ export default function SettingsPage() {
   const [tzCustom, setTzCustom] = useState("");
   const [useCustom, setUseCustom] = useState(false);
   const [langSelect, setLangSelect] = useState<Locale>(locale);
+  const [firstName, setFirstName] = useState("");
   const [savingTz, setSavingTz] = useState(false);
   const [savingLang, setSavingLang] = useState(false);
+  const [savingName, setSavingName] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,10 +63,37 @@ export default function SettingsPage() {
     setLangSelect(locale);
   }, [locale]);
 
+  useEffect(() => {
+    if (!user) return;
+    setFirstName(user.first_name?.trim() || "");
+  }, [user?.id, user?.first_name]);
+
   const effectiveValue = useMemo(() => {
     if (useCustom) return tzCustom.trim();
     return tzSelect.trim();
   }, [useCustom, tzCustom, tzSelect]);
+
+  const saveFirstName = useCallback(async () => {
+    if (!user) return;
+    setSavingName(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const next = firstName.trim() || null;
+      const updated = await api.patchUserSettings(user.id, {
+        first_name: next,
+      });
+      setSessionUser(updated);
+      setFirstName(updated.first_name?.trim() || "");
+      setFeedback(
+        next ? t("settings.savedName", { name: next }) : t("settings.savedNameCleared")
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingName(false);
+    }
+  }, [user, firstName, setSessionUser, t]);
 
   const saveTimezone = useCallback(async () => {
     if (!user) return;
@@ -174,6 +203,45 @@ export default function SettingsPage() {
           )}
         </div>
       )}
+
+      <section
+        className="space-y-3 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
+        data-testid="settings-first-name"
+      >
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
+            <UserRound className="h-4 w-4 shrink-0 text-growth" aria-hidden />
+            {t("settings.nameTitle")}
+          </h2>
+          <p className="mt-1 text-xs text-fg-muted">{t("settings.nameHelp")}</p>
+        </div>
+
+        <label className="block text-sm text-fg-secondary" htmlFor="first-name">
+          {t("settings.nameLabel")}
+        </label>
+        <input
+          id="first-name"
+          type="text"
+          maxLength={64}
+          autoComplete="given-name"
+          placeholder={t("settings.namePlaceholder")}
+          value={firstName}
+          disabled={savingName}
+          data-testid="settings-first-name-input"
+          className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+          onChange={(e) => setFirstName(e.target.value)}
+        />
+
+        <button
+          type="button"
+          disabled={savingName}
+          data-testid="settings-first-name-save"
+          onClick={() => void saveFirstName()}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-50 sm:w-auto"
+        >
+          {savingName ? t("common.saving") : t("settings.saveName")}
+        </button>
+      </section>
 
       <section
         className="space-y-3 rounded-2xl border border-border bg-elevated p-5 shadow-soft"

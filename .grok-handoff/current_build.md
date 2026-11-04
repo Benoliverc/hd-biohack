@@ -1,4 +1,11 @@
-# Current build — PR #56 Deep Dive richer profiles + channels SHIPPED
+# Current build — WIP first-name greeting · #56/#58 shipped
+
+## WIP — Settings first name + Home greeting (`feat/home-first-name-greeting`)
+- **Branch / worktree:** `feat/home-first-name-greeting` @ `/workspace/hd-biohack-wt-first-name`
+- **Scope:** FE + light API — nullable `User.first_name`, Settings “Your name”, Home daypart greeting when set
+- **Handoff:** `.grok-handoff/home-first-name-greeting-2026-11-05.md`
+- **PR:** opening — **hold merge** for UX → Ship Gate → Benjamin yes
+- **Deploy when shipped:** Railway + Vercel
 
 ## SHIPPED — PR #56 Deep Dive richer profiles + channels
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/56
@@ -15,8 +22,11 @@
   - Smoke: live JS chunk includes richer “One more anchor” / “In practice” / 6/2 essay copy
 - Soft residuals ride: dup “One more anchor” on 7/12, templated channel stems, en-GB mix, heading weight
 
-## PARALLEL (do not block)
-- **PR #58** Home card order + copy — `feat/home-card-order-copy` / tip `c4aded5` — hold for Ship Gate → Benjamin yes · Vercel only
+## SHIPPED — PR #58 Home card order + copy
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/58
+- **Merge SHA:** `182cd25` (merge) · feat tip `c4aded5`
+- **Scope:** FE-only — Home Protocols→Today→Chart→Soul + copy refresh
+- **Vercel:** via subsequent main deploys (see #56 above)
 
 ## SHIPPED — PR #53 Today's Move no-dup supplements
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/53
