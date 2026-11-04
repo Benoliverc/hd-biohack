@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
 import { useI18n, translate, type Locale } from "@/lib/i18n";
+import { Languages, Clock } from "lucide-react";
 
 /** Curated common IANA zones — free-text still accepted below. */
 const COMMON_TIMEZONES = [
@@ -175,11 +176,14 @@ export default function SettingsPage() {
       )}
 
       <section
-        className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
+        className="space-y-3 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
         data-testid="settings-language"
       >
         <div>
-          <h2 className="text-base font-semibold text-fg">{t("settings.languageTitle")}</h2>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
+            <Languages className="h-4 w-4 shrink-0 text-growth" aria-hidden />
+            {t("settings.languageTitle")}
+          </h2>
           <p className="mt-1 text-xs text-fg-muted">{t("settings.languageHelp")}</p>
         </div>
 
@@ -215,11 +219,14 @@ export default function SettingsPage() {
       </section>
 
       <section
-        className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
+        className="space-y-3 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
         data-testid="settings-timezone"
       >
         <div>
-          <h2 className="text-base font-semibold text-fg">{t("settings.timezoneTitle")}</h2>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
+            <Clock className="h-4 w-4 shrink-0 text-growth" aria-hidden />
+            {t("settings.timezoneTitle")}
+          </h2>
           <p className="mt-1 text-xs text-fg-muted">{t("settings.timezoneHelp")}</p>
         </div>
 
@@ -294,7 +301,12 @@ export default function SettingsPage() {
 
       </section>
 
-      <p className="text-xs text-fg-muted">{t("settings.footerAccount")}</p>
+      <p
+        className="rounded-xl border border-border/80 bg-elevated/70 px-4 py-3 text-xs text-fg-muted shadow-soft"
+        data-testid="settings-footer-account"
+      >
+        {t("settings.footerAccount")}
+      </p>
     </div>
   );
 }

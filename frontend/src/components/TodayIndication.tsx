@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Zap, BatteryMedium, MapPin } from "lucide-react";
 import type { TodayIndicationPayload, VsYesterdayDelta } from "@/lib/api";
 import {
   useI18n,
@@ -90,7 +91,7 @@ export default function TodayIndication({
 
   return (
     <div
-      className="rounded-2xl border border-border bg-elevated p-5"
+      className="rounded-2xl border border-border bg-elevated p-5 shadow-soft"
       data-testid="today-indication"
     >
       <div className="mb-3">
@@ -110,7 +111,8 @@ export default function TodayIndication({
 
       {daily ? (
         <div className="mb-4" data-testid="daily-signal">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-energy-ink">
+          <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
+            <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t("today.newSignal")}
           </p>
           <h3
@@ -146,69 +148,97 @@ export default function TodayIndication({
       ) : null}
 
       <div
-        className="mb-4 rounded-xl border border-border bg-canvas p-4 shadow-soft"
+        className="mb-4 rounded-xl border border-growth/25 bg-canvas p-4 shadow-soft ring-1 ring-growth/10"
         data-testid="main-action"
       >
-        <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-growth">
-          {t("today.mainAction")}
-        </h3>
-        <p className="text-sm font-medium text-fg" data-testid="main-action-text">
-          {indication.main_action_text}
-        </p>
-        {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
-          <details className="mt-2 group" data-testid="main-action-why-details">
-            <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
-              <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden className="text-fg-secondary group-open:rotate-90 transition-transform inline-block">
-                  ▸
-                </span>
-                {t("today.why")}
-              </span>
-            </summary>
-            {indication.main_action_micro ? (
-              <p
-                className="mt-2 text-sm text-fg-secondary"
-                data-testid="main-action-micro"
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-growth">
+              {t("today.mainAction")}
+            </h3>
+            <p className="text-sm font-medium text-fg" data-testid="main-action-text">
+              {indication.main_action_text}
+            </p>
+            {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
+              <details className="mt-2 group" data-testid="main-action-why-details">
+                <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span aria-hidden className="inline-block text-fg-secondary transition-transform group-open:rotate-90">
+                      ▸
+                    </span>
+                    {t("today.why")}
+                  </span>
+                </summary>
+                {indication.main_action_micro ? (
+                  <p
+                    className="mt-2 text-sm text-fg-secondary"
+                    data-testid="main-action-micro"
+                  >
+                    {indication.main_action_micro}
+                  </p>
+                ) : null}
+                {indication.main_action_why ? (
+                  <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
+                    {indication.main_action_why}
+                  </p>
+                ) : null}
+                {indication.drivers?.length ? (
+                  <div className="mt-2" data-testid="indication-drivers">
+                    <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
+                      {t("today.chartNotes")}
+                    </p>
+                    <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
+                      {indication.drivers.slice(0, 4).map((d) => (
+                        <li key={d}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </details>
+            ) : null}
+            {indication.save_chart_cta ? (
+              <Link
+                href="/profile"
+                className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+                data-testid="indication-save-chart-cta"
               >
-                {indication.main_action_micro}
-              </p>
-            ) : null}
-            {indication.main_action_why ? (
-              <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
-                {indication.main_action_why}
-              </p>
-            ) : null}
-            {indication.drivers?.length ? (
-              <div className="mt-2" data-testid="indication-drivers">
-                <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
-                  {t("today.chartNotes")}
-                </p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
-                  {indication.drivers.slice(0, 4).map((d) => (
-                    <li key={d}>{d}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </details>
-        ) : null}
-        {indication.save_chart_cta ? (
-          <Link
-            href="/profile"
-            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
-            data-testid="indication-save-chart-cta"
+                {t("today.saveNatal")}
+              </Link>
+            ) : (
+              <Link
+                href="/biohack"
+                className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+                data-testid="open-protocols-secondary"
+              >
+                {t("protocols.openProtocols")}
+              </Link>
+            )}
+          </div>
+          <aside
+            className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-44 sm:flex-col"
+            data-testid="main-action-status"
+            aria-label={t("today.stillConditioning")}
           >
-            {t("today.saveNatal")}
-          </Link>
-        ) : (
-          <Link
-            href="/biohack"
-            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
-            data-testid="open-protocols-secondary"
-          >
-            {t("protocols.openProtocols")}
-          </Link>
-        )}
+            <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
+              <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                <BatteryMedium className="h-3 w-3" aria-hidden />
+                {t("today.energy")}
+              </p>
+              <span className="inline-flex items-center rounded-md border border-growth/40 bg-growth-soft px-2 py-0.5 text-xs font-semibold text-growth-ink">
+                {energyLabel}
+              </span>
+            </div>
+            <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
+              <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                <MapPin className="h-3 w-3" aria-hidden />
+                {t("today.space")}
+              </p>
+              <span className="inline-flex items-center rounded-md border border-energy/40 bg-energy-soft px-2 py-0.5 text-xs font-semibold text-energy-ink">
+                {spaceLabel}
+              </span>
+            </div>
+          </aside>
+        </div>
       </div>
 
       <div

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight, ChevronDown, Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
@@ -598,6 +599,7 @@ export default function BiohackPage() {
         why: sanitizeWhy(row.why, inInv),
         inInventory: inInv,
         momentChip: inInv ? row.moment_chip || undefined : undefined,
+        slot,
         kind: "move",
       });
     }
@@ -762,12 +764,13 @@ export default function BiohackPage() {
 
       {(protocol || youChart) && (
         <details
-          className="rounded-2xl border border-border bg-elevated px-4 py-3"
+          className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
           data-testid="shelf-disclosure"
         >
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex flex-wrap items-center gap-2">
-              <span aria-hidden className="text-fg-secondary">▸</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary group-open:rotate-90 transition-transform" aria-hidden />
+              <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
               <span>{t("page.protocols.shelf")}</span>
               <span className="text-xs font-normal text-fg-secondary">
                 · {inventoryLoading ? "…" : inventory.length}
@@ -800,12 +803,12 @@ export default function BiohackPage() {
 
       {protocol && daily && (
         <details
-          className="rounded-2xl border border-border bg-elevated px-4 py-3"
+          className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
           data-testid="intention-disclosure"
         >
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex flex-wrap items-center gap-2">
-              <span aria-hidden className="text-fg-secondary">▸</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
               <span>{t("page.protocols.intention")}</span>
               <span className="text-xs font-normal text-fg-secondary">
                 · {intention.trim()
@@ -1251,10 +1254,14 @@ function InventoryPanel({
         className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left"
         aria-expanded={open}
       >
-        <span className="text-sm font-semibold text-fg">
+        <span className="inline-flex items-center gap-2 text-sm font-semibold text-fg">
+          <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
           Your kit{count > 0 ? ` (${count})` : ""}
         </span>
-        <span className="text-xs text-fg-muted">{open ? "Hide" : "Show"}</span>
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-fg-secondary">
+          {open ? "Hide" : "Show"}
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+        </span>
       </button>
       {open && (
         <div className="border-t border-border px-4 pb-4 pt-3">

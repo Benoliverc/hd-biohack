@@ -20,5 +20,7 @@ export type CheckItem = {
   why?: string;
   inInventory?: boolean;
   momentChip?: string;
+  /** Timed lead slot — glyph on Move rows. */
+  slot?: "morning" | "midday" | "evening";
   kind: CompletionKind;
 };
