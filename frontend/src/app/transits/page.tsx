@@ -1,5 +1,6 @@
-import { useI18n } from "@/lib/i18n";
 "use client";
+
+import { useI18n } from "@/lib/i18n";
 
 import { useEffect, useState } from "react";
 import { api, type SavedChartRow } from "@/lib/api";
