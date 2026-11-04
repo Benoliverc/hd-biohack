@@ -415,36 +415,32 @@ export function ChartDeepDive({
 
         {active === "channels" && (
           <div className="space-y-2">
-            <Accordion
-              title="Active channels"
-              subtitle={`${channels.length} defined`}
-              defaultOpen={channels.length > 0 && channels.length <= 8}
-            >
-              {channels.length === 0 ? (
-                <p>No full channels (Reflector or hanging-only activations).</p>
-              ) : (
-                <ul className="space-y-2">
-                  {channels.map((ch) => {
-                    const g = (ch.gates as number[]) || [];
-                    const centers = ((ch.centers as string[]) || []).map(displayCenter).join(" ↔ ");
-                    return (
-                      <li
-                        key={`${g.join("-")}-${String(ch.name)}`}
-                        className="rounded-lg bg-sunken/80 px-3 py-2"
-                      >
-                        <div className="font-medium text-growth">
-                          {g.join("–")} — {String(ch.name)}
-                        </div>
-                        <div className="text-xs text-fg-muted">{centers}</div>
-                        <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary whitespace-pre-line">
-                          {channelMeaning(g, String(ch.name || ""))}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </Accordion>
+            {channels.length === 0 ? (
+              <div className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm text-fg-secondary">
+                No full channels (Reflector or hanging-only activations).
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-fg-muted">
+                  Active channels · {channels.length} defined. Tap each to expand.
+                </p>
+                {channels.map((ch) => {
+                  const g = (ch.gates as number[]) || [];
+                  const centers = ((ch.centers as string[]) || []).map(displayCenter).join(" ↔ ");
+                  const name = String(ch.name || "");
+                  return (
+                    <Accordion
+                      key={`${g.join("-")}-${name}`}
+                      title={`${g.join("–")} — ${name}`}
+                      subtitle={centers || undefined}
+                      defaultOpen={channels.length === 1}
+                    >
+                      {channelMeaning(g, name)}
+                    </Accordion>
+                  );
+                })}
+              </>
+            )}
 
             <Accordion title="Activated gates" subtitle={`${gates.length} gates`}>
               <div className="flex flex-wrap gap-1.5">
