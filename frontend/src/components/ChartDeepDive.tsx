@@ -436,7 +436,7 @@ export function ChartDeepDive({
                           {g.join("–")} — {String(ch.name)}
                         </div>
                         <div className="text-xs text-fg-muted">{centers}</div>
-                        <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary">
+                        <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary whitespace-pre-line">
                           {channelMeaning(g, String(ch.name || ""))}
                         </p>
                       </li>
