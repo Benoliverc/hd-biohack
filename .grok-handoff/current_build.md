@@ -4,7 +4,8 @@
 - **Branch / worktree:** `feat/home-first-name-greeting` @ `/workspace/hd-biohack-wt-first-name`
 - **Scope:** FE + light API — nullable `User.first_name`, Settings “Your name”, Home daypart greeting when set
 - **Handoff:** `.grok-handoff/home-first-name-greeting-2026-11-05.md`
-- **PR:** opening — **hold merge** for UX → Ship Gate → Benjamin yes
+- **Tip:** `8fb18d5` (`8fb18d5ce479e023d101063dfd7c99b0c96c97bc`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/60 — **hold merge** for UX → Ship Gate → Benjamin yes
 - **Deploy when shipped:** Railway + Vercel
 
 ## SHIPPED — PR #56 Deep Dive richer profiles + channels
