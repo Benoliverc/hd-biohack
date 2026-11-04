@@ -6,13 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { Activity, FlaskConical, LogOut, Orbit, Settings, Shield, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
+import { useI18n } from "@/lib/i18n";
 
 const nav = [
-  { href: "/", label: "Home", icon: Orbit, testId: "nav-home" },
-  { href: "/profile", label: "Chart", icon: UserRound, testId: "nav-chart" },
-  { href: "/transits", label: "Today", icon: Activity, testId: "nav-today" },
-  { href: "/biohack", label: "Protocols", icon: FlaskConical, testId: "nav-protocols" },
-  { href: "/soul", label: "Soul", icon: Sparkles, testId: "nav-soul" },
+  { href: "/", labelKey: "nav.home" as const, icon: Orbit, testId: "nav-home" },
+  { href: "/profile", labelKey: "nav.chart" as const, icon: UserRound, testId: "nav-chart" },
+  { href: "/transits", labelKey: "nav.today" as const, icon: Activity, testId: "nav-today" },
+  { href: "/biohack", labelKey: "nav.protocols" as const, icon: FlaskConical, testId: "nav-protocols" },
+  { href: "/soul", labelKey: "nav.soul" as const, icon: Sparkles, testId: "nav-soul" },
 ];
 
 const showDevControls =
@@ -74,13 +75,14 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, previewAsFree, signOut } = useApp();
+  const { t } = useI18n();
   const headerRef = useRef<HTMLElement>(null);
 
   // Badge follows subscription_tier (and Preview as Free) — never "Pro" just because paywall env is off.
   const tierIsPro =
     !previewAsFree &&
     Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
-  const tierBadge = tierIsPro ? "Pro" : "Free";
+  const tierBadge = tierIsPro ? t("tier.pro") : t("tier.free");
 
   useEffect(() => {
     const el = headerRef.current;
@@ -112,10 +114,10 @@ export function Header() {
         <div className="flex items-center justify-between gap-2">
           <Link
             href="/"
-            title="Home"
+            title={t("nav.home")}
             className="min-w-0 shrink truncate text-base font-semibold tracking-tight text-growth sm:text-lg"
           >
-            Baseline
+            {t("brand.name")}
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted sm:gap-2">
             {showDevControls && (
@@ -137,7 +139,7 @@ export function Header() {
                   <Link
                     href="/admin"
                     data-testid="nav-admin"
-                    title="Admin usage"
+                    title={t("nav.admin")}
                     className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
                       pathname === "/admin"
                         ? "border-growth/40 bg-growth/15 text-growth"
@@ -145,13 +147,13 @@ export function Header() {
                     }`}
                   >
                     <Shield className="h-3.5 w-3.5" aria-hidden />
-                    <span>Admin</span>
+                    <span>{t("nav.admin")}</span>
                   </Link>
                 )}
                 <Link
                   href="/settings"
                   data-testid="nav-settings"
-                  title="Settings"
+                  title={t("nav.settings")}
                   className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
                     pathname === "/settings"
                       ? "border-growth/40 bg-growth/15 text-growth"
@@ -159,7 +161,7 @@ export function Header() {
                   }`}
                 >
                   <Settings className="h-3.5 w-3.5" aria-hidden />
-                  <span className="hidden sm:inline">Settings</span>
+                  <span className="hidden sm:inline">{t("nav.settings")}</span>
                 </Link>
                 <button
                   type="button"
@@ -171,7 +173,7 @@ export function Header() {
                   }}
                 >
                   <LogOut className="h-3.5 w-3.5" aria-hidden />
-                  <span>Sign out</span>
+                  <span>{t("nav.signOut")}</span>
                 </button>
               </>
             ) : (
@@ -180,7 +182,7 @@ export function Header() {
                 data-testid="header-sign-in"
                 className="inline-flex min-h-10 items-center rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
               >
-                Sign in
+                {t("nav.signIn")}
               </Link>
             )}
             {user && (
@@ -198,8 +200,8 @@ export function Header() {
           </div>
         </div>
 
-        <nav className="mt-2 flex flex-wrap gap-1" aria-label="Primary">
-          {nav.map(({ href, label, icon: Icon, testId }) => {
+        <nav className="mt-2 flex flex-wrap gap-1" aria-label={t("nav.primary")}>
+          {nav.map(({ href, labelKey, icon: Icon, testId }) => {
             const active = pathname === href;
             return (
               <Link
@@ -214,7 +216,7 @@ export function Header() {
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                <span className="whitespace-nowrap">{label}</span>
+                <span className="whitespace-nowrap">{t(labelKey)}</span>
               </Link>
             );
           })}

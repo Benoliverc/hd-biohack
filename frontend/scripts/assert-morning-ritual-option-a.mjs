@@ -47,7 +47,7 @@ if (/bg-growth-soft p-5/.test(move) || /border-growth\/40 bg-growth-soft/.test(m
   fail("TodaysMoveCard still uses full growth-soft wash");
 }
 if (!/data-testid="todays-move"/.test(move)) fail("TodaysMoveCard missing test id");
-if (!/Today&apos;s Move|Today's Move/.test(move)) fail("must keep Today's Move naming");
+if (!/Today&apos;s Move|Today's Move|protocols\.moveTitle/.test(move)) fail("must keep Today's Move naming");
 
 // Main action: sand/canvas, not growth-soft wash; Why closed contract; micro inside Why
 if (/main-action[\s\S]{0,120}bg-growth-soft/.test(todayInd)) {
@@ -68,13 +68,13 @@ if (!/home-secondary-today/.test(home)) fail("Home missing Today’s sky seconda
 // Must not have two bg-growth fills in the hasChart+Pro branch for Chart+Protocols
 const continueStripGrowth =
   /bg-growth-soft\/40[\s\S]{0,400}bg-growth/.test(home) &&
-  /Open Protocols/.test(home.match(/bg-growth-soft\/40[\s\S]{0,500}/)?.[0] || "");
+  /Open Protocols|home\.cta\.openProtocols/.test(home.match(/bg-growth-soft\/40[\s\S]{0,500}/)?.[0] || "");
 if (continueStripGrowth) fail("Home continue strip still has second growth Open Protocols");
 
 // WeatherStrip energy for sky-did chip
 if (/whats-new-chip[\s\S]{0,80}bg-growth-soft/.test(weather)) {
   fail("whats-new chip should use energy, not growth wash");
 }
-if (!/Full sky on Today/.test(weather)) fail("WeatherStrip Full sky link missing");
+if (!/Full sky on Today|protocols\.fullSkyOnToday/.test(weather)) fail("WeatherStrip Full sky link missing");
 
 console.log("assert-morning-ritual-option-a PASS");

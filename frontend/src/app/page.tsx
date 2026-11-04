@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { Activity, FlaskConical, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 export default function HomePage() {
   const { natalChart, natalBindingLoading, biohackingUnlocked } = useApp();
+  const { t } = useI18n();
   const ready = !natalBindingLoading;
   const hasChart = ready && Boolean(natalChart);
 
-  const chartLabel = natalChart?.label?.trim() || "Me";
+  const chartLabel = natalChart?.label?.trim() || t("common.me");
   const chipParts = [
-    natalChart?.label?.trim() || "Me",
+    natalChart?.label?.trim() || t("common.me"),
     natalChart?.birth_city?.trim(),
     natalChart?.birth_date?.trim(),
   ].filter(Boolean);
@@ -22,7 +24,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="rounded-3xl border border-border bg-elevated p-6 sm:p-8">
         <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-growth">
-          Baseline · chart · sky · move
+          {t("home.eyebrow")}
         </p>
 
         {natalBindingLoading ? (
@@ -34,18 +36,18 @@ export default function HomePage() {
           <>
             <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl md:leading-tight">
               {hasChart
-                ? "Continue with your chart"
-                : "Know your chart. Run today with it."}
+                ? t("home.title.hasChart")
+                : t("home.title.noChart")}
             </h1>
             <p className="max-w-2xl text-fg-secondary">
               {hasChart
                 ? biohackingUnlocked
-                  ? "Chart and today’s sky stay free. Protocols turn the sky into a checkable move — using your kit when you own it."
-                  : "Chart and today’s sky stay free. Protocols (Today’s Move + kit) unlock with Pro."
-                : "Save your natal free. Today’s sky stays free. Protocols unlock with Pro when you’re ready."}
+                  ? t("home.blurb.pro")
+                  : t("home.blurb.free")
+                : t("home.blurb.noChart")}
             </p>
             <p className="mt-2 text-xs font-medium tracking-wide text-fg-secondary">
-              Chart → Today’s sky → Today’s Move → Soul
+              {t("home.path")}
             </p>
           </>
         )}
@@ -65,13 +67,13 @@ export default function HomePage() {
                 data-testid="home-calculate-chart"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep sm:w-auto"
               >
-                Calculate my chart
+                {t("home.cta.calculate")}
               </Link>
               <Link
                 href="/transits"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-energy sm:w-auto"
               >
-                See today’s sky
+                {t("home.cta.seeSky")}
               </Link>
             </>
           ) : biohackingUnlocked ? (
@@ -81,21 +83,21 @@ export default function HomePage() {
                 data-testid="home-primary-protocols"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep sm:w-auto"
               >
-                Open Protocols
+                {t("home.cta.openProtocols")}
               </Link>
               <Link
                 href="/transits"
                 data-testid="home-secondary-today"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-energy sm:w-auto"
               >
-                Today’s sky
+                {t("home.cta.todaysSky")}
               </Link>
               <Link
                 href="/profile"
                 data-testid="home-calculate-chart"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium text-fg-secondary underline-offset-2 hover:underline sm:w-auto"
               >
-                Open chart
+                {t("home.cta.openChart")}
               </Link>
             </>
           ) : (
@@ -105,21 +107,21 @@ export default function HomePage() {
                 data-testid="home-primary-today"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep sm:w-auto"
               >
-                Today’s sky
+                {t("home.cta.todaysSky")}
               </Link>
               <Link
                 href="/profile"
                 data-testid="home-calculate-chart"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-growth sm:w-auto"
               >
-                Open your chart
+                {t("home.cta.openYourChart")}
               </Link>
               <Link
                 href="/biohack"
                 data-testid="home-view-protocols-ghost"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium text-fg-secondary underline-offset-2 hover:underline sm:w-auto"
               >
-                Protocols (Pro)
+                {t("home.cta.protocolsPro")}
               </Link>
             </>
           )}
@@ -136,13 +138,13 @@ export default function HomePage() {
                 href="/profile"
                 className="shrink-0 text-sm font-medium text-fg-secondary underline-offset-2 hover:underline"
               >
-                Change
+                {t("common.change")}
               </Link>
             </div>
             <p className="text-[11px] text-fg-secondary">
               {biohackingUnlocked
-                ? "Morning path: Protocols → tick Today’s Move"
-                : "Pro unlocks the live move — Free keeps Chart + Today"}
+                ? t("home.morning.pro")
+                : t("home.morning.free")}
             </p>
           </div>
         ) : null}

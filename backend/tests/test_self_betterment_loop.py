@@ -218,3 +218,47 @@ if __name__ == "__main__":
     test_intention_upsert()
     test_completion_reflection_sync()
     print("ALL PASS")
+
+
+def test_locale_update_and_clear():
+    user = _ensure_user()
+    r = client.patch(
+        f"/users/{user.id}/settings",
+        json={"preferred_locale": "nl"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["preferred_locale"] == "nl"
+
+    got = client.get(f"/users/{user.id}")
+    assert got.status_code == 200
+    assert got.json()["preferred_locale"] == "nl"
+
+    for code in ("de", "fr", "es", "en"):
+        ok = client.patch(
+            f"/users/{user.id}/settings",
+            json={"preferred_locale": code},
+        )
+        assert ok.status_code == 200, ok.text
+        assert ok.json()["preferred_locale"] == code
+
+    # Region tags collapse to primary
+    region = client.patch(
+        f"/users/{user.id}/settings",
+        json={"preferred_locale": "nl-BE"},
+    )
+    assert region.status_code == 200, region.text
+    assert region.json()["preferred_locale"] == "nl"
+
+    bad = client.patch(
+        f"/users/{user.id}/settings",
+        json={"preferred_locale": "zh"},
+    )
+    assert bad.status_code == 400
+
+    cleared = client.patch(
+        f"/users/{user.id}/settings",
+        json={"preferred_locale": None},
+    )
+    assert cleared.status_code == 200
+    assert cleared.json()["preferred_locale"] is None
+    print("PASS: locale update/clear")

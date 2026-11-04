@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
+import { useI18n, type Locale } from "@/lib/i18n";
 
 /** Curated common IANA zones — free-text still accepted below. */
 const COMMON_TIMEZONES = [
@@ -31,10 +32,13 @@ const COMMON_TIMEZONES = [
 
 export default function SettingsPage() {
   const { user, setSessionUser, sessionReady } = useApp();
+  const { t, locale, setLocale, locales, labels } = useI18n();
   const [tzSelect, setTzSelect] = useState<string>("");
   const [tzCustom, setTzCustom] = useState("");
   const [useCustom, setUseCustom] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [langSelect, setLangSelect] = useState<Locale>(locale);
+  const [savingTz, setSavingTz] = useState(false);
+  const [savingLang, setSavingLang] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,14 +56,18 @@ export default function SettingsPage() {
     }
   }, [user?.id, user?.preferred_timezone]);
 
+  useEffect(() => {
+    setLangSelect(locale);
+  }, [locale]);
+
   const effectiveValue = useMemo(() => {
     if (useCustom) return tzCustom.trim();
     return tzSelect.trim();
   }, [useCustom, tzCustom, tzSelect]);
 
-  const save = useCallback(async () => {
+  const saveTimezone = useCallback(async () => {
     if (!user) return;
-    setSaving(true);
+    setSavingTz(true);
     setError(null);
     setFeedback(null);
     try {
@@ -70,27 +78,73 @@ export default function SettingsPage() {
       setSessionUser(updated);
       setFeedback(
         nextTz
-          ? `Saved · Protocols days use ${nextTz}`
-          : `Saved · Protocols days fall back to ${DEFAULT_PROTOCOLS_TZ}`
+          ? t("settings.savedTz", { tz: nextTz })
+          : t("settings.savedTzDefault", { tz: DEFAULT_PROTOCOLS_TZ })
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setSaving(false);
+      setSavingTz(false);
     }
-  }, [user, effectiveValue, setSessionUser]);
+  }, [user, effectiveValue, setSessionUser, t]);
+
+  const saveLanguage = useCallback(async () => {
+    if (!user) return;
+    setSavingLang(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      // Apply immediately so chrome switches without waiting on the round-trip.
+      setLocale(langSelect);
+      const updated = await api.patchUserSettings(user.id, {
+        preferred_locale: langSelect,
+      });
+      setSessionUser(updated);
+      setFeedback(
+        t("settings.savedLanguage", { label: labels[langSelect] })
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingLang(false);
+    }
+  }, [user, langSelect, setLocale, setSessionUser, t, labels]);
+
+  const onLanguageChange = useCallback(
+    async (next: Locale) => {
+      setLangSelect(next);
+      // Soft apply on change (same UX as immediate chrome switch).
+      setLocale(next);
+      if (!user) return;
+      setSavingLang(true);
+      setError(null);
+      setFeedback(null);
+      try {
+        const updated = await api.patchUserSettings(user.id, {
+          preferred_locale: next,
+        });
+        setSessionUser(updated);
+        setFeedback(t("settings.savedLanguage", { label: labels[next] }));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setSavingLang(false);
+      }
+    },
+    [user, setLocale, setSessionUser, t, labels]
+  );
 
   if (!sessionReady) {
-    return <p className="text-sm text-fg-muted">Loading…</p>;
+    return <p className="text-sm text-fg-muted">{t("common.loading")}</p>;
   }
 
   if (!user) {
     return (
       <p className="text-sm text-fg-muted">
         <Link href="/login" className="underline">
-          Sign in
+          {t("empty.signInSettings")}
         </Link>{" "}
-        to manage settings.
+        {t("settings.signInPrompt")}
       </p>
     );
   }
@@ -98,30 +152,65 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6" data-testid="settings-page">
       <div>
-        <h1 className="text-2xl font-semibold text-fg">Settings</h1>
-        <p className="mt-1 text-sm text-fg-secondary">
-          Account preferences — available on Free and Pro.
-        </p>
+        <h1 className="text-2xl font-semibold text-fg">{t("settings.title")}</h1>
+        <p className="mt-1 text-sm text-fg-secondary">{t("settings.subtitle")}</p>
       </div>
+
+      <section
+        className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
+        data-testid="settings-language"
+      >
+        <div>
+          <h2 className="text-base font-semibold text-fg">{t("settings.languageTitle")}</h2>
+          <p className="mt-1 text-xs text-fg-muted">{t("settings.languageHelp")}</p>
+        </div>
+
+        <label className="block text-sm text-fg-secondary" htmlFor="lang-select">
+          {t("settings.languageLabel")}
+        </label>
+        <select
+          id="lang-select"
+          disabled={savingLang}
+          className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg disabled:opacity-60"
+          value={langSelect}
+          data-testid="settings-lang-select"
+          onChange={(e) => void onLanguageChange(e.target.value as Locale)}
+        >
+          {locales.map((code) => (
+            <option key={code} value={code}>
+              {labels[code]}
+            </option>
+          ))}
+        </select>
+
+        <p className="text-xs text-fg-muted">{t("gloss.hdTerms")}</p>
+
+        <button
+          type="button"
+          disabled={savingLang}
+          data-testid="settings-lang-save"
+          onClick={() => void saveLanguage()}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-canvas px-4 py-2.5 text-sm font-semibold text-fg hover:border-growth disabled:opacity-50 sm:w-auto"
+        >
+          {savingLang ? t("common.saving") : t("settings.saveLanguage")}
+        </button>
+      </section>
 
       <section
         className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
         data-testid="settings-timezone"
       >
         <div>
-          <h2 className="text-base font-semibold text-fg">Timezone</h2>
-          <p className="mt-1 text-xs text-fg-muted">
-            Used for Protocols week &amp; checklist days. Daily Novelty still resets at 07:00
-            Asia/Hong_Kong.
-          </p>
+          <h2 className="text-base font-semibold text-fg">{t("settings.timezoneTitle")}</h2>
+          <p className="mt-1 text-xs text-fg-muted">{t("settings.timezoneHelp")}</p>
         </div>
 
         <label className="block text-sm text-fg-secondary" htmlFor="tz-select">
-          Common zones
+          {t("settings.commonZones")}
         </label>
         <select
           id="tz-select"
-          disabled={useCustom || saving}
+          disabled={useCustom || savingTz}
           className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg disabled:opacity-60"
           value={tzSelect}
           data-testid="settings-tz-select"
@@ -130,7 +219,7 @@ export default function SettingsPage() {
             setUseCustom(false);
           }}
         >
-          <option value="">Default ({DEFAULT_PROTOCOLS_TZ})</option>
+          <option value="">{t("settings.defaultTz", { tz: DEFAULT_PROTOCOLS_TZ })}</option>
           {COMMON_TIMEZONES.map((z) => (
             <option key={z} value={z}>
               {z}
@@ -145,13 +234,13 @@ export default function SettingsPage() {
             data-testid="settings-tz-custom-toggle"
             onChange={(e) => setUseCustom(e.target.checked)}
           />
-          Use a custom IANA timezone
+          {t("settings.customTzToggle")}
         </label>
 
         {useCustom && (
           <div>
             <label className="block text-sm text-fg-secondary" htmlFor="tz-custom">
-              IANA name
+              {t("settings.ianaName")}
             </label>
             <input
               id="tz-custom"
@@ -159,7 +248,7 @@ export default function SettingsPage() {
               maxLength={128}
               placeholder="e.g. Pacific/Honolulu"
               value={tzCustom}
-              disabled={saving}
+              disabled={savingTz}
               data-testid="settings-tz-custom"
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted"
               onChange={(e) => setTzCustom(e.target.value)}
@@ -168,20 +257,21 @@ export default function SettingsPage() {
         )}
 
         <p className="text-xs text-fg-muted" data-testid="settings-tz-current">
-          Current:{" "}
+          {t("settings.current")}{" "}
           <span className="font-medium text-fg">
-            {user.preferred_timezone?.trim() || `Default (${DEFAULT_PROTOCOLS_TZ})`}
+            {user.preferred_timezone?.trim() ||
+              t("settings.defaultTz", { tz: DEFAULT_PROTOCOLS_TZ })}
           </span>
         </p>
 
         <button
           type="button"
-          disabled={saving}
+          disabled={savingTz}
           data-testid="settings-tz-save"
-          onClick={() => void save()}
+          onClick={() => void saveTimezone()}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-50 sm:w-auto"
         >
-          {saving ? "Saving…" : "Save timezone"}
+          {savingTz ? t("common.saving") : t("settings.saveTimezone")}
         </button>
 
         {feedback && (
@@ -196,9 +286,7 @@ export default function SettingsPage() {
         )}
       </section>
 
-      <p className="text-xs text-fg-muted">
-        Password and account deletion are not available here yet.
-      </p>
+      <p className="text-xs text-fg-muted">{t("settings.footerAccount")}</p>
     </div>
   );
 }

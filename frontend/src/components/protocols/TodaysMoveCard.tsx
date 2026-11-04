@@ -3,6 +3,7 @@
 import type { DayCompletions } from "@/lib/protocolCompletions";
 import { progressPct } from "@/lib/protocolCompletions";
 import type { CheckItem } from "./types";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Prove-it checklist for Protocols. Keeps "Today's Move" naming.
@@ -44,6 +45,7 @@ export function TodaysMoveCard({
   /** Slot id that rotated vs yesterday — badge only, no essay. */
   rotatedSlot?: string | null;
 }) {
+  const { t } = useI18n();
   const pct = progressPct(doneCount, items.length);
   const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
 
@@ -53,10 +55,10 @@ export function TodaysMoveCard({
       data-testid="todays-move"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold text-growth-ink">Today&apos;s Move</h2>
+        <h2 className="text-lg font-semibold text-growth-ink">{t("protocols.moveTitle")}</h2>
         {items.length > 0 && (
           <span className="text-xs text-fg-secondary" data-testid="protocol-done-count">
-            {doneCount}/{items.length} done · {pct}%
+            {t("protocols.donePct", { done: doneCount, total: items.length, pct })}
           </span>
         )}
       </div>
@@ -69,7 +71,7 @@ export function TodaysMoveCard({
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Today's move progress"
+          aria-label={t("protocols.moveProgress")}
         >
           <div
             className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
@@ -86,7 +88,7 @@ export function TodaysMoveCard({
           data-testid="protocol-move-complete"
           role="status"
         >
-          Today&apos;s move complete — nice work.
+          {t("protocols.moveComplete")}
         </div>
       )}
 
