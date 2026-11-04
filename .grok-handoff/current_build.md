@@ -1,8 +1,8 @@
 # Current build — Nav clarity A+B (active chrome + reorder)
 
-- **PR:** (pending — fill after `gh pr create`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/50
 - **Branch:** `feat/nav-clarity-a-b`
-- **Tip SHA:** (pending — fill after commit)
+- **Tip SHA:** `66bf5ac` (`66bf5ac55426b77b12f8ecc904a8f342e67a745a`) — docs tip; feat tip `29de444`
 - **Handoff:** `.grok-handoff/nav-clarity-a-plus-b-2026-11-04.md`
 - **Expert panel (context):** `.grok-handoff/nav-clarity-protocols-expert-panel-2026-11-04.md`
 - **Benjamin:** “A+B ship”
