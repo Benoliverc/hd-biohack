@@ -155,18 +155,19 @@ export default function HomePage() {
         <Link
           href="/profile"
           className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+          data-testid="home-card-chart"
         >
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
             <UserRound className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            Your blueprint
+            {t("home.outcome.chart.title")}
           </h2>
           <div className="flex-1 text-sm text-fg-secondary">
-            <p>Type, authority, centers, and gates — the map everything else uses.</p>
+            <p>{t("home.outcome.chart.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>You + friends you save (friends never drive Today or Protocols)</li>
-              <li>Why: Today, Protocols, and Soul all read this first</li>
+              <li>{t("home.outcome.chart.b1")}</li>
+              <li>{t("home.outcome.chart.b2")}</li>
             </ul>
           </div>
           <p className="mt-3 text-xs font-medium text-fg-secondary">
@@ -175,29 +176,30 @@ export default function HomePage() {
               : hasChart
                 ? natalChart?.label?.trim()
                   ? chartLabel
-                  : "Saved"
-                : "Not saved yet"}
+                  : t("home.status.saved")
+                : t("home.status.notSaved")}
           </p>
         </Link>
 
         <Link
           href="/transits"
           className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-energy"
+          data-testid="home-card-today"
         >
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-energy-ink">
-            Today
+            {t("home.card.today")}
           </p>
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-energy/15 text-energy-ink">
             <Activity className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            What’s active on you
+            {t("home.outcome.today.title")}
           </h2>
           <div className="flex-1 text-sm text-fg-secondary">
-            <p>Energy, space, and one main action from your natal × today’s sky.</p>
+            <p>{t("home.outcome.today.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Always your chart — friends stay on Chart &amp; Soul</li>
-              <li>Why: catch pressure and openings before you plan</li>
+              <li>{t("home.outcome.today.b1")}</li>
+              <li>{t("home.outcome.today.b2")}</li>
             </ul>
           </div>
         </Link>
@@ -211,47 +213,42 @@ export default function HomePage() {
             <FlaskConical className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            Today’s Move
+            {t("home.outcome.protocols.title")}
           </h2>
           <div className="flex-1 text-sm text-fg-secondary">
-            <p>
-              Weather from Today, a checkable day list, week theme — preferring compounds in
-              your kit.
-            </p>
+            <p>{t("home.outcome.protocols.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Auto-loads; Refresh rebuilds when the sky or kit changes</li>
-              <li>From your kit shows when your shelf steered the move</li>
+              <li>{t("home.outcome.protocols.b1")}</li>
+              <li>{t("home.outcome.protocols.b2")}</li>
             </ul>
           </div>
           <p className="mt-3 text-xs font-medium text-fg-secondary">
             {!ready
               ? "…"
               : !hasChart
-                ? "Needs a chart"
+                ? t("home.status.needsChart")
                 : biohackingUnlocked
-                  ? "Ready"
-                  : "Pro — unlock when you’re ready"}
+                  ? t("home.status.ready")
+                  : t("home.status.proUnlock")}
           </p>
         </Link>
 
         <Link
           href="/soul"
           className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 transition hover:border-growth/50"
+          data-testid="home-card-soul"
         >
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
             <Sparkles className="h-5 w-5" aria-hidden />
           </span>
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            Aura between you
+            {t("home.outcome.soul.title")}
           </h2>
           <div className="flex-1 text-sm text-fg-secondary">
-            <p>
-              Signatures and a single Playbook for how your aura wires with someone you’ve
-              charted.
-            </p>
+            <p>{t("home.outcome.soul.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>Aura Signature + one Playbook for this pair</li>
-              <li>Chemistry lives here — daily weather stays on Today &amp; Protocols</li>
+              <li>{t("home.outcome.soul.b1")}</li>
+              <li>{t("home.outcome.soul.b2")}</li>
             </ul>
           </div>
         </Link>
@@ -259,9 +256,9 @@ export default function HomePage() {
 
       {/* Thin trust line */}
       <p className="text-center text-sm text-fg-secondary">
-        Swiss Ephemeris · self-hosted · your data stays yours
+        {t("home.trust.line")}
         <span className="mt-1 block text-xs text-fg-secondary/80">
-          Informational only — not medical advice.
+          {t("home.trust.disclaimer")}
         </span>
       </p>
     </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { TodayIndicationPayload } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizeEnergyLabel, localizeSpaceLabel } from "@/lib/i18n";
 import type { WhatsNew } from "./types";
 
 /**
@@ -17,6 +17,16 @@ export function WeatherStrip({
   whatsNew?: WhatsNew | null;
 }) {
   const { t } = useI18n();
+  const energyLabel = localizeEnergyLabel(
+    t,
+    indication.energy_level,
+    indication.energy_label
+  );
+  const spaceLabel = localizeSpaceLabel(
+    t,
+    indication.preferred_space,
+    indication.preferred_space_label
+  );
 
   const chip =
     whatsNew?.chip ||
@@ -30,10 +40,10 @@ export function WeatherStrip({
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full border border-energy/50 bg-elevated px-2.5 py-0.5 text-xs font-semibold text-energy-ink">
-          {indication.energy_label}
+          {energyLabel}
         </span>
         <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg">
-          {indication.preferred_space_label}
+          {spaceLabel}
         </span>
         {chip && (
           <span

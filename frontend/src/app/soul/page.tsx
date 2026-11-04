@@ -11,6 +11,7 @@ import {
   type SoulSpectrum,
   type SoulSyncResult,
 } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -125,6 +126,7 @@ async function jumpSoulSection(id: string) {
 }
 
 export default function SoulPage() {
+  const { t } = useI18n();
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
@@ -246,9 +248,9 @@ export default function SoulPage() {
   return (
     <div className="space-y-6" data-testid="soul-page">
       <div>
-        <h1 className="text-2xl font-bold">Soul</h1>
+        <h1 className="text-2xl font-bold">{t("page.soul.h1")}</h1>
         <p className="text-sm text-fg-muted">
-          Aura mechanics between you and someone you&apos;ve charted.
+          {t("page.soul.subtitle")}
         </p>
       </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Lock, Sparkles } from "lucide-react";
 import { useApp } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 export function BiohackingEntitlementGate({
   children,
@@ -13,6 +14,7 @@ export function BiohackingEntitlementGate({
   blurredPreview?: React.ReactNode;
 }) {
   const { biohackingUnlocked } = useApp();
+  const { t } = useI18n();
   const [waitlistJoined, setWaitlistJoined] = useState(false);
 
   if (biohackingUnlocked) return <>{children}</>;
@@ -21,19 +23,16 @@ export function BiohackingEntitlementGate({
     <div className="space-y-4">
       {/* Clear value teaser above the lock — readable, not blurred */}
       <div className="rounded-2xl border border-growth/30 bg-growth-soft p-5">
-        <h2 className="mb-2 text-sm font-semibold text-growth">What you unlock</h2>
+        <h2 className="mb-2 text-sm font-semibold text-growth">{t("gate.unlockTitle")}</h2>
         <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
           <li>
-            <span className="text-growth">Natal baseline</span> — emphasize / increase /
-            ease from your Type and centers
+            <span className="text-growth">{t("gate.natalBaseline")}</span>
           </li>
           <li>
-            <span className="text-energy-ink">This week&apos;s transit tweaks</span> — temporary
-            morning / midday / evening adjustments
+            <span className="text-energy-ink">{t("gate.weekTweaks")}</span>
           </li>
           <li>
-            <span className="text-fg">Kit-aware Today&apos;s Move</span> — prefer what
-            you already own
+            <span className="text-fg">{t("gate.kitAware")}</span>
           </li>
         </ul>
         {waitlistJoined ? (
@@ -42,8 +41,7 @@ export function BiohackingEntitlementGate({
             data-testid="unlock-waitlist-joined"
             className="rounded-xl border border-growth/30 bg-canvas/60 px-4 py-3 text-sm text-fg-secondary"
           >
-            You’re on the Pro waitlist. We’ll notify you when checkout is live — nothing was
-            charged. Chart + Today stay free.
+            {t("gate.waitlistJoined")}
           </p>
         ) : (
           <>
@@ -54,10 +52,10 @@ export function BiohackingEntitlementGate({
               onClick={() => setWaitlistJoined(true)}
             >
               <Sparkles className="h-4 w-4" />
-              Join Pro waitlist
+              {t("gate.joinWaitlist")}
             </button>
             <p className="mt-2 text-xs text-fg-muted">
-              Coming soon — not a live checkout. Chart + daily transits stay free.
+              {t("gate.comingSoon")}
             </p>
           </>
         )}
@@ -76,7 +74,7 @@ export function BiohackingEntitlementGate({
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
           <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-growth/40 bg-canvas/90 px-3 py-1.5 text-xs text-growth shadow-soft backdrop-blur">
             <Lock className="h-3.5 w-3.5" />
-            Preview — unlock to open live Today’s Move
+            {t("gate.previewLock")}
           </div>
         </div>
       </div>

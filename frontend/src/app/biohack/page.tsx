@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import { formatResetsInHkt } from "@/lib/timezone";
@@ -198,6 +199,7 @@ function announceKitChange(
 
 
 export default function BiohackPage() {
+  const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, biohackingUnlocked, setNatalChart } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   const [youReady, setYouReady] = useState(false);
@@ -667,7 +669,7 @@ export default function BiohackPage() {
           onClick={() => void loadProtocol({ rebuild: true })}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:border-growth disabled:opacity-50 sm:w-auto"
         >
-          {loading ? "Building…" : "Refresh"}
+          {loading ? t("page.protocols.building") : t("page.protocols.refresh")}
         </button>
       </div>
       {kitStatus && (
@@ -682,7 +684,7 @@ export default function BiohackPage() {
             className="shrink-0 text-xs text-fg-muted underline-offset-2 hover:underline"
             onClick={() => setKitStatus(null)}
           >
-            Dismiss
+            {t("page.protocols.dismiss")}
           </button>
         </div>
       )}
@@ -695,14 +697,14 @@ export default function BiohackPage() {
             onClick={() => void loadProtocol({ rebuild: true })}
             className="underline underline-offset-2 disabled:opacity-50"
           >
-            Retry
+            {t("page.protocols.retry")}
           </button>
         </div>
       )}
 
       {resolvingYou && (
         <p className="text-sm text-fg-muted" data-testid="protocols-resolving-you">
-          Looking up your natal chart…
+          {t("page.protocols.lookingUp")}
         </p>
       )}
 
@@ -711,15 +713,15 @@ export default function BiohackPage() {
           className="rounded-2xl border border-dashed border-border bg-elevated/60 px-5 py-8 text-center"
           data-testid="protocol-empty-no-you"
         >
-          <p className="text-base font-semibold text-fg">Save your chart first</p>
+          <p className="text-base font-semibold text-fg">{t("page.protocols.emptyTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-fg-secondary">
-            Protocols is for you only — friends stay on Chart &amp; Soul.
+            {t("page.protocols.emptyBody")}
           </p>
           <Link
             href="/profile"
             className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse"
           >
-            Open Chart
+            {t("page.protocols.openChart")}
           </Link>
         </div>
       )}
@@ -766,10 +768,12 @@ export default function BiohackPage() {
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex flex-wrap items-center gap-2">
               <span aria-hidden className="text-fg-secondary">▸</span>
-              <span>Shelf</span>
+              <span>{t("page.protocols.shelf")}</span>
               <span className="text-xs font-normal text-fg-secondary">
                 · {inventoryLoading ? "…" : inventory.length}
-                {!inventoryLoading && inventory.length === 0 ? " · Add what you own" : ""}
+                {!inventoryLoading && inventory.length === 0
+                  ? ` · ${t("page.protocols.addWhatYouOwn")}`
+                  : ""}
               </span>
             </span>
           </summary>
@@ -802,9 +806,11 @@ export default function BiohackPage() {
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex flex-wrap items-center gap-2">
               <span aria-hidden className="text-fg-secondary">▸</span>
-              <span>Intention</span>
+              <span>{t("page.protocols.intention")}</span>
               <span className="text-xs font-normal text-fg-secondary">
-                · {intention.trim() ? "set" : "optional"}
+                · {intention.trim()
+                  ? t("page.protocols.intentionSet")
+                  : t("page.protocols.intentionOptional")}
               </span>
             </span>
           </summary>
@@ -857,8 +863,7 @@ export default function BiohackPage() {
       </div>
 
       <p className="text-xs text-energy-ink/90">
-        For informational and energetic optimization purposes only; not medical advice. Consult a
-        qualified clinician before changing supplements or lifestyle protocols.
+        {t("page.protocols.disclaimer")}
       </p>
     </div>
   );
@@ -892,12 +897,13 @@ function ProtocolsHeader({
   biohackingUnlocked: boolean;
   asOfLabel: string | null;
 }) {
+  const { t } = useI18n();
   return (
     <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-fg">Protocols</h1>
+        <h1 className="text-2xl font-bold text-fg">{t("page.protocols.h1")}</h1>
         {asOfLabel && <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>}
-        <p className="mt-1 text-sm text-fg-muted">Your stack — prove today&apos;s timed leads.</p>
+        <p className="mt-1 text-sm text-fg-muted">{t("page.protocols.subtitle")}</p>
       </div>
       <div className="flex flex-col items-start gap-1.5 sm:items-end">
         {resolvingYou ? (
@@ -909,7 +915,7 @@ function ProtocolsHeader({
           <>
             <span
               className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
-              title="Protocols always uses your chart"
+              title={t("page.protocols.alwaysUsesChart")}
               data-testid="protocols-you-chip"
             >
               {youChipLabel(youChart)}
@@ -920,9 +926,9 @@ function ProtocolsHeader({
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-elevated px-3 py-1.5 text-sm text-fg-muted shadow-soft"
             data-testid="protocols-you-empty"
           >
-            <span>No You chart</span>
+            <span>{t("page.protocols.noYouChart")}</span>
             <Link href="/profile" className="font-medium text-growth underline-offset-2 hover:underline">
-              Save on Chart
+              {t("page.protocols.saveOnChart")}
             </Link>
           </div>
         )}
@@ -949,6 +955,7 @@ function DailyIntentionField({
   onCommit: (text: string) => void;
   embedded?: boolean;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState(value);
   useEffect(() => {
     setDraft(value);
@@ -963,7 +970,7 @@ function DailyIntentionField({
         htmlFor="daily-intention-input"
         className="block text-sm font-semibold text-fg"
       >
-        Today&apos;s intention
+        {t("page.protocols.intentionLabel")}
         <span className="ml-2 text-xs font-normal text-fg-secondary">optional</span>
       </label>
       <input
@@ -972,7 +979,7 @@ function DailyIntentionField({
         maxLength={200}
         value={draft}
         disabled={saving}
-        placeholder="What are you aiming for today?"
+        placeholder={t("page.protocols.intentionPlaceholder")}
         data-testid="daily-intention-input"
         className="mt-2 min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted"
         onChange={(e) => setDraft(e.target.value)}
@@ -1056,6 +1063,7 @@ function WeekSkyCard({
   weekRows: WeekCompletedRow[];
   weekLabel: string;
 }) {
+  const { t } = useI18n();
   const moveRows = weekRows.filter((r) => r.kind === "move");
   const baselineRows = weekRows.filter((r) => r.kind === "baseline");
 
@@ -1064,7 +1072,7 @@ function WeekSkyCard({
       className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
       data-testid="week-plan"
     >
-      <h2 className="text-lg font-semibold text-energy-ink">This week</h2>
+      <h2 className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</h2>
       {theme && (
         <p className="text-sm text-fg" data-testid="week-theme">
           {theme}
@@ -1148,6 +1156,7 @@ function NatalBaselineCard({
   baseline: Record<string, unknown> | null;
   labels: Record<string, string>;
 }) {
+  const { t } = useI18n();
   return (
     <div
       className="rounded-2xl border border-growth/40 bg-growth-soft/40"
@@ -1160,7 +1169,7 @@ function NatalBaselineCard({
         aria-expanded={open}
       >
         <span>
-          <span className="block text-sm font-semibold text-growth-ink">Natal baseline</span>
+          <span className="block text-sm font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
           <span className="block text-xs text-fg-muted">Always-on for this chart</span>
         </span>
         <span className="shrink-0 text-xs text-fg-muted">{open ? "Hide" : "Show"}</span>
@@ -1335,6 +1344,7 @@ function InventoryPanel({
 /* ─── Locked preview ────────────────────────────────────────────────────── */
 
 function LockedPaywallMock() {
+  const { t } = useI18n();
   return (
     <div className="space-y-4" aria-hidden>
       <div className="rounded-2xl border border-energy/40 bg-energy/10 p-4">
@@ -1351,7 +1361,7 @@ function LockedPaywallMock() {
         </div>
       </div>
       <div className="rounded-2xl border border-border bg-elevated p-5">
-        <p className="text-lg font-semibold text-energy-ink">This week</p>
+        <p className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</p>
         <p className="mt-2 text-sm text-fg-secondary">Sun/Earth theme + one sky note</p>
       </div>
     </div>

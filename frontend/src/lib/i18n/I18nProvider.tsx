@@ -38,6 +38,18 @@ function format(template: string, vars?: Vars): string {
   );
 }
 
+/** Look up a key in an explicit locale (avoids stale `t` closure after setLocale). */
+export function translate(
+  locale: Locale,
+  key: MessageKey,
+  vars?: Vars
+): string {
+  const table = catalogs[locale] || catalogs.en;
+  const raw = table[key] ?? catalogs.en[key] ?? String(key);
+  return format(raw, vars);
+}
+
+
 function readStoredLocale(): Locale | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
