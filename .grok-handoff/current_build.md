@@ -1,6 +1,8 @@
 # Current build — Settings language (EN/NL/DE/FR/ES) — READY_FOR_UX
 
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/47
 - **Branch:** `feat/i18n-settings-5-locales`
+- **Tip SHA:** `be3536a` (`be3536ab0a3c290577c9015d1fa55a07a2a7d003`)
 - **Base tip at branch cut:** `87a582d` (docs ship #46)
 - **Handoff:** `.grok-handoff/i18n-settings-5-locales.md`
 - **Product handoff:** `handoffs/i18n-settings-5-locales-2026-11-04.md`
