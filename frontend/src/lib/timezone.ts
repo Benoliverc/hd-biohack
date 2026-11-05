@@ -81,6 +81,16 @@ export const NOVELTY_BUCKET_HOUR_HKT = 7;
 /** Asia/Hong_Kong is fixed UTC+8 (no DST). */
 const HKT_OFFSET_MS = 8 * 60 * 60 * 1000;
 
+/** Novelty calendar day (YYYY-MM-DD) in HKT, flipping at 07:00 Asia/Hong_Kong. */
+export function noveltyDayKeyHkt(now: Date = new Date()): string {
+  const shifted = new Date(now.getTime() - NOVELTY_BUCKET_HOUR_HKT * 60 * 60 * 1000);
+  const hktWall = new Date(shifted.getTime() + HKT_OFFSET_MS);
+  const y = hktWall.getUTCFullYear();
+  const m = String(hktWall.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(hktWall.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 /**
  * Next Daily Novelty reset instant: next 07:00 Asia/Hong_Kong.
  * If `now` is at or after today's 07:00 HKT, returns tomorrow's 07:00 HKT.

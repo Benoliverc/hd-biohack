@@ -1,52 +1,27 @@
-# Current build — WIP first-name greeting · #56/#58 shipped
+# Current build — WIP minor copy/UX batch · #60/#61 shipped
 
-## WIP — Settings first name + Home greeting (`feat/home-first-name-greeting`)
-- **Branch / worktree:** `feat/home-first-name-greeting` @ `/workspace/hd-biohack-wt-first-name`
-- **Scope:** FE + light API — nullable `User.first_name`, Settings “Your name”, Home daypart greeting when set
-- **Handoff:** `.grok-handoff/home-first-name-greeting-2026-11-05.md`
-- **Tip:** `ca7c204` (`ca7c2046923d9b37c3a4aff9b911b6197e63f958`)
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/60 — **hold merge** for UX → Ship Gate → Benjamin yes
-- **Deploy when shipped:** Railway + Vercel
+## WIP — Minor copy / UX batch (`feat/minor-copy-ux-batch`)
+- **Branch / worktree:** `feat/minor-copy-ux-batch` @ `/workspace/hd-biohack-wt-copy-batch`
+- **Scope:** FE copy + light UI — Pro blurbs without Free sales; Protocols/Soul `· Pro` subtitles; friends→People chrome; first-name placeholder Alex; login `baselineapp@proton.me`; Home outcome human copy; Today HD fact of the day (12 facts, novelty HKT day); Why this click affordance
+- **Handoff:** `handoffs/minor-copy-ux-batch-2026-11-05.md`
+- **Tip:** `6c549e9` (`6c549e9ea85e5f7b7f925442ab2bb0272521a132`)
+- **PR:** _(filled after create)_ — **hold merge** for UX → Ship Gate → Benjamin yes
+- **Deploy when shipped:** Vercel (FE-only; Railway skip)
+- **Preview:** use Vercel preview from PR when available; do not leave long-running servers on :3000
 
-## SHIPPED — PR #58 Home card order + copy
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/58
-- **Merge SHA:** `182cd25` (`182cd252dd2e01175e0159df7d57ec105048f62f`)
-- **Feat tip:** `c4aded5` · main-sync tip `3d15591` (merged main after #56 before merge)
-- **Branch:** `feat/home-card-order-copy`
-- **Scope:** FE-only — `frontend/src/app/page.tsx` + i18n EN/nl/de/fr/es
-- **Content:** Home outcome cards Protocols → Today → Chart → Soul; copy refresh (Soul Pro + kit no-dup); longer Swiss Ephemeris trust line
-- **Sequencing:** Waited for PR #56 MERGED (`8631b3b`) before merging #58 (no race)
-- **Tests:** UX PASS · Ship Gate PASS · soft residuals ride
-- **Railway API:** skipped (FE-only)
-- **Vercel FE:** READY `dpl_71YwwyKoFQcfLVXhRhmnY2q2Mt8z` (CLI `vercel deploy --prod --cwd frontend` from main incl. `182cd25` / tip `beb13f7`; GitHub auto-deploy lag)
-  - Alias: https://hd-biohack.vercel.app → 200
-  - Deployment: https://hd-biohack-i4ijyfamu-hdbh1.vercel.app
-  - Smoke: live JS chunk includes `home.trust.line` Swiss Ephemeris engine copy; Outcome cards order comment Protocols · Today · Chart · Soul on tip
-- Soft residuals ride: Today body shorter; chip contrast; trust line orphan “account.”; Soul nav clip at 390; American `centers`
+## SHIPPED — PR #61 Channels accordion
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/61
+- **Merge SHA:** `7950e34` (`7950e34b74a5228ba6816a4c49dfae28a619e81f`)
+- **Vercel FE:** https://hd-biohack.vercel.app → 200
 
-## SHIPPED — PR #56 Deep Dive richer profiles + channels
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/56
-- **Merge SHA:** `8631b3b` (`8631b3b8001946c72f5dd66b3561b8699b2e954d`)
-- **Feat tip:** `5b8f6ae`
-- **Vercel FE:** superseded by #58 deploy above (prior READY `dpl_7EfBS5F6rUNYiupHyLZ9NNfREFLt` / `hd-biohack-d6gbxgtlw-hdbh1`)
-- Soft residuals ride: dup “One more anchor”, templated stems, en-GB mix, heading weight
-
-## SHIPPED — PR #53 Today's Move no-dup supplements
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/53
-- **Merge SHA:** `ad702f5`
-- **Railway API:** SUCCESS @ `ad702f5` · https://api-production-7527.up.railway.app
-- **Vercel FE:** skipped (API-only)
-
-## SHIPPED — PR #52 Soul behind Pro
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/52
-- **Merge SHA:** `2ddbaaf` (+ hotfix #54 `a4de342`)
+## SHIPPED — PR #60 Home first-name greeting
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/60
+- **Merge SHA:** `7c2c570`
+- **Railway API:** @ `7c2c570` · https://api-production-7527.up.railway.app
+- Soft residuals ride
 
 ## Prior SHIPPED
-- **PR #62** docs ship-pr58 — merge `3888162`
-- **PR #59** docs ship-pr56 — merge `beb13f7`
-- **PR #57** docs ship-pr53 — merge `44c0d4d`
-- **PR #55** docs ship-pr52 — merge `4f135e4`
-- **PR #51** Admin Pro/Free — MERGED `2590334`
-- **PR #50** Nav clarity A+B — MERGED `9af2847`
-- **PR #49** Visual density Option A — MERGED `48edf24`
-- **PR #48** i18n P0 chrome/shell — MERGED `d633a3b`
+- **PR #58** Home card order + copy — merge `182cd25`
+- **PR #56** Deep Dive richer profiles + channels — merge `8631b3b`
+- **PR #53** Today's Move no-dup supplements — merge `ad702f5`
+- **PR #52** Soul behind Pro — merge `2ddbaaf` (+ hotfix #54)

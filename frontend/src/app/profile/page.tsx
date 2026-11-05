@@ -65,10 +65,10 @@ function isSelfRow(row: SavedChartRow): boolean {
   return row.slot_kind !== "friend";
 }
 
-/** Friends never fall back to "Me" — empty labels become "Friend". */
+/** People never fall back to "Me" — empty labels become "Person". */
 function friendChipLabel(row: SavedChartRow): string {
   const t = (row.label || "").trim();
-  if (!t || t.toLowerCase() === "me") return "Friend";
+  if (!t || t.toLowerCase() === "me") return "Person";
   return t;
 }
 
@@ -676,14 +676,14 @@ export default function ProfilePage() {
             : (kindOverride ?? saveAs);
 
       if (save && kind === "friend" && !friendName.trim()) {
-        throw new Error("Enter a name for this friend.");
+        throw new Error("Enter a name for this person.");
       }
       if (
         save &&
         kind === "friend" &&
         friendName.trim().toLowerCase() === "me"
       ) {
-        throw new Error("Enter a name for this friend — don’t use “Me”.");
+        throw new Error("Enter a name for this person — don’t use “Me”.");
       }
 
       if (saveIntent === "update" && selectedSavedRow) {
@@ -821,7 +821,7 @@ export default function ProfilePage() {
     const ok = window.confirm(
       isSelfRow(row)
         ? "Remove your chart? Today & Protocols use this chart."
-        : `Remove “${friendChipLabel(row)}” from Friends?`
+        : `Remove “${friendChipLabel(row)}” from People?`
     );
     if (!ok) return;
     setDeletingId(row.id);
@@ -919,7 +919,7 @@ export default function ProfilePage() {
           "rounded-xl border border-energy/50 bg-energy-soft px-4 py-3 text-sm text-energy-ink",
         body: (
           <>
-            <span className="font-semibold">Editing your chart.</span> Friends are
+            <span className="font-semibold">Editing your chart.</span> People are
             unchanged.
           </>
         ),
@@ -946,11 +946,11 @@ export default function ProfilePage() {
         "rounded-xl border border-border bg-sunken px-4 py-3 text-sm text-fg-secondary",
       body: hasSelfSaved ? (
         <>
-          <span className="font-semibold text-fg">New friend — nothing is overwritten.</span>
+          <span className="font-semibold text-fg">New person — nothing is overwritten.</span>
         </>
       ) : (
         <>
-          <span className="font-semibold text-fg">New chart — save as You or a friend.</span>
+          <span className="font-semibold text-fg">New chart — save as You or a person.</span>
         </>
       ),
     };
@@ -967,7 +967,7 @@ export default function ProfilePage() {
             </span>
           </div>
           {savedPeople.length === 0 ? (
-            <p className="text-sm text-fg-muted">None yet — add your chart or a friend’s below.</p>
+            <p className="text-sm text-fg-muted">None yet — add your chart or another person below.</p>
           ) : (
             <div className="space-y-4">
               {youRow && (
@@ -1019,11 +1019,11 @@ export default function ProfilePage() {
 
               <div>
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-energy-ink">
-                  Friends
+                  People
                 </p>
                 {friendRows.length === 0 ? (
                   <p className="text-sm text-fg-muted">
-                    No friends yet — use Save as new friend or Add new person.
+                    No people yet — use Save as new person or Add new person.
                   </p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
@@ -1240,18 +1240,18 @@ export default function ProfilePage() {
             <label className="text-sm">
               <span className="mb-1 block text-fg-muted">
                 {editingYou
-                  ? "Friend’s name (for Save as new friend)"
+                  ? "Person’s name (for Save as new person)"
                   : editingFriend
                     ? "Name"
                     : saveAs === "friend" || hasSelfSaved
-                      ? "Friend’s name"
+                      ? "Person’s name"
                       : "Display name"}
               </span>
               <input
                 className="w-48 rounded-lg border border-border bg-sunken px-3 py-2"
                 placeholder={
                   editingYou || saveAs === "friend" || (isNewPersonUi && hasSelfSaved)
-                    ? "Friend’s name"
+                    ? "Person’s name"
                     : "Optional"
                 }
                 value={friendName}
@@ -1261,7 +1261,7 @@ export default function ProfilePage() {
             </label>
             {updatingExistingUi ? (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
-                Role: {frozenSlot === "self" ? "You" : "Friend"} (fixed)
+                Role: {frozenSlot === "self" ? "You" : "Person"} (fixed)
               </span>
             ) : showMeFriendSegment ? (
               <div className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1">
@@ -1283,12 +1283,12 @@ export default function ProfilePage() {
                     saveAs === "friend" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
                   }`}
                 >
-                  Friend
+                  Person
                 </button>
               </div>
             ) : (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-energy/40 bg-energy-soft px-3 py-2 text-sm text-energy-ink">
-                Saving as friend
+                Saving as person
               </span>
             )}
           </div>
@@ -1303,7 +1303,7 @@ export default function ProfilePage() {
                   onClick={() => void submit("create", "friend")}
                   className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {busyMode === "save" ? "Saving…" : "Save as new friend"}
+                  {busyMode === "save" ? "Saving…" : "Save as new person"}
                 </button>
                 <button
                   type="button"
@@ -1335,7 +1335,7 @@ export default function ProfilePage() {
                   onClick={() => void submit("create", "friend")}
                   className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Save as another friend
+                  Save as another person
                 </button>
               </>
             ) : (
@@ -1356,7 +1356,7 @@ export default function ProfilePage() {
                 {busyMode === "save"
                   ? "Saving…"
                   : hasSelfSaved || saveAs === "friend"
-                    ? "Save friend"
+                    ? "Save person"
                     : "Calculate & save"}
               </button>
             )}
@@ -1388,7 +1388,7 @@ export default function ProfilePage() {
         {formDirtyVsSaved && viewMode === "saved" && (
           <p className="md:col-span-4 rounded-lg border border-energy/40 bg-energy/10 px-3 py-2 text-xs text-energy-ink">
             Form no longer matches the saved chart — Preview or Update to refresh results. Use Save
-            as new friend to add someone else without overwriting.
+            as new person to add someone else without overwriting.
           </p>
         )}
         {error && (
@@ -1404,7 +1404,7 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("page.chart.h1")}</h1>
       <p className="text-sm text-fg-muted">
-        Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + friends).
+        Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + others).
         Plain language — how your battery and decisions work.
       </p>
 

@@ -158,9 +158,9 @@ export default function LoginPage() {
               {t("login.inviteOnly")}{" "}
               <a
                 className="font-medium text-growth underline-offset-2 hover:underline"
-                href="mailto:benjaminlammens@gmail.com?subject=Baseline%20invite%20request"
+                href="mailto:baselineapp@proton.me?subject=Baseline%20invite%20request"
               >
-                benjaminlammens@gmail.com
+                baselineapp@proton.me
               </a>{" "}
               {t("login.waitlist")}
             </p>
