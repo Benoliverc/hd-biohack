@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Zap, BatteryMedium, MapPin } from "lucide-react";
 import type { TodayIndicationPayload, VsYesterdayDelta } from "@/lib/api";
+import { hdFactForDay } from "@/lib/hdFactOfTheDay";
 import {
   useI18n,
   localizeEnergyLabel,
@@ -161,13 +162,15 @@ export default function TodayIndication({
             </p>
             {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
               <details className="mt-2 group" data-testid="main-action-why-details">
-                <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span aria-hidden className="inline-block text-fg-secondary transition-transform group-open:rotate-90">
-                      ▸
-                    </span>
-                    {t("today.why")}
+                <summary className="mt-1 inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-border bg-sunken/70 px-3 py-2 text-xs font-semibold text-fg transition hover:border-growth/40 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 marker:content-none [&::-webkit-details-marker]:hidden">
+                  <span
+                    aria-hidden
+                    className="inline-block text-fg-muted transition-transform group-open:rotate-90"
+                  >
+                    ▸
                   </span>
+                  <span>{t("today.why")}</span>
+                  <span className="font-normal text-fg-muted">· {t("today.whyHint")}</span>
                 </summary>
                 {indication.main_action_micro ? (
                   <p
@@ -240,6 +243,23 @@ export default function TodayIndication({
           </aside>
         </div>
       </div>
+
+
+      {(() => {
+        const { fact, dayKey } = hdFactForDay();
+        return (
+          <aside
+            className="mb-4 rounded-xl border border-border bg-sunken/50 px-4 py-3"
+            data-testid="hd-fact-of-the-day"
+            data-day-key={dayKey}
+          >
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+              {t("today.hdFactLabel")}
+            </p>
+            <p className="text-sm text-fg-secondary">{fact}</p>
+          </aside>
+        );
+      })()}
 
       <div
         className="rounded-xl border border-border bg-sunken/40 p-4"

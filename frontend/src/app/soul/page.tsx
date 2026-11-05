@@ -264,7 +264,7 @@ function SoulUnlockedContent() {
           data-testid="soul-empty"
         >
           <p className="mb-3 text-sm text-fg-secondary">
-            Soul needs at least two saved people — you and a friend — before aura alchemy can run.
+            Soul needs at least two saved people — you and someone else — before aura alchemy can run.
           </p>
           <Link
             href="/profile"
@@ -299,7 +299,7 @@ function SoulUnlockedContent() {
               <ArrowLeftRight className="h-4 w-4" />
             </div>
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
-              Friend
+              Person
               <select
                 className="min-h-11 rounded-lg border border-border bg-canvas px-3 text-sm text-fg"
                 value={friendId ?? ""}
@@ -308,7 +308,7 @@ function SoulUnlockedContent() {
               >
                 {charts.map((r) => (
                   <option key={r.id} value={r.id} disabled={r.id === selfId}>
-                    {r.label || "Friend"} · {r.type || "—"} · {r.profile || "—"}
+                    {r.label || "Person"} · {r.type || "—"} · {r.profile || "—"}
                   </option>
                 ))}
               </select>
@@ -472,9 +472,9 @@ function SoulUnlockedContent() {
                   {result.conditioning_strip.map((row) => {
                     const arrow =
                       row.direction === "friend_to_self"
-                        ? "Friend → You"
+                        ? "Person → You"
                         : row.direction === "self_to_friend"
-                          ? "You → Friend"
+                          ? "You → Person"
                           : row.direction === "both_defined"
                             ? "Both defined"
                             : "Both open";
@@ -489,7 +489,7 @@ function SoulUnlockedContent() {
                           <span className="text-xs text-fg-muted">{arrow}</span>
                         </div>
                         <p className="mt-0.5 text-xs text-fg-secondary">
-                          You: {row.self} · Friend: {row.friend}
+                          You: {row.self} · Person: {row.friend}
                         </p>
                         {row.hint ? (
                           <p className="mt-1 text-xs text-fg-muted">{row.hint}</p>
