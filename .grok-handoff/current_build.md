@@ -4,8 +4,8 @@
 - **Branch / worktree:** `feat/soul-me-fixed-bars-free-me-only` @ `/workspace/hd-biohack-wt-soul-me-bars`
 - **Scope:** FE+API — Soul You locked to Me; spectrum fill = N% with `%` label; Free (and Preview as Free) Me-only chart create (API 403 on friend create)
 - **Handoff:** `handoffs/soul-me-fixed-bars-free-me-only-2026-11-05.md`
-- **Tip:** _(filled after push)_
-- **PR:** _(filled after open)_ — **hold merge** for UX → Ship Gate → Benjamin yes (no standing auto-ship)
+- **Tip:** `ebc76b9` (`ebc76b9b3e18e08eb2904aab387b5d2a253fc974`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/64 — **hold merge** for UX → Ship Gate → Benjamin yes (no standing auto-ship)
 - **Deploy when shipped:** Railway (API Free gate) + Vercel
 - Soft mute: i18n lag, extraSelf copy, LockedSoulMock polish
 
