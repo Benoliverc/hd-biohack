@@ -245,6 +245,7 @@ export default function ProfilePage() {
     setNatalChart,
     natalChartId,
     natalBindingLoading,
+    biohackingUnlocked,
   } = useApp();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -625,7 +626,7 @@ export default function ProfilePage() {
     setSavedForm(null);
     setError(null);
     setFriendName("");
-    setSaveAs(hasSelfSaved ? "friend" : "self");
+    setSaveAs(biohackingUnlocked && hasSelfSaved ? "friend" : "self");
     setDemoBirthActive(false);
     setPersonEditorOpen(true);
   };
@@ -674,6 +675,18 @@ export default function ProfilePage() {
           : saveIntent === "create"
             ? (kindOverride ?? saveAs)
             : (kindOverride ?? saveAs);
+
+      // Free (and Preview as Free): Me create/update only — no new People charts.
+      if (saveIntent === "create" && !biohackingUnlocked) {
+        if (kind === "friend") {
+          throw new Error("Saving people charts requires Pro. Free can save your Me chart only.");
+        }
+        if (hasSelfSaved) {
+          throw new Error(
+            "Free can keep one Me chart — update your existing chart instead of creating another."
+          );
+        }
+      }
 
       if (save && kind === "friend" && !friendName.trim()) {
         throw new Error("Enter a name for this person.");
@@ -907,9 +920,10 @@ export default function ProfilePage() {
       ? savedPeople.filter((r) => isSelfRow(r) && r.id !== youRow.id)
       : savedPeople.filter((r) => isSelfRow(r));
   const duplicateSelfCount = savedPeople.filter((r) => isSelfRow(r)).length;
-  const showMeFriendSegment = isNewPersonUi && !hasSelfSaved;
+  const canCreatePeople = biohackingUnlocked;
+  const showMeFriendSegment = isNewPersonUi && !hasSelfSaved && canCreatePeople;
   const createFriendDisabled =
-    busy || !formReady || atCap || !friendName.trim();
+    busy || !formReady || atCap || !friendName.trim() || !canCreatePeople;
 
   const stateBar = (() => {
     if (editingYou) {
@@ -945,12 +959,23 @@ export default function ProfilePage() {
       className:
         "rounded-xl border border-border bg-sunken px-4 py-3 text-sm text-fg-secondary",
       body: hasSelfSaved ? (
-        <>
-          <span className="font-semibold text-fg">New person — nothing is overwritten.</span>
-        </>
+        canCreatePeople ? (
+          <>
+            <span className="font-semibold text-fg">New person — nothing is overwritten.</span>
+          </>
+        ) : (
+          <>
+            <span className="font-semibold text-fg">People charts unlock with Pro.</span>{" "}
+            Update Me above, or view an existing person.
+          </>
+        )
       ) : (
         <>
-          <span className="font-semibold text-fg">New chart — save as You or a person.</span>
+          <span className="font-semibold text-fg">
+            {canCreatePeople
+              ? "New chart — save as You or a person."
+              : "New chart — save as You (Me)."}
+          </span>
         </>
       ),
     };
@@ -1023,7 +1048,9 @@ export default function ProfilePage() {
                 </p>
                 {friendRows.length === 0 ? (
                   <p className="text-sm text-fg-muted">
-                    No people yet — use Save as new person or Add new person.
+                    {canCreatePeople
+                      ? "No people yet — use Save as new person or Add new person."
+                      : "No people yet — People charts unlock with Pro."}
                   </p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
@@ -1116,15 +1143,21 @@ export default function ProfilePage() {
             </div>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              data-testid="add-new-person"
-              disabled={busy}
-              onClick={startNewPerson}
-              className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
-            >
-              Add new person
-            </button>
+            {canCreatePeople ? (
+              <button
+                type="button"
+                data-testid="add-new-person"
+                disabled={busy}
+                onClick={startNewPerson}
+                className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
+              >
+                Add new person
+              </button>
+            ) : (
+              <p className="text-xs text-fg-muted" data-testid="free-people-pro-hint">
+                Add people with Pro. Free can save and update Me only.
+              </p>
+            )}
           </div>
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
@@ -1286,6 +1319,14 @@ export default function ProfilePage() {
                   Person
                 </button>
               </div>
+            ) : isNewPersonUi && !hasSelfSaved ? (
+              <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-growth/40 bg-growth-soft px-3 py-2 text-sm text-growth-ink">
+                Saving as You (Me)
+              </span>
+            ) : isNewPersonUi && !canCreatePeople ? (
+              <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
+                People unlock with Pro
+              </span>
             ) : (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-energy/40 bg-energy-soft px-3 py-2 text-sm text-energy-ink">
                 Saving as person
@@ -1296,15 +1337,17 @@ export default function ProfilePage() {
           <div className="relative z-10 flex flex-wrap items-center gap-3">
             {editingYou ? (
               <>
-                <button
-                  type="button"
-                  data-testid="save-as-new-friend"
-                  disabled={createFriendDisabled}
-                  onClick={() => void submit("create", "friend")}
-                  className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {busyMode === "save" ? "Saving…" : "Save as new person"}
-                </button>
+                {canCreatePeople && (
+                  <button
+                    type="button"
+                    data-testid="save-as-new-friend"
+                    disabled={createFriendDisabled}
+                    onClick={() => void submit("create", "friend")}
+                    className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {busyMode === "save" ? "Saving…" : "Save as new person"}
+                  </button>
+                )}
                 <button
                   type="button"
                   data-testid="calculate-save"
@@ -1328,17 +1371,19 @@ export default function ProfilePage() {
                     ? "Saving…"
                     : `Update “${friendChipLabel(selectedSavedRow!)}”`}
                 </button>
-                <button
-                  type="button"
-                  data-testid="save-as-new-friend"
-                  disabled={createFriendDisabled}
-                  onClick={() => void submit("create", "friend")}
-                  className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Save as another person
-                </button>
+                {canCreatePeople && (
+                  <button
+                    type="button"
+                    data-testid="save-as-new-friend"
+                    disabled={createFriendDisabled}
+                    onClick={() => void submit("create", "friend")}
+                    className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Save as another person
+                  </button>
+                )}
               </>
-            ) : (
+            ) : canCreatePeople || !hasSelfSaved ? (
               <button
                 type="button"
                 data-testid="calculate-save"
@@ -1346,20 +1391,27 @@ export default function ProfilePage() {
                   busy ||
                   !formReady ||
                   atCap ||
-                  ((saveAs === "friend" || hasSelfSaved) && !friendName.trim())
+                  ((canCreatePeople && (saveAs === "friend" || hasSelfSaved)) &&
+                    !friendName.trim()) ||
+                  (!canCreatePeople && hasSelfSaved)
                 }
                 onClick={() =>
-                  void submit("create", hasSelfSaved ? "friend" : saveAs)
+                  void submit(
+                    "create",
+                    !canCreatePeople ? "self" : hasSelfSaved ? "friend" : saveAs
+                  )
                 }
                 className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
               >
                 {busyMode === "save"
                   ? "Saving…"
-                  : hasSelfSaved || saveAs === "friend"
-                    ? "Save person"
-                    : "Calculate & save"}
+                  : !canCreatePeople
+                    ? "Calculate & save"
+                    : hasSelfSaved || saveAs === "friend"
+                      ? "Save person"
+                      : "Calculate & save"}
               </button>
-            )}
+            ) : null}
             <button
               type="button"
               data-testid="preview-only"
