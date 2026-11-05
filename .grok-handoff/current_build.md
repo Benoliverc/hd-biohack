@@ -3,7 +3,7 @@
 ## OPEN — hold merge for Benjamin yes
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/65
 - **Branch:** `feat/today-transit-protocol`
-- **Tip:** `8195498` (`81954982355ff3d4232b1efa71e6e321e6fda158`)
+- **Tip:** `308e31f` (`308e31fe17c8d59502f0164cbbf6d598000edcc8`)
 - **Base:** `origin/main` @ `3b986a3` (post PR #64)
 - **Scope:** PR 1 of two — Transit → Moment → Move + kit slot on Today. **Not** Share cards (PR 2).
 - **Worktree:** `/workspace/hd-biohack-wt-today-transit`
