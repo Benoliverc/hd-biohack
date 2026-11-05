@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeftRight } from "lucide-react";
 import {
   api,
   type SavedChartRow,
@@ -34,7 +33,8 @@ function isAuraSchema(res: SoulSyncResult): boolean {
 
 function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
   const isPacing = spectrum.id === "somatic_pacing";
-  const fillClass = isPacing ? "bg-energy/80" : "bg-growth/70";
+  const fillPct = Math.max(0, Math.min(100, Number(spectrum.position) || 0));
+  const fillClass = isPacing ? "bg-energy" : "bg-growth";
   const highClass = isPacing ? "text-energy" : "text-growth";
   return (
     <div
@@ -44,17 +44,18 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <span className="text-sm font-semibold text-fg">{spectrum.label}</span>
         <span className={`text-xs font-medium tabular-nums ${highClass}`}>
-          {spectrum.position}
+          {fillPct}%
         </span>
       </div>
       <div className="mb-2 flex justify-between gap-2 text-[10px] uppercase tracking-wide text-fg-muted">
         <span>{spectrum.low_label}</span>
         <span className={isPacing ? "text-energy" : undefined}>{spectrum.high_label}</span>
       </div>
-      <div className="mb-2 h-2 overflow-hidden rounded-full bg-elevated">
+      <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-elevated">
         <div
           className={`h-full rounded-full transition-[width] ${fillClass}`}
-          style={{ width: `${Math.max(0, Math.min(100, spectrum.position))}%` }}
+          style={{ width: `${fillPct}%` }}
+          data-testid={`soul-spectrum-fill-${spectrum.id}`}
         />
       </div>
       <p className="text-xs text-fg-muted">{spectrum.summary}</p>
@@ -94,17 +95,27 @@ function InsightCard({ card }: { card: SoulCard }) {
   );
 }
 
-function pickDefaultSelf(rows: SavedChartRow[], natalId: number | null): number | null {
-  if (natalId != null && rows.some((r) => r.id === natalId)) return natalId;
-  const self = rows.find((r) => r.slot_kind === "self");
-  if (self) return self.id;
-  return rows[0]?.id ?? null;
+function isSelfSlot(row: SavedChartRow): boolean {
+  return row.slot_kind !== "friend";
 }
 
-function pickDefaultFriend(rows: SavedChartRow[], selfId: number | null): number | null {
-  const friends = rows.filter((r) => r.id !== selfId);
-  const prefer = friends.find((r) => r.slot_kind === "friend");
-  return (prefer ?? friends[0])?.id ?? null;
+/** You = Me only — prefer store natal when that row is self. */
+function pickMeRow(rows: SavedChartRow[], natalId: number | null): SavedChartRow | null {
+  if (natalId != null) {
+    const bound = rows.find((r) => r.id === natalId && isSelfSlot(r));
+    if (bound) return bound;
+  }
+  return rows.find((r) => r.slot_kind === "self") ?? rows.find((r) => isSelfSlot(r)) ?? null;
+}
+
+function pickDefaultFriend(rows: SavedChartRow[], meId: number | null): number | null {
+  const others = rows.filter((r) => r.id !== meId);
+  const prefer = others.find((r) => r.slot_kind === "friend");
+  return (prefer ?? others[0])?.id ?? null;
+}
+
+function chartOptionLabel(r: SavedChartRow, fallback: string): string {
+  return `${r.label || fallback} · ${r.type || "—"} · ${r.profile || "—"}`;
 }
 
 function waitTwoFrames(): Promise<void> {
@@ -153,10 +164,8 @@ function SoulUnlockedContent() {
     try {
       const rows = await api.charts(user.id);
       setCharts(rows);
-      setSelfId((prev) => {
-        if (prev != null && rows.some((r) => r.id === prev)) return prev;
-        return pickDefaultSelf(rows, natalChartId);
-      });
+      const me = pickMeRow(rows, natalChartId);
+      setSelfId(me?.id ?? null);
     } catch (e) {
       setChartsError(e instanceof Error ? e.message : String(e));
       setCharts([]);
@@ -170,19 +179,36 @@ function SoulUnlockedContent() {
     void loadCharts();
   }, [sessionReady, loadCharts]);
 
+  const meRow = useMemo(
+    () => pickMeRow(charts, natalChartId),
+    [charts, natalChartId]
+  );
+  const meId = meRow?.id ?? null;
+
   useEffect(() => {
-    if (!charts.length) {
+    setSelfId(meId);
+  }, [meId]);
+
+  const personOptions = useMemo(() => {
+    if (meId == null) return charts.filter((r) => r.slot_kind === "friend");
+    const others = charts.filter((r) => r.id !== meId);
+    const friends = others.filter((r) => r.slot_kind === "friend");
+    return friends.length ? friends : others;
+  }, [charts, meId]);
+
+  useEffect(() => {
+    if (!personOptions.length) {
       setFriendId(null);
       return;
     }
     setFriendId((prev) => {
-      if (prev != null && prev !== selfId && charts.some((r) => r.id === prev)) return prev;
-      return pickDefaultFriend(charts, selfId);
+      if (prev != null && personOptions.some((r) => r.id === prev)) return prev;
+      return pickDefaultFriend(personOptions, meId);
     });
-  }, [charts, selfId]);
+  }, [personOptions, meId]);
 
   useEffect(() => {
-    if (!user?.id || selfId == null || friendId == null || selfId === friendId) {
+    if (!user?.id || meId == null || friendId == null || meId === friendId) {
       setResult(null);
       return;
     }
@@ -194,7 +220,7 @@ function SoulUnlockedContent() {
     api
       .soulSync({
         user_id: user.id,
-        self_chart_id: selfId,
+        self_chart_id: meId,
         friend_chart_id: friendId,
         context,
       })
@@ -228,9 +254,10 @@ function SoulUnlockedContent() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, selfId, friendId, context]);
+  }, [user?.id, meId, friendId, context]);
 
-  const enoughPeople = charts.length >= 2;
+  const hasMe = meId != null;
+  const enoughPeople = hasMe && personOptions.length >= 1;
 
   const orderedCards = useMemo(() => {
     if (!result?.cards) return [];
@@ -258,13 +285,29 @@ function SoulUnlockedContent() {
         <p className="text-sm text-danger" data-testid="soul-charts-error">
           {chartsError}
         </p>
+      ) : !hasMe ? (
+        <div
+          className="rounded-2xl border border-border bg-elevated p-5"
+          data-testid="soul-empty-me"
+        >
+          <p className="mb-3 text-sm text-fg-secondary">
+            Soul needs your Me chart first — save your own natal on Chart, then pick a person.
+          </p>
+          <Link
+            href="/profile"
+            className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30"
+            data-testid="soul-cta-me"
+          >
+            Open Chart to save Me
+          </Link>
+        </div>
       ) : !enoughPeople ? (
         <div
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-empty"
         >
           <p className="mb-3 text-sm text-fg-secondary">
-            Soul needs at least two saved people — you and someone else — before aura alchemy can run.
+            Soul needs someone else saved — add a person on Chart before aura alchemy can run.
           </p>
           <Link
             href="/profile"
@@ -280,23 +323,21 @@ function SoulUnlockedContent() {
             className="flex flex-col gap-3 rounded-2xl border border-border bg-elevated p-4 sm:flex-row sm:items-end sm:gap-4"
             data-testid="soul-pickers"
           >
-            <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
+            <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
               You
-              <select
-                className="min-h-11 rounded-lg border border-border bg-canvas px-3 text-sm text-fg"
-                value={selfId ?? ""}
-                onChange={(e) => setSelfId(Number(e.target.value))}
+              <div
+                className="flex min-h-11 items-center rounded-lg border border-border bg-sunken/60 px-3 text-sm text-fg"
                 data-testid="soul-self-select"
+                aria-readonly="true"
+                title="You is locked to your Me chart"
               >
-                {charts.map((r) => (
-                  <option key={r.id} value={r.id} disabled={r.id === friendId}>
-                    {r.label || "Me"} · {r.type || "—"} · {r.profile || "—"}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="hidden pb-2 text-fg-muted sm:block" aria-hidden>
-              <ArrowLeftRight className="h-4 w-4" />
+                <span className="truncate font-medium">
+                  {meRow ? chartOptionLabel(meRow, "Me") : "Me"}
+                </span>
+                <span className="ml-2 shrink-0 rounded-full border border-growth/40 bg-growth/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth">
+                  Me
+                </span>
+              </div>
             </div>
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
               Person
@@ -306,9 +347,9 @@ function SoulUnlockedContent() {
                 onChange={(e) => setFriendId(Number(e.target.value))}
                 data-testid="soul-friend-select"
               >
-                {charts.map((r) => (
-                  <option key={r.id} value={r.id} disabled={r.id === selfId}>
-                    {r.label || "Person"} · {r.type || "—"} · {r.profile || "—"}
+                {personOptions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {chartOptionLabel(r, "Person")}
                   </option>
                 ))}
               </select>

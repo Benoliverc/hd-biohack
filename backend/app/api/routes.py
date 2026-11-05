@@ -62,6 +62,12 @@ from ..schemas import (
 
 MAX_CHARTS_PER_USER = 10
 
+
+def _user_has_biohacking(user: User) -> bool:
+    """Pro / biohacking entitlement (same rule as Soul sync)."""
+    return bool(user.biohacking_enabled or user.subscription_tier == "biohacker_pro")
+
+
 router = APIRouter()
 
 
@@ -420,6 +426,26 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             db.refresh(row)
             natal_id = row.id
         else:
+            # Free: create Me only (one self). Friend creates require Pro.
+            if not _user_has_biohacking(user):
+                if slot_kind == "friend":
+                    raise HTTPException(
+                        403,
+                        "Saving people charts requires Pro. Free can save your Me chart only.",
+                    )
+                existing_self = (
+                    db.query(NatalChart)
+                    .filter(
+                        NatalChart.user_id == body.user_id,
+                        NatalChart.slot_kind != "friend",
+                    )
+                    .count()
+                )
+                if existing_self >= 1:
+                    raise HTTPException(
+                        403,
+                        "Free can keep one Me chart — update your existing chart instead of creating another.",
+                    )
             count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
             if count >= MAX_CHARTS_PER_USER:
                 raise HTTPException(
@@ -832,7 +858,7 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
         raise HTTPException(404, "User not found")
     # Soft Pro gate (same truth as Protocols FE): Free cannot run Soul sync.
     # Preview-as-Free is FE-only; DB-Pro accounts still pass here.
-    if not (user.biohacking_enabled or user.subscription_tier == "biohacker_pro"):
+    if not _user_has_biohacking(user):
         raise HTTPException(403, "Soul sync requires Pro")
 
     self_row = db.get(NatalChart, body.self_chart_id)

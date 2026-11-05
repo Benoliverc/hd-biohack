@@ -129,8 +129,79 @@ def test_update_rejects_slot_kind_change():
     print("PASS: update rejects slot_kind flip; same-role update OK")
 
 
-def test_create_friend_omits_id_inserts():
+def test_free_create_friend_rejected():
+    """Free users cannot create People charts (403)."""
     user = _ensure_user()
+    # Ensure free
+    db = _db()
+    try:
+        u = db.get(User, user.id)
+        assert u is not None
+        u.subscription_tier = "free"
+        u.biohacking_enabled = False
+        db.commit()
+        db.query(NatalChart).filter(NatalChart.user_id == user.id).delete()
+        db.commit()
+    finally:
+        db.close()
+
+    r = client.post(
+        "/chart/calculate",
+        json={
+            "birth_date": "1988-01-02",
+            "birth_time": "08:15:00",
+            "birth_city": "Hong Kong",
+            "lat": 22.3193,
+            "lon": 114.1694,
+            "user_id": user.id,
+            "save": True,
+            "label": "Friend B",
+            "slot_kind": "friend",
+        },
+    )
+    assert r.status_code == 403, r.text
+    detail = r.json()["detail"].lower()
+    assert "pro" in detail or "people" in detail or "me chart" in detail
+    print("PASS: Free create friend rejected with 403")
+
+
+def _ensure_pro_user() -> User:
+    init_db()
+    db = _db()
+    try:
+        user = db.query(User).filter(User.email == "chart-save-pro@test.hd-biohack.local").first()
+        if not user:
+            user = User(
+                email="chart-save-pro@test.hd-biohack.local",
+                username="ChartSavePro",
+                display_name="Chart Save Pro",
+                password_hash=hash_password("test123"),
+                auth_provider="password",
+                subscription_tier="biohacker_pro",
+                biohacking_enabled=True,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            user.subscription_tier = "biohacker_pro"
+            user.biohacking_enabled = True
+            db.commit()
+            db.refresh(user)
+        uid = user.id
+    finally:
+        db.close()
+    db2 = _db()
+    try:
+        u = db2.get(User, uid)
+        db2.expunge(u)
+        return u
+    finally:
+        db2.close()
+
+
+def test_pro_create_friend_omits_id_inserts():
+    user = _ensure_pro_user()
     db = _db()
     try:
         before = db.query(NatalChart).filter(NatalChart.user_id == user.id).count()
@@ -149,7 +220,6 @@ def test_create_friend_omits_id_inserts():
             "save": True,
             "label": "Friend B",
             "slot_kind": "friend",
-            # no natal_chart_id → insert
         },
     )
     assert r.status_code == 200, r.text
@@ -166,4 +236,54 @@ def test_create_friend_omits_id_inserts():
         assert row.label == "Friend B"
     finally:
         db.close()
-    print("PASS: create friend without natal_chart_id inserts")
+    print("PASS: Pro create friend without natal_chart_id inserts")
+
+
+def test_free_update_existing_friend_ok():
+    """Legacy Free friend rows remain updatable."""
+    user = _ensure_user()
+    db = _db()
+    try:
+        u = db.get(User, user.id)
+        assert u is not None
+        u.subscription_tier = "free"
+        u.biohacking_enabled = False
+        db.query(NatalChart).filter(NatalChart.user_id == user.id).delete()
+        db.commit()
+        legacy = NatalChart(
+            user_id=user.id,
+            label="Legacy Friend",
+            slot_kind="friend",
+            birth_date="1985-03-03",
+            birth_time="12:00:00",
+            birth_city="Hong Kong",
+            lat=22.3193,
+            lon=114.1694,
+            timezone="Asia/Hong_Kong",
+            chart_json={"type": "Generator", "profile": "1/3"},
+        )
+        db.add(legacy)
+        db.commit()
+        db.refresh(legacy)
+        natal_id = legacy.id
+    finally:
+        db.close()
+
+    ok = client.post(
+        "/chart/calculate",
+        json={
+            "birth_date": "1986-04-04",
+            "birth_time": "11:00:00",
+            "birth_city": "Hong Kong",
+            "lat": 22.3193,
+            "lon": 114.1694,
+            "user_id": user.id,
+            "save": True,
+            "label": "Legacy Friend",
+            "slot_kind": "friend",
+            "natal_chart_id": natal_id,
+        },
+    )
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["natal_chart_id"] == natal_id
+    print("PASS: Free update existing friend OK")

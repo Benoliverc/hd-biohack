@@ -1,27 +1,23 @@
-# Current build — WIP minor copy/UX batch · #60/#61 shipped
+# Current build — Soul Me fixed + spectrum bars + Free Me-only
 
-## WIP — Minor copy / UX batch (`feat/minor-copy-ux-batch`)
-- **Branch / worktree:** `feat/minor-copy-ux-batch` @ `/workspace/hd-biohack-wt-copy-batch`
-- **Scope:** FE copy + light UI — Pro blurbs without Free sales; Protocols/Soul `· Pro` subtitles; friends→People chrome; first-name placeholder Alex; login `baselineapp@proton.me`; Home outcome human copy; Today HD fact of the day (12 facts, novelty HKT day); Why this click affordance
-- **Handoff:** `handoffs/minor-copy-ux-batch-2026-11-05.md`
-- **Tip:** `0609e98` (`0609e98340117842423114c4b4fb4794e5b5dc06`)
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/63 — **hold merge** for UX → Ship Gate → Benjamin yes
-- **Deploy when shipped:** Vercel (FE-only; Railway skip)
-- **Preview:** use Vercel preview from PR when available; do not leave long-running servers on :3000
+## WIP — Soul Me / bars / Free Me-only (`feat/soul-me-fixed-bars-free-me-only`)
+- **Branch / worktree:** `feat/soul-me-fixed-bars-free-me-only` @ `/workspace/hd-biohack-wt-soul-me-bars`
+- **Scope:** FE+API — Soul You locked to Me; spectrum fill = N% with `%` label; Free (and Preview as Free) Me-only chart create (API 403 on friend create)
+- **Handoff:** `handoffs/soul-me-fixed-bars-free-me-only-2026-11-05.md`
+- **Tip:** `ebc76b9` (`ebc76b9b3e18e08eb2904aab387b5d2a253fc974`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/64 — **hold merge** for UX → Ship Gate → Benjamin yes (no standing auto-ship)
+- **Deploy when shipped:** Railway (API Free gate) + Vercel
+- Soft mute: i18n lag, extraSelf copy, LockedSoulMock polish
+
+## SHIPPED — PR #63 minor copy/UX batch
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/63
+- **Merge SHA:** `48891fb`
+- **Vercel FE:** https://hd-biohack.vercel.app → 200
 
 ## SHIPPED — PR #61 Channels accordion
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/61
-- **Merge SHA:** `7950e34` (`7950e34b74a5228ba6816a4c49dfae28a619e81f`)
-- **Vercel FE:** https://hd-biohack.vercel.app → 200
+- **Merge SHA:** `7950e34`
 
 ## SHIPPED — PR #60 Home first-name greeting
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/60
 - **Merge SHA:** `7c2c570`
-- **Railway API:** @ `7c2c570` · https://api-production-7527.up.railway.app
-- Soft residuals ride
-
-## Prior SHIPPED
-- **PR #58** Home card order + copy — merge `182cd25`
-- **PR #56** Deep Dive richer profiles + channels — merge `8631b3b`
-- **PR #53** Today's Move no-dup supplements — merge `ad702f5`
-- **PR #52** Soul behind Pro — merge `2ddbaaf` (+ hotfix #54)
