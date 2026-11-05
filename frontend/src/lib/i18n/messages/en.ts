@@ -232,6 +232,17 @@ export const messages = {
   "admin.planSaving": "Updating\u2026",
   "admin.planSaved": "Plan updated to {tier}",
   "admin.planError": "Could not update plan",
+  "today.move": "Move",
+  "today.fromKit": "From your kit",
+  "today.when": "When",
+  "today.when.morning": "Morning",
+  "today.when.midday": "Midday",
+  "today.when.evening": "Evening",
+  "today.iDidIt": "I did it",
+  "today.kitNoun.calm": "calm",
+  "today.kitNoun.focus": "focus",
+  "today.kitNoun.recovery": "recovery",
+  "today.kitPlaceholder": "+ Log a {noun} item to pair with today's transit",
 } as const;
 
 export type MessageKey = keyof typeof messages;

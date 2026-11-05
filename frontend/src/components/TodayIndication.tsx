@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, BatteryMedium, MapPin } from "lucide-react";
-import type { TodayIndicationPayload, VsYesterdayDelta } from "@/lib/api";
+import { useCallback, useEffect, useState } from "react";
+import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
+import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
 import { hdFactForDay } from "@/lib/hdFactOfTheDay";
+import {
+  dayKeyInZone,
+  DEFAULT_PROTOCOLS_TZ,
+  loadDayCompletions,
+  mergeServerCompletions,
+  saveDayCompletions,
+  toggleCompletion,
+  type DayCompletions,
+} from "@/lib/protocolCompletions";
 import {
   useI18n,
   localizeEnergyLabel,
@@ -34,7 +44,25 @@ type Props = {
   bindingLoading?: boolean;
   youLabel?: string | null;
   asOfLabel?: string | null;
+  /** For I-did-it persistence (same HKT/account day key as Protocols). */
+  userId?: number | null;
+  chartId?: number | null;
+  preferredTimezone?: string | null;
 };
+
+function whenLabel(slot: string | null | undefined, t: TFn): string {
+  if (slot === "morning") return t("today.when.morning");
+  if (slot === "midday") return t("today.when.midday");
+  if (slot === "evening") return t("today.when.evening");
+  return t("today.when.morning");
+}
+
+function nounLabel(noun: string | null | undefined, t: TFn): string {
+  if (noun === "calm") return t("today.kitNoun.calm");
+  if (noun === "focus") return t("today.kitNoun.focus");
+  if (noun === "recovery") return t("today.kitNoun.recovery");
+  return t("today.kitNoun.focus");
+}
 
 export default function TodayIndication({
   indication,
@@ -43,8 +71,63 @@ export default function TodayIndication({
   bindingLoading = false,
   youLabel = null,
   asOfLabel = null,
+  userId = null,
+  chartId = null,
+  preferredTimezone = null,
 }: Props) {
   const { t } = useI18n();
+  const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
+  const [completions, setCompletions] = useState<DayCompletions>({});
+
+  useEffect(() => {
+    if (!userId || !chartId) {
+      setCompletions({});
+      return;
+    }
+    let cancelled = false;
+    const local = loadDayCompletions(userId, chartId, dayKey);
+    setCompletions(local);
+    api
+      .listProtocolCompletions(userId, chartId, { day: dayKey })
+      .then((res) => {
+        if (cancelled) return;
+        const merged = mergeServerCompletions(local, res.items || []);
+        setCompletions(merged);
+        saveDayCompletions(userId, chartId, dayKey, merged);
+      })
+      .catch(() => {
+        /* local cache still valid */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, chartId, dayKey]);
+
+  const persistToggle = useCallback(
+    (itemId: string, label: string, kind: "move" | "baseline" = "move") => {
+      if (!userId || !chartId || !itemId) return;
+      setCompletions((prev) => {
+        const next = toggleCompletion(prev, itemId, { label, kind });
+        saveDayCompletions(userId, chartId, dayKey, next);
+        const row = next[itemId];
+        void api
+          .putProtocolCompletion(userId, {
+            chart_id: chartId,
+            day: dayKey,
+            item_id: itemId,
+            kind,
+            label: row?.label || label,
+            done: Boolean(row?.done),
+            note: row?.note ?? null,
+          })
+          .catch(() => {
+            /* offline — local cache keeps the tap */
+          });
+        return next;
+      });
+    },
+    [userId, chartId, dayKey]
+  );
   if (bindingLoading || loading) {
     return (
       <div
@@ -155,11 +238,111 @@ export default function TodayIndication({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-growth">
-              {t("today.mainAction")}
+              {t("today.move")}
             </h3>
-            <p className="text-sm font-medium text-fg" data-testid="main-action-text">
-              {indication.main_action_text}
-            </p>
+            {(() => {
+              const moveId = indication.move_item_id || "today-move";
+              const moveDone = Boolean(completions[moveId]?.done);
+              const canTap = Boolean(userId && chartId);
+              return (
+                <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    disabled={!canTap}
+                    aria-pressed={moveDone}
+                    aria-label={t("today.iDidIt")}
+                    data-testid="today-move-done"
+                    onClick={() =>
+                      persistToggle(moveId, indication.main_action_text || t("today.move"))
+                    }
+                    className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                      moveDone
+                        ? "border-growth bg-growth text-fg-inverse"
+                        : "border-border bg-elevated text-fg-muted hover:border-growth/50"
+                    } ${!canTap ? "opacity-50" : ""}`}
+                  >
+                    <Check className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                  <p
+                    className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
+                    data-testid="main-action-text"
+                  >
+                    {indication.main_action_text}
+                  </p>
+                </div>
+              );
+            })()}
+
+            {/* From your kit — live Pro item or muted placeholder (never hidden) */}
+            {indication.kit_placeholder || !indication.kit_item ? (
+              <Link
+                href="/biohack"
+                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg-muted transition hover:border-growth/30 hover:text-fg-secondary"
+                data-testid="today-kit-placeholder"
+              >
+                <span className="font-medium text-fg-secondary">{t("today.fromKit")}:</span>
+                <span>
+                  {t("today.kitPlaceholder", {
+                    noun: nounLabel(indication.moment_noun, t),
+                  })}
+                </span>
+              </Link>
+            ) : (
+              (() => {
+                const kit = indication.kit_item;
+                const kitId = kit.item_id || `today-kit:${kit.kit_supplement_id || kit.name}`;
+                const kitDone = Boolean(completions[kitId]?.done);
+                const canTap = Boolean(userId && chartId);
+                return (
+                  <div
+                    className="mt-3 flex items-start gap-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                    data-testid="today-kit-line"
+                  >
+                    <button
+                      type="button"
+                      disabled={!canTap}
+                      aria-pressed={kitDone}
+                      aria-label={t("today.iDidIt")}
+                      data-testid="today-kit-done"
+                      onClick={() => persistToggle(kitId, kit.name)}
+                      className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                        kitDone
+                          ? "border-growth bg-growth text-fg-inverse"
+                          : "border-border bg-canvas text-fg-muted hover:border-growth/50"
+                      } ${!canTap ? "opacity-50" : ""}`}
+                    >
+                      <Check className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                        {t("today.fromKit")}
+                      </p>
+                      <p
+                        className={`text-sm font-medium text-fg ${kitDone ? "line-through opacity-80" : ""}`}
+                      >
+                        {kit.name}
+                        {kit.dose ? (
+                          <span className="ml-1.5 font-normal text-fg-secondary">· {kit.dose}</span>
+                        ) : null}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+
+            {indication.when_slot ? (
+              <p
+                className="mt-3 text-xs font-medium uppercase tracking-wide text-fg-muted"
+                data-testid="today-when"
+              >
+                {t("today.when")}:{" "}
+                <span className="text-fg-secondary normal-case tracking-normal">
+                  {whenLabel(indication.when_slot, t)}
+                </span>
+              </p>
+            ) : null}
+
             {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
               <details className="mt-2 group" data-testid="main-action-why-details">
                 <summary className="mt-1 inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-border bg-sunken/70 px-3 py-2 text-xs font-semibold text-fg transition hover:border-growth/40 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 marker:content-none [&::-webkit-details-marker]:hidden">

@@ -544,6 +544,14 @@ def delete_chart(
 @router.get("/transits/today", response_model=TransitResponse)
 def transits_today(
     natal_chart_id: int | None = None,
+    user_id: int | None = Query(
+        None,
+        description="When set, join owned kit + Pro entitlement + I-did-it history into Today",
+    ),
+    preview_as_free: bool = Query(
+        False,
+        description="Client Preview-as-Free — force kit placeholder even for Pro accounts",
+    ),
     db: Session = Depends(get_db),
 ):
     # Bucket ephemeris at fixed 07:00 Asia/Hong_Kong for calendar day D and D-1
@@ -565,6 +573,49 @@ def transits_today(
         overlay = overlay_transits(natal, transit)
         prev_overlay = overlay_transits(natal, prev_transit)
 
+    owned_names: list[str] = []
+    inventory_notes: dict[str, str] = {}
+    bio_unlocked = False
+    history: list[dict] = []
+    if user_id is not None:
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(404, "User not found")
+        bio_unlocked = _user_has_biohacking(user) and not preview_as_free
+        inv_rows = (
+            db.query(SupplementInventory)
+            .filter(
+                SupplementInventory.user_id == user_id,
+                SupplementInventory.active.is_(True),
+            )
+            .all()
+        )
+        owned_names = [r.name for r in inv_rows]
+        inventory_notes = {
+            r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
+        }
+        if natal_chart_id:
+            hist_from = day - timedelta(days=21)
+            hist_rows = (
+                db.query(ProtocolCompletion)
+                .filter(
+                    ProtocolCompletion.user_id == user_id,
+                    ProtocolCompletion.chart_id == natal_chart_id,
+                    ProtocolCompletion.day >= hist_from,
+                    ProtocolCompletion.day <= day,
+                    ProtocolCompletion.item_id.like("today-move:%"),
+                )
+                .all()
+            )
+            history = [
+                {
+                    "item_id": r.item_id,
+                    "done": bool(r.done),
+                    "day": r.day.isoformat(),
+                }
+                for r in hist_rows
+            ]
+
     prev_indication = None
     if natal is not None:
         # Chip baseline for vs_yesterday energy/space deltas (no novelty recurse)
@@ -580,6 +631,10 @@ def transits_today(
         day=day,
         calc_transit=calculate_transits,
         calc_overlay=overlay_transits if natal else None,
+        owned_names=owned_names,
+        inventory_notes=inventory_notes,
+        biohacking_unlocked=bio_unlocked,
+        history=history,
     )
     return TransitResponse(transit=transit, overlay=overlay, indication=indication)
 

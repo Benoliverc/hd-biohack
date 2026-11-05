@@ -1,23 +1,31 @@
-# Current build — Soul Me fixed + spectrum bars + Free Me-only
+# Current build — PR 1 Today transit→protocol (engine & join)
 
-## WIP — Soul Me / bars / Free Me-only (`feat/soul-me-fixed-bars-free-me-only`)
-- **Branch / worktree:** `feat/soul-me-fixed-bars-free-me-only` @ `/workspace/hd-biohack-wt-soul-me-bars`
-- **Scope:** FE+API — Soul You locked to Me; spectrum fill = N% with `%` label; Free (and Preview as Free) Me-only chart create (API 403 on friend create)
-- **Handoff:** `handoffs/soul-me-fixed-bars-free-me-only-2026-11-05.md`
-- **Tip:** `ebc76b9` (`ebc76b9b3e18e08eb2904aab387b5d2a253fc974`)
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/64 — **hold merge** for UX → Ship Gate → Benjamin yes (no standing auto-ship)
-- **Deploy when shipped:** Railway (API Free gate) + Vercel
-- Soft mute: i18n lag, extraSelf copy, LockedSoulMock polish
+## IN PROGRESS — hold merge for Benjamin yes
+- **Branch:** `feat/today-transit-protocol`
+- **Base:** `origin/main` @ `3b986a3` (post PR #64)
+- **Scope:** PR 1 of two — Transit → Moment → Move + kit slot on Today. **Not** Share cards (PR 2).
+- **Worktree:** `/workspace/hd-biohack-wt-today-transit`
+- Softs muted (Stripe, PWA, pushes, leftover i18n nits)
 
-## SHIPPED — PR #63 minor copy/UX batch
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/63
-- **Merge SHA:** `48891fb`
-- **Vercel FE:** https://hd-biohack.vercel.app → 200
+## What shipped in this PR
+- Deterministic prescription engine: `backend/app/checkin/prescription.py`
+  - Driver → moment (same priority as `_energy_band`)
+  - Move ≤20 words, plain English, driver-specific
+  - Kit line via `kit_variety.pick_kit_lead` (Pro); Free/empty → muted placeholder
+  - When = kit slot or moment default; dose only from inventory notes
+  - Pro down-rank after ~14 days of `today-move:*` history
+- `derive_today_indication` always attaches prescription fields
+- `/transits/today?user_id=&preview_as_free=` joins kit + entitlement + history
+- Today UI: Move + From your kit + When + I-did-it taps (`today-kit-line`, `today-kit-placeholder`, `today-when`, `today-move-done`, `today-kit-done`)
+- i18n EN/NL/DE/FR/ES for new copy
+- Completions reuse `protocol_completions` with item ids `today-move:{moment}` / `today-kit:{id}`
 
-## SHIPPED — PR #61 Channels accordion
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/61
-- **Merge SHA:** `7950e34`
+## Tests
+- `backend/tests/test_today_prescription.py` — ALL PASS
+- `backend/tests/test_checkin.py` — ALL PASS
+- `backend/tests/test_kit_variety.py` — ALL PASS
+- FE `tsc --noEmit` clean; `next lint` exit 0 (pre-existing hook warnings only)
 
-## SHIPPED — PR #60 Home first-name greeting
-- **PR:** https://github.com/Benoliverc/hd-biohack/pull/60
-- **Merge SHA:** `7c2c570`
+## Next
+- UX review → Ship Gate → **wait for Benjamin merge yes**
+- Do **not** start PR 2 until PR 1 merges

@@ -46,7 +46,7 @@ function resolveYouChart(
 
 export default function TransitsPage() {
   const { t } = useI18n();
-  const { user, natalChartId, natalBindingLoading, setNatalChart } = useApp();
+  const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   const [youReady, setYouReady] = useState(false);
   const [data, setData] = useState<{
@@ -108,7 +108,10 @@ export default function TransitsPage() {
     setError(null);
     setData(null);
     api
-      .transitsToday(youChart?.id)
+      .transitsToday(youChart?.id, {
+        userId: user?.id,
+        previewAsFree,
+      })
       .then((res) => {
         if (!cancelled) setData(res);
       })
@@ -121,7 +124,7 @@ export default function TransitsPage() {
     return () => {
       cancelled = true;
     };
-  }, [youChart?.id, youReady, natalBindingLoading]);
+  }, [youChart?.id, youReady, natalBindingLoading, user?.id, previewAsFree]);
 
   const activations =
     ((data?.transit?.activations as Array<Record<string, unknown>>) || []);
@@ -204,6 +207,9 @@ export default function TransitsPage() {
         bindingLoading={resolvingYou}
         youLabel={youChart ? youChipLabel(youChart) : null}
         asOfLabel={asOfLabel}
+        userId={user?.id ?? null}
+        chartId={youChart?.id ?? null}
+        preferredTimezone={user?.preferred_timezone ?? null}
       />
 
       {!loading && conditioningNotes.length > 0 && (

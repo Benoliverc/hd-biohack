@@ -62,6 +62,13 @@ class VsYesterdayDelta(BaseModel):
     to: str
 
 
+class TodayKitItem(BaseModel):
+    name: str
+    dose: str = ""
+    kit_supplement_id: str = ""
+    item_id: str = ""
+
+
 class TodayIndication(BaseModel):
     energy_level: int = Field(..., ge=1, le=5)
     energy_label: str
@@ -77,6 +84,13 @@ class TodayIndication(BaseModel):
     daily_signal: DailySignal | None = None
     vs_yesterday: list[VsYesterdayDelta] = Field(default_factory=list)
     conditioning_caption: str = ""
+    # PR1 transit→moment→Move + kit slot
+    moment: str | None = None
+    moment_noun: Literal["calm", "focus", "recovery"] | None = None
+    when_slot: Literal["morning", "midday", "evening"] | None = None
+    move_item_id: str | None = None
+    kit_placeholder: bool = True
+    kit_item: TodayKitItem | None = None
 
 
 class TransitResponse(BaseModel):
