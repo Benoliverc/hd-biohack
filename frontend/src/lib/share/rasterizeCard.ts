@@ -1,5 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 import { type ReactElement } from "react";
+import { toBlob } from "html-to-image";
+import html2canvas from "html2canvas";
 import { inlineSvgStyles } from "./inlineSvgStyles";
 
 function waitFrames(n = 2): Promise<void> {
@@ -17,8 +19,17 @@ function waitFrames(n = 2): Promise<void> {
 
 /**
  * Mount an off-screen card at target CSS pixels, wait for fonts, inline SVG
- * styles, then rasterize to a PNG blob (sRGB via canvas).
- * Never captures live app chrome.
+ * styles, then rasterize the mounted `[data-share-card]` node to a PNG blob
+ * (sRGB). Never captures live app chrome / nav / Why drawer.
+ *
+ * Raster path:
+ * 1. Flatten nested BodyGraph SVGs to PNG `<img>`s (pure SVG → canvas — no
+ *    foreignObject, so Chromium does not taint on that step).
+ * 2. Prefer `html-to-image` `toBlob` on the mounted card node.
+ * 3. If Chromium still taints (foreignObject internals), fall back to
+ *    `html2canvas` with `foreignObjectRendering: false` on that same node.
+ *
+ * Avoids the old hand-rolled SVG+foreignObject → Image → canvas SecurityError.
  */
 export async function rasterizeOffscreenCard(
   element: ReactElement,
@@ -75,6 +86,11 @@ export async function rasterizeOffscreenCard(
 
     inlineSvgStyles(card);
 
+    // Nested SVG inside foreignObject taints Chromium canvases. Rasterize
+    // BodyGraph (and any other) SVGs to PNG imgs first, then capture the node.
+    await replaceSvgsWithPngImages(card);
+    await waitFrames(1);
+
     const blob = await elementToPngBlob(card, size.w, size.h);
     return blob;
   } finally {
@@ -89,58 +105,140 @@ export async function rasterizeOffscreenCard(
 }
 
 /**
- * HTML → PNG via SVG foreignObject. Card must use inline styles (no Tailwind
- * dependency) so Mobile Safari paints fills without stylesheets.
+ * Pure SVG (no foreignObject) → canvas → PNG data URL → replace `<svg>` with
+ * `<img>`. Safe to read pixels; Chromium does not taint on pure SVG drawImage.
+ */
+async function replaceSvgsWithPngImages(root: HTMLElement): Promise<void> {
+  const svgs = Array.from(root.querySelectorAll("svg"));
+  for (const svg of svgs) {
+    const rect = svg.getBoundingClientRect();
+    const attrW = Number(svg.getAttribute("width")) || 0;
+    const attrH = Number(svg.getAttribute("height")) || 0;
+    const width = Math.max(
+      1,
+      Math.round(rect.width || attrW || svg.clientWidth || 1)
+    );
+    const height = Math.max(
+      1,
+      Math.round(rect.height || attrH || svg.clientHeight || 1)
+    );
+
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    if (!clone.getAttribute("xmlns")) {
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+    clone.setAttribute("width", String(width));
+    clone.setAttribute("height", String(height));
+
+    const xml = new XMLSerializer().serializeToString(clone);
+    const url = URL.createObjectURL(
+      new Blob([xml], { type: "image/svg+xml;charset=utf-8" })
+    );
+    try {
+      const img = new Image();
+      img.decoding = "sync";
+      img.src = url;
+      await img.decode();
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", {
+        colorSpace: "srgb",
+      } as CanvasRenderingContext2DSettings);
+      if (!ctx) throw new Error("Canvas 2D unavailable");
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/png");
+
+      const replacement = document.createElement("img");
+      replacement.src = dataUrl;
+      replacement.width = width;
+      replacement.height = height;
+      replacement.alt = "";
+      replacement.setAttribute("data-share-svg-raster", "true");
+      const prior = (svg as SVGElement).getAttribute("style") || "";
+      replacement.style.cssText =
+        prior ||
+        `width:${width}px;height:${height}px;display:block;max-width:none;`;
+      svg.replaceWith(replacement);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+}
+
+function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
+      "image/png"
+    );
+  });
+}
+
+/**
+ * Rasterize the already-mounted off-screen card node.
+ * Prefer html-to-image; on tainted-canvas SecurityError fall back to
+ * html2canvas (foreignObjectRendering: false) on the same node only.
  */
 async function elementToPngBlob(
   el: HTMLElement,
   width: number,
   height: number
 ): Promise<Blob> {
-  const clone = el.cloneNode(true) as HTMLElement;
-  clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  // Solid linen fallback behind transparent bits.
-  if (!clone.style.backgroundColor) {
-    clone.style.backgroundColor = "#F7F6F2";
+  if (!el.style.backgroundColor) {
+    el.style.backgroundColor = "#F7F6F2";
   }
-  clone.style.width = `${width}px`;
-  clone.style.height = `${height}px`;
-  clone.style.boxSizing = "border-box";
-  clone.style.margin = "0";
+  el.style.width = `${width}px`;
+  el.style.height = `${height}px`;
+  el.style.boxSizing = "border-box";
+  el.style.margin = "0";
 
-  const serialized = new XMLSerializer().serializeToString(clone);
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
-    `<foreignObject width="100%" height="100%">` +
-    serialized +
-    `</foreignObject></svg>`;
-
-  const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(svgBlob);
   try {
-    const img = new Image();
-    img.decoding = "sync";
-    img.src = url;
-    await img.decode();
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d", { colorSpace: "srgb" } as CanvasRenderingContext2DSettings);
-    if (!ctx) throw new Error("Canvas 2D unavailable");
-    ctx.fillStyle = "#F7F6F2";
-    ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(img, 0, 0, width, height);
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-        "image/png"
-      );
+    const blob = await toBlob(el, {
+      width,
+      height,
+      canvasWidth: width,
+      canvasHeight: height,
+      pixelRatio: 1,
+      backgroundColor: "#F7F6F2",
+      cacheBust: true,
+      skipAutoScale: true,
     });
+    if (!blob || blob.size < 32) {
+      throw new Error("html-to-image toBlob returned empty PNG");
+    }
     return blob;
-  } finally {
-    URL.revokeObjectURL(url);
+  } catch (err) {
+    // Chromium may still taint html-to-image's internal foreignObject path
+    // (even after SVG flatten). html2canvas with foreignObjectRendering:false
+    // redraws the DOM on this same node and does not taint.
+    void err;
+    const canvas = await html2canvas(el, {
+      width,
+      height,
+      scale: 1,
+      backgroundColor: "#F7F6F2",
+      useCORS: true,
+      allowTaint: false,
+      foreignObjectRendering: false,
+      logging: false,
+      imageTimeout: 15_000,
+    });
+    if (canvas.width !== width || canvas.height !== height) {
+      // Normalize to exact export pixels if the library rounded.
+      const normalized = document.createElement("canvas");
+      normalized.width = width;
+      normalized.height = height;
+      const ctx = normalized.getContext("2d", {
+        colorSpace: "srgb",
+      } as CanvasRenderingContext2DSettings);
+      if (!ctx) throw new Error("Canvas 2D unavailable");
+      ctx.fillStyle = "#F7F6F2";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(canvas, 0, 0, width, height);
+      return canvasToPngBlob(normalized);
+    }
+    return canvasToPngBlob(canvas);
   }
 }
-

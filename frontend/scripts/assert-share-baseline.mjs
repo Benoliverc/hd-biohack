@@ -57,7 +57,17 @@ if (!/document\.fonts\.ready/.test(raster)) fail("fonts.ready wait missing");
 if (!/data-share-card/.test(raster) && !/data-share-card/.test(card))
   fail("off-screen data-share-card missing");
 if (!/inlineSvgStyles/.test(raster)) fail("inlineSvgStyles not used in raster path");
-if (!/foreignObject/.test(raster)) fail("foreignObject raster path missing");
+// Old SVG+foreignObject path taints Chromium; must use node rasterizer instead.
+if (/<foreignObject|foreignObject><\/foreignObject>|svgBlob/.test(raster))
+  fail("hand-rolled SVG+foreignObject raster path must be removed");
+if (!/from \"html-to-image\"|from 'html-to-image'/.test(raster))
+  fail("html-to-image import missing");
+if (!/html2canvas/.test(raster)) fail("html2canvas fallback missing");
+if (!/replaceSvgsWithPngImages|data-share-svg-raster/.test(raster))
+  fail("SVG→PNG flatten before capture missing");
+const pkgJson = read("package.json");
+if (!/"html-to-image"/.test(pkgJson)) fail("package.json missing html-to-image");
+if (!/"html2canvas"/.test(pkgJson)) fail("package.json missing html2canvas");
 
 if (!/#F7F6F2/.test(card) && !/SHARE_PALETTE\.linen/.test(card))
   fail("linen palette missing on card");

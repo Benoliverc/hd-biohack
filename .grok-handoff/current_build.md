@@ -36,14 +36,15 @@ Softs muted (Stripe, PWA, pushes). **No merge until Benjamin yes.**
 ## PR 2 — Share my Baseline — OPEN (stacked on PR 1)
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/66
-- **Tip:** `952550f` (`952550f2abcdbdf2e75adb1adfcee1a4152a524c`)
+- **Tip:** `TIP_SHORT` (`TIP_FULL`) — UX FAIL fix (tainted canvas export)
 - **Branch:** `feat/share-my-baseline` **stacked on** `feat/today-transit-protocol` @ `b5d0f72`
 - **Worktree:** `/workspace/hd-biohack-wt-share-baseline`
 - **Scope:** Natal poster (Chart) + Today card (exact Move string). No prescription-engine changes. No kit/doses on public image.
+- **Hold merge:** Benjamin yes. Do not merge before #65 unless he says otherwise.
 
 ### What shipped
 - `shareCardImage(blob, filename, title?)` — single web adapter (`canShare`+`share` → download/clipboard fallback); Capacitor swap-point commented
-- Off-screen raster path: `rasterizeOffscreenCard` waits `document.fonts.ready`, inlines SVG styles, foreignObject → PNG sRGB
+- Off-screen raster path: `rasterizeOffscreenCard` waits `document.fonts.ready`, inlines SVG styles, flattens BodyGraph SVGs → PNG `<img>`, then `html-to-image` `toBlob` on `[data-share-card]` with `html2canvas` (`foreignObjectRendering: false`) fallback — **no** hand-rolled SVG+foreignObject (Chromium taint fix)
 - Grounded Vitality cards (`#F7F6F2` / `#3F624D` / `#C45B38`); wordmark **Baseline**; Meta safe zone ~14%/35%/6%
 - Sizes: 1080×1920 (primary) + 1080×1350 (feed via menu)
 - Chart top-right Share (You only; first_name if set; no birth PII)
@@ -51,6 +52,7 @@ Softs muted (Stripe, PWA, pushes). **No merge until Benjamin yes.**
 - BodyGraph `compact` mode (SVG only) for cards
 - i18n EN/NL/DE/FR/ES for button labels
 - Assert: `frontend/scripts/assert-share-baseline.mjs`
+- Smoke (headless Chrome, Dev Pro): Chart + Today download `baseline-*-story-1080x1920.png` (real PNG, no “Could not share”)
 
 ### Out of scope
 Prescription engine, OG/meta previews, deep-link into login, kit/protocol details on card, Stripe/PWA/pushes
