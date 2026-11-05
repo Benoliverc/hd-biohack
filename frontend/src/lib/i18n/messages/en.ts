@@ -243,6 +243,13 @@ export const messages = {
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "recovery",
   "today.kitPlaceholder": "+ Log a {noun} item to pair with today's transit",
+  "share.myBaseline": "Share my Baseline",
+  "share.sharing": "Preparing…",
+  "share.stories": "Stories · 9:16",
+  "share.feed": "Feed · 4:5",
+  "share.moreSizes": "More share sizes",
+  "share.failed": "Could not share right now",
+  "share.downloadFallback": "Download image",
 } as const;
 
 export type MessageKey = keyof typeof messages;

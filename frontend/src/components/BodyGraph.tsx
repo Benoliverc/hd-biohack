@@ -42,6 +42,14 @@ export type BodyGraphProps = {
    */
   showLabels?: boolean;
   className?: string;
+  /**
+   * Share-card / poster mode: SVG only (no legend, lists, or hover pill).
+   * Fills/strokes stay as element attributes for Mobile Safari rasterization.
+   */
+  compact?: boolean;
+  /** Explicit CSS size for the SVG when compact (defaults to 100% of wrapper). */
+  svgWidth?: number | string;
+  svgHeight?: number | string;
 };
 
 /** Bodygraph palette — chips/channels pop on every center fill. */
@@ -123,6 +131,9 @@ export function BodyGraph({
   designGates,
   showLabels = false,
   className = "",
+  compact = false,
+  svgWidth,
+  svgHeight,
 }: BodyGraphProps) {
   const defined = new Set(definedCenters.map((c) => norm(c) as string));
   const activated = new Set(activatedGates);
@@ -257,11 +268,33 @@ export function BodyGraph({
     ? chipGates.filter((g) => GATE_TO_CENTER[g] === focusCenter)
     : [];
 
+  const svgClass = compact
+    ? "h-auto w-full"
+    : "h-auto w-full max-w-[300px]";
+  const svgStyle =
+    compact && (svgWidth != null || svgHeight != null)
+      ? {
+          width: svgWidth ?? "100%",
+          height: svgHeight ?? "auto",
+          display: "block",
+        }
+      : compact
+        ? { width: "100%", height: "auto", display: "block" as const }
+        : undefined;
+
   return (
-    <div className={`relative flex flex-col items-center gap-3 ${className}`}>
+    <div
+      className={
+        compact
+          ? `relative flex flex-col items-center ${className}`
+          : `relative flex flex-col items-center gap-3 ${className}`
+      }
+      style={compact ? { pointerEvents: "none" } : undefined}
+    >
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
-        className="h-auto w-full max-w-[300px]"
+        className={svgClass}
+        style={svgStyle}
         role="img"
         aria-label="Human Design bodygraph"
       >
@@ -453,7 +486,7 @@ export function BodyGraph({
       </svg>
 
       {/* Floating center pill — hover / keyboard focus */}
-      {focusLabel && !showLabels ? (
+      {!compact && focusLabel && !showLabels ? (
         <div
           className="pointer-events-none absolute top-2 z-10 max-w-[90%] rounded-full px-3 py-1 text-center text-[11px] font-semibold shadow-sm"
           style={{
@@ -471,6 +504,8 @@ export function BodyGraph({
       ) : null}
 
       {/* Biohacking pill legend — no basalt/terracotta/chalk jargon */}
+      {!compact ? (
+      <>
       <div
         id="bodygraph-legend"
         className="flex w-full max-w-sm flex-col items-center gap-2"
@@ -605,6 +640,8 @@ export function BodyGraph({
           {activatedGates.length > 0 ? ` · ${activatedGates.length} gates` : ""}
         </p>
       )}
+      </>
+      ) : null}
     </div>
   );
 }

@@ -15,6 +15,8 @@ import { formatResetsInHkt } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
+import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
+import { graphFromChart, typeFromChart } from "@/lib/share/graphFromChart";
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
   return row.slot_kind !== "friend";
@@ -48,6 +50,8 @@ export default function TransitsPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
+  /** Full natal chart_json for share card BodyGraph (no PII on the image). */
+  const [youChartPayload, setYouChartPayload] = useState<Record<string, unknown> | null>(null);
   const [youReady, setYouReady] = useState(false);
   const [data, setData] = useState<{
     transit: Record<string, unknown>;
@@ -61,6 +65,7 @@ export default function TransitsPage() {
   useEffect(() => {
     if (!user) {
       setYouChart(null);
+      setYouChartPayload(null);
       setYouReady(false);
       return;
     }
@@ -77,6 +82,11 @@ export default function TransitsPage() {
         const selfRow = resolveYouChart(rows, natalChartId);
         const summary = selfRow ? summaryFromSelf(selfRow) : null;
         setYouChart(summary);
+        setYouChartPayload(
+          selfRow?.chart && typeof selfRow.chart === "object"
+            ? (selfRow.chart as Record<string, unknown>)
+            : null
+        );
         setYouReady(true);
         // Nudge sticky back to self when entering Today (aligns Protocols too).
         if (summary && natalChartId !== summary.id) {
@@ -89,6 +99,7 @@ export default function TransitsPage() {
       .catch(() => {
         if (!cancelled) {
           setYouChart(null);
+          setYouChartPayload(null);
           setYouReady(true);
         }
       });
@@ -160,8 +171,8 @@ export default function TransitsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold">{t("page.today.h1")}</h1>
           {resolvingYou ? (
             <p className="text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
@@ -190,6 +201,15 @@ export default function TransitsPage() {
             <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>
           )}
         </div>
+        {data?.indication?.main_action_text && youChartPayload ? (
+          <ShareBaselineButton
+            variant="today"
+            moveText={data.indication.main_action_text}
+            typeLabel={typeFromChart(youChartPayload)}
+            graph={graphFromChart(youChartPayload)}
+            className="shrink-0"
+          />
+        ) : null}
       </div>
 
       {resolvingYou && (
