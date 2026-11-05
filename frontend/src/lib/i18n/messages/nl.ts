@@ -243,4 +243,11 @@ export const messages = {
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "herstel",
   "today.kitPlaceholder": "+ Log een {noun}-item om te koppelen aan de transit van vandaag",
+  "share.myBaseline": "Deel mijn Baseline",
+  "share.sharing": "Bezig…",
+  "share.stories": "Stories · 9:16",
+  "share.feed": "Feed · 4:5",
+  "share.moreSizes": "Meer deelformaten",
+  "share.failed": "Delen lukte nu niet",
+  "share.downloadFallback": "Afbeelding downloaden",
 } as const;

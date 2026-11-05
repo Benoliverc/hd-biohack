@@ -243,4 +243,11 @@ export const messages = {
   "today.kitNoun.focus": "Fokus",
   "today.kitNoun.recovery": "Erholung",
   "today.kitPlaceholder": "+ Logge ein {noun}-Item, das zu heutigem Transit passt",
+  "share.myBaseline": "Meine Baseline teilen",
+  "share.sharing": "Wird vorbereitet…",
+  "share.stories": "Stories · 9:16",
+  "share.feed": "Feed · 4:5",
+  "share.moreSizes": "Weitere Formate",
+  "share.failed": "Teilen gerade nicht möglich",
+  "share.downloadFallback": "Bild herunterladen",
 } as const;

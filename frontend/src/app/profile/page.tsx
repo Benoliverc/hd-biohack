@@ -7,6 +7,8 @@ import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
+import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
+import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import {
@@ -1452,13 +1454,33 @@ export default function ProfilePage() {
     </>
   );
 
+  const shareGraph = chart ? graphFromChart(chart as Record<string, unknown>) : null;
+  const shareFirstName = (user?.first_name || "").trim() || null;
+  // Natal poster is for You only — never present a friend's chart as "my Baseline".
+  const canShareNatal = Boolean(chart) && Boolean(shareGraph) && frozenSlot === "self";
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t("page.chart.h1")}</h1>
-      <p className="text-sm text-fg-muted">
-        Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + others).
-        Plain language — how your battery and decisions work.
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold">{t("page.chart.h1")}</h1>
+          <p className="mt-1 text-sm text-fg-muted">
+            Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + others).
+            Plain language — how your battery and decisions work.
+          </p>
+        </div>
+        {canShareNatal && shareGraph ? (
+          <ShareBaselineButton
+            variant="natal"
+            typeLabel={typeKey}
+            profileLabel={profileStr}
+            strategyLabel={strategyStr}
+            firstName={shareFirstName}
+            graph={shareGraph}
+            className="shrink-0"
+          />
+        ) : null}
+      </div>
 
       {(usersLoading || usersError || (!usersLoading && !user)) && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-energy/50 bg-energy/10 px-4 py-3 text-sm text-energy-ink">
