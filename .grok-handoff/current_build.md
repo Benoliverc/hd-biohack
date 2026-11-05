@@ -36,7 +36,7 @@ Softs muted (Stripe, PWA, pushes). **No merge until Benjamin yes.**
 ## PR 2 — Share my Baseline — OPEN (stacked on PR 1)
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/66
-- **Tip:** `1790bd7` (`1790bd70c5a50ea712b0d0e80e67ade012a2716b`) — UX FAIL fix `237dda9` (tainted canvas export)
+- **Tip:** `d594910` (`d594910718e2796c74a55b144afe21be9ce38f35`) — UX FAIL fix `237dda9` (tainted canvas export)
 - **Branch:** `feat/share-my-baseline` **stacked on** `feat/today-transit-protocol` @ `b5d0f72`
 - **Worktree:** `/workspace/hd-biohack-wt-share-baseline`
 - **Scope:** Natal poster (Chart) + Today card (exact Move string). No prescription-engine changes. No kit/doses on public image.
