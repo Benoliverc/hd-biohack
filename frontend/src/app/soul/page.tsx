@@ -143,7 +143,6 @@ function SoulUnlockedContent() {
   const [chartsLoading, setChartsLoading] = useState(true);
   const [chartsError, setChartsError] = useState<string | null>(null);
 
-  const [selfId, setSelfId] = useState<number | null>(null);
   const [friendId, setFriendId] = useState<number | null>(null);
   const context = PLAYBOOK_CONTEXT;
 
@@ -164,15 +163,13 @@ function SoulUnlockedContent() {
     try {
       const rows = await api.charts(user.id);
       setCharts(rows);
-      const me = pickMeRow(rows, natalChartId);
-      setSelfId(me?.id ?? null);
     } catch (e) {
       setChartsError(e instanceof Error ? e.message : String(e));
       setCharts([]);
     } finally {
       setChartsLoading(false);
     }
-  }, [user?.id, natalChartId]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -184,10 +181,6 @@ function SoulUnlockedContent() {
     [charts, natalChartId]
   );
   const meId = meRow?.id ?? null;
-
-  useEffect(() => {
-    setSelfId(meId);
-  }, [meId]);
 
   const personOptions = useMemo(() => {
     if (meId == null) return charts.filter((r) => r.slot_kind === "friend");
