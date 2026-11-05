@@ -1,6 +1,6 @@
 # UX review — PR 1 Today transit→protocol (engine & join)
 
-**PR:** (fill after open) · **Branch:** `feat/today-transit-protocol`  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/65 · **Branch:** `feat/today-transit-protocol`  
 **PO handoff:** `handoffs/today-transit-protocol-and-share-2026-11-06.md` (PR 1 only)  
 **Hold merge** for Benjamin yes. Softs muted. **PR 2 (Share) not in this PR.**
 
