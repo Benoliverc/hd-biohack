@@ -303,6 +303,73 @@ def test_deterministic_full_stack():
     print("PASS: emotional wave + full stack deterministic")
 
 
+
+
+def test_protocols_avoids_today_kit_id():
+    """Protocols timed leads must not reuse Today's kit_supplement_id the same day."""
+    from app.biohack.rules import _pick_timed_supports
+
+    natal = _natal(
+        type="Projector",
+        defined_centers=["Ajna"],
+        undefined_centers=["Sacral", "Root", "Head", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    overlay = {"newly_defined_centers": ["Head", "Ajna"], "bridged_channels": []}
+    owned_names = ["Magnesium Glycinate", "L-Theanine", "Lion's Mane", "Omega-3"]
+    rx = build_prescription(
+        natal=natal,
+        transit={},
+        overlay=overlay,
+        energy_level=2,
+        energy_label="Low",
+        preferred_space="focus",
+        day_key="2026-11-06",
+        owned_names=owned_names,
+        inventory_notes={},
+        biohacking_unlocked=True,
+    )
+    assert rx["kit_item"] is not None
+    today_sid = rx["kit_item"]["kit_supplement_id"]
+    assert today_sid
+
+    morning, midday, evening = _pick_timed_supports(
+        natal,
+        overlay,
+        {n.lower() for n in owned_names},
+        ["Head", "Ajna"],
+        [{"name": n, "dose": "", "why": "t"} for n in owned_names],
+        [{"name": n, "dose": "", "why": "t"} for n in owned_names],
+        [{"name": n, "dose": "", "why": "t"} for n in owned_names],
+        "Low",
+        "focus",
+        day_key="2026-11-06",
+        avoid_kit_ids={today_sid},
+    )
+    for slot_name, row in (("morning", morning), ("midday", midday), ("evening", evening)):
+        sid = str((row or {}).get("kit_supplement_id") or "")
+        if sid:
+            assert sid != today_sid, f"{slot_name} reused Today kit id {today_sid}"
+    print("PASS: Protocols avoid_kit_ids skips Today's kit_supplement_id")
+
+
+def test_offered_move_item_id_stable():
+    natal = _natal()
+    overlay = {"newly_defined_centers": ["Solar_Plexus"], "bridged_channels": []}
+    rx = build_prescription(
+        natal=natal,
+        transit={},
+        overlay=overlay,
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="alone",
+        day_key="2026-11-06",
+        biohacking_unlocked=False,
+    )
+    assert rx["move_item_id"] == f"today-move:{rx['moment']}"
+    assert rx["moment"] == "emotional_wave"
+    print("PASS: move_item_id stable today-move:{moment}")
+
+
 if __name__ == "__main__":
     test_move_word_cap_all_templates()
     test_hyper_surplus_no_jargon()
@@ -316,4 +383,6 @@ if __name__ == "__main__":
     test_pro_kit_rotation_deterministic_and_varies()
     test_downrank_after_ignored_history()
     test_deterministic_full_stack()
+    test_protocols_avoids_today_kit_id()
+    test_offered_move_item_id_stable()
     print("ALL PR1 prescription tests passed")

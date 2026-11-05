@@ -187,6 +187,18 @@ def _validate_iana_timezone(tz: str | None) -> str | None:
     return cleaned
 
 
+
+def _account_today(user: User | None) -> date:
+    """Calendar day for Protocols / I-did-it completions — preferred TZ, else HKT."""
+    from datetime import datetime as _dt
+
+    tz_name = (getattr(user, "preferred_timezone", None) or "").strip() or "Asia/Hong_Kong"
+    try:
+        zone = ZoneInfo(tz_name)
+    except Exception:
+        zone = ZoneInfo("Asia/Hong_Kong")
+    return _dt.now(zone).date()
+
 def _validate_first_name(name: str | None) -> str | None:
     """Trim optional first name; empty clears to None. Max 64 (schema-enforced)."""
     if name is None:
@@ -577,11 +589,14 @@ def transits_today(
     inventory_notes: dict[str, str] = {}
     bio_unlocked = False
     history: list[dict] = []
+    # Completions share Protocols' account-TZ day key (fallback HKT). Ephemeris `day` stays HKT.
+    completion_day = day
     if user_id is not None:
         user = db.get(User, user_id)
         if not user:
             raise HTTPException(404, "User not found")
         bio_unlocked = _user_has_biohacking(user) and not preview_as_free
+        completion_day = _account_today(user)
         inv_rows = (
             db.query(SupplementInventory)
             .filter(
@@ -595,14 +610,14 @@ def transits_today(
             r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
         }
         if natal_chart_id:
-            hist_from = day - timedelta(days=21)
+            hist_from = completion_day - timedelta(days=21)
             hist_rows = (
                 db.query(ProtocolCompletion)
                 .filter(
                     ProtocolCompletion.user_id == user_id,
                     ProtocolCompletion.chart_id == natal_chart_id,
                     ProtocolCompletion.day >= hist_from,
-                    ProtocolCompletion.day <= day,
+                    ProtocolCompletion.day <= completion_day,
                     ProtocolCompletion.item_id.like("today-move:%"),
                 )
                 .all()
@@ -636,6 +651,41 @@ def transits_today(
         biohacking_unlocked=bio_unlocked,
         history=history,
     )
+
+    # Seed "offered" Move for the account day (done=False) so Pro down-ranking sees ignored history.
+    # Never overwrite an existing tap (especially done=True). Same day key as Protocols completions.
+    if (
+        user_id is not None
+        and natal_chart_id is not None
+        and isinstance(indication, dict)
+        and indication.get("move_item_id")
+    ):
+        move_id = str(indication["move_item_id"])
+        existing = (
+            db.query(ProtocolCompletion)
+            .filter(
+                ProtocolCompletion.user_id == user_id,
+                ProtocolCompletion.chart_id == natal_chart_id,
+                ProtocolCompletion.day == completion_day,
+                ProtocolCompletion.item_id == move_id,
+            )
+            .first()
+        )
+        if existing is None:
+            db.add(
+                ProtocolCompletion(
+                    user_id=user_id,
+                    chart_id=natal_chart_id,
+                    day=completion_day,
+                    item_id=move_id,
+                    kind="move",
+                    label=str(indication.get("main_action_text") or move_id)[:255],
+                    done=False,
+                    note=None,
+                )
+            )
+            db.commit()
+
     return TransitResponse(transit=transit, overlay=overlay, indication=indication)
 
 
@@ -744,6 +794,19 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
     prev_transit = calculate_transits(when_yest)
     overlay = overlay_transits(natal, transit)
     prev_overlay = overlay_transits(natal, prev_transit)
+    inv_rows = (
+        db.query(SupplementInventory)
+        .filter(
+            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.active.is_(True),
+        )
+        .all()
+    )
+    inv = [r.name for r in inv_rows]
+    inv_notes = {
+        r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
+    }
+    bio_unlocked = _user_has_biohacking(user)
     prev_indication = derive_today_indication(natal, prev_transit, prev_overlay)
     indication = derive_today_indication(
         natal,
@@ -755,14 +818,10 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
         day=day,
         calc_transit=calculate_transits,
         calc_overlay=overlay_transits,
+        owned_names=inv,
+        inventory_notes=inv_notes,
+        biohacking_unlocked=bio_unlocked,
     )
-    inv = [
-        r.name
-        for r in db.query(SupplementInventory).filter(
-            SupplementInventory.user_id == body.user_id,
-            SupplementInventory.active.is_(True),
-        ).all()
-    ]
     # Prefer FE-persisted yesterday fingerprint; else recompute natural leads for D-1
     y_fp = (body.yesterday_lead_fingerprint or "").strip() or None
     if not y_fp:

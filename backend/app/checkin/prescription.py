@@ -86,12 +86,12 @@ MOMENT_MOVES: dict[Moment, tuple[str, ...]] = {
     "emotional_wave": (
         "Don't decide at the crest — wait for the wave to settle.",
         "Breathe before you reply. Feel it through before you choose.",
-        "Skip stacked stimulants on a wave day. Soften the edges first.",
+        "Skip the extra coffee on a wave day. Soften the edges first.",
     ),
     "quiet_sky": (
-        "Keep the day simple — one clear focus, then stop.",
+        "Keep the day simple — one clear focus, then leave margin.",
         "No spike today — protect quiet and skip stacking more noise.",
-        "Run a light day. One errand or one focus, then leave margin.",
+        "Run a light day. One errand or one focus, then stop.",
     ),
 }
 
@@ -309,6 +309,8 @@ def pick_kit_for_moment(
         return None
     from ..biohack.kit_variety import pick_kit_lead
 
+    # Salt day_key so Today kit rotation is offset from Protocols morning/midday/evening
+    # leads that share the same HKT day (they still also avoid via kit_supplement_id).
     hit = pick_kit_lead(
         owned_names,
         slot=when,
@@ -316,7 +318,7 @@ def pick_kit_for_moment(
         preferred_space=preferred_space or "focus",
         focus_centers=list(focus_centers or []),
         signal_source=None,
-        day_key=day_key,
+        day_key=f"{day_key}|today",
         avoid_supplement_ids=avoid_supplement_ids,
     )
     if not hit:
