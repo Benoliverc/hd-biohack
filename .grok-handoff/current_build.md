@@ -4,8 +4,8 @@
 - **Branch / worktree:** `feat/minor-copy-ux-batch` @ `/workspace/hd-biohack-wt-copy-batch`
 - **Scope:** FE copy + light UI — Pro blurbs without Free sales; Protocols/Soul `· Pro` subtitles; friends→People chrome; first-name placeholder Alex; login `baselineapp@proton.me`; Home outcome human copy; Today HD fact of the day (12 facts, novelty HKT day); Why this click affordance
 - **Handoff:** `handoffs/minor-copy-ux-batch-2026-11-05.md`
-- **Tip:** `6443222` (`64432229c5b6aebedb9a577446523cf5b50dc46e`)
-- **PR:** _(filled after create)_ — **hold merge** for UX → Ship Gate → Benjamin yes
+- **Tip:** `ac78260` (`ac782605d708cfd1b9881a0d7f5022df781c6c8f`)
+- **PR:** https://github.com/Benoliverc/hd-biohack/pull/63 — **hold merge** for UX → Ship Gate → Benjamin yes
 - **Deploy when shipped:** Vercel (FE-only; Railway skip)
 - **Preview:** use Vercel preview from PR when available; do not leave long-running servers on :3000
 
