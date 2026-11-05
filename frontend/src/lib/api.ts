@@ -137,6 +137,16 @@ export type VsYesterdayDelta = {
   to: string;
 };
 
+export type TodayKitItem = {
+  name: string;
+  dose?: string;
+  kit_supplement_id?: string;
+  item_id: string;
+};
+
+export type TodayMomentNoun = "calm" | "focus" | "recovery";
+export type TodayWhenSlot = "morning" | "midday" | "evening";
+
 export type TodayIndicationPayload = {
   energy_level: number;
   energy_label: string;
@@ -152,6 +162,13 @@ export type TodayIndicationPayload = {
   daily_signal?: DailySignal | null;
   vs_yesterday?: VsYesterdayDelta[];
   conditioning_caption?: string;
+  /** PR1 transit → moment → Move + kit */
+  moment?: string | null;
+  moment_noun?: TodayMomentNoun | null;
+  when_slot?: TodayWhenSlot | null;
+  move_item_id?: string | null;
+  kit_placeholder?: boolean;
+  kit_item?: TodayKitItem | null;
 };
 
 
@@ -351,12 +368,21 @@ export const api = {
     req<{ ok: boolean; id: number }>(`/charts/${chartId}?user_id=${userId}`, {
       method: "DELETE",
     }),
-  transitsToday: (natalChartId?: number) =>
-    req<{
+  transitsToday: (
+    natalChartId?: number,
+    opts?: { userId?: number; previewAsFree?: boolean }
+  ) => {
+    const q = new URLSearchParams();
+    if (natalChartId) q.set("natal_chart_id", String(natalChartId));
+    if (opts?.userId != null) q.set("user_id", String(opts.userId));
+    if (opts?.previewAsFree) q.set("preview_as_free", "true");
+    const qs = q.toString();
+    return req<{
       transit: Record<string, unknown>;
       overlay: Record<string, unknown> | null;
       indication: TodayIndicationPayload | null;
-    }>(`/transits/today${natalChartId ? `?natal_chart_id=${natalChartId}` : ""}`),
+    }>(`/transits/today${qs ? `?${qs}` : ""}`);
+  },
   protocol: (
     userId: number,
     natalChartId?: number,

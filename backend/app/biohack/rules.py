@@ -626,6 +626,7 @@ def _pick_timed_supports(
     *,
     day_key: str = "1970-01-01",
     signal_source: str | None = None,
+    avoid_kit_ids: set[str] | None = None,
 ) -> tuple[dict, dict, dict]:
     """One Morning / Midday / Evening lead from energy × bridge × owned inventory.
 
@@ -643,7 +644,7 @@ def _pick_timed_supports(
     bridge = bridges[0] if bridges else None
     bridge_name = str(bridge.get("name") or "") if isinstance(bridge, dict) else ""
     bridge_centers = set(bridge.get("centers") or []) if isinstance(bridge, dict) else set()
-    used_kit_ids: set[str] = set()
+    used_kit_ids: set[str] = {str(x) for x in (avoid_kit_ids or set()) if str(x)}
 
     def _moment(slot: str) -> dict:
         return {
@@ -1034,6 +1035,12 @@ def _build_actionable_plans(
 
     daily_signal = ind.get("daily_signal") if isinstance(ind.get("daily_signal"), dict) else {}
     signal_source = str(daily_signal.get("source") or "") or None
+    # Prefer not to fight Today's "From your kit" line (same HKT day).
+    today_kit = ind.get("kit_item") if isinstance(ind.get("kit_item"), dict) else None
+    avoid_from_today: set[str] = set()
+    if today_kit and today_kit.get("kit_supplement_id"):
+        avoid_from_today.add(str(today_kit["kit_supplement_id"]))
+
     morning, midday, evening = _pick_timed_supports(
         natal,
         overlay,
@@ -1046,6 +1053,7 @@ def _build_actionable_plans(
         preferred_space,
         day_key=day_key,
         signal_source=signal_source,
+        avoid_kit_ids=avoid_from_today or None,
     )
 
     # Demoted always-on hygiene — not the hero lead trio

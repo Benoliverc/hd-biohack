@@ -14,6 +14,7 @@ from .novelty import (
     hkt_today,
 )
 from .rules import PreferredSpace, compute_main_action
+from .prescription import attach_prescription
 
 ENERGY_LABELS = {
     1: "Drained",
@@ -234,6 +235,39 @@ def _attach_novelty(
     return payload
 
 
+
+def _with_prescription(
+    payload: dict[str, Any],
+    *,
+    natal: dict[str, Any] | None,
+    transit: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+    day: date | None,
+    owned_names: list[str] | None = None,
+    inventory_notes: dict[str, str] | None = None,
+    biohacking_unlocked: bool = False,
+    history: list[dict[str, Any]] | None = None,
+    avoid_supplement_ids: set[str] | None = None,
+) -> dict[str, Any]:
+    """Attach Move/kit/When. Free path always shows kit placeholder."""
+    from .novelty import hkt_today
+
+    day_key = (day or hkt_today()).isoformat()
+    return attach_prescription(
+        payload,
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        day_key=day_key,
+        owned_names=owned_names,
+        inventory_notes=inventory_notes,
+        biohacking_unlocked=biohacking_unlocked,
+        history=history,
+        avoid_supplement_ids=avoid_supplement_ids,
+        replace_main_action=True,
+    )
+
+
 def _no_natal_indication(
     transit: dict[str, Any] | None,
     *,
@@ -278,7 +312,7 @@ def _no_natal_indication(
         "save_chart_cta": True,
         "disclaimer": "Chart weather from today's sky — not how you feel, not medical advice.",
     }
-    return _attach_novelty(
+    payload = _attach_novelty(
         payload,
         natal=None,
         transit=transit,
@@ -289,6 +323,13 @@ def _no_natal_indication(
         day=day,
         calc_transit=calc_transit,
         calc_overlay=None,
+    )
+    return _with_prescription(
+        payload,
+        natal=None,
+        transit=transit,
+        overlay=None,
+        day=day,
     )
 
 
@@ -303,6 +344,11 @@ def derive_today_indication(
     day: date | None = None,
     calc_transit: Callable[..., dict[str, Any]] | None = None,
     calc_overlay: Callable[..., dict[str, Any] | None] | None = None,
+    owned_names: list[str] | None = None,
+    inventory_notes: dict[str, str] | None = None,
+    biohacking_unlocked: bool = False,
+    history: list[dict[str, Any]] | None = None,
+    avoid_supplement_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """
     Pure function: natal × today transit overlay → energy, space, main action,
@@ -365,7 +411,7 @@ def derive_today_indication(
         "save_chart_cta": False,
         "disclaimer": "Chart weather from your design × today's sky — not biometric or medical advice.",
     }
-    return _attach_novelty(
+    payload = _attach_novelty(
         payload,
         natal=natal,
         transit=transit,
@@ -376,4 +422,16 @@ def derive_today_indication(
         day=day,
         calc_transit=calc_transit,
         calc_overlay=calc_overlay,
+    )
+    return _with_prescription(
+        payload,
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        day=day,
+        owned_names=owned_names,
+        inventory_notes=inventory_notes,
+        biohacking_unlocked=biohacking_unlocked,
+        history=history,
+        avoid_supplement_ids=avoid_supplement_ids,
     )
