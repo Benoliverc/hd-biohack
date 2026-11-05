@@ -3,7 +3,8 @@
 - **Date:** 2026-11-06 (HKT)
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/66
 - **Prior tip (UX FAIL):** `2421038`
-- **New tip:** `d594910` (`d594910718e2796c74a55b144afe21be9ce38f35`) — feature fix `237dda9` (`237dda9374d2a1a34d8beca080d8cfa6ca412af7`)
+- **Feature fix:** `237dda9` (`237dda9374d2a1a34d8beca080d8cfa6ca412af7`)
+- **Branch HEAD:** see `git rev-parse origin/feat/share-my-baseline` after push
 
 ## Blocker fixed
 Chromium `SecurityError: Tainted canvases may not be exported` from hand-rolled SVG + `<foreignObject>` → Image → canvas → `toBlob` in `rasterizeCard.ts`. Download fallback never ran.

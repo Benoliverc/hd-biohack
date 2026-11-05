@@ -8,7 +8,7 @@ Softs muted (Stripe, PWA, pushes). **No merge until Benjamin yes.**
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/65
 - **Branch:** `feat/today-transit-protocol`
-- **Tip:** `b5d0f72` (`b5d0f721a177dabab2194058f3d95409e97db35f`) — includes quality follow-up `19e05d8` (Pro down-rank history, kit dedupe with Protocols, Move polish)
+- **Tip:** `2c305a1` (`2c305a10d2b26fc068dbb4ce184cbe9d5289283c`) — includes quality follow-up `19e05d8` (Pro down-rank history, kit dedupe with Protocols, Move polish)
 - **Base:** `origin/main` @ `3b986a3` (post PR #64)
 - **Worktree:** `/workspace/hd-biohack-wt-today-transit`
 - **Scope:** Transit → Moment → Move + kit slot on Today. Not Share cards.
@@ -36,7 +36,7 @@ Softs muted (Stripe, PWA, pushes). **No merge until Benjamin yes.**
 ## PR 2 — Share my Baseline — OPEN (stacked on PR 1)
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/66
-- **Tip:** `d594910` (`d594910718e2796c74a55b144afe21be9ce38f35`) — UX FAIL fix `237dda9` (tainted canvas export)
+- **Tip:** `237dda9` (`237dda9374d2a1a34d8beca080d8cfa6ca412af7`) — taint-export fix (docs stamps may sit atop; PR head tracks branch)
 - **Branch:** `feat/share-my-baseline` **stacked on** `feat/today-transit-protocol` @ `b5d0f72`
 - **Worktree:** `/workspace/hd-biohack-wt-share-baseline`
 - **Scope:** Natal poster (Chart) + Today card (exact Move string). No prescription-engine changes. No kit/doses on public image.
