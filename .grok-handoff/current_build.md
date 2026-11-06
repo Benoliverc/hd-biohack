@@ -1,38 +1,48 @@
-# Soul Love guidance — current build
+# current_build — daily-return PR 3 Evening Signature Close
 
-**Ticket:** Soul partner Love guidance (human language + standout UI)
-**Handoff:** handoffs/soul-love-guidance-2026-11-06.md
-**Branch:** feat/soul-love-guidance
-**Worktree:** /workspace/hd-biohack-wt-soul-love-guidance
-**Base SHA:** b3ede0d6c13708aa6cfc4f5618dfee5bcf1acbbc
-**Tip SHA:** `63517eadbd05bce2a5a40e707ac4adb14184bd1f`
-**PR:** [#74](https://github.com/Benoliverc/hd-biohack/pull/74)
-**Preview:** http://127.0.0.1:3016/soul (port 3016)
-**Deploy:** BE+FE — Vercel AND Railway after Benjamin yes (do not deploy from this PR open)
-**Gates:** UX UI Review → Ship Gate QA → Benjamin yes. No standing auto-ship.
+- **Date:** 2026-11-06 (Asia/Hong_Kong)
+- **Branch:** `feat/daily-return-evening-signature-close`
+- **Worktree:** `/workspace/hd-biohack-wt-daily-return-pr3`
+- **Base:** `e507886016fd1e4a6671a04a8f9bc1bc5945b545` (main after #75 merge)
+- **Story:** Story 5 Evening Signature Close only (daily-return PR 3)
+- **Do not merge** until Benjamin yes after UX → Ship Gate.
 
-## Scope
-When Person is labeled partner, Soul top-of-playbook becomes a Love guidance reading (hook, the current, how you/they love, what this asks, tender spots, try this) with copper/energy chrome. Channel nuances use The gift in love / The tender spot. Mechanics unchanged. Legacy API keys kept as aliases.
+## Backend / deploy target
+- **BE changed:** YES — extended `protocol-completions` `kind` with `"evening"` (schemas + upsert allowlist + model comment). Same PUT `/users/{id}/protocol-completions` endpoint; label encodes `Type|answer` (e.g. `Generator|yes`).
+- **Also:** one-line SyntaxError fix in `backend/app/biohack/rules.py` (nested quotes) so the API module can import — pre-existing on main, already fixed in PR1 worktree.
+- **Ship deploy:** Vercel **and** Railway.
 
-## Files changed
-- backend/app/hd/partner_insights.py
-- backend/app/schemas.py
-- backend/tests/test_soul_sync.py
-- frontend/src/lib/api.ts
-- frontend/src/components/soul/PartnerOverviewCard.tsx
-- frontend/src/components/soul/PartnerNuanceBlock.tsx
-- frontend/src/app/soul/page.tsx
+## Persistence
+- item_id: `today-evening-close`
+- kind: `evening`
+- label: `{HdType}|{answer}` where answer is `yes`/`no` or Projector `recognized`/`rest`
+- note: optional ≤120 via existing `setCompletionNote` + putProtocolCompletion
+- Free + Pro both persist same-day via existing completion plumbing (Pro history ready for later adaptive ranking; no ranking algorithm in this ticket)
 
-## Untouched (parallel daily-return)
-- TodayIndication.tsx, hdFactOfTheDay.ts, novelty.py, derive.py, protocolCompletions.ts, TodaysMoveCard.tsx, WeatherStrip.tsx
-- /workspace/hd-biohack/.grok-handoff/current_build.md (not overwritten; this ticket writes soul-love-guidance-current_build.md there)
+## Evening visibility
+- preferredTimezone with fallback `DEFAULT_PROTOCOLS_TZ = Asia/Hong_Kong`
+- Visible when local hour ≥ 17, OR `indication.when_slot === "evening"`, OR already answered today
+- Hidden before evening (does not block morning Move)
+
+## Type copy (en)
+- Generator / Manifesting Generator: "Did anything satisfy?"
+- Manifestor: "Did you have peace to start — and did you inform?"
+- Projector: "Were you recognized, or did you rest?"
+- Reflector: "Did the place feel right?"
+
+## data-testid
+- `today-evening-close`, `today-evening-close-question`, `today-evening-close-choices`, `today-evening-close-{answer}`, `today-evening-close-receipt`, `today-evening-close-note`
+
+## Preview
+- FE: http://127.0.0.1:3018/ and /transits (port 3018)
+- API: reuse default rewrite → :8000 if running; else FE-only smoke
 
 ## Tests
-- pytest tests/test_soul_sync.py — 28 passed
-- frontend tsc --noEmit — clean
-- Gold Gen+Projector + Intimacy 59-6 exact match verified
-- All Type pairs rewritten; all channel nuances rewritten; aliases populated
+- `npx tsc --noEmit` — exit 0
+- `npm run assert:evening-signature-close` — PASS
+- quiet-move-closure, kind-show-up, protocol-completions, literacy-pulse, sky-story — PASS
+- `assert-i18n-settings` — PASS, keys=270, parity ok
+- `pytest tests/test_evening_signature_close.py` — PASS
 
-## Open questions for UX/QA
-- Partner first name is derived from chart label first token (no separate first_name on natal_charts). Confirm that is enough for "You & {FirstName}" / "How {Name} loves".
-- Confirm copper/energy wash reads well in both light and dark, and is clearly distinct from Aura Signature without looking Valentine.
+## Placement
+- Inside `main-action`, after Move/closure/show-up, before kit. Never above Move. Never Chart/Soul.

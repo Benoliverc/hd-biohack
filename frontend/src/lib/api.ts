@@ -539,7 +539,7 @@ export const api = {
       chart_id: number;
       day: string;
       item_id: string;
-      kind: "move" | "baseline";
+      kind: "move" | "baseline" | "evening";
       label: string;
       done: boolean;
       note?: string | null;

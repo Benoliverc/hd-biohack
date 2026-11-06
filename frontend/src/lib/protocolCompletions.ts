@@ -11,7 +11,7 @@
  * switches timezone — acceptable for v1 (no migration).
  */
 
-export type CompletionKind = "move" | "baseline";
+export type CompletionKind = "move" | "baseline" | "evening";
 
 export type CompletionItem = {
   done: boolean;
@@ -121,6 +121,13 @@ function v1StorageKey(userId: number, chartId: number, day: string): string {
   return `${V1_PREFIX}${userId}:${chartId}:${day}`;
 }
 
+
+function normalizeCompletionKind(kind: unknown): CompletionKind {
+  if (kind === "baseline") return "baseline";
+  if (kind === "evening") return "evening";
+  return "move";
+}
+
 function isCompletionItem(v: unknown): v is CompletionItem {
   if (!v || typeof v !== "object") return false;
   const o = v as Record<string, unknown>;
@@ -150,7 +157,7 @@ export function parseDayCompletions(raw: string | null): DayCompletions {
         out[id] = {
           done: Boolean(val.done),
           label: String(val.label || id),
-          kind: val.kind === "baseline" ? "baseline" : "move",
+          kind: normalizeCompletionKind(val.kind),
           note: typeof val.note === "string" && val.note.trim() ? val.note.trim() : undefined,
         };
       }
@@ -215,7 +222,7 @@ export function mergeServerCompletions(
     next[row.item_id] = {
       done: Boolean(row.done),
       label: String(row.label || row.item_id),
-      kind: row.kind === "baseline" ? "baseline" : "move",
+      kind: normalizeCompletionKind(row.kind),
       note:
         typeof row.note === "string" && row.note.trim() ? row.note.trim() : undefined,
     };

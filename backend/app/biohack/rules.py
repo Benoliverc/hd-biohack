@@ -1089,9 +1089,10 @@ def _build_actionable_plans(
     do: list[str] = []
     dont: list[str] = []
     # One Strategy/Authority line, not three clones
+    authority_cue = authority or "your body's yes"
     do.append(
         f"Follow Strategy ({strategy or 'your chart strategy'}) · "
-        f"decide with Authority ({authority or "your body's yes"})."
+        f"decide with Authority ({authority_cue})."
     )
     if hd_type in ("Generator", "Manifesting Generator"):
         do.append("Only start work that gets a clear Sacral yes (sounds/body response).")

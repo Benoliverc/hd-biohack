@@ -205,6 +205,7 @@ export default function TransitsPage() {
         userId={user?.id ?? null}
         chartId={youChart?.id ?? null}
         preferredTimezone={user?.preferred_timezone ?? null}
+        natalType={typeFromChart(youChartPayload)}
       />
 
       <LiteracyCoach variant="today" />

@@ -192,7 +192,7 @@ class ProtocolCompletionIn(BaseModel):
     chart_id: int
     day: date
     item_id: str = Field(..., min_length=1, max_length=128)
-    kind: Literal["move", "baseline"] = "move"
+    kind: Literal["move", "baseline", "evening"] = "move"
     label: str = Field("", max_length=255)
     done: bool = False
     note: str | None = Field(None, max_length=120)

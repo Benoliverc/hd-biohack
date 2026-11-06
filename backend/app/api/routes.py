@@ -324,7 +324,7 @@ def upsert_protocol_completion(
     chart = db.get(NatalChart, body.chart_id)
     if not chart or chart.user_id != user_id:
         raise HTTPException(404, "Chart not found")
-    kind = body.kind if body.kind in ("move", "baseline") else "move"
+    kind = body.kind if body.kind in ("move", "baseline", "evening") else "move"
     label = (body.label or "").strip()[:255] or body.item_id
     note = None
     if body.note is not None:
