@@ -5,8 +5,8 @@
 **Branch:** feat/soul-love-guidance
 **Worktree:** /workspace/hd-biohack-wt-soul-love-guidance
 **Base SHA:** b3ede0d6c13708aa6cfc4f5618dfee5bcf1acbbc
-**Tip SHA:** `b7e6f0225a6aebad025966b760786cd95b0d8edc`
-**PR:** (opening)
+**Tip SHA:** `02f216f99d3d41d11fe7e42d3835064836ef9684`
+**PR:** [#74](https://github.com/Benoliverc/hd-biohack/pull/74)
 **Preview:** http://127.0.0.1:3016/soul (port 3016)
 **Deploy:** BE+FE — Vercel AND Railway after Benjamin yes (do not deploy from this PR open)
 **Gates:** UX UI Review → Ship Gate QA → Benjamin yes. No standing auto-ship.
