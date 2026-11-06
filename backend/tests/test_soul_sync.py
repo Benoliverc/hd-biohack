@@ -566,3 +566,107 @@ if __name__ == "__main__":
     test_badge_descriptions_present()
     test_playbook_ledes_vary_by_signature_and_context()
     print("\nAll soul_sync Aura Alchemy tests passed.")
+
+
+def test_partner_overview_generator_projector_exact_copy():
+    """Partner role layers Type×Type overview; Generator+Projector uses handoff copy."""
+    from app.hd.partner_insights import PARTNER_OVERVIEW_BY_TYPES
+
+    expected = PARTNER_OVERVIEW_BY_TYPES["Generator|Projector"]
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+    )
+    assert out["friend"]["role"] == "partner"
+    assert out["self"]["role"] == "self"
+    overview = out.get("partner_overview")
+    assert overview is not None
+    assert overview["core_dynamic"] == expected["core_dynamic"]
+    assert overview["mutual_growth"] == expected["mutual_growth"]
+    assert overview["relationship_challenges"] == expected["relationship_challenges"]
+    # Mechanics unchanged — Intimacy EM still Magnetic Alchemy
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    assert "intimacy_lock" in _badge_ids(out)
+    em = out["channel_roles"]["electromagnetic"]
+    intimacy = next(c for c in em if c["channel"] == "Intimacy")
+    nuance = intimacy.get("partner_nuance")
+    assert nuance is not None
+    assert "closeness feel unusually available" in nuance["romantic_synergy"]
+    assert "space feel like rejection" in nuance["romantic_friction"]
+    print("PASS: partner Generator+Projector overview + 59-6 nuance")
+
+
+def test_non_partner_omits_romantic_layer():
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Sam", "role": "person"},
+    )
+    assert out["friend"]["role"] == "person"
+    assert out.get("partner_overview") is None
+    for ch in out["channel_roles"].get("electromagnetic") or []:
+        assert "partner_nuance" not in ch
+    for ch in out["channel_roles"].get("companionship") or []:
+        assert "partner_nuance" not in ch
+    # Same mechanics as before
+    assert out["signature"]["id"] == "magnetic_alchemy"
+    print("PASS: non-partner has no partner_overview / partner_nuance")
+
+
+def test_partner_layer_default_role_is_person_without_meta():
+    a = _chart([5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([1, 8], type="Projector", authority="Splenic", profile="5/1")
+    out = compute_soul_sync(a, b, context="life")
+    assert out["friend"]["role"] == "person"
+    assert out.get("partner_overview") is None
+    print("PASS: missing friend_meta role defaults to person (no romantic layer)")
+
+
+def test_all_type_pairs_have_partner_overview():
+    from app.hd.partner_insights import HD_TYPES, PARTNER_OVERVIEW_BY_TYPES, type_pair_key
+
+    missing = []
+    for i, a in enumerate(HD_TYPES):
+        for b in HD_TYPES[i:]:
+            key = type_pair_key(a, b)
+            if key not in PARTNER_OVERVIEW_BY_TYPES:
+                missing.append(key)
+    assert not missing, f"missing overviews: {missing}"
+    print(f"PASS: {len(PARTNER_OVERVIEW_BY_TYPES)} Type×Type partner overviews")
+
+
+def test_partner_copy_has_no_forbidden_words():
+    from app.hd.partner_insights import (
+        PARTNER_NUANCE_BY_CHANNEL,
+        PARTNER_OVERVIEW_BY_TYPES,
+    )
+
+    banned = (
+        "soulmate",
+        "twin flame",
+        "twin-flame",
+        "meant to be",
+        "you two are meant",
+    )
+    blobs = []
+    for ov in PARTNER_OVERVIEW_BY_TYPES.values():
+        blobs.extend(ov.values())
+    for nu in PARTNER_NUANCE_BY_CHANNEL.values():
+        blobs.extend(nu.values())
+    joined = "\n".join(blobs).lower()
+    for word in banned:
+        assert word not in joined, f"forbidden phrase in partner copy: {word}"
+    # No percentage compatibility scores in partner copy
+    import re
+
+    assert not re.search(r"\b\d{2,3}%\b", joined), "partner copy must not include % scores"
+    print("PASS: partner copy has no forbidden romance tropes")

@@ -266,6 +266,8 @@ export default function ProfilePage() {
   const [editingChartId, setEditingChartId] = useState<number | null>(null);
   const [friendName, setFriendName] = useState("");
   const [saveAs, setSaveAs] = useState<SaveAs>("self");
+  /** People charts only: person | partner relationship label. */
+  const [personRole, setPersonRole] = useState<"person" | "partner">("person");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [personEditorOpen, setPersonEditorOpen] = useState(true);
   /** True while DEMO_BIRTH is loaded into the form (never implied as "your" chart). */
@@ -377,6 +379,9 @@ export default function ProfilePage() {
       // You: leave name empty so "Save as new friend" cannot reuse "Me".
       // Friend: use label (never fall back to "Me").
       setFriendName(kind === "friend" ? (latest.label || "").trim() : "");
+      setPersonRole(
+        kind === "friend" && latest.role === "partner" ? "partner" : "person"
+      );
     },
     [setNatalChart]
   );
@@ -628,6 +633,7 @@ export default function ProfilePage() {
     setSavedForm(null);
     setError(null);
     setFriendName("");
+    setPersonRole("person");
     setSaveAs(biohackingUnlocked && hasSelfSaved ? "friend" : "self");
     setDemoBirthActive(false);
     setPersonEditorOpen(true);
@@ -741,6 +747,12 @@ export default function ProfilePage() {
         lon: useLon,
         label: save ? label : undefined,
         slot_kind: save ? kind : undefined,
+        role:
+          save && kind === "friend"
+            ? personRole
+            : save && kind === "self"
+              ? "self"
+              : undefined,
         // create never sends natal_chart_id even if a stale id exists
         natal_chart_id:
           saveIntent === "update" ? editingChartId ?? undefined : undefined,
@@ -1075,6 +1087,7 @@ export default function ProfilePage() {
                             <span className="text-fg-muted">
                               {" "}
                               · {row.type || "—"} · {row.profile || "—"}
+                              {row.role === "partner" ? " · Partner" : ""}
                             </span>
                             <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
@@ -1333,6 +1346,43 @@ export default function ProfilePage() {
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-energy/40 bg-energy-soft px-3 py-2 text-sm text-energy-ink">
                 Saving as person
               </span>
+            )}
+            {(editingFriend ||
+              (isNewPersonUi &&
+                canCreatePeople &&
+                (saveAs === "friend" || hasSelfSaved))) && (
+              <div
+                className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1"
+                data-testid="person-role-control"
+                title="Relationship label for Soul — does not change Pro access"
+              >
+                <button
+                  type="button"
+                  disabled={!formReady || busy}
+                  onClick={() => setPersonRole("person")}
+                  className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                    personRole === "person"
+                      ? "bg-elevated text-fg"
+                      : "text-fg-muted"
+                  }`}
+                  data-testid="person-role-person"
+                >
+                  Person
+                </button>
+                <button
+                  type="button"
+                  disabled={!formReady || busy}
+                  onClick={() => setPersonRole("partner")}
+                  className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                    personRole === "partner"
+                      ? "bg-elevated text-fg"
+                      : "text-fg-muted"
+                  }`}
+                  data-testid="person-role-partner"
+                >
+                  Partner
+                </button>
+              </div>
             )}
           </div>
 

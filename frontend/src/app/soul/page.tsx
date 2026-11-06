@@ -7,6 +7,7 @@ import {
   type SavedChartRow,
   type SoulCard,
   type SoulContext,
+  type SoulPartnerNuance,
   type SoulSpectrum,
   type SoulSyncResult,
 } from "@/lib/api";
@@ -15,6 +16,8 @@ import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
+import PartnerOverviewCard from "@/components/soul/PartnerOverviewCard";
+import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -63,7 +66,24 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
   );
 }
 
-function InsightCard({ card }: { card: SoulCard }) {
+function asPartnerNuance(raw: unknown): SoulPartnerNuance | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const syn = o.romantic_synergy;
+  const fri = o.romantic_friction;
+  if (typeof syn !== "string" || typeof fri !== "string" || !syn.trim() || !fri.trim()) {
+    return null;
+  }
+  return { romantic_synergy: syn, romantic_friction: fri };
+}
+
+function InsightCard({
+  card,
+  showPartnerNuance,
+}: {
+  card: SoulCard;
+  showPartnerNuance: boolean;
+}) {
   return (
     <div
       id={`soul-card-${card.id}`}
@@ -82,15 +102,88 @@ function InsightCard({ card }: { card: SoulCard }) {
         ))}
       </ul>
       {card.id === "circuit_bridge" && card.bridges && card.bridges.length > 0 && (
-        <ul className="mt-3 space-y-1 border-t border-border/60 pt-3 text-xs text-fg-muted">
-          {card.bridges.map((b) => (
-            <li key={`${b.missing_for}-${b.gate}`}>
-              Gate {b.gate} · {b.channel || "channel"} · completes{" "}
-              {b.missing_for === "self" ? "you" : "them"}
-            </li>
-          ))}
+        <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 text-xs text-fg-muted">
+          {card.bridges.map((b) => {
+            const nuance =
+              showPartnerNuance ? asPartnerNuance(b.partner_nuance) : null;
+            return (
+              <li key={`${b.missing_for}-${b.gate}`}>
+                <p>
+                  Gate {b.gate} · {b.channel || "channel"} · completes{" "}
+                  {b.missing_for === "self" ? "you" : "them"}
+                </p>
+                {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
+              </li>
+            );
+          })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function CompletedChannelsList({
+  channelRoles,
+  showPartnerNuance,
+}: {
+  channelRoles: Record<string, Array<Record<string, unknown>>>;
+  showPartnerNuance: boolean;
+}) {
+  const em = channelRoles.electromagnetic || [];
+  const comp = channelRoles.companionship || [];
+  if (!em.length && !comp.length) return null;
+  return (
+    <div
+      className="rounded-2xl border border-border bg-elevated p-5"
+      data-testid="soul-completed-channels"
+    >
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+        Completed channels
+      </h2>
+      <p className="mb-3 text-xs text-fg-muted">
+        Electromagnetic and companionship overlaps for this pair — base mechanics stay
+        the same; partner notes appear only when Person is marked Partner.
+      </p>
+      <ul className="space-y-3">
+        {em.map((ch, i) => {
+          const name = String(ch.channel || "Channel");
+          const gates = Array.isArray(ch.gates) ? (ch.gates as number[]) : [];
+          const gateTxt = gates.length ? gates.join("-") : "";
+          const nuance = showPartnerNuance ? asPartnerNuance(ch.partner_nuance) : null;
+          return (
+            <li
+              key={`em-${name}-${gateTxt}-${i}`}
+              className="rounded-xl border border-border/70 bg-sunken/40 px-3 py-2.5"
+              data-testid={`soul-channel-em-${gateTxt || i}`}
+            >
+              <p className="text-sm font-medium text-fg">
+                {name}
+                {gateTxt ? ` (${gateTxt})` : ""} · Electromagnetic
+              </p>
+              {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
+            </li>
+          );
+        })}
+        {comp.map((ch, i) => {
+          const name = String(ch.channel || "Channel");
+          const gates = Array.isArray(ch.gates) ? (ch.gates as number[]) : [];
+          const gateTxt = gates.length ? gates.join("-") : "";
+          const nuance = showPartnerNuance ? asPartnerNuance(ch.partner_nuance) : null;
+          return (
+            <li
+              key={`comp-${name}-${gateTxt}-${i}`}
+              className="rounded-xl border border-border/70 bg-sunken/40 px-3 py-2.5"
+              data-testid={`soul-channel-comp-${gateTxt || i}`}
+            >
+              <p className="text-sm font-medium text-fg">
+                {name}
+                {gateTxt ? ` (${gateTxt})` : ""} · Companionship
+              </p>
+              {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -115,7 +208,8 @@ function pickDefaultFriend(rows: SavedChartRow[], meId: number | null): number |
 }
 
 function chartOptionLabel(r: SavedChartRow, fallback: string): string {
-  return `${r.label || fallback} · ${r.type || "—"} · ${r.profile || "—"}`;
+  const base = `${r.label || fallback} · ${r.type || "—"} · ${r.profile || "—"}`;
+  return r.role === "partner" ? `${base} · Partner` : base;
 }
 
 function waitTwoFrames(): Promise<void> {
@@ -349,12 +443,13 @@ function SoulUnlockedContent() {
             </label>
           </div>
 
-          <div data-testid="soul-playbook">
-            <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
-            <p className="text-xs text-fg-muted">
-              Guidance for this pair — signature, spectrums, and cards below.
-            </p>
-          </div>
+          <div data-testid="soul-playbook" className="space-y-6">
+            <div>
+              <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
+              <p className="text-xs text-fg-muted">
+                Guidance for this pair — signature, spectrums, and cards below.
+              </p>
+            </div>
 
           {(apiMissing || schemaLag) && (
             <div
@@ -386,6 +481,9 @@ function SoulUnlockedContent() {
 
           {result && (
             <>
+              {result.friend?.role === "partner" && result.partner_overview ? (
+                <PartnerOverviewCard overview={result.partner_overview} />
+              ) : null}
               <div
                 id="soul-hero"
                 className="rounded-2xl border border-border bg-elevated p-5"
@@ -490,9 +588,18 @@ function SoulUnlockedContent() {
 
               <div id="soul-cards" className="space-y-4" data-testid="soul-cards">
                 {orderedCards.map((card) => (
-                  <InsightCard key={card.id} card={card} />
+                  <InsightCard
+                    key={card.id}
+                    card={card}
+                    showPartnerNuance={result.friend?.role === "partner"}
+                  />
                 ))}
               </div>
+
+              <CompletedChannelsList
+                channelRoles={result.channel_roles || {}}
+                showPartnerNuance={result.friend?.role === "partner"}
+              />
 
               <details
                 id="soul-conditioning"
@@ -542,6 +649,7 @@ function SoulUnlockedContent() {
               </details>
             </>
           )}
+          </div>
         </>
       )}
     </div>
