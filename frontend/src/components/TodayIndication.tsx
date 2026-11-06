@@ -18,8 +18,6 @@ import {
   useI18n,
   localizeEnergyLabel,
   localizeSpaceLabel,
-  ENERGY_LEVELS,
-  SPACE_VALUES,
   type MessageKey,
 } from "@/lib/i18n";
 
@@ -42,8 +40,6 @@ type Props = {
   loading?: boolean;
   error?: string | null;
   bindingLoading?: boolean;
-  youLabel?: string | null;
-  asOfLabel?: string | null;
   /** For I-did-it persistence (same HKT/account day key as Protocols). */
   userId?: number | null;
   chartId?: number | null;
@@ -69,8 +65,6 @@ export default function TodayIndication({
   loading = false,
   error = null,
   bindingLoading = false,
-  youLabel = null,
-  asOfLabel = null,
   userId = null,
   chartId = null,
   preferredTimezone = null,
@@ -164,73 +158,16 @@ export default function TodayIndication({
   const space = indication.preferred_space;
   const daily = indication.daily_signal;
   const vs = indication.vs_yesterday || [];
-  const caption =
-    indication.conditioning_caption?.trim() || t("today.conditioningCaptionFallback");
+  const caption = indication.conditioning_caption?.trim() || "";
   const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
-
-  const eyebrowBits = [t("today.indication")];
-  if (youLabel) eyebrowBits.push(youLabel);
-  if (asOfLabel) eyebrowBits.push(asOfLabel);
 
   return (
     <div
       className="rounded-2xl border border-border bg-elevated p-5 shadow-soft"
       data-testid="today-indication"
     >
-      <div className="mb-3">
-        <h2
-          className="text-sm font-semibold uppercase tracking-wide text-fg-muted"
-          data-testid="indication-eyebrow"
-        >
-          {eyebrowBits.join(" · ")}
-        </h2>
-        <p
-          className="mt-1 text-sm text-fg-secondary"
-          data-testid="indication-disclaimer"
-        >
-          {indication.disclaimer || t("today.disclaimerFallback")}
-        </p>
-      </div>
-
-      {daily ? (
-        <div className="mb-4" data-testid="daily-signal">
-          <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-            <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {t("today.newSignal")}
-          </p>
-          <h3
-            className="text-lg font-semibold text-fg"
-            data-testid="daily-signal-headline"
-          >
-            {daily.headline}
-          </h3>
-          <p className="mt-1 text-sm text-fg-secondary" data-testid="daily-signal-body">
-            {daily.body}
-          </p>
-        </div>
-      ) : null}
-
-      {vs.length > 0 ? (
-        <div className="mb-4" data-testid="vs-yesterday">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-            {t("today.vsYesterday")}
-          </p>
-          <div className="flex flex-wrap gap-2" role="list" aria-label={t("today.vsYesterday")}>
-            {vs.map((d) => (
-              <span
-                key={`${d.field}-${d.from}-${d.to}`}
-                role="listitem"
-                className="inline-flex min-h-9 items-center rounded-full border border-border bg-sunken px-3 py-1.5 text-xs text-fg-secondary"
-                data-testid={`vs-${d.field}`}
-              >
-                {vsPillLabel(d, t)}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
+      {/* 1. Move hero first */}
       <div
         className="mb-4 rounded-xl border border-growth/25 bg-canvas p-4 shadow-soft ring-1 ring-growth/10"
         data-testid="main-action"
@@ -403,7 +340,7 @@ export default function TodayIndication({
           <aside
             className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-44 sm:flex-col"
             data-testid="main-action-status"
-            aria-label={t("today.stillConditioning")}
+            aria-label={`${t("today.energy")} · ${t("today.space")}`}
           >
             <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
               <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
@@ -427,7 +364,62 @@ export default function TodayIndication({
         </div>
       </div>
 
+      {/* 2. Sky under the Move: today's new signal + collapsed vs yesterday */}
+      {daily ? (
+        <div className="mb-3" data-testid="daily-signal">
+          <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
+            <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {t("today.newSignal")}
+          </p>
+          <h3
+            className="text-lg font-semibold text-fg"
+            data-testid="daily-signal-headline"
+          >
+            {daily.headline}
+          </h3>
+          <p className="mt-1 text-sm text-fg-secondary" data-testid="daily-signal-body">
+            {daily.body}
+          </p>
+        </div>
+      ) : null}
 
+      {vs.length > 0 ? (
+        <details className="mb-3 group" data-testid="vs-yesterday">
+          <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden
+              className="inline-block text-fg-muted transition-transform group-open:rotate-90"
+            >
+              ▸
+            </span>
+            <span>{t("today.vsYesterday")}</span>
+          </summary>
+          <div
+            className="mt-2 flex flex-wrap gap-2"
+            role="list"
+            aria-label={t("today.vsYesterday")}
+          >
+            {vs.map((d) => (
+              <span
+                key={`${d.field}-${d.from}-${d.to}`}
+                role="listitem"
+                className="inline-flex min-h-9 items-center rounded-full border border-border bg-sunken px-3 py-1.5 text-xs text-fg-secondary"
+                data-testid={`vs-${d.field}`}
+              >
+                {vsPillLabel(d, t)}
+              </span>
+            ))}
+          </div>
+        </details>
+      ) : null}
+
+      {caption ? (
+        <p className="mb-3 text-xs text-fg-muted" data-testid="conditioning-caption">
+          {caption}
+        </p>
+      ) : null}
+
+      {/* 3. HD fact of the day — below Move + sky */}
       {(() => {
         const { fact, dayKey } = hdFactForDay();
         return (
@@ -444,64 +436,13 @@ export default function TodayIndication({
         );
       })()}
 
-      <div
-        className="rounded-xl border border-border bg-sunken/40 p-4"
-        data-testid="still-conditioning"
+      {/* 4. Quiet disclaimer footer */}
+      <p
+        className="text-[11px] leading-relaxed text-fg-muted"
+        data-testid="indication-disclaimer"
       >
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          {t("today.stillConditioning")}
-        </p>
-
-        <div className="mb-3">
-          <p className="mb-2 text-sm font-medium text-fg">{t("today.energy")}</p>
-          <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-1.5"
-            role="status"
-            aria-label={`Energy today: ${energyLabel}`}
-            data-testid="energy-chips"
-          >
-            <span
-              data-testid={`energy-${energy}`}
-              data-active="true"
-              className="inline-flex items-center rounded-md border border-growth/40 bg-growth-soft px-2.5 py-1 text-xs font-semibold text-growth-ink cursor-default select-none"
-            >
-              {energyLabel}
-            </span>
-            <span className="text-[11px] text-fg-muted cursor-default select-none">
-              {ENERGY_LEVELS.filter((lvl) => lvl !== energy)
-                .map((lvl) => localizeEnergyLabel(t, lvl))
-                .join(" · ")}
-            </span>
-          </div>
-        </div>
-
-        <div className="mb-3">
-          <p className="mb-2 text-sm font-medium text-fg">{t("today.space")}</p>
-          <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-1.5"
-            role="status"
-            aria-label={`Preferred space: ${spaceLabel}`}
-            data-testid="space-chips"
-          >
-            <span
-              data-testid={`space-${space}`}
-              data-active="true"
-              className="inline-flex items-center rounded-md border border-energy/40 bg-energy-soft px-2.5 py-1 text-xs font-semibold text-energy-ink cursor-default select-none"
-            >
-              {spaceLabel}
-            </span>
-            <span className="text-[11px] text-fg-muted cursor-default select-none">
-              {SPACE_VALUES.filter((v) => v !== space)
-                .map((v) => localizeSpaceLabel(t, v))
-                .join(" · ")}
-            </span>
-          </div>
-        </div>
-
-        <p className="text-xs text-fg-muted" data-testid="conditioning-caption">
-          {caption}
-        </p>
-      </div>
+        {indication.disclaimer || t("today.disclaimerFallback")}
+      </p>
     </div>
   );
 }

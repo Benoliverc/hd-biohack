@@ -6,7 +6,6 @@ import { Hexagon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, type SavedChartRow } from "@/lib/api";
 import {
-  formatNatalOverlayLabel,
   useApp,
   type NatalChartSummary,
 } from "@/lib/store";
@@ -146,60 +145,37 @@ export default function TransitsPage() {
   const asOfLabel = formatResetsInHkt();
   const resolvingYou = natalBindingLoading || !youReady;
 
-  const bridged = ((overlay?.bridged_channels as Array<Record<string, unknown>>) || []);
-  const newlyDefined = ((overlay?.newly_defined_centers as string[]) || []);
-  // Overlay tips only — Main action owns the primary do-statement (TodayIndication).
-  // Never parallel Main action with a competing do-list section.
-  const conditioningNotes: string[] = [];
-  if (newlyDefined.length > 0) {
-    conditioningNotes.push(
-      `Temporary energy in ${newlyDefined.map(displayCenter).join(", ")} — expect unfamiliar pressure; don't over-identify.`
-    );
-  } else if (bridged.length > 0) {
-    const first = bridged[0];
-    conditioningNotes.push(
-      `A bridge may be active (${String(first.name)}) — watch who/what feels magnetic today.`
-    );
-  }
-  if (conditioningNotes.length === 0 && !loading) {
-    conditioningNotes.push(
-      youChart
-        ? t("page.today.noSpike")
-        : t("page.today.skyOnly")
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold">{t("page.today.h1")}</h1>
+          {/* Modest H1 for a11y; visual weight lives on You + Move */}
+          <h1 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
+            {t("page.today.h1")}
+          </h1>
           {resolvingYou ? (
-            <p className="text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
+            <p className="mt-1 text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
           ) : youChart ? (
-            <div className="mt-1 space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
-                  title={t("page.today.alwaysUsesChart")}
-                  data-testid="today-you-chip"
-                >
-                  {youChipLabel(youChart)}
-                </span>
-              </div>
-              <p className="text-xs text-fg-muted">{t("page.today.friendsStay")}</p>
-              <p className="text-xs text-fg-muted">
-                Overlaying {formatNatalOverlayLabel(youChart)}
-              </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium text-fg"
+                title={t("page.today.alwaysUsesChart")}
+                data-testid="today-you-chip"
+              >
+                {youChipLabel(youChart)}
+              </span>
+              {asOfLabel ? (
+                <p className="text-xs text-fg-muted">{asOfLabel}</p>
+              ) : null}
             </div>
           ) : (
-            <p className="text-sm text-fg-muted">
+            <p className="mt-1 text-sm text-fg-muted">
               {t("page.today.savePrompt")}
             </p>
           )}
-          {asOfLabel && (
+          {!youChart && asOfLabel ? (
             <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>
-          )}
+          ) : null}
         </div>
         {data?.indication?.main_action_text && youChartPayload ? (
           <ShareBaselineButton
@@ -225,28 +201,11 @@ export default function TransitsPage() {
         loading={loading && !data}
         error={error}
         bindingLoading={resolvingYou}
-        youLabel={youChart ? youChipLabel(youChart) : null}
-        asOfLabel={asOfLabel}
         userId={user?.id ?? null}
         chartId={youChart?.id ?? null}
         preferredTimezone={user?.preferred_timezone ?? null}
       />
 
-      {!loading && conditioningNotes.length > 0 && (
-        <div
-          className="rounded-2xl border border-border bg-elevated p-5 shadow-soft"
-          data-testid="conditioning-notes"
-        >
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-            {t("page.today.conditioningNotes")}
-          </h2>
-          <ul className="list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
-            {conditioningNotes.slice(0, 3).map((b) => (
-              <li key={b}>{b}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {sunEarth && (
         <div className="rounded-2xl border border-energy/40 bg-energy/10 p-5">
