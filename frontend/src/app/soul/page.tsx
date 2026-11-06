@@ -69,12 +69,37 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
 function asPartnerNuance(raw: unknown): SoulPartnerNuance | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  const syn = o.romantic_synergy;
-  const fri = o.romantic_friction;
-  if (typeof syn !== "string" || typeof fri !== "string" || !syn.trim() || !fri.trim()) {
+  const gift =
+    typeof o.gift_in_love === "string" && o.gift_in_love.trim()
+      ? o.gift_in_love
+      : typeof o.romantic_synergy === "string"
+        ? o.romantic_synergy
+        : null;
+  const tender =
+    typeof o.tender_spot === "string" && o.tender_spot.trim()
+      ? o.tender_spot
+      : typeof o.romantic_friction === "string"
+        ? o.romantic_friction
+        : null;
+  if (!gift?.trim() || !tender?.trim()) return null;
+  return {
+    romantic_synergy: gift,
+    romantic_friction: tender,
+    gift_in_love: gift,
+    tender_spot: tender,
+  };
+}
+
+/** First token of chart label for Love guidance headings (never full name dump). */
+function partnerFirstNameFromLabel(label: string | null | undefined): string | null {
+  const raw = (label || "").trim();
+  if (!raw) return null;
+  const lowered = raw.toLowerCase();
+  if (lowered === "friend" || lowered === "partner" || lowered === "person" || lowered === "me") {
     return null;
   }
-  return { romantic_synergy: syn, romantic_friction: fri };
+  const first = raw.split(/\s+/)[0] || "";
+  return first || null;
 }
 
 function InsightCard({
@@ -294,6 +319,12 @@ function SoulUnlockedContent() {
     });
   }, [personOptions, meId]);
 
+  const selectedFriend = useMemo(
+    () => personOptions.find((r) => r.id === friendId) ?? null,
+    [personOptions, friendId]
+  );
+  const isPartnerSelected = selectedFriend?.role === "partner";
+
   useEffect(() => {
     if (!user?.id || meId == null || friendId == null || meId === friendId) {
       setResult(null);
@@ -407,7 +438,11 @@ function SoulUnlockedContent() {
       ) : (
         <>
           <div
-            className="flex flex-col gap-3 rounded-2xl border border-border bg-elevated p-4 sm:flex-row sm:items-end sm:gap-4"
+            className={
+              isPartnerSelected
+                ? "flex flex-col gap-3 rounded-2xl border border-energy/40 bg-energy-soft/40 p-4 sm:flex-row sm:items-end sm:gap-4"
+                : "flex flex-col gap-3 rounded-2xl border border-border bg-elevated p-4 sm:flex-row sm:items-end sm:gap-4"
+            }
             data-testid="soul-pickers"
           >
             <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
@@ -427,7 +462,17 @@ function SoulUnlockedContent() {
               </div>
             </div>
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
-              Person
+              <span className="flex flex-wrap items-center gap-2">
+                {isPartnerSelected ? "Partner" : "Person"}
+                {isPartnerSelected ? (
+                  <span
+                    className="inline-flex items-center rounded-full border border-energy/40 bg-energy/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-energy-ink"
+                    data-testid="soul-love-guidance-chip"
+                  >
+                    Love guidance
+                  </span>
+                ) : null}
+              </span>
               <select
                 className="min-h-11 rounded-lg border border-border bg-canvas px-3 text-sm text-fg"
                 value={friendId ?? ""}
@@ -447,7 +492,9 @@ function SoulUnlockedContent() {
             <div>
               <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
               <p className="text-xs text-fg-muted">
-                Guidance for this pair — signature, spectrums, and cards below.
+                {isPartnerSelected
+                  ? "Love guidance for the two of you — then the mechanics underneath."
+                  : "Guidance for this pair — signature, spectrums, and cards below."}
               </p>
             </div>
 
@@ -482,7 +529,14 @@ function SoulUnlockedContent() {
           {result && (
             <>
               {result.friend?.role === "partner" && result.partner_overview ? (
-                <PartnerOverviewCard overview={result.partner_overview} />
+                <PartnerOverviewCard
+                  overview={result.partner_overview}
+                  partnerFirstName={partnerFirstNameFromLabel(
+                    result.friend?.label || selectedFriend?.label
+                  )}
+                  yourType={result.self?.type}
+                  theirType={result.friend?.type}
+                />
               ) : null}
               <div
                 id="soul-hero"

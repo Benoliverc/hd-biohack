@@ -1,4 +1,4 @@
-"""Partner relationship insight layer for Soul (additive copy only).
+"""Partner Love guidance layer for Soul (additive copy only).
 
 Emitted only when Person B role is partner. Does not alter Soul mechanics.
 """
@@ -19,6 +19,7 @@ HD_TYPES = (
 
 PartnerNuance = dict[str, str]
 PartnerOverview = dict[str, str]
+PartnerPairChapters = dict[str, str]
 
 
 def _norm_type(raw: str | None) -> str | None:
@@ -72,235 +73,335 @@ def partner_nuance_for_channel_name(name: str | None) -> PartnerNuance | None:
     return partner_nuance_for_gates(gates)
 
 
-# Exact handoff copy — Generator + Projector (ASCII apostrophes).
-_GEN_PROJ_OVERVIEW: PartnerOverview = {
-    "core_dynamic": (
-        "A Generator brings consistent life force and a sacral yes-or-no; a Projector "
-        "brings seeing, guidance, and the need to be recognized. As a couple this often "
-        "works when the Generator's energy is invited into what the Projector actually "
-        "sees, and the Projector is recognized rather than asked to match sacral stamina."
+# Exact handoff copy — Type love-language bank (ASCII apostrophes).
+TYPE_LOVE_BANK: dict[str, str] = {
+    "Generator": (
+        "You love by putting real energy where a yes lives — showing up, building, "
+        "staying with what lights you. The person next to you feels that love when "
+        "you wait for your gut before you promise them the world, and when your yes "
+        "is allowed to be as honest as your no."
     ),
-    "mutual_growth": (
-        "The Generator can practice waiting for a sacral response before pouring energy "
-        "into the relationship's plans. The Projector can practice inviting and "
-        "recognizing that energy instead of managing it. Both grow when rest and "
-        "recognition are treated as part of the bond, not as a reward you earn after "
-        "overgiving."
+    "Manifesting Generator": (
+        "You love in more than one lane at once — bursts of yes, quick course-corrections, "
+        "a life that will not sit still. The person next to you feels that love when you "
+        "tell them as you pivot, so they are riding with you instead of holding half-begun plans."
     ),
-    "relationship_challenges": (
-        "The usual friction is pace and proof. The Generator may feel unseen if their "
-        "work and yes-energy are taken for granted. The Projector may feel exhausted or "
-        "bitter if they are expected to keep up, initiate everything, or prove their "
-        "value through output. Rushing decisions to match the other person's tempo — "
-        "without invitation or a sacral response — creates resentment that is not "
-        "really about love."
+    "Manifestor": (
+        "You love by starting things and clearing a path no one else would have opened. "
+        "The person next to you feels that love when you inform them before you leap, "
+        "so your initiation lands as devotion instead of surprise."
     ),
-}
-
-# Exact handoff copy — Electromagnetic Intimacy 59-6 / 6-59.
-_INTIMACY_NUANCE: PartnerNuance = {
-    "romantic_synergy": (
-        "Completing Intimacy together can make closeness feel unusually available — "
-        "bonding, fertility, and letting each other past the walls. As a couple this "
-        "often shows up as a natural pull toward physical and emotional honesty when "
-        "the emotional wave is open, not forced."
+    "Projector": (
+        "You love by seeing someone clearly — guiding, noticing, inviting the right use "
+        "of their energy. The person next to you feels that love when you are recognized "
+        "for that sight, not asked to match a stamina you were never built to run."
     ),
-    "romantic_friction": (
-        "The same wire can make space feel like rejection, or closeness feel like "
-        "pressure. One person's need to bond and the other's need to protect the walls "
-        "can look like a love problem when it is the channel asking for timing and "
-        "consent. Name the rhythm aloud so neither of you has to guess."
+    "Reflector": (
+        "You love by sampling the life you share and reflecting it back with surprising "
+        "clarity. The person next to you feels that love when they give you time and a "
+        "healthy place, instead of demanding instant certainty."
     ),
 }
 
 
-def _ov(core: str, growth: str, challenges: str) -> PartnerOverview:
+def _ov(
+    hook: str,
+    the_current: str,
+    what_this_asks: str,
+    tender_spots: str,
+    try_this: str,
+) -> PartnerPairChapters:
     return {
-        "core_dynamic": core,
-        "mutual_growth": growth,
-        "relationship_challenges": challenges,
+        "hook": hook,
+        "the_current": the_current,
+        "what_this_asks": what_this_asks,
+        "tender_spots": tender_spots,
+        "try_this": try_this,
     }
 
 
-def _nu(syn: str, fri: str) -> PartnerNuance:
-    return {"romantic_synergy": syn, "romantic_friction": fri}
+def _nu(gift: str, tender: str) -> PartnerNuance:
+    return {
+        "gift_in_love": gift,
+        "tender_spot": tender,
+        "romantic_synergy": gift,
+        "romantic_friction": tender,
+    }
 
 
-# Unordered Type x Type overviews (sorted name keys).
-PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerOverview] = {
+# Exact handoff gold sample — Generator + Projector.
+_GEN_PROJ_OVERVIEW: PartnerPairChapters = _ov(
+    "One of you is the steady yes. The other is the one who sees what that yes is for. "
+    "That is the heat — and the care — in a Generator with a Projector.",
+    "Life together can feel like a warm engine meeting a clear eye. The Generator's yes "
+    "has a pulse you can trust; the Projector's gift is noticing what that pulse is "
+    "actually for. When it is good, the Generator feels used well — not used up — and "
+    "the Projector feels seen without having to perform a stamina they do not have.",
+    "This bond asks the Generator to wait for a real sacral yes before pouring energy "
+    "into shared plans, and the Projector to invite and recognize that energy instead "
+    "of managing it. Rest and recognition are part of how you love each other, not a "
+    "prize you earn after overgiving.",
+    "The usual ache is pace and proof. The Generator can feel invisible if their work "
+    "and yes-energy are simply expected. The Projector can feel exhausted or bitter if "
+    "they are asked to keep up, initiate everything, or prove their value by producing. "
+    "Rushing to match the other person's tempo — without an invitation or a gut response "
+    "— creates a distance that is not really about whether you care.",
+    "Sometime this week, try one stretch of time where the Generator only offers energy "
+    "that has a gut yes, and the Projector only offers guidance after they have been "
+    "invited. Afterward, say out loud what felt easing. Do not fix it. Just name it.",
+)
+
+# Exact handoff gold sample — Intimacy 59-6 / 6-59.
+_INTIMACY_NUANCE: PartnerNuance = _nu(
+    "When you complete Intimacy together, closeness can feel unusually available — "
+    "bonding, fertility, a pull to let each other past the walls. In love this often "
+    "shows up as a natural honesty, physical and emotional, when the emotional wave is "
+    "open rather than pushed.",
+    "The same wire can make space feel like rejection, or closeness feel like pressure. "
+    "One of you reaching for bond while the other protects the walls can look like a "
+    "love problem when it is really a request for timing and consent. Say the rhythm "
+    "out loud so neither of you has to guess.",
+)
+
+
+# Unordered Type x Type pair chapters (sorted name keys). Love-language fields are
+# attached directionally in partner_overview_for_types.
+PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Generator|Projector": _GEN_PROJ_OVERVIEW,
     "Generator|Generator": _ov(
-        "Two Generators bring dual sacral engines — abundant life force, work capacity, "
-        "and a shared vocabulary of gut yes-or-no. As a couple this often thrives when "
-        "each person's sacral response is respected as equal authority, not overridden "
-        "by who is louder or more tired that day.",
-        "Practice checking in with your own sacral before agreeing to shared plans. "
-        "Celebrate that rest is productive for both of you. Growth shows up when you "
-        "stop competing for who did more and start designing days around two honest "
-        "responses instead of one fused agenda.",
-        "Friction often looks like burnout theater: both saying yes to keep the peace, "
-        "then resenting the pile-up. Or one sacral goes quiet and the other fills the "
-        "gap until bitterness appears. Slow the joint calendar when either gut goes "
-        "flat — that is information, not failure.",
+        "Two steady yeses in one home. The heat is abundance — and the care is making "
+        "sure neither gut gets steamrolled by the joint calendar.",
+        "Life together can feel like two warm engines humming in the same room. Each of "
+        "you has a gut that knows, and when both are honored the days fill with real "
+        "energy instead of polite overcommitment. When it is good, you build side by "
+        "side without competing for who carried more.",
+        "This bond asks each of you to check your own sacral before agreeing to shared "
+        "plans, and to treat rest as part of how you love each other. Growth lives in "
+        "designing days around two honest responses instead of one fused agenda.",
+        "The usual ache is burnout theater: both saying yes to keep the peace, then "
+        "resenting the pile-up. Or one gut goes quiet and the other fills the gap until "
+        "bitterness shows up. Slow the joint calendar when either gut goes flat — that "
+        "is information, not a failure of love.",
+        "Sometime this week, before you lock a shared plan, each of you answers only "
+        "from the gut — out loud, without persuading the other. Keep only what both "
+        "bodies still say yes to. Notice how the room feels afterward.",
     ),
     "Generator|Manifesting Generator": _ov(
-        "A Generator's steady sacral and a Manifesting Generator's multi-track response "
-        "can feel like reliable fuel meeting agile ignition. As a couple this works when "
-        "the MG informs before leaping and the Generator is allowed a clean sacral "
-        "answer without being rushed into the MG's next lane.",
-        "The MG can practice finishing (or consciously parking) threads so the Generator "
-        "is not left holding half-started plans. The Generator can practice trusting "
-        "bursts of initiation when the sacral is still a yes. Both grow by naming "
-        "which projects are shared versus solo.",
-        "Usual chafe: pace mismatch. The MG may feel slowed; the Generator may feel "
-        "scattered or overrun. Skipping the sacral check to match the other's tempo "
-        "creates quiet resentment that shows up as nagging, withdrawal, or busywork "
-        "instead of clear no's.",
+        "One of you is the steady burn. The other is the multi-lane spark. Together you "
+        "can feel like fuel meeting ignition — if pace stays honest.",
+        "Life together can feel like reliable life force meeting agile course-corrections. "
+        "The Generator's yes wants a clean answer; the Manifesting Generator's yes wants "
+        "room to pivot. When it is good, the MG informs before leaping and the Generator "
+        "is allowed a real sacral answer without being rushed into the next lane.",
+        "This bond asks the MG to finish or consciously park threads so the Generator is "
+        "not left holding half-started plans, and the Generator to trust bursts of "
+        "initiation when the sacral is still a yes. Name which projects are shared versus "
+        "solo.",
+        "The usual ache is pace. The MG can feel slowed; the Generator can feel scattered "
+        "or overrun. Skipping the sacral check to match the other's tempo creates quiet "
+        "resentment that shows up as nagging, withdrawal, or busywork instead of clear "
+        "nos.",
+        "Sometime this week, pick one shared thread. The MG informs the next pivot out "
+        "loud before moving; the Generator answers only from the gut. Afterward, say what "
+        "felt easing — without fixing the whole calendar.",
     ),
     "Generator|Manifestor": _ov(
-        "A Generator offers consistent sacral life force; a Manifestor brings initiating "
-        "spark and the need to inform. As a couple this often works when the Manifestor "
-        "informs before acting and the Generator's yes-or-no is treated as real data, "
-        "not as a brake to override.",
-        "The Manifestor can practice informing early enough that the Generator has time "
-        "to respond. The Generator can practice not taking initiation personally when "
-        "it is simply Manifestor design. Growth lives in shared rituals of inform → "
-        "respond → adjust.",
-        "Friction clusters around surprise and control. The Generator may feel steamrolled "
-        "by unannounced moves. The Manifestor may feel managed or slowed. Turning every "
-        "initiation into a committee — or every sacral no into a veto without conversation "
-        "— drains the bond of trust.",
+        "One of you carries the steady yes. The other clears paths no one else would "
+        "open. The heat is initiation meeting life force — when informing is care.",
+        "Life together can feel like a sacral engine meeting a spark that starts things. "
+        "The Manifestor needs to move; the Generator needs a real response. When it is "
+        "good, the Manifestor informs early enough for a gut answer, and the Generator "
+        "does not treat every initiation as a personal override.",
+        "This bond asks the Manifestor to inform before acting, and the Generator to "
+        "treat initiation as design rather than disrespect. Shared rituals of inform → "
+        "respond → adjust are how you love each other in motion.",
+        "The usual ache clusters around surprise and control. The Generator can feel "
+        "steamrolled by unannounced moves; the Manifestor can feel managed or slowed. "
+        "Turning every initiation into a committee — or every sacral no into a silent "
+        "veto — drains trust that is not really about whether you care.",
+        "Sometime this week, try one Manifestor move with a clear inform first, and one "
+        "Generator response that is only a gut yes or no — spoken kindly. Afterward, "
+        "name what felt like devotion instead of surprise.",
     ),
     "Generator|Reflector": _ov(
-        "A Generator's sacral consistency meets a Reflector's lunar sampling and need "
-        "for healthy environments. As a couple this often works when the Generator does "
-        "not demand instant clarity and the Reflector is not asked to match sacral "
-        "output or decide on Generator time.",
-        "The Generator can practice protecting calm, clear spaces for the Reflector to "
-        "sample the relationship honestly. The Reflector can practice naming environmental "
-        "needs early. Both grow when the lunar wait is treated as wisdom, not delay.",
-        "Friction: the Generator wants a gut answer now; the Reflector needs a cycle. "
-        "Pushing for certainty before the sample lands — or reading Reflector openness "
-        "as flakiness — creates pressure that is about timing, not care.",
+        "One of you answers from the gut in the moment. The other needs a cycle and a "
+        "healthy place to know. That timing gap is the care, not the problem.",
+        "Life together can feel like consistent sacral warmth meeting a lunar sampler. "
+        "The Generator wants clarity; the Reflector needs environment and time. When it "
+        "is good, the Generator protects calm space and the Reflector is not asked to "
+        "match sacral output or decide on Generator time.",
+        "This bond asks the Generator to protect clear rooms for honest sampling, and "
+        "the Reflector to name environmental needs early. Treat the lunar wait as "
+        "wisdom you share, not delay you argue about.",
+        "The usual ache: the Generator wants a gut answer now; the Reflector needs a "
+        "cycle. Pushing for certainty before the sample lands — or reading Reflector "
+        "openness as flakiness — creates pressure that is about timing, not care.",
+        "Sometime this week, pick one decision and give it a named waiting window. The "
+        "Generator holds the space without demanding a gut-speed answer; the Reflector "
+        "names what the environment is showing. Then say what felt easing.",
     ),
     "Manifesting Generator|Manifesting Generator": _ov(
-        "Two Manifesting Generators bring fast sacral response, multi-passion voltage, "
-        "and a shared temptation to skip informing. As a couple this can feel electric "
-        "and productive when you both inform each other before lane-changes and allow "
-        "courses to correct without shame.",
-        "Practice shorter feedback loops: inform, sacral-check, adjust. Celebrate "
-        "efficient pivots instead of unfinished guilt. Growth shows when you design "
-        "recovery into the calendar so the dual engines do not run until empty.",
-        "Friction often looks like parallel spinning — both mid-leap, neither fully "
-        "landing — or competitive initiation. Unspoken expectations about who finishes "
-        "what turn into scorekeeping. Name the open threads weekly so speed does not "
-        "become chaos.",
+        "Two multi-lane yeses under one roof. The heat is voltage — and the care is "
+        "informing each other before the next leap.",
+        "Life together can feel electric and productive: fast sacral response, many "
+        "passions, a shared temptation to skip the update. When it is good, you both "
+        "inform before lane-changes and let courses correct without shame.",
+        "This bond asks for shorter feedback loops — inform, sacral-check, adjust — "
+        "and for recovery on the calendar so dual engines do not run until empty. "
+        "Celebrate efficient pivots instead of unfinished guilt.",
+        "The usual ache is parallel spinning: both mid-leap, neither fully landing — or "
+        "competitive initiation. Unspoken expectations about who finishes what turn into "
+        "scorekeeping. Name the open threads so speed does not become chaos.",
+        "Sometime this week, sit for ten minutes and each name your open threads out "
+        "loud. Park or finish one together. Notice how much quieter the bond feels when "
+        "nothing is half-hidden.",
     ),
     "Manifesting Generator|Manifestor": _ov(
-        "An MG's sacral agility meets a Manifestor's pure initiate-and-inform design. "
-        "As a couple this often works when the Manifestor informs before the leap and "
-        "the MG does not treat every Manifestor move as a joint project that needs "
-        "their sacral stamp mid-flight.",
-        "The Manifestor can leave clear space for the MG to respond without absorbing "
-        "the initiation. The MG can practice finishing shared threads before starting "
-        "three more. Both grow by separating solo initiations from couple decisions.",
-        "Usual chafe: who got to move first, and who cleaned up. The MG may feel "
-        "outpaced or under-informed; the Manifestor may feel managed. Skipping inform "
-        "or sacral checks to keep the thrill creates repair debt.",
+        "One of you pivots across lanes. The other initiates clean and informs. Together "
+        "you can feel like ignition meeting ignition — if who moves first stays kind.",
+        "Life together can feel fast: sacral agility meeting pure initiate-and-inform. "
+        "When it is good, the Manifestor informs before the leap and the MG does not "
+        "treat every Manifestor move as a joint project needing a mid-flight sacral stamp.",
+        "This bond asks the Manifestor to leave clear space for the MG to respond without "
+        "absorbing the initiation, and the MG to finish shared threads before starting "
+        "three more. Separate solo initiations from couple decisions out loud.",
+        "The usual ache is who got to move first, and who cleaned up. The MG can feel "
+        "outpaced or under-informed; the Manifestor can feel managed. Skipping inform or "
+        "sacral checks to keep the thrill creates repair debt that is not about love.",
+        "Sometime this week, try one leap with a full inform first and one shared thread "
+        "finished before any new lane opens. Afterward, say what felt like teamwork "
+        "instead of cleanup.",
     ),
     "Manifesting Generator|Projector": _ov(
-        "An MG brings multi-track sacral response; a Projector brings seeing and the "
-        "need for recognition and invitation. As a couple this often works when the "
-        "Projector is invited into what they see, and the MG informs before dumping "
-        "half-finished lanes into the shared field.",
-        "The MG can practice inviting recognition before asking for guidance. The "
-        "Projector can practice not managing the MG's many threads. Both grow when "
-        "rest and recognition are scheduled, not earned after burnout.",
-        "Friction: the Projector feels scattered by MG pivots; the MG feels slowed or "
-        "critiqued. Forcing the Projector to keep sacral pace — or the MG to freeze "
+        "One of you runs multi-track yeses. The other sees what those tracks are for. "
+        "That is the heat — and the care — when recognition stays in the room.",
+        "Life together can feel like agile sacral response meeting a clear eye. When it "
+        "is good, the Projector is invited into what they see, and the MG informs before "
+        "dumping half-finished lanes into the shared field. The MG feels guided without "
+        "being managed; the Projector feels used well without matching sacral stamina.",
+        "This bond asks the MG to invite recognition before asking for guidance, and the "
+        "Projector not to manage the MG's many threads. Rest and recognition are part of "
+        "how you love — scheduled, not earned after burnout.",
+        "The usual ache: the Projector feels scattered by MG pivots; the MG feels slowed "
+        "or critiqued. Forcing the Projector to keep sacral pace — or the MG to freeze "
         "until fully recognized — creates bitterness that is about design, not devotion.",
+        "Sometime this week, the MG invites the Projector into one thread only, after a "
+        "clear ask for recognition. The Projector guides that one. Afterward, name what "
+        "felt easing — without fixing the whole week.",
     ),
     "Manifesting Generator|Reflector": _ov(
-        "An MG's fast multi-response meets a Reflector's need to sample over a lunar "
-        "cycle in a clean environment. As a couple this works when speed is not treated "
-        "as proof of love and the Reflector's wait is not treated as rejection.",
-        "The MG can practice parking non-urgent leaps until the Reflector has sampled. "
-        "The Reflector can name which environments help them feel the relationship "
-        "clearly. Growth is shared pacing agreements you revisit monthly.",
-        "Friction clusters around urgency. The MG wants to move; the Reflector needs "
-        "time and space. Pushing for sacral-speed clarity — or reading Reflector "
-        "sampling as disinterest — invents a love problem out of timing mechanics.",
+        "One of you wants to move on a sacral spark. The other needs time and a clean "
+        "field to know. Love here is shared pacing, not speed as proof.",
+        "Life together can feel like fast multi-response meeting lunar sampling. When it "
+        "is good, speed is not treated as proof of love and the Reflector's wait is not "
+        "treated as rejection. You make room for both rhythms in the same home.",
+        "This bond asks the MG to park non-urgent leaps until the Reflector has sampled, "
+        "and the Reflector to name which environments help them feel the relationship "
+        "clearly. Revisit pacing agreements like care, not like rules.",
+        "The usual ache clusters around urgency. The MG wants to move; the Reflector "
+        "needs time and space. Pushing for sacral-speed clarity — or reading sampling as "
+        "disinterest — invents a love problem out of timing.",
+        "Sometime this week, choose one non-urgent leap and give it a named sample "
+        "window. The MG waits without sulking; the Reflector reports what the field "
+        "showed. Say what felt like respect afterward.",
     ),
     "Manifestor|Manifestor": _ov(
-        "Two Manifestors bring dual initiate-and-inform engines — high independence "
-        "and a shared allergy to being controlled. As a couple this often works when "
-        "informing is mutual and frequent, and neither tries to become the other's "
-        "manager.",
-        "Practice inform-as-care: short updates before leaps. Protect parallel freedom "
-        "and deliberate together-time so independence does not become distance. Growth "
-        "shows when anger is treated as a signal to inform earlier, not as proof you "
-        "are incompatible.",
-        "Friction: surprise collisions, competing initiations, or silent scoreboards "
-        "about who disrupted whom. Skipping the inform to avoid a conversation creates "
-        "exactly the anger you hoped to dodge.",
+        "Two initiators. The heat is independence meeting independence — and the care "
+        "is informing each other before either of you leaps.",
+        "Life together can feel like dual engines that hate being managed. When it is "
+        "good, informing is mutual and frequent, and neither of you becomes the other's "
+        "boss. Parallel freedom and deliberate together-time keep independence from "
+        "turning into distance.",
+        "This bond asks you both to treat inform-as-care: short updates before leaps. "
+        "Protect solo space and choose together-time on purpose. Treat anger as a signal "
+        "to inform earlier, not as proof you cannot love each other.",
+        "The usual ache is surprise collisions, competing initiations, or silent "
+        "scoreboards about who disrupted whom. Skipping the inform to avoid a conversation "
+        "creates exactly the anger you hoped to dodge.",
+        "Sometime this week, each of you informs one leap before it happens — even a "
+        "small one. Afterward, say what felt like freedom shared instead of collision.",
     ),
     "Manifestor|Projector": _ov(
-        "A Manifestor initiates and needs to inform; a Projector sees and needs to be "
-        "invited and recognized. As a couple this often works when the Manifestor "
-        "informs early and invites the Projector's seeing — and the Projector does not "
-        "try to initiate or manage the Manifestor's moves.",
-        "The Manifestor can practice recognition as part of informing. The Projector "
-        "can practice waiting for invitation before guiding. Both grow when impact is "
-        "named without turning it into control.",
-        "Usual friction: the Projector feels blindsided or unrecognized; the Manifestor "
+        "One of you starts the path. The other sees the path clearly. The heat is impact "
+        "meeting recognition — when invitation stays soft.",
+        "Life together can feel like initiation meeting sight. When it is good, the "
+        "Manifestor informs early and invites the Projector's seeing, and the Projector "
+        "does not try to initiate or manage the Manifestor's moves. Impact lands as "
+        "devotion; guidance lands as care.",
+        "This bond asks the Manifestor to practice recognition as part of informing, and "
+        "the Projector to wait for invitation before guiding. Name impact without turning "
+        "it into control.",
+        "The usual ache: the Projector feels blindsided or unrecognized; the Manifestor "
         "feels slowed or corrected. Guidance without invitation, or initiation without "
         "inform, creates bitterness that is about strategy, not affection.",
+        "Sometime this week, try one initiation with an early inform plus a clear invite "
+        "for the Projector's sight. The Projector waits for that invite before guiding. "
+        "Afterward, name what felt mutual.",
     ),
     "Manifestor|Reflector": _ov(
-        "A Manifestor's initiate-and-inform design meets a Reflector's lunar sampling "
-        "and environmental sensitivity. As a couple this works when the Manifestor "
-        "informs with enough lead time for the Reflector to sample, and the Reflector "
-        "is not pressured to match Manifestor speed.",
-        "The Manifestor can treat informing as creating a safe sample window. The "
-        "Reflector can name environments that make the bond feel clear. Growth lives "
-        "in paced initiations and protected quiet.",
-        "Friction: Manifestor leaps feel like shocks; Reflector waits feel like stalls. "
-        "Neither is a character flaw — rushing the lunar sample or withholding inform "
-        "turns timing into a fake fight about care.",
+        "One of you leaps. The other samples. Love here is lead time and a healthy place "
+        "— not matching each other's speed.",
+        "Life together can feel like initiate-and-inform meeting lunar sensitivity. When "
+        "it is good, the Manifestor informs with enough lead time for the Reflector to "
+        "sample, and the Reflector is not pressured to match Manifestor speed. Quiet and "
+        "pace become how you care.",
+        "This bond asks the Manifestor to treat informing as creating a safe sample "
+        "window, and the Reflector to name environments that make the bond feel clear. "
+        "Paced initiations and protected quiet are the practice.",
+        "The usual ache: Manifestor leaps feel like shocks; Reflector waits feel like "
+        "stalls. Neither is a character flaw — rushing the lunar sample or withholding "
+        "inform turns timing into a fake fight about care.",
+        "Sometime this week, the Manifestor informs one move with a real sample window "
+        "attached. The Reflector names the environment they need. Afterward, say what "
+        "felt like care instead of shock.",
     ),
     "Projector|Projector": _ov(
-        "Two Projectors bring mutual seeing, guidance gifts, and a shared need for "
-        "recognition and sustainable energy. As a couple this often works when you "
-        "invite each other explicitly and refuse to compete for who sees more.",
-        "Practice taking turns: one guides, one receives, then swap. Protect rest as "
-        "a couple practice, not a private secret. Growth shows when recognition is "
-        "spoken often enough that bitterness has less room to grow.",
-        "Friction: unrecognized guidance, advice competitions, or both overgiving until "
-        "empty. Expecting the other Projector to supply sacral stamina they do not have "
-        "creates exhaustion that gets mislabeled as relationship failure.",
+        "Two people who see. The heat is mutual recognition — and the care is refusing "
+        "to compete for who sees more.",
+        "Life together can feel like guidance meeting guidance. When it is good, you "
+        "invite each other explicitly, take turns receiving, and protect rest as a couple "
+        "practice. Recognition spoken often enough leaves bitterness less room to grow.",
+        "This bond asks you to take turns: one guides, one receives, then swap. Rest is "
+        "part of how you love, not a private secret. Speak recognition before either of "
+        "you has to earn it through overgiving.",
+        "The usual ache is unrecognized guidance, advice competitions, or both overgiving "
+        "until empty. Expecting the other Projector to supply sacral stamina they do not "
+        "have creates exhaustion that gets mislabeled as relationship failure.",
+        "Sometime this week, take a timed turn: one of you only receives recognition and "
+        "guidance; then swap. Afterward, say what felt easing — without fixing each "
+        "other's whole life.",
     ),
     "Projector|Reflector": _ov(
-        "A Projector's focused seeing meets a Reflector's whole-environment sampling. "
-        "As a couple this often works when the Projector invites rather than diagnoses, "
-        "and the Reflector is recognized for reflecting the relationship's health "
-        "without being turned into a permanent judge.",
-        "The Projector can practice curiosity over correction. The Reflector can name "
-        "what the field is showing without claiming final authority. Both grow when "
-        "invitation and lunar timing are respected together.",
-        "Friction: the Projector pushes for clarity the Reflector has not sampled yet; "
-        "the Reflector mirrors Projector bitterness back amplified. Slow the feedback "
-        "loop and check the environment before treating the mirror as a verdict.",
+        "One of you sees in focus. The other mirrors the whole field. Love here is "
+        "invitation and lunar timing held together.",
+        "Life together can feel like focused seeing meeting whole-environment sampling. "
+        "When it is good, the Projector invites rather than diagnoses, and the Reflector "
+        "is recognized for reflecting the relationship's health without being turned into "
+        "a permanent judge.",
+        "This bond asks the Projector to practice curiosity over correction, and the "
+        "Reflector to name what the field is showing without claiming final authority. "
+        "Invitation and lunar timing are the shared practice.",
+        "The usual ache: the Projector pushes for clarity the Reflector has not sampled "
+        "yet; the Reflector mirrors Projector bitterness back amplified. Slow the feedback "
+        "loop and check the environment before treating the mirror as a verdict on love.",
+        "Sometime this week, before any big feedback, check the room together. The "
+        "Projector asks one curious question; the Reflector answers what the field shows. "
+        "Name what felt kind afterward.",
     ),
     "Reflector|Reflector": _ov(
-        "Two Reflectors bring dual lunar sampling and high environmental sensitivity. "
-        "As a couple this often works when you co-design calm, clear spaces and allow "
-        "decisions the time of a cycle instead of forcing Generator-speed answers.",
-        "Practice naming which rooms, people, and routines help you both feel the bond "
-        "clearly. Protect solitude and shared sampling time. Growth is treating "
-        "waiting as care, not as avoidance.",
-        "Friction: mutual delay without communication, or absorbing each other's "
+        "Two samplers under one moon. The heat is clarity when the place is healthy — "
+        "and the care is refusing Generator-speed answers.",
+        "Life together can feel like dual lunar sampling and high environmental "
+        "sensitivity. When it is good, you co-design calm clear spaces and allow "
+        "decisions the time of a cycle. Waiting becomes care, not avoidance.",
+        "This bond asks you to name which rooms, people, and routines help you both feel "
+        "the bond clearly. Protect solitude and shared sampling time. Treat waiting as "
+        "how you love each other.",
+        "The usual ache is mutual delay without communication, or absorbing each other's "
         "indecision until the field feels foggy. If the environment is chaotic, the "
-        "relationship will feel chaotic — fix the space before diagnosing the love.",
+        "relationship will feel chaotic — tend the space before diagnosing the love.",
+        "Sometime this week, redesign one shared space together for calm, then give one "
+        "decision a named cycle. Afterward, say what the clearer field reflected back.",
     ),
 }
 
@@ -309,262 +410,258 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerOverview] = {
 PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
     "6-59": _INTIMACY_NUANCE,
     "1-8": _nu(
-        "Completing Inspiration together can make creative voice feel shared — ideas "
-        "spark and want an audience. As a couple this often shows up as cheering each "
-        "other's expression when the field is open.",
-        "The same wire can turn feedback into identity threat. One person's muse "
-        "energy and the other's need for quiet can look like rejection when it is "
-        "timing around creative charge. Name when you want witnesses versus solitude.",
+        "When you complete Inspiration together, creative voice can feel shared — ideas "
+        "spark and want a witness. In love this often shows up as cheering each other's "
+        "expression when the field is open rather than forced.",
+        "The same wire can turn feedback into identity threat. One of you wanting a muse "
+        "audience while the other needs quiet can look like rejection when it is timing "
+        "around creative charge. Say when you want witnesses versus solitude.",
     ),
     "2-14": _nu(
-        "Completing The Beat can make direction and resources feel rhythmic together — "
-        "a shared pulse for work and provision. As a couple this often shows as natural "
+        "When you complete The Beat together, direction and resources can feel rhythmic — "
+        "a shared pulse for work and provision. In love this often shows up as natural "
         "coordination around money, pace, and where energy goes.",
-        "The same channel can make control fights about tempo. One wants to hold the "
+        "The same wire can make control fights about tempo. One of you wants to hold the "
         "beat; the other feels marched. Agree on who sets pace for which domains so "
         "rhythm does not become domination.",
     ),
     "3-60": _nu(
-        "Completing Mutation can make change feel fertile between you — breakthroughs "
-        "after pressure. As a couple this often shows as growth spurts after stuck "
-        "seasons when you stay with the process.",
-        "The same wire can make melancholy or format fights feel personal. Pressure "
-        "to mutate on command looks like a love problem when it is the channel's "
-        "pulse. Protect downtime between format shifts.",
+        "When you complete Mutation together, change can feel fertile between you — "
+        "breakthroughs after pressure. In love this often shows up as growth spurts after "
+        "stuck seasons when you stay with the process instead of forcing it.",
+        "The same wire can make melancholy or format fights feel personal. Pressure to "
+        "mutate on command looks like a love problem when it is the channel's pulse. "
+        "Protect downtime between format shifts.",
     ),
     "4-63": _nu(
-        "Completing Logic together can make shared doubt useful — questions that "
-        "improve the plan. As a couple this often shows as constructive pattern-checking "
-        "when both feel safe to ask why.",
-        "The same channel can turn skepticism into nitpicking. Endless proof-seeking "
-        "can starve warmth. Time-box analysis so logic serves the bond instead of "
-        "replacing trust.",
+        "When you complete Logic together, shared doubt can become useful — questions that "
+        "improve the plan. In love this often shows up as constructive pattern-checking "
+        "when both of you feel safe to ask why.",
+        "The same wire can turn skepticism into nitpicking. Endless proof-seeking can "
+        "starve warmth. Time-box analysis so logic serves the bond instead of replacing "
+        "trust.",
     ),
     "5-15": _nu(
-        "Completing Rhythm can make daily patterns feel naturally synced — sleep, "
-        "food, movement. As a couple this often shows as ease when your body clocks "
+        "When you complete Rhythm together, daily patterns can feel naturally synced — "
+        "sleep, food, movement. In love this often shows up as ease when your body clocks "
         "align without forcing it.",
         "The same wire can pathologize different tempos. Night owl versus early bird "
         "becomes a character judgment. Design parallel rhythms instead of demanding "
         "identical schedules.",
     ),
     "7-31": _nu(
-        "Completing The Alpha can make leadership feel shared or clearly handed — "
-        "influence with a voice. As a couple this often shows as clean roles when "
+        "When you complete The Alpha together, leadership can feel shared or clearly "
+        "handed — influence with a voice. In love this often shows up as clean roles when "
         "you agree who leads which arena.",
-        "The same channel can spark power struggles about who speaks for the pair. "
-        "Unspoken hierarchy becomes resentment. Explicitly rotate or divide leadership "
-        "domains.",
+        "The same wire can spark power struggles about who speaks for the pair. Unspoken "
+        "hierarchy becomes resentment. Explicitly rotate or divide leadership domains.",
     ),
     "9-52": _nu(
-        "Completing Concentration can make focus feel co-held — deep work and still "
-        "attention. As a couple this often shows as supporting each other's focus "
-        "blocks without distraction as a love language.",
-        "The same wire can make restlessness feel like disloyalty. One needs stillness; "
-        "the other needs motion. Protect focus windows and name when presence means "
-        "quiet versus activity.",
+        "When you complete Concentration together, focus can feel co-held — deep work and "
+        "still attention. In love this often shows up as supporting each other's focus "
+        "blocks without treating distraction as a love language.",
+        "The same wire can make restlessness feel like disloyalty. One of you needs "
+        "stillness; the other needs motion. Protect focus windows and name when presence "
+        "means quiet versus activity.",
     ),
     "10-20": _nu(
-        "Completing Awakening can make presence and selfhood feel awake together — "
-        "identity meeting expression. As a couple this often shows as honest "
-        "self-sharing in the moment.",
-        "The same channel can amplify self-consciousness. Awake does not mean always "
-        "on display. Allow private selfhood so presence does not become performance.",
+        "When you complete Awakening together, presence and selfhood can feel awake — "
+        "identity meeting expression. In love this often shows up as honest self-sharing "
+        "in the moment.",
+        "The same wire can amplify self-consciousness. Awake does not mean always on "
+        "display. Allow private selfhood so presence does not become performance.",
     ),
     "10-34": _nu(
-        "Completing Exploration can make empowered self-expression feel available — "
-        "doing from identity. As a couple this often shows as supporting bold "
+        "When you complete Exploration together, empowered self-expression can feel "
+        "available — doing from identity. In love this often shows up as supporting bold "
         "experiments when sacral energy is a yes.",
-        "The same wire can confuse exploration with recklessness. One person's "
-        "empowerment can feel like abandonment. Agree what experiments are solo versus "
-        "shared before the leap.",
+        "The same wire can confuse exploration with recklessness. One person's empowerment "
+        "can feel like abandonment. Agree what experiments are solo versus shared before "
+        "the leap.",
     ),
     "10-57": _nu(
-        "Completing Perfected Form can make intuitive self-care feel mutual — body "
-        "wisdom shared. As a couple this often shows as trusting gut/spleen signals "
-        "about what environments fit.",
-        "The same channel can turn aesthetic or health preferences into moral tests. "
-        "Different body truths are not rejections. Ask before assuming your form is "
-        "the couple's rule.",
+        "When you complete Perfected Form together, intuitive self-care can feel mutual — "
+        "body wisdom shared. In love this often shows up as trusting gut and spleen "
+        "signals about what environments fit.",
+        "The same wire can turn aesthetic or health preferences into moral tests. "
+        "Different body truths are not rejections. Ask before assuming your form is the "
+        "couple's rule.",
     ),
     "11-56": _nu(
-        "Completing Curiosity can make storytelling and seeking feel bonded — ideas "
-        "want to travel. As a couple this often shows as lively sharing of what you "
+        "When you complete Curiosity together, storytelling and seeking can feel bonded — "
+        "ideas want to travel. In love this often shows up as lively sharing of what you "
         "are learning.",
         "The same wire can make restlessness or exaggeration feel like flakiness. "
-        "Curiosity without landing can starve follow-through. Choose which stories "
-        "become commitments.",
+        "Curiosity without landing can starve follow-through. Choose which stories become "
+        "commitments.",
     ),
     "12-22": _nu(
-        "Completing Openness can make social and emotional timing feel melodic — "
-        "knowing when to engage. As a couple this often shows as graceful entries "
-        "and exits from social fields.",
-        "The same channel can make mood look like rejection. Closed for now is not "
-        "closed forever. Ask about wave timing before inventing a love narrative.",
+        "When you complete Openness together, social and emotional timing can feel "
+        "melodic — knowing when to engage. In love this often shows up as graceful "
+        "entries and exits from social fields.",
+        "The same wire can make mood look like rejection. Closed for now is not closed "
+        "forever. Ask about wave timing before inventing a love narrative.",
     ),
     "13-33": _nu(
-        "Completing The Prodigal can make listening and secrets feel safe — a shared "
-        "witness. As a couple this often shows as being able to tell the hard stories "
-        "and be heard.",
-        "The same wire can create pressure to confess or to hold too much. Privacy "
-        "and disclosure need consent. Do not treat silence as betrayal or disclosure "
-        "as owed.",
+        "When you complete The Prodigal together, listening and secrets can feel safe — "
+        "a shared witness. In love this often shows up as being able to tell the hard "
+        "stories and be heard.",
+        "The same wire can create pressure to confess or to hold too much. Privacy and "
+        "disclosure need consent. Do not treat silence as betrayal or disclosure as owed.",
     ),
     "16-48": _nu(
-        "Completing The Wavelength can make talent and depth feel coached — skill "
-        "meeting pattern. As a couple this often shows as helping each other refine "
+        "When you complete The Wavelength together, talent and depth can feel coached — "
+        "skill meeting pattern. In love this often shows up as helping each other refine "
         "craft without crushing joy.",
-        "The same channel can turn critique into inadequacy. Depth anxiety meets "
-        "talent pride. Ask whether feedback was invited before polishing each other.",
+        "The same wire can turn critique into inadequacy. Depth anxiety meets talent "
+        "pride. Ask whether feedback was invited before polishing each other.",
     ),
     "17-62": _nu(
-        "Completing Acceptance can make opinions find clean language — details that "
-        "organize. As a couple this often shows as useful clarity when you are both "
-        "ready to name facts.",
+        "When you complete Acceptance together, opinions can find clean language — "
+        "details that organize. In love this often shows up as useful clarity when you "
+        "are both ready to name facts.",
         "The same wire can weaponize correctness. Being right can cost warmth. Soften "
         "delivery and check whether the detail matters to the bond right now.",
     ),
     "18-58": _nu(
-        "Completing Judgment can make improvement feel shared — tasting what could be "
-        "better. As a couple this often shows as constructive standards for health, "
-        "home, or craft.",
-        "The same channel can make correction feel like contempt. Joyless fixing "
-        "erodes goodwill. Balance critique with explicit appreciation in the same "
-        "breath.",
+        "When you complete Judgment together, improvement can feel shared — tasting what "
+        "could be better. In love this often shows up as constructive standards for "
+        "health, home, or craft.",
+        "The same wire can make correction feel like contempt. Joyless fixing erodes "
+        "goodwill. Balance critique with explicit appreciation in the same breath.",
     ),
     "19-49": _nu(
-        "Completing Synthesis can make tribal needs feel mutually sensed — food, "
-        "support, belonging. As a couple this often shows as natural caretaking when "
+        "When you complete Synthesis together, tribal needs can feel mutually sensed — "
+        "food, support, belonging. In love this often shows up as natural caretaking when "
         "the emotional weather is steady.",
         "The same wire can turn neediness or principles into tests. Sensitivity without "
         "naming needs becomes crisis. Say the small need early.",
     ),
     "20-34": _nu(
-        "Completing Charisma can make doing-in-the-moment feel magnetic — busy "
-        "presence. As a couple this often shows as getting things done together when "
+        "When you complete Charisma together, doing-in-the-moment can feel magnetic — "
+        "busy presence. In love this often shows up as getting things done together when "
         "energy is high.",
-        "The same channel can make stillness feel wrong. Always-on charisma burns "
-        "the bond. Schedule off-stage recovery so capability does not become the "
-        "only intimacy.",
+        "The same wire can make stillness feel wrong. Always-on charisma burns the bond. "
+        "Schedule off-stage recovery so capability does not become the only intimacy.",
     ),
     "20-57": _nu(
-        "Completing The Brain Wave can make intuitive timing for speech and action "
-        "feel sharp together. As a couple this often shows as knowing when to speak "
-        "or move without overthinking.",
-        "The same wire can punish hesitation. Intuitive speed is not a moral grade. "
-        "Allow slower authorities room so intuition does not steamroll consent.",
+        "When you complete The Brain Wave together, intuitive timing for speech and "
+        "action can feel sharp. In love this often shows up as knowing when to speak or "
+        "move without overthinking.",
+        "The same wire can punish hesitation. Intuitive speed is not a moral grade. Allow "
+        "slower authorities room so intuition does not steamroll consent.",
     ),
     "21-45": _nu(
-        "Completing The Money Line can make resources and control feel tribal — "
-        "who holds the keys. As a couple this often shows as clear agreements about "
-        "money and material care when roles are spoken.",
-        "The same channel can ignite control fights about spending and access. "
-        "Unspoken ownership becomes resentment. Write the resource rules down.",
+        "When you complete The Money Line together, resources and control can feel "
+        "tribal — who holds the keys. In love this often shows up as clear agreements "
+        "about money and material care when roles are spoken.",
+        "The same wire can ignite control fights about spending and access. Unspoken "
+        "ownership becomes resentment. Write the resource rules down.",
     ),
     "23-43": _nu(
-        "Completing Structuring can make insights land in language — breakthrough to "
-        "sentence. As a couple this often shows as helping each other say the weird "
-        "truth cleanly.",
-        "The same wire can make genius feel lonely mid-process. Mute insights or "
-        "harsh delivery both hurt. Ask for structuring help when ready, not mid-fog.",
+        "When you complete Structuring together, insights can land in language — "
+        "breakthrough to sentence. In love this often shows up as helping each other say "
+        "the weird truth cleanly.",
+        "The same wire can make genius feel lonely mid-process. Mute insights or harsh "
+        "delivery both hurt. Ask for structuring help when ready, not mid-fog.",
     ),
     "24-61": _nu(
-        "Completing Awareness can make mental pressure feel shared — mystery seeking "
-        "resolution. As a couple this often shows as deep talks that eventually click.",
-        "The same channel can loop anxiety together. Obsessive knowing crowds out "
-        "presence. Time-box mystery talks and return to the body.",
+        "When you complete Awareness together, mental pressure can feel shared — mystery "
+        "seeking resolution. In love this often shows up as deep talks that eventually "
+        "click.",
+        "The same wire can loop anxiety together. Obsessive knowing crowds out presence. "
+        "Time-box mystery talks and return to the body.",
     ),
     "25-51": _nu(
-        "Completing Initiation can make shock and courage feel bonding — heart "
-        "competitiveness that wakes love. As a couple this often shows as brave leaps "
-        "you take side by side.",
-        "The same wire can turn initiation into provocation. Shock without care "
-        "feels like attack. Consent to intensity before you spike the field.",
+        "When you complete Initiation together, shock and courage can feel bonding — "
+        "heart competitiveness that wakes love. In love this often shows up as brave "
+        "leaps you take side by side.",
+        "The same wire can turn initiation into provocation. Shock without care feels "
+        "like attack. Consent to intensity before you spike the field.",
     ),
     "26-44": _nu(
-        "Completing Surrender can make transmission and instinct feel sales-smart "
-        "together — knowing what to offer. As a couple this often shows as effective "
+        "When you complete Surrender together, transmission and instinct can feel "
+        "sales-smart — knowing what to offer. In love this often shows up as effective "
         "team pitching or household negotiation.",
-        "The same channel can smell like manipulation when trust is thin. Instinct "
-        "without transparency erodes safety. Disclose motives when the stakes are "
-        "shared.",
+        "The same wire can smell like manipulation when trust is thin. Instinct without "
+        "transparency erodes safety. Disclose motives when the stakes are shared.",
     ),
     "27-50": _nu(
-        "Completing Preservation can make caretaking and values feel tribal — "
-        "protecting what matters. As a couple this often shows as reliable support "
-        "around health, kids, or principles.",
-        "The same wire can over-care or moralize. Martyrdom and rigid rules both "
-        "chafe. Ask what care is wanted before delivering it.",
+        "When you complete Preservation together, caretaking and values can feel tribal — "
+        "protecting what matters. In love this often shows up as reliable support around "
+        "health, kids, or principles.",
+        "The same wire can over-care or moralize. Martyrdom and rigid rules both chafe. "
+        "Ask what care is wanted before delivering it.",
     ),
     "28-38": _nu(
-        "Completing Struggle can make purposeful fight feel shared — meaning through "
-        "effort. As a couple this often shows as standing together for what is worth "
-        "it.",
-        "The same channel can glorify conflict. Fighting for its own sake drains "
-        "tenderness. Choose which struggles are couple projects versus solo.",
+        "When you complete Struggle together, purposeful fight can feel shared — meaning "
+        "through effort. In love this often shows up as standing together for what is "
+        "worth it.",
+        "The same wire can glorify conflict. Fighting for its own sake drains tenderness. "
+        "Choose which struggles are couple projects versus solo.",
     ),
     "29-46": _nu(
-        "Completing Discovery can make commitment to experience feel alive — saying "
-        "yes to the process. As a couple this often shows as adventures you finish "
+        "When you complete Discovery together, commitment to experience can feel alive — "
+        "saying yes to the process. In love this often shows up as adventures you finish "
         "together.",
-        "The same wire can confuse persistence with stubbornness. Over-commitment "
-        "without sacral truth breeds regret. Re-check the yes mid-journey.",
+        "The same wire can confuse persistence with stubbornness. Over-commitment without "
+        "sacral truth breeds regret. Re-check the yes mid-journey.",
     ),
     "30-41": _nu(
-        "Completing Recognition can make desire and feeling feel vivid together — "
-        "hunger that wants a story. As a couple this often shows as intense longing "
-        "and creative yearning when waves align.",
-        "The same channel can make craving feel like destiny pressure. Unmet desire "
-        "becomes blame. Name the feeling without demanding the other person fix it.",
+        "When you complete Recognition together, desire and feeling can feel vivid — "
+        "hunger that wants a story. In love this often shows up as intense longing and "
+        "creative yearning when waves align.",
+        "The same wire can make craving feel like pressure. Unmet desire becomes blame. "
+        "Name the feeling without demanding the other person fix it.",
     ),
     "32-54": _nu(
-        "Completing Transformation can make ambition feel co-supported — drive with "
-        "instinct. As a couple this often shows as backing each other's material "
-        "or status climbs when values match.",
-        "The same wire can turn the bond into a ladder. Climbing without care "
-        "hollows intimacy. Keep non-achievement time sacred.",
+        "When you complete Transformation together, ambition can feel co-supported — "
+        "drive with instinct. In love this often shows up as backing each other's "
+        "material or status climbs when values match.",
+        "The same wire can turn the bond into a ladder. Climbing without care hollows "
+        "intimacy. Keep non-achievement time sacred.",
     ),
     "34-57": _nu(
-        "Completing Power can make intuitive sacral force feel available — knowing "
-        "when to act. As a couple this often shows as clean bursts of capable action "
-        "together.",
-        "The same channel can make rest feel unsafe. Power without pauses becomes "
-        "pressure. Protect recovery so force does not define the relationship.",
+        "When you complete Power together, intuitive sacral force can feel available — "
+        "knowing when to act. In love this often shows up as clean bursts of capable "
+        "action together.",
+        "The same wire can make rest feel unsafe. Power without pauses becomes pressure. "
+        "Protect recovery so force does not define the relationship.",
     ),
     "35-36": _nu(
-        "Completing Transitoriness can make experience-seeking feel shared — hunger "
-        "for the next story. As a couple this often shows as adventure chemistry "
+        "When you complete Transitoriness together, experience-seeking can feel shared — "
+        "hunger for the next story. In love this often shows up as adventure chemistry "
         "when both want newness.",
-        "The same wire can confuse novelty with love. Crashing after highs feels "
-        "like failure. Plan integration after big experiences.",
+        "The same wire can confuse novelty with love. Crashing after highs feels like "
+        "failure. Plan integration after big experiences.",
     ),
     "37-40": _nu(
-        "Completing Community can make bargains and belonging feel warm — deals that "
-        "hold the tribe. As a couple this often shows as clear agreements about "
+        "When you complete Community together, bargains and belonging can feel warm — "
+        "deals that hold the tribe. In love this often shows up as clear agreements about "
         "who does what at home.",
-        "The same channel can keep score. Unbalanced bargains breed quiet rage. "
-        "Renegotiate deals before bitterness hardens.",
+        "The same wire can keep score. Unbalanced bargains breed quiet rage. Renegotiate "
+        "deals before bitterness hardens.",
     ),
     "39-55": _nu(
-        "Completing Emoting can make mood and spirit feel mutually catalytic — "
-        "emotional weather that moves. As a couple this often shows as deep feeling "
+        "When you complete Emoting together, mood and spirit can feel mutually catalytic "
+        "— emotional weather that moves. In love this often shows up as deep feeling "
         "shared when the wave is honored.",
-        "The same wire can provoke for connection. Provocation without care feels "
-        "cruel. Ask for emotional company instead of poking the wave.",
+        "The same wire can provoke for connection. Provocation without care feels cruel. "
+        "Ask for emotional company instead of poking the wave.",
     ),
     "42-53": _nu(
-        "Completing Maturation can make cycles feel co-held — beginnings and endings "
-        "with meaning. As a couple this often shows as supporting each other through "
-        "chapters without forcing forever language.",
-        "The same channel can fear endings or rush them. Cycles are not verdicts on "
-        "love. Name which chapter you are in together.",
+        "When you complete Maturation together, cycles can feel co-held — beginnings and "
+        "endings with meaning. In love this often shows up as supporting each other "
+        "through chapters without forcing forever language.",
+        "The same wire can fear endings or rush them. Cycles are not verdicts on love. "
+        "Name which chapter you are in together.",
     ),
     "47-64": _nu(
-        "Completing Abstraction can make mental pressure resolve into insight — "
-        "confusion to meaning. As a couple this often shows as talking through fog "
-        "until a shared picture appears.",
-        "The same wire can overthink the relationship. Abstract loops starve "
-        "embodied contact. Leave the spiral for a walk when talk stops helping.",
+        "When you complete Abstraction together, mental pressure can resolve into insight "
+        "— confusion to meaning. In love this often shows up as talking through fog until "
+        "a shared picture appears.",
+        "The same wire can overthink the relationship. Abstract loops starve embodied "
+        "contact. Leave the spiral for a walk when talk stops helping.",
     ),
 }
 
@@ -575,10 +672,35 @@ PARTNER_NUANCE_BY_CHANNEL["59-6"] = PARTNER_NUANCE_BY_CHANNEL["6-59"]
 def partner_overview_for_types(
     type_a: str | None, type_b: str | None
 ) -> PartnerOverview | None:
+    """Build directional Love guidance overview for You (type_a) and Partner (type_b)."""
     key = type_pair_key(type_a, type_b)
     if not key:
         return None
-    return PARTNER_OVERVIEW_BY_TYPES.get(key)
+    pair = PARTNER_OVERVIEW_BY_TYPES.get(key)
+    if not pair:
+        return None
+    a = _norm_type(type_a)
+    b = _norm_type(type_b)
+    how_you = TYPE_LOVE_BANK.get(a or "")
+    how_they = TYPE_LOVE_BANK.get(b or "")
+    if not how_you or not how_they:
+        return None
+    the_current = pair["the_current"]
+    what_this_asks = pair["what_this_asks"]
+    tender_spots = pair["tender_spots"]
+    return {
+        "hook": pair["hook"],
+        "the_current": the_current,
+        "how_you_love": how_you,
+        "how_they_love": how_they,
+        "what_this_asks": what_this_asks,
+        "tender_spots": tender_spots,
+        "try_this": pair["try_this"],
+        # Legacy aliases — same strings as the new chapter fields.
+        "core_dynamic": the_current,
+        "mutual_growth": what_this_asks,
+        "relationship_challenges": tender_spots,
+    }
 
 
 def partner_nuance_for_gates(
@@ -604,7 +726,12 @@ def apply_partner_layer(
     """Mutate/return soul sync dict with partner_overview + channel nuances when partner."""
     friend = result.get("friend") or {}
     # Always stamp role on friend (and self) for FE guards.
-    friend = {**friend, "role": friend_role if friend_role in ("partner", "person") else (friend_role or "person")}
+    friend = {
+        **friend,
+        "role": friend_role
+        if friend_role in ("partner", "person")
+        else (friend_role or "person"),
+    }
     self_out = result.get("self") or {}
     if "role" not in self_out:
         self_out = {**self_out, "role": "self"}

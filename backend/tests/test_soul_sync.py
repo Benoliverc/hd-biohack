@@ -569,10 +569,11 @@ if __name__ == "__main__":
 
 
 def test_partner_overview_generator_projector_exact_copy():
-    """Partner role layers Type×Type overview; Generator+Projector uses handoff copy."""
-    from app.hd.partner_insights import PARTNER_OVERVIEW_BY_TYPES
+    """Partner role layers Love guidance; Generator+Projector + 59-6 use handoff gold copy."""
+    from app.hd.partner_insights import TYPE_LOVE_BANK, partner_overview_for_types
 
-    expected = PARTNER_OVERVIEW_BY_TYPES["Generator|Projector"]
+    expected = partner_overview_for_types("Generator", "Projector")
+    assert expected is not None
     a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
     b = _chart([59, 1, 8], type="Projector", authority="Splenic", profile="1/3")
     out = compute_soul_sync(
@@ -586,9 +587,24 @@ def test_partner_overview_generator_projector_exact_copy():
     assert out["self"]["role"] == "self"
     overview = out.get("partner_overview")
     assert overview is not None
-    assert overview["core_dynamic"] == expected["core_dynamic"]
-    assert overview["mutual_growth"] == expected["mutual_growth"]
-    assert overview["relationship_challenges"] == expected["relationship_challenges"]
+    # New Love guidance chapters (exact gold)
+    assert overview["hook"] == expected["hook"]
+    assert overview["the_current"] == expected["the_current"]
+    assert overview["how_you_love"] == TYPE_LOVE_BANK["Generator"]
+    assert overview["how_they_love"] == TYPE_LOVE_BANK["Projector"]
+    assert overview["what_this_asks"] == expected["what_this_asks"]
+    assert overview["tender_spots"] == expected["tender_spots"]
+    assert overview["try_this"] == expected["try_this"]
+    # Legacy aliases stay populated from the new fields
+    assert overview["core_dynamic"] == overview["the_current"]
+    assert overview["mutual_growth"] == overview["what_this_asks"]
+    assert overview["relationship_challenges"] == overview["tender_spots"]
+    # Directional love-language: swap types flips how_you / how_they
+    flipped = partner_overview_for_types("Projector", "Generator")
+    assert flipped is not None
+    assert flipped["how_you_love"] == TYPE_LOVE_BANK["Projector"]
+    assert flipped["how_they_love"] == TYPE_LOVE_BANK["Generator"]
+    assert flipped["hook"] == expected["hook"]  # pair chapters stay unordered
     # Mechanics unchanged — Intimacy EM still Magnetic Alchemy
     assert out["signature"]["id"] == "magnetic_alchemy"
     assert "intimacy_lock" in _badge_ids(out)
@@ -596,9 +612,14 @@ def test_partner_overview_generator_projector_exact_copy():
     intimacy = next(c for c in em if c["channel"] == "Intimacy")
     nuance = intimacy.get("partner_nuance")
     assert nuance is not None
-    assert "closeness feel unusually available" in nuance["romantic_synergy"]
-    assert "space feel like rejection" in nuance["romantic_friction"]
-    print("PASS: partner Generator+Projector overview + 59-6 nuance")
+    assert nuance["gift_in_love"] == nuance["romantic_synergy"]
+    assert nuance["tender_spot"] == nuance["romantic_friction"]
+    assert nuance["gift_in_love"].startswith(
+        "When you complete Intimacy together, closeness can feel unusually available"
+    )
+    assert "space feel like rejection" in nuance["tender_spot"]
+    assert "Say the rhythm out loud so neither of you has to guess." in nuance["tender_spot"]
+    print("PASS: partner Generator+Projector Love guidance + 59-6 nuance")
 
 
 def test_non_partner_omits_romantic_layer():
@@ -648,6 +669,8 @@ def test_partner_copy_has_no_forbidden_words():
     from app.hd.partner_insights import (
         PARTNER_NUANCE_BY_CHANNEL,
         PARTNER_OVERVIEW_BY_TYPES,
+        TYPE_LOVE_BANK,
+        partner_overview_for_types,
     )
 
     banned = (
@@ -656,12 +679,21 @@ def test_partner_copy_has_no_forbidden_words():
         "twin-flame",
         "meant to be",
         "you two are meant",
+        "destiny",
+        "match meter",
+        "compatibility score",
     )
     blobs = []
     for ov in PARTNER_OVERVIEW_BY_TYPES.values():
         blobs.extend(ov.values())
     for nu in PARTNER_NUANCE_BY_CHANNEL.values():
         blobs.extend(nu.values())
+    blobs.extend(TYPE_LOVE_BANK.values())
+    # Include fully built overviews (aliases + love bank)
+    for a in ("Generator", "Projector"):
+        built = partner_overview_for_types(a, "Manifestor")
+        assert built is not None
+        blobs.extend(built.values())
     joined = "\n".join(blobs).lower()
     for word in banned:
         assert word not in joined, f"forbidden phrase in partner copy: {word}"
@@ -669,4 +701,63 @@ def test_partner_copy_has_no_forbidden_words():
     import re
 
     assert not re.search(r"\b\d{2,3}%\b", joined), "partner copy must not include % scores"
-    print("PASS: partner copy has no forbidden romance tropes")
+    # No leftover textbook cadence
+    textbook = (
+        "as a couple this often works when",
+        "friction often looks like",
+        "growth shows up when",
+        "as a couple this often shows up as",
+        "as a couple this often thrives when",
+        "as a couple this works when",
+        "usual chafe:",
+        "friction clusters around",
+    )
+    for phrase in textbook:
+        assert phrase not in joined, f"textbook cadence leftover: {phrase}"
+    # Curly quotes / fancy apostrophes banned in source strings
+    fancy = ("\u2018", "\u2019", "\u201c", "\u201d")
+    raw_joined = "\n".join(blobs)
+    for ch in fancy:
+        assert ch not in raw_joined, "curly quotes/apostrophes must not appear in partner copy"
+    print("PASS: partner copy has no forbidden romance tropes / textbook cadence")
+
+
+def test_love_guidance_fields_present_for_all_pairs():
+    from app.hd.partner_insights import HD_TYPES, partner_overview_for_types
+
+    required = (
+        "hook",
+        "the_current",
+        "how_you_love",
+        "how_they_love",
+        "what_this_asks",
+        "tender_spots",
+        "try_this",
+        "core_dynamic",
+        "mutual_growth",
+        "relationship_challenges",
+    )
+    for a in HD_TYPES:
+        for b in HD_TYPES:
+            ov = partner_overview_for_types(a, b)
+            assert ov is not None, f"missing overview for {a}|{b}"
+            for key in required:
+                assert key in ov and isinstance(ov[key], str) and ov[key].strip(), (
+                    f"{a}|{b} missing {key}"
+                )
+            assert ov["core_dynamic"] == ov["the_current"]
+            assert ov["mutual_growth"] == ov["what_this_asks"]
+            assert ov["relationship_challenges"] == ov["tender_spots"]
+    print("PASS: all Type×Type Love guidance fields + aliases present")
+
+
+def test_nuance_emits_gift_and_tender_aliases():
+    from app.hd.partner_insights import PARTNER_NUANCE_BY_CHANNEL
+
+    for key, nu in PARTNER_NUANCE_BY_CHANNEL.items():
+        assert "gift_in_love" in nu and "tender_spot" in nu, key
+        assert nu["gift_in_love"] == nu["romantic_synergy"], key
+        assert nu["tender_spot"] == nu["romantic_friction"], key
+        assert "As a couple this often" not in nu["gift_in_love"]
+        assert "As a couple this often" not in nu["tender_spot"]
+    print(f"PASS: {len(PARTNER_NUANCE_BY_CHANNEL)} channel nuances have gift/tender aliases")
