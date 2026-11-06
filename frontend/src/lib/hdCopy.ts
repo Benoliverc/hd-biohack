@@ -394,7 +394,7 @@ export function channelMeaning(gates: number[], name?: string): string {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Literacy coach (Opt 1) — Chart /profile + Soul /soul                       */
+/* Literacy coach (Opt 1) — Chart /profile + Soul /soul + Today /transits     */
 /* -------------------------------------------------------------------------- */
 
 export type LiteracyDeepDiveTab = "core" | "centers" | "channels" | "planets";
@@ -419,6 +419,7 @@ export type LiteracyStep = {
 export const LITERACY_STORAGE_KEYS = {
   chart: "baseline.literacy.chart.v1",
   soul: "baseline.literacy.soul.v1",
+  today: "baseline.literacy.today.v1",
 } as const;
 
 export const CHART_LITERACY_STEPS: LiteracyStep[] = [
@@ -515,5 +516,41 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
       "In Spark & Glue, three everyday patterns show up. Spark is when each of you holds one half of a channel — the click of ignition when you meet. Bedrock is when you both already have the full channel — a shared baseline you can lean on without drama. Dominance is when one person fully holds a channel the other doesn't — a steady gift to borrow from, not a power trip. Read the cards with those pictures in mind.",
     jumpLabel: "Spark & Glue",
     targetId: "soul-card-spark_glue",
+  },
+];
+
+/** Order matches Today DOM after Move: new signal → Sun/Earth → bridged channels → newly defined. */
+export const TODAY_LITERACY_STEPS: LiteracyStep[] = [
+  {
+    id: "today-new-signal",
+    title: "Today's new signal",
+    body:
+      "This headline is the one change in the sky compared with yesterday. Baseline picks it in a fixed order: the Moon moving into a new gate or line, then a shift in the Sun's line or gate, then new pressure on a hanging gate you already carry, then a change in today's bridges or temporary centers. If none of those moved, you will see a continuity note — another day of the same theme, not a new assignment.\n\nThe Move above is the one thing to do with that weather. Read the signal as the \"what changed\" context for why this Move showed up, not as a second to-do. A Moon or Sun shift colors the day or week the Move sits inside. A conditioning update usually lines up with the bridges and temporary centers below, which also shape your Energy, Space, and the Move itself.",
+    jumpLabel: "Today's new signal",
+    targetId: "today-new-signal",
+  },
+  {
+    id: "today-sun-earth",
+    title: "Sun / Earth theme",
+    body:
+      "The Sun and Earth are always opposite each other in the sky. The Sun gate is the week's broader theme — what life is highlighting — and the Earth gate is the ground under it, the balancing place to stand. This pair moves slowly (the Sun stays in one gate for about six days), so it is a chapter, not an hourly weather report.\n\nThe Move is daily and practical. Sun / Earth is the longer background that Move belongs to. You do not need to act on the gate numbers separately, and they are not a second protocol. If you want a reason the week feels like it has a flavor, look here; if you want what to do today, stay with the Move.",
+    jumpLabel: "Sun / Earth",
+    targetId: "today-sun-earth",
+  },
+  {
+    id: "today-bridged-channels",
+    title: "Bridged channels (conditioning)",
+    body:
+      "A channel is a full wire between two centers. You may already hold one end (a hanging gate). Today's sky can bring the other end — or both ends — and temporarily complete a channel that is not part of your natal chart. That completed wire is a bridge. It is called conditioning because it is borrowed circuitry: it can feel vivid and magnetic, and it is not a permanent change to your Type or Strategy.\n\nBridges are one of the main inputs to today's Energy and Space, and therefore to the Move. A motor bridge can leave you feeling more charged than usual; a mind or identity bridge can pull you toward focus or a change of place. The Move often translates that as \"treat the energy as borrowed\" or \"one yes, then pause.\" Notice who or what feels suddenly complete today — that chemistry is often the other half of the wire, not a life verdict.",
+    jumpLabel: "Bridged channels",
+    targetId: "today-bridged-channels",
+  },
+  {
+    id: "today-newly-defined",
+    title: "Newly defined centers today",
+    body:
+      "Your natal chart has defined centers (steady, always-on) and open ones (where you sample life). When today's sky completes enough channels to light an open center, that center shows up here as temporarily defined. It can feel like unusual pressure, fuel, emotion, or willpower that was not yours yesterday. It is a weather event, not a new personality.\n\nThese temporary centers are one of the strongest reasons the Move reads the way it does. A borrowed Sacral or Heart can raise Energy and produce a \"use the charge once, then stop\" Move — it does not make you a Generator. Fresh mind centers (Head or Ajna) often ask for a quieter focus corner. If this list is empty, the sky is not lighting new centers today, and the Move leans more on your usual Type strategy. Do not over-identify with a center that will fade when the transit moves on.",
+    jumpLabel: "Newly defined centers",
+    targetId: "today-newly-defined",
   },
 ];
