@@ -1,10 +1,12 @@
 # Current build — Today How to read literacy coach
 
-**Status:** PR open · Hold merge for Benjamin yes · FE-only Vercel later (no Railway).
+**Status:** PR #71 open · Hold merge for Benjamin yes · FE-only Vercel later (no Railway).
 **Date:** 2026-11-06 (Asia/Hong_Kong)
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/71
 
 ## Branch / tip
 - **Branch:** `feat/today-how-to-read`
+- **Tip / feature:** `ec01efd` (`ec01efd0e95b62dec6b104981327090828254436`)
 - **Worktree:** `/workspace/hd-biohack-wt-today-how-to-read`
 - **Base:** `origin/main` @ `0a4b72c388f5a752c5dcdb9cefa6fc4545f8a92c` (includes shipped #65–#69)
 - **Independent of** in-flight Deep Dive Strategy / Authority / Definition copy PR (`feat/deep-dive-strategy-authority-definition-copy-3x` / `/workspace/hd-biohack-wt-sad-copy-3x`). Separate worktree; no SAD product changes.

@@ -1,7 +1,9 @@
 # Today How to read — UX handoff
 
 **Date:** 2026-11-06 (Asia/Hong_Kong)
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/71
 **Branch:** `feat/today-how-to-read`
+**Tip:** `ec01efd` (`ec01efd0e95b62dec6b104981327090828254436`)
 **Worktree:** `/workspace/hd-biohack-wt-today-how-to-read`
 **Base:** `origin/main` @ `0a4b72c` (#65–#69). **Independent of** Deep Dive Strategy / Authority / Definition copy PR.
 **Hold merge** for Benjamin yes. FE-only (Vercel later; no Railway).
