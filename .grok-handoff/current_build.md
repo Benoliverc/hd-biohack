@@ -2,7 +2,7 @@
 
 - **Branch:** feat/soul-partner-insights
 - **Base:** origin/main @ 8817d38abc1621917fef4f0aadad3ac96f3aa24a (PR #71 merge)
-- **Tip:** `81a68996c0b3b422fb1720cdd003c1f4228fb579`
+- **Tip:** `a4865fb5090cc1fcc10604459f945c8b03060fc1`
 - **Worktree:** /workspace/hd-biohack-wt-soul-partner
 - **Preview:** not started (no deploy; PR only)
 
