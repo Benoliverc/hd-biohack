@@ -1,6 +1,7 @@
 # UX handoff — Deep Dive Type copy ~3×
 
-**PR:** (fill after open)  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/69  
+**Tip:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
 **Branch:** `feat/deep-dive-type-copy-3x`  
 **Base:** `origin/main` @ `5ff5758` (post #65+#66)  
 **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`  
