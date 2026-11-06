@@ -164,6 +164,7 @@ export const messages = {
   'page.soul.h1': 'Soul',
   'page.soul.subtitle': 'Aura entre tú y alguien que has cartografiado. · Pro',
   'today.hdFactLabel': 'Dato de Human Design del día',
+  'today.howToReadJump': 'Cómo leerlo',
   'today.whyHint': 'toca para abrir',
   'today.reading': 'Leyendo el clima de tu chart…',
   'today.vsYesterday': 'Vs ayer',

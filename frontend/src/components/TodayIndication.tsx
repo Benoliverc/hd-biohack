@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
-import { hdFactForDay } from "@/lib/hdFactOfTheDay";
+import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import {
   dayKeyInZone,
   DEFAULT_PROTOCOLS_TZ,
@@ -423,19 +423,35 @@ export default function TodayIndication({
         </p>
       ) : null}
 
-      {/* 3. HD fact of the day — below Move + sky */}
+      {/* 3. Contextual literacy pulse — below Move + sky, above disclaimer */}
       {(() => {
-        const { fact, dayKey } = hdFactForDay();
+        const pulse = contextualHdFact({
+          vsYesterday: vs,
+          dailySignal: daily,
+        });
         return (
           <aside
             className="mb-4 rounded-xl border border-border bg-sunken/50 px-4 py-3"
             data-testid="hd-fact-of-the-day"
-            data-day-key={dayKey}
+            data-day-key={pulse.dayKey}
+            data-sky-keyed={pulse.skyKeyed ? "true" : "false"}
+            data-literacy-field={pulse.field || undefined}
           >
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
               {t("today.hdFactLabel")}
             </p>
-            <p className="text-sm text-fg-secondary">{fact}</p>
+            <p className="text-sm text-fg-secondary" data-testid="hd-fact-text">
+              {pulse.fact}
+            </p>
+            {pulse.howToReadTargetId ? (
+              <a
+                href={`#${pulse.howToReadTargetId}`}
+                className="mt-2 inline-flex text-xs font-medium text-growth underline-offset-2 hover:underline"
+                data-testid="hd-fact-how-to-read"
+              >
+                {t("today.howToReadJump")}
+              </a>
+            ) : null}
           </aside>
         );
       })()}

@@ -164,6 +164,7 @@ export const messages = {
   'page.soul.h1': 'Soul',
   'page.soul.subtitle': 'Aura zwischen dir und jemandem, den du gechartet hast. · Pro',
   'today.hdFactLabel': 'Human-Design-Fakt des Tages',
+  'today.howToReadJump': 'So liest du das',
   'today.whyHint': 'tippen zum Öffnen',
   'today.reading': 'Dein Chart-Wetter wird gelesen…',
   'today.vsYesterday': 'Vs gestern',
