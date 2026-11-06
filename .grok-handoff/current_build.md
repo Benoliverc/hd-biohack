@@ -1,23 +1,31 @@
-# Current build — Deep Dive Type copy ~3×
+# Current build — Deep Dive Strategy / Authority / Definition copy ~3×
 
-**Status:** Merging PR #69 after Benjamin yes · FE-only Vercel (no Railway).
+**Status:** PR open · hold merge for Benjamin yes · FE-only Vercel later (no Railway).
 **Date:** 2026-11-06 (Asia/Hong_Kong)
 
 ## Branch / tip
-- **Branch:** `feat/deep-dive-type-copy-3x`
-- **Tip (product, pre-main merge):** `593d215` (`593d215d73d135516211dc2f75609205a6567727`)
-- **Feature commit:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
-- **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
-- **Base now:** `origin/main` @ `5b5e3b1` (includes shipped #65+#66+#67+#68)
-- **Independent of** already-shipped #67 (merge `0ba0fa0`) and #68 (merge `5b5e3b1`). Conflict with main was only this handoff file; product files merged clean.
+- **Branch:** `feat/deep-dive-strategy-authority-definition-copy-3x`
+- **Tip:** `b8cd4ca` (`b8cd4cafe2632abab5576bee6971b90346af51bf`)
+- **Feature commit:** `b8cd4ca` (`b8cd4cafe2632abab5576bee6971b90346af51bf`)
+- **Worktree:** `/workspace/hd-biohack-wt-sad-copy-3x`
+- **Base:** `origin/main` @ `0a4b72c388f5a752c5dcdb9cefa6fc4545f8a92c` (includes shipped #65–#69)
+- **Independent of** other open work. No preview server (copy-only, same as #69). Do not touch :3009/:3010/:3011.
 
 ## Scope
-Exact longer Type essays in `TYPE_COPY` + visible paragraph breaks in Chart Deep Dive Type accordion.
+Convert `STRATEGY_COPY`, `AUTHORITY_COPY`, and `DEFINITION_COPY` to `{ summary, learnMore }` (exact handoff essays) and render Strategy / Inner Authority / Definition Deep Dive accordions like Type. Profile snapshot stays short (`.summary` / `AUTHORITY_PLAIN`).
 
 ## Files
-- `frontend/src/lib/hdCopy.ts` — TYPE_COPY only
-- `frontend/src/components/ChartDeepDive.tsx` — learnMore paragraph split
-- `.grok-handoff/deep-dive-type-copy-3x-ux-2026-11-06.md`
+- `frontend/src/lib/hdCopy.ts` — STRATEGY / AUTHORITY / DEFINITION only (`TYPE_COPY` + `AUTHORITY_PLAIN` untouched)
+- `frontend/src/components/ChartDeepDive.tsx` — shared `SummaryLearnMore` for Type + Strategy + Authority + Definition
+- `frontend/src/app/profile/page.tsx` — `.summary` for strategy; `AUTHORITY_PLAIN || AUTHORITY_COPY?.summary`
+- `.grok-handoff/deep-dive-sad-copy-3x-ux-2026-11-06.md`
+
+## Spec
+`handoffs/deep-dive-strategy-authority-definition-copy-3x-2026-11-06.md`
 
 ## Deploy
-- Vercel FE after Benjamin yes + Ship Gate. No Railway.
+- Hold merge for Benjamin yes after UX → Ship Gate.
+- FE-only Vercel after yes. No Railway.
+
+## Open questions
+None.
