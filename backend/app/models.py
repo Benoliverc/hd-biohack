@@ -175,7 +175,7 @@ class ProtocolCompletion(Base):
     chart_id: Mapped[int] = mapped_column(ForeignKey("natal_charts.id"), index=True)
     day: Mapped[date] = mapped_column(Date)
     item_id: Mapped[str] = mapped_column(String(128))
-    kind: Mapped[str] = mapped_column(String(32), default="move")  # move | baseline
+    kind: Mapped[str] = mapped_column(String(32), default="move")  # move | baseline | evening
     label: Mapped[str] = mapped_column(String(255), default="")
     done: Mapped[bool] = mapped_column(Boolean, default=False)
     note: Mapped[str | None] = mapped_column(String(120), nullable=True)

@@ -19,6 +19,16 @@ import {
   type DayCompletions,
 } from "@/lib/protocolCompletions";
 import {
+  encodeEveningCloseLabel,
+  eveningAnswerOptions,
+  eveningCloseItemId,
+  eveningQuestionKey,
+  isEveningCloseVisible,
+  normalizeHdType,
+  parseEveningCloseLabel,
+  type EveningAnswerKey,
+} from "@/lib/eveningSignatureClose";
+import {
   useI18n,
   localizeEnergyLabel,
   localizeSpaceLabel,
@@ -48,6 +58,8 @@ type Props = {
   userId?: number | null;
   chartId?: number | null;
   preferredTimezone?: string | null;
+  /** Natal Type of Me only (People never drive Today). */
+  natalType?: string | null;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -72,6 +84,7 @@ export default function TodayIndication({
   userId = null,
   chartId = null,
   preferredTimezone = null,
+  natalType = null,
 }: Props) {
   const { t } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -125,7 +138,7 @@ export default function TodayIndication({
   }, [userId, chartId, dayKey, weekKeysSig]);
 
   const persistToggle = useCallback(
-    (itemId: string, label: string, kind: "move" | "baseline" = "move") => {
+    (itemId: string, label: string, kind: "move" | "baseline" | "evening" = "move") => {
       if (!userId || !chartId || !itemId) return;
       setCompletions((prev) => {
         const next = toggleCompletion(prev, itemId, { label, kind });
@@ -177,6 +190,43 @@ export default function TodayIndication({
     },
     [userId, chartId, dayKey]
   );
+
+  const persistEveningClose = useCallback(
+    (answer: EveningAnswerKey, typeKey: NonNullable<ReturnType<typeof normalizeHdType>>) => {
+      if (!userId || !chartId) return;
+      const itemId = eveningCloseItemId();
+      const label = encodeEveningCloseLabel({ typeKey, answer });
+      setCompletions((prev) => {
+        const prevRow = prev[itemId];
+        const next = {
+          ...prev,
+          [itemId]: {
+            done: true,
+            label,
+            kind: "evening" as const,
+            note: prevRow?.note,
+          },
+        };
+        saveDayCompletions(userId, chartId, dayKey, next);
+        void api
+          .putProtocolCompletion(userId, {
+            chart_id: chartId,
+            day: dayKey,
+            item_id: itemId,
+            kind: "evening",
+            label,
+            done: true,
+            note: next[itemId]?.note ?? null,
+          })
+          .catch(() => {
+            /* offline — local cache keeps the close */
+          });
+        return next;
+      });
+    },
+    [userId, chartId, dayKey]
+  );
+
   if (bindingLoading || loading) {
     return (
       <div
@@ -390,6 +440,100 @@ export default function TodayIndication({
                     >
                       {t("today.showUpStill")}
                     </p>
+                  ) : null}
+                </div>
+              );
+            })()}
+
+
+            {(() => {
+              const typeKey = normalizeHdType(natalType);
+              if (!typeKey || !userId || !chartId) return null;
+              const itemId = eveningCloseItemId();
+              const row = completions[itemId];
+              const alreadyDone = Boolean(row?.done);
+              const visible = isEveningCloseVisible({
+                timeZone: protocolsTz,
+                whenSlot: indication.when_slot,
+                alreadyDone,
+              });
+              if (!visible) return null;
+              const saved = parseEveningCloseLabel(row?.label);
+              const qKey = eveningQuestionKey(typeKey);
+              const options = eveningAnswerOptions(typeKey);
+              const canTap = Boolean(userId && chartId);
+              const note = row?.note || "";
+              return (
+                <div
+                  className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
+                  data-testid="today-evening-close"
+                  data-type={typeKey}
+                  data-answer={saved?.answer || undefined}
+                >
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                    {t("today.eveningClose.label")}
+                  </p>
+                  <p
+                    className="text-sm font-medium text-fg"
+                    data-testid="today-evening-close-question"
+                  >
+                    {t(qKey)}
+                  </p>
+                  <div
+                    className="mt-2 flex flex-wrap gap-2"
+                    data-testid="today-evening-close-choices"
+                  >
+                    {options.map((opt) => {
+                      const selected = saved?.answer === opt.answer;
+                      return (
+                        <button
+                          key={opt.answer}
+                          type="button"
+                          disabled={!canTap}
+                          aria-pressed={selected}
+                          data-testid={`today-evening-close-${opt.answer}`}
+                          onClick={() => persistEveningClose(opt.answer, typeKey)}
+                          className={`inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                            selected
+                              ? "border-growth bg-growth-soft text-growth-ink"
+                              : "border-border bg-elevated text-fg-secondary hover:border-growth/40"
+                          } ${!canTap ? "opacity-50" : ""}`}
+                        >
+                          {t(opt.labelKey)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {alreadyDone ? (
+                    <div className="mt-2" data-testid="today-evening-close-receipt">
+                      <p className="text-xs text-fg-muted">{t("today.eveningClose.saved")}</p>
+                      <label
+                        className="mt-2 block text-[11px] text-fg-muted"
+                        htmlFor={`today-evening-note-${itemId}`}
+                      >
+                        {t("today.eveningClose.noteLabel")}
+                      </label>
+                      <input
+                        id={`today-evening-note-${itemId}`}
+                        type="text"
+                        maxLength={120}
+                        defaultValue={note}
+                        placeholder={t("today.eveningClose.notePlaceholder")}
+                        disabled={!canTap}
+                        className="mt-0.5 w-full rounded-lg border border-border bg-elevated px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted disabled:opacity-50"
+                        data-testid="today-evening-close-note"
+                        onBlur={(e) => {
+                          if (e.target.value.trim() !== (note || "").trim()) {
+                            persistNote(itemId, e.target.value);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                      />
+                    </div>
                   ) : null}
                 </div>
               );
