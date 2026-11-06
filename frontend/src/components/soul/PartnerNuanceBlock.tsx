@@ -17,7 +17,7 @@ export default function PartnerNuanceBlock({
 
   return (
     <div
-      className="mt-2 space-y-2 rounded-lg border border-energy/30 bg-energy-soft/50 px-2.5 py-2"
+      className="soul-love-guidance-aside mt-2 space-y-2 rounded-lg border border-energy/40 px-2.5 py-2"
       data-testid={testId}
     >
       <div>
