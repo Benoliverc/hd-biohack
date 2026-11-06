@@ -1,23 +1,31 @@
-# Current build — Deep Dive Type copy ~3×
+# Current build — Today How to read literacy coach
 
-**Status:** Merging PR #69 after Benjamin yes · FE-only Vercel (no Railway).
+**Status:** PR open · Hold merge for Benjamin yes · FE-only Vercel later (no Railway).
 **Date:** 2026-11-06 (Asia/Hong_Kong)
 
 ## Branch / tip
-- **Branch:** `feat/deep-dive-type-copy-3x`
-- **Tip (product, pre-main merge):** `593d215` (`593d215d73d135516211dc2f75609205a6567727`)
-- **Feature commit:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
-- **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
-- **Base now:** `origin/main` @ `5b5e3b1` (includes shipped #65+#66+#67+#68)
-- **Independent of** already-shipped #67 (merge `0ba0fa0`) and #68 (merge `5b5e3b1`). Conflict with main was only this handoff file; product files merged clean.
+- **Branch:** `feat/today-how-to-read`
+- **Worktree:** `/workspace/hd-biohack-wt-today-how-to-read`
+- **Base:** `origin/main` @ `0a4b72c388f5a752c5dcdb9cefa6fc4545f8a92c` (includes shipped #65–#69)
+- **Independent of** in-flight Deep Dive Strategy / Authority / Definition copy PR (`feat/deep-dive-strategy-authority-definition-copy-3x` / `/workspace/hd-biohack-wt-sad-copy-3x`). Separate worktree; no SAD product changes.
 
 ## Scope
-Exact longer Type essays in `TYPE_COPY` + visible paragraph breaks in Chart Deep Dive Type accordion.
+Reuse `LiteracyCoach` with a new `today` variant on the Today tab (after Move / TodayIndication, before Sun / Earth). Four jump targets for Today's new signal, Sun / Earth, Bridged channels, Newly defined centers. Exact handoff copy in `TODAY_LITERACY_STEPS`.
 
 ## Files
-- `frontend/src/lib/hdCopy.ts` — TYPE_COPY only
-- `frontend/src/components/ChartDeepDive.tsx` — learnMore paragraph split
-- `.grok-handoff/deep-dive-type-copy-3x-ux-2026-11-06.md`
+- `frontend/src/lib/hdCopy.ts` — `LITERACY_STORAGE_KEYS.today` + `TODAY_LITERACY_STEPS` only (STRATEGY / AUTHORITY / DEFINITION / TYPE untouched)
+- `frontend/src/components/LiteracyCoach.tsx` — `today` variant + Chart-style compact-on-narrow; body splits on blank lines into `<p>`s
+- `frontend/src/app/transits/page.tsx` — coach placement + jump ids on Sun/Earth, bridged, newly-defined
+- `frontend/src/components/TodayIndication.tsx` — `id="today-new-signal"` + scroll-mt on existing daily-signal block
+- `handoffs/today-how-to-read-2026-11-06.md` — SoT
+- `.grok-handoff/today-how-to-read-ux-2026-11-06.md`
+
+## Preview
+- None (left :3009/#67, :3010/#68, :3011/#69 alone)
+
+## Tests
+- `npx tsc --noEmit` — clean
+- `next lint` on touched files — see UX note
 
 ## Deploy
-- Vercel FE after Benjamin yes + Ship Gate. No Railway.
+- Hold merge for Benjamin yes after UX → Ship Gate. FE-only Vercel after yes. No Railway. No standing auto-ship.

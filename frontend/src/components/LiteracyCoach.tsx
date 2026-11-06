@@ -5,11 +5,12 @@ import {
   CHART_LITERACY_STEPS,
   LITERACY_STORAGE_KEYS,
   SOUL_LITERACY_STEPS,
+  TODAY_LITERACY_STEPS,
   type LiteracyJumpMeta,
   type LiteracyStep,
 } from "@/lib/hdCopy";
 
-export type LiteracyCoachVariant = "chart" | "soul";
+export type LiteracyCoachVariant = "chart" | "soul" | "today";
 
 type Props = {
   variant: LiteracyCoachVariant;
@@ -42,14 +43,33 @@ function defaultJump(targetId: string): void {
 }
 
 export default function LiteracyCoach({ variant, onJump }: Props) {
-  const storageKey =
-    variant === "chart" ? LITERACY_STORAGE_KEYS.chart : LITERACY_STORAGE_KEYS.soul;
+  const storageKey = LITERACY_STORAGE_KEYS[variant];
   const steps: LiteracyStep[] =
-    variant === "chart" ? CHART_LITERACY_STEPS : SOUL_LITERACY_STEPS;
-  const testId = variant === "chart" ? "chart-literacy-coach" : "soul-literacy-coach";
+    variant === "chart"
+      ? CHART_LITERACY_STEPS
+      : variant === "soul"
+        ? SOUL_LITERACY_STEPS
+        : TODAY_LITERACY_STEPS;
+  const testId =
+    variant === "chart"
+      ? "chart-literacy-coach"
+      : variant === "soul"
+        ? "soul-literacy-coach"
+        : "today-literacy-coach";
   const title =
-    variant === "chart" ? "How to read your chart" : "How to read Soul";
-  const reopenLabel = variant === "chart" ? "How to read" : "How to read Soul";
+    variant === "chart"
+      ? "How to read your chart"
+      : variant === "soul"
+        ? "How to read Soul"
+        : "How to read Today";
+  const reopenLabel =
+    variant === "chart"
+      ? "How to read"
+      : variant === "soul"
+        ? "How to read Soul"
+        : "How to read";
+  /* Chart + Today @narrow: single active step + tighter cap (avoid tall first-visit wall). */
+  const compactNarrow = variant === "chart" || variant === "today";
 
   const [hydrated, setHydrated] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -124,20 +144,19 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
   const isFirst = activeIndex <= 0;
   const isLast = activeIndex >= steps.length - 1;
 
-  /* Chart @narrow: true single-step (no stacked inactive titles) + tighter cap.
+  /* Chart + Today @narrow: true single-step (no stacked inactive titles) + tighter cap.
      Soul / sm+ keep the full accordion list. */
-  const chartCompact =
-    variant === "chart"
-      ? "max-h-[min(32vh,240px)] p-3 sm:max-h-[50vh] sm:p-5"
-      : "max-h-[50vh] p-4 sm:p-5";
+  const panelCompact = compactNarrow
+    ? "max-h-[min(32vh,240px)] p-3 sm:max-h-[50vh] sm:p-5"
+    : "max-h-[50vh] p-4 sm:p-5";
 
   return (
     <section
       data-testid={testId}
       data-literacy-state="expanded"
       data-literacy-step={active?.id}
-      data-literacy-compact={variant === "chart" ? "chart-narrow" : "default"}
-      className={`overflow-y-auto rounded-2xl border border-border bg-elevated/80 ${chartCompact}`}
+      data-literacy-compact={compactNarrow ? "chart-narrow" : "default"}
+      className={`overflow-y-auto rounded-2xl border border-border bg-elevated/80 ${panelCompact}`}
       aria-label={title}
     >
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 sm:mb-3">
@@ -152,8 +171,8 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
         </p>
       </div>
 
-      {/* Narrow Chart: step dots only (inactive titles hidden to reclaim fold). */}
-      {variant === "chart" ? (
+      {/* Narrow Chart/Today: step dots only (inactive titles hidden to reclaim fold). */}
+      {compactNarrow ? (
         <div
           className="mb-2 flex flex-wrap gap-1.5 sm:hidden"
           role="tablist"
@@ -187,8 +206,8 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
         {steps.map((step, index) => {
           const n = String(index + 1).padStart(2, "0");
           const isActive = index === activeIndex;
-          /* Chart narrow: mount only the active step card. */
-          if (variant === "chart" && !isActive) {
+          /* Chart/Today narrow: mount only the active step card. */
+          if (compactNarrow && !isActive) {
             return (
               <li
                 key={step.id}
@@ -230,7 +249,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={`flex min-h-10 w-full items-center gap-3 text-left ${
-                  variant === "chart" ? "hidden sm:flex" : ""
+                  compactNarrow ? "hidden sm:flex" : ""
                 }`}
                 aria-expanded={isActive}
               >
@@ -253,8 +272,8 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                 </span>
               </button>
 
-              {/* Chart narrow: always show title inline above body (header button hidden). */}
-              {variant === "chart" && isActive ? (
+              {/* Chart/Today narrow: always show title inline above body (header button hidden). */}
+              {compactNarrow && isActive ? (
                 <div className="mb-1 flex items-center gap-3 sm:hidden">
                   <span
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-growth/40 bg-growth/15 text-[11px] font-semibold tabular-nums text-growth"
@@ -271,12 +290,14 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
               {isActive ? (
                 <div
                   className={`mt-1 border-t border-border/50 pb-1 pt-2 ${
-                    variant === "chart" ? "pl-0 sm:pl-10" : "pl-10"
+                    compactNarrow ? "pl-0 sm:pl-10" : "pl-10"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed text-fg-secondary">
-                    {step.body}
-                  </p>
+                  <div className="space-y-2 text-sm leading-relaxed text-fg-secondary">
+                    {step.body.split(/\n\n+/).map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))}
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleJump(step)}

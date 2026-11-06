@@ -12,6 +12,7 @@ import {
 import { displayCenter, formatGateLine } from "@/lib/hdCopy";
 import { formatResetsInHkt } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
+import LiteracyCoach from "@/components/LiteracyCoach";
 import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
@@ -206,9 +207,13 @@ export default function TransitsPage() {
         preferredTimezone={user?.preferred_timezone ?? null}
       />
 
+      <LiteracyCoach variant="today" />
 
       {sunEarth && (
-        <div className="rounded-2xl border border-energy/40 bg-energy/10 p-5">
+        <div
+          id="today-sun-earth"
+          className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-energy/40 bg-energy/10 p-5"
+        >
           <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">{t("page.today.sunEarth")}</h2>
           <p className="text-lg">
             Sun{" "}
@@ -227,7 +232,10 @@ export default function TransitsPage() {
 
       {overlay && (
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-elevated p-4 shadow-soft">
+          <div
+            id="today-bridged-channels"
+            className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          >
             <h2 className="mb-2 font-semibold">{t("page.today.bridgedChannels")}</h2>
             <ul className="space-y-1 text-sm text-fg-secondary">
               {((overlay.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
@@ -241,7 +249,10 @@ export default function TransitsPage() {
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl border border-border bg-elevated p-4 shadow-soft">
+          <div
+            id="today-newly-defined"
+            className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          >
             <h2 className="mb-2 inline-flex items-center gap-1.5 font-semibold">
               <Hexagon className="h-4 w-4 shrink-0 text-energy-ink" aria-hidden />
               {t("page.today.newlyDefined")}

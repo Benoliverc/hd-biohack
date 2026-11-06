@@ -366,7 +366,11 @@ export default function TodayIndication({
 
       {/* 2. Sky under the Move: today's new signal + collapsed vs yesterday */}
       {daily ? (
-        <div className="mb-3" data-testid="daily-signal">
+        <div
+          id="today-new-signal"
+          className="mb-3 scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
+          data-testid="daily-signal"
+        >
           <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
             <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t("today.newSignal")}
