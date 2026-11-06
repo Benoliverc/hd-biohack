@@ -57,47 +57,123 @@ export const TYPE_COPY: Record<
   },
 };
 
-export const STRATEGY_COPY: Record<string, string> = {
-  "To Respond":
-    "Engage when something in the outside world lights up your Sacral (gut response), not when the mind invents a plan.",
-  "To Respond (then inform)":
-    "Respond with the Sacral first, then inform people who will be affected before you act or change course.",
-  "To Inform":
-    "Before you initiate, tell the relevant people what you're about to do — it reduces resistance without needing permission.",
-  "Wait for the Invitation":
-    "Hold your guidance until you are recognized and invited into roles, relationships, and advice-giving.",
-  "Wait a Lunar Cycle":
-    "For big decisions, sample the environment across a full lunar month so clarity can settle.",
+export const STRATEGY_COPY: Record<
+  string,
+  { summary: string; learnMore: string }
+> = {
+  "To Respond": {
+    summary:
+      "Engage when something in the outside world lights up your Sacral (gut response), not when the mind invents a plan.",
+    learnMore:
+      "You are designed to engage after life gives you something to answer — a person, a question, an invitation, a sound, or an opportunity that shows up outside your head. Your Sacral is a consistent gut response: it lights up with a yes, goes dull with a no, or stays unclear when the timing is not yet. That response is faster and more honest than a clever plan. Waiting to respond is not passivity. It is letting the world start the conversation so your energy can meet something real.\n\nIn practice this looks like pausing before you volunteer, apply, or invent the next move. Give your body something concrete to react to. A yes often feels like warmth, expansion, or an unmistakable uh-huh. A no feels flat, heavy, or like you would have to talk yourself into it. If it is not a clear yes, treat it as a no or a not yet rather than a puzzle your mind has to solve.\n\nWhen you respond correctly, work and relationships tend to have more flow and less grind — that is satisfaction. When you initiate from pressure, people-pleasing, or a story about what you should want, frustration builds. Use frustration as information: you probably said yes without a sacral yes, or you are pushing a plan no one actually placed in front of you.",
+  },
+  "To Respond (then inform)": {
+    summary:
+      "Respond with the Sacral first, then inform people who will be affected before you act or change course.",
+    learnMore:
+      "You still wait to respond before you move. A person, a question, or an opportunity appears, and your Sacral answers with a yes, a no, or a not yet. That gut check is the same as a Generator's — speed is not a license to launch from the mind. After a true yes, tell the people who will be affected what you are about to do, or that you are changing course. Informing is not asking permission. It is reducing friction so your fast, skipping-steps energy does not leave others scrambling.\n\nDay to day, the sequence is: wait for something real, feel the body answer, then speak the next move before you disappear into it. A short \"I'm going to take this and drop that\" often prevents the resistance that feels like the world is slamming on the brakes. If the Sacral is quiet, do not fill the silence with a plan just because you can execute quickly.\n\nWhen this strategy is working, you get to move at your natural pace without constantly repairing surprise. When you skip the response or forget to inform, frustration and a flash of anger usually follow — either because you committed without a yes, or because people try to control a change they never heard about. Slow down only long enough to respond and inform; then let yourself go fast.",
+  },
+  "To Inform": {
+    summary:
+      "Before you initiate, tell the relevant people what you're about to do — it reduces resistance without needing permission.",
+    learnMore:
+      "You are designed to start from an inner urge, not to wait for the world to ask first. The strategy that makes that initiation work is informing: before you act, tell the relevant people what you are about to do. Informing is not asking permission or putting your urge up for a vote. It is a courtesy that lowers resistance, because people feel a Manifestor's impact coming and they tense up when they have to guess.\n\nIn practice, pick the people who will actually be affected — a partner, a team, a household — and give them a clear heads-up. You do not need a long justification. \"I'm starting this\" or \"I need the afternoon uninterrupted\" is enough. Then move. Waiting until everyone is comfortable often starves the urge; disappearing without a word often creates the very control and pushback you were trying to avoid.\n\nPeace is what it feels like when you are free to start and you remembered to inform. Anger rises when others try to manage your pace, or when you vanish into action and everyone else is left cleaning up the surprise. Protect enough quiet to hear the urge, inform the right people, and go — so your independence does not have to fight unnecessary battles.",
+  },
+  "Wait for the Invitation": {
+    summary:
+      "Hold your guidance until you are recognized and invited into roles, relationships, and advice-giving.",
+    learnMore:
+      "Your correct way in is to wait until you are recognized and invited — especially for work, love, and any big sharing of your advice. An invitation is someone who has seen what you actually notice and asked you in. It is not you knocking until the door opens, and it is not offering a diagnosis no one requested. Recognition of your seeing is fuel; without it, even brilliant guidance drains you.\n\nIn daily life this can look slower than the culture around you. You can still live, learn, and be visible; the strategy is about not forcing the big doors. Share your seeing where it has been asked for. Let smaller recognitions accumulate. If you catch yourself proving how useful you are, that is usually the mind trying to create an invitation that has not arrived yet.\n\nSuccess is the feeling that the right people pulled you into the right rooms and your guidance landed. Bitterness appears when you chase, over-give, or advise without being asked. That bitterness is useful information, not a character flaw — it usually means you spent energy without recognition. Protect your rest, wait for the ask, and let \"not yet\" be a complete answer.",
+  },
+  "Wait a Lunar Cycle": {
+    summary:
+      "For big decisions, sample the environment across a full lunar month so clarity can settle.",
+    learnMore:
+      "For major decisions, your strategy is to sample across a full lunar cycle — about twenty-eight days — instead of locking in on one charged day. You have no defined centers, so you take in the people and places around you. A single conversation or a single mood can feel like certainty when it is mostly the room talking. Time lets you feel the same choice from many inner weathers until something stable remains.\n\nThis does not mean you cannot choose lunch or answer a simple email. It means the big commitments — where to live, whom to partner with, a job, a move — want a longer sample. Talk to different people, visit the place more than once, and notice who you become beside the option rather than forcing a personality that stays the same in every room. You are not being indecisive; you are being thorough.\n\nSurprise and delight show up when a choice still feels like yours after a full cycle, especially in an environment that loves you back. Disappointment arrives when you decide too fast or stay somewhere that only felt right on one day. Treat time and environment as the main levers, and trust clarity that survives the month.",
+  },
 };
 
-export const AUTHORITY_COPY: Record<string, string> = {
-  "Emotional (Solar Plexus)":
-    "Ride the emotional wave — no truth in the moment. Sleep on it; clarity comes over time, not in the peak or valley.",
-  Sacral:
-    "Trust gut sounds / visceral yes-no in the now. If it's not a clear yes, it's a no (or not yet).",
-  Splenic:
-    "Quiet, instinctive, in-the-moment knowing about health, safety, and timing — easy to override with the mind.",
-  "Ego / Heart":
-    "Decisions through willpower and honest commitments — what you can sustainably promise and stand behind.",
-  "Self-Projected":
-    "Talk it out; hear your own voice and identity direction. The right environment and listeners matter.",
-  Lunar:
-    "Reflector authority — give major choices a lunar cycle of sampling before locking in.",
-  "Mental / Environmental (Outer Authority)":
-    "No inner motor authority — use trusted sounding boards and healthy environments; the mind is for reflection, not deciding alone.",
+export const AUTHORITY_COPY: Record<
+  string,
+  { summary: string; learnMore: string }
+> = {
+  "Emotional (Solar Plexus)": {
+    summary:
+      "Ride the emotional wave — no truth in the moment. Sleep on it; clarity comes over time, not in the peak or valley.",
+    learnMore:
+      "Your authority is emotional: you have a defined Solar Plexus, which means feelings move in a wave rather than arriving as a single permanent verdict. There is no truth in the moment of a high or a crash. A peak can make almost anything look like a forever yes. A valley can make a good thing look impossible. Clarity comes after you have felt more than one point on the wave — often after a night of sleep, and sometimes after several days.\n\nIn practice, do not sign, commit, or declare your final answer at the crest or the dip. You can notice the first feeling and still wait. \"I need to sit with this\" is a complete response. Talk if it helps you feel the wave, but do not let a persuasive conversation become the decision. The mind will try to freeze one mood into a story; your job is to let the weather change and see what remains.\n\nWhen you honor the wave, decisions tend to feel settled rather than dramatic — you just know, without the same heat. When you decide in a spike or a crash, regret and second-guessing usually follow, not because you are flaky, but because you treated a weather report as climate. Give important choices time, and trust the answer that is still true after the wave has moved.",
+  },
+  Sacral: {
+    summary:
+      "Trust gut sounds / visceral yes-no in the now. If it's not a clear yes, it's a no (or not yet).",
+    learnMore:
+      "Your authority is sacral: in the now, your body answers with a visceral yes or no — often a sound, a pull toward something, or a flatness that is easy to miss if you are busy explaining. This is not a five-year plan. It is a response to what is in front of you right now. If it is not a clear yes, it is a no, or a not yet. A maybe you have to justify is usually the mind trying to override the gut.\n\nIn practice, ask questions that can be answered with the body, not essays. \"Do I want this?\" \"Is this a yes for Tuesday?\" Listen for expansion, animation, or an uh-huh versus tightness, dullness, or having to talk yourself into it. Other people can present options; they cannot feel your Sacral for you. If you need time, it may be because there is nothing concrete to respond to yet — get a clearer offer rather than forcing a mental decision.\n\nWhen you follow the gut, energy tends to stay available for what you said yes to. When you override it to be polite, impressive, or consistent with an old plan, frustration builds and the body often drags. Trust the in-the-moment response even when you cannot yet explain it, and let explanations come after the yes or no, not before.",
+  },
+  Splenic: {
+    summary:
+      "Quiet, instinctive, in-the-moment knowing about health, safety, and timing — easy to override with the mind.",
+    learnMore:
+      "Your authority is splenic: a quiet, instinctive knowing in the moment about health, safety, and timing. The Spleen speaks once, softly, and does not argue. It can feel like a sudden \"this is okay\" or \"leave now\" without a speech attached. The mind is much louder, so it is easy to talk yourself out of the hit a few seconds later and then call that reasoning wisdom.\n\nIn practice, notice the first flicker — a sense of well-being, a twitch of caution, a feeling that the timing is right or off — and give it more weight than the story that follows. Splenic hits are about the now, not about proving a case for next month. You may not get a second warning in the same words. Journaling after the fact can help you learn your own flavor of instinct, but the decision itself happens in the moment, not in a spreadsheet.\n\nWhen you trust it, life often feels simpler and safer, even if you cannot justify every choice to other people. When you override it, you may later say \"I knew\" — that phrase is usually the spleen you ignored. Do not confuse anxiety spirals or other people's fear with a true splenic hit; the real one is brief, quiet, and specific to this moment.",
+  },
+  "Ego / Heart": {
+    summary:
+      "Decisions through willpower and honest commitments — what you can sustainably promise and stand behind.",
+    learnMore:
+      "Your authority is ego, or heart: you decide through willpower and honest commitment — what you can sustainably promise and actually stand behind. This is not about proving you are strong enough to do everything. It is about whether your heart is truly in the promise, and whether you have the will to see it through without abandoning yourself.\n\nIn practice, ask \"Can I commit to this?\" and \"Will I still respect myself if I keep this promise?\" rather than \"Would this impress people?\" A correct yes has a quality of \"I will\" — a willingness to put your name on it. A no can be equally clean: you will not bargain your will just to look reliable. Making fewer, truer commitments usually works better than stacking obligations you then have to muscle through.\n\nWhen this authority is honored, your word means something to you and to others, and effort feels chosen rather than extracted. When you say yes to prove worth, or no out of fear of being seen as selfish, the heart gets tired and resentment follows. Decide from what you can honestly will, then keep those promises — that is the authority working, not the size of the workload.",
+  },
+  "Self-Projected": {
+    summary:
+      "Talk it out; hear your own voice and identity direction. The right environment and listeners matter.",
+    learnMore:
+      "Your authority is self-projected: you hear your direction by speaking it. Clarity lives in your voice and identity — in hearing yourself talk about the choice — not in silently analyzing every angle. The right listeners and the right environment matter. You are not looking for them to decide for you; you are looking for a space where your own words can show you who you are in relation to the option.\n\nIn practice, talk it out with people who can listen without immediately fixing or recruiting you. Notice what you hear yourself say, and how your tone changes when you describe one path versus another. A true direction often sounds like you recognizing yourself: the words have life. If you go quiet, get talked over, or start performing the answer you think they want, change the room and speak again.\n\nWhen this is working, you leave the conversation knowing more than when you entered, even if the other person barely advised you. When you decide only in your head, or in a room that distorts who you are, you can feel lost or like you agreed to someone else's identity. Give yourself voices and places that let you hear you, then follow what you heard yourself say.",
+  },
+  Lunar: {
+    summary:
+      "Reflector authority — give major choices a lunar cycle of sampling before locking in.",
+    learnMore:
+      "Your authority is lunar, which goes with being a Reflector: major choices need a full lunar cycle of sampling before you lock them in. Because you have no defined centers, each day can color the choice differently. One conversation might feel like destiny; a week later the same option feels empty. Time is not delay here — it is the way your clarity is built.\n\nIn practice, take big decisions around the month. Visit the place more than once, speak with different people, and write down how the choice feels on several days rather than trusting a single high or low. Smaller daily choices do not all need twenty-eight days; save the long sample for things that change your environment, work, or relationships. You are not indecisive; you are designed to be thorough.\n\nSurprise and delight are signs you waited long enough in a place that suits you. Disappointment often means you froze a temporary reflection into a permanent yes, or you stayed somewhere that never settled into feeling like you. Let the cycle complete, then choose what is still true.",
+  },
+  "Mental / Environmental (Outer Authority)": {
+    summary:
+      "No inner motor authority — use trusted sounding boards and healthy environments; the mind is for reflection, not deciding alone.",
+    learnMore:
+      "You do not have an inner motor authority making decisions from a consistent emotional wave, sacral response, spleen, or heart will. Your mind is excellent at reflecting, comparing, and talking things through — and it is not meant to boss alone. Clarity comes from healthy environments and trusted sounding boards: the right rooms and the right people help you see, while the wrong ones leave you mentally spinning.\n\nIn practice, do not lock a big choice in isolation or in a stressful space. Take the question for a walk, sit with people who listen well, and notice how the same option feels in different settings. You are looking for what becomes clear when the environment is supportive, not for a louder argument in your head. Other people are mirrors and sounding boards; they should not become a committee that decides for you.\n\nWhen this works, decisions feel quieter and more obvious after good company and a good place — as if the answer organized itself. When you force a solo mental verdict under pressure, doubt tends to bounce back immediately. Change the room, talk it out, and let the mind do what it does best: reflect, rather than command.",
+  },
 };
 
-export const DEFINITION_COPY: Record<string, string> = {
-  "None (Reflector)":
-    "No consistent definition — you sample and reflect everything around you.",
-  Single:
-    "All defined centers are connected in one continuous circuitry — energy flows as one stream.",
-  Split:
-    "Two separate areas of definition. Bridging gates (yours or others') can feel magnetic; notice who/what bridges your split.",
-  "Triple Split":
-    "Three separate areas of definition — you often need varied people and places to feel complete processing.",
-  "Quadruple Split":
-    "Four separate areas — highly modular energy; environments and timing matter a lot for feeling whole.",
+export const DEFINITION_COPY: Record<
+  string,
+  { summary: string; learnMore: string }
+> = {
+  "None (Reflector)": {
+    summary: "No consistent definition — you sample and reflect everything around you.",
+    learnMore:
+      "You have no consistent definition — no centers that are always \"on\" in the same way. That means you sample and reflect the people, places, and moods around you rather than running one fixed inner weather. This is a gift of discernment: you can feel the health of a room more honestly than most. It is also why environment is not a side detail for you; it is the main condition of how you feel like yourself.\n\nIn daily life you may notice you become a slightly different person beside different people, and that is not fake. The right community leaves you feeling surprisingly like you. The wrong one leaves you carrying everyone else's weather, then wondering why you cannot find a stable personality to hold onto. Moving your body into a better place often helps more than trying to think your way into a firmer identity.\n\nBecause nothing is permanently hooked up inside, you are designed to taste life in cycles rather than force a single consistent output. Treat that openness as sensitivity with a purpose, not as a missing piece. Choose rooms that love you back, and give yourself time to notice who you are after the sampling, instead of demanding a definition you were never meant to have.",
+  },
+  Single: {
+    summary:
+      "All defined centers are connected in one continuous circuitry — energy flows as one stream.",
+    learnMore:
+      "All of your defined centers are connected in one continuous circuit, so your energy tends to move as one stream. What you think, say, and do is more hooked together than in a split definition. That can feel steady and self-contained: you do not usually need another person to \"bridge\" two separate parts of you before you can process something all the way through.\n\nIn practice, you may notice you can come to things on your own timeline and that your chart has a kind of internal completeness. Other people still matter — for relationship, collaboration, and perspective — but they are not usually completing a gap between two disconnected areas of your design. The gift is coherence. The shadow is becoming so self-contained that you forget how much you still take in through open centers.\n\nWhen single definition is working, you feel like one person from the inside: the process starts and can finish without waiting for a missing link. If you feel stuck, it is more often about environment, type, or authority than about needing someone to bridge you. Trust the unified stream, and use other people for connection rather than as wiring you lack.",
+  },
+  Split: {
+    summary:
+      "Two separate areas of definition. Bridging gates (yours or others') can feel magnetic; notice who/what bridges your split.",
+    learnMore:
+      "You have two separate areas of definition — two groups of defined centers that are not connected to each other through your own channels. Energy does not automatically flow from one part of you to the other. The space between them is the split. Bridging gates — activations you do not have, which other people or transits can bring — often feel magnetic, because they temporarily hook the two parts together.\n\nIn daily life you may notice that certain people make you feel strangely complete, articulate, or able to process something that was stuck. That chemistry is often the bridge, not proof that they are your destiny. It can be wonderful, and it can also create dependency if you outsource your sense of wholeness to whoever happens to fill the gap. Notice who or what bridges you: a person, a place, a conversation, even a bit of time alone after stimulation.\n\nThe gift of a split is perspective: you see more than one way of being inside yourself, and relationships can literally help you think or act all the way through. The work is staying aware of the magnet without abandoning your own authority. You do not have to fuse with every person who bridges you. Let people bring connection, then still decide as you.",
+  },
+  "Triple Split": {
+    summary:
+      "Three separate areas of definition — you often need varied people and places to feel complete processing.",
+    learnMore:
+      "You have three separate areas of definition — three clusters that do not all link up through your own channels. Processing often happens in parts. You may need more variety in people and places than a single or simple split definition, not because you are unfocused, but because different environments hook up different pieces of your circuitry.\n\nIn practice, one conversation or one room is rarely enough to feel fully processed. Moving through your day — different people, a walk between meetings, a change of setting — can do more than sitting with a single sounding board until you force a conclusion. You are not broken for needing circulation; your chart is modular. Pressure to \"just decide already\" in one sealed environment often backfires.\n\nWhen this is working, a fuller picture assembles after you have sampled a few contexts, and you feel more whole without needing any one person to complete you. When it is not, you can feel fragmented, impatient with yourself, or overly attached to whoever briefly linked two of the three parts. Give yourself varied contact and a bit of time, then let the pieces settle into one decision.",
+  },
+  "Quadruple Split": {
+    summary:
+      "Four separate areas — highly modular energy; environments and timing matter a lot for feeling whole.",
+    learnMore:
+      "You have four separate areas of definition, which is uncommon and highly modular. Your consistent energy comes in distinct pieces rather than one or two streams. Feeling whole often depends more on environment and timing than it does for most people — not because you lack anything essential, but because the bridges between those pieces are not built into you.\n\nIn daily life you may need even more circulation: different people, different places, and enough time for the parts to meet. A single intense relationship or a single sealed workday can leave some of you offline. Variety is functional here. So is patience. You are not meant to feel like one fused current all the time.\n\nThe gift is flexibility and a wide-angle view; you can hold several modes without collapsing them into one. The strain comes if you demand constant internal unity or if you latch onto whoever momentarily connects the pieces. Move through environments, let timing help, and measure wholeness across a day or a week rather than in one frozen moment.",
+  },
 };
 
 /** Per-line profile themes. briefs are ~3× the old one-liners for Profile UI. */
