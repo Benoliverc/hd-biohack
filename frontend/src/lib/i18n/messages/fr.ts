@@ -244,6 +244,8 @@ export const messages = {
   'today.moveComplete': 'Tu as rejoint le ciel — beau travail.',
   'today.moveNoteLabel': 'Note optionnelle',
   "today.moveNotePlaceholder": "Une ligne sur comment ça s'est passé…",
+  'today.showUpLabel': 'Présence',
+  'today.showUpStill': 'Toujours là — un jour calme, ça va.',
   "today.kitNoun.calm": "calme",
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "récupération",

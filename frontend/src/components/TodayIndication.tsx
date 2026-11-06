@@ -6,13 +6,16 @@ import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import {
+  computeMoveShowUpWeek,
   dayKeyInZone,
   DEFAULT_PROTOCOLS_TZ,
   loadDayCompletions,
+  loadMoveCompletedDaysInWeek,
   mergeServerCompletions,
   saveDayCompletions,
   setCompletionNote,
   toggleCompletion,
+  weekDayKeysInZone,
   type DayCompletions,
 } from "@/lib/protocolCompletions";
 import {
@@ -74,6 +77,11 @@ export default function TodayIndication({
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
   const [completions, setCompletions] = useState<DayCompletions>({});
 
+  const protocolsTz = preferredTimezone || DEFAULT_PROTOCOLS_TZ;
+  const weekKeys = weekDayKeysInZone(protocolsTz);
+  const weekKeysSig = weekKeys.join("|");
+  const [showUpRevision, setShowUpRevision] = useState(0);
+
   useEffect(() => {
     if (!userId || !chartId) {
       setCompletions({});
@@ -82,21 +90,39 @@ export default function TodayIndication({
     let cancelled = false;
     const local = loadDayCompletions(userId, chartId, dayKey);
     setCompletions(local);
-    api
-      .listProtocolCompletions(userId, chartId, { day: dayKey })
-      .then((res) => {
+    const from = weekKeys[0];
+    const to = weekKeys[6];
+    (async () => {
+      try {
+        const [dayRes, weekRes] = await Promise.all([
+          api.listProtocolCompletions(userId, chartId, { day: dayKey }),
+          api.listProtocolCompletions(userId, chartId, { from, to }),
+        ]);
         if (cancelled) return;
-        const merged = mergeServerCompletions(local, res.items || []);
+        const merged = mergeServerCompletions(local, dayRes.items || []);
         setCompletions(merged);
         saveDayCompletions(userId, chartId, dayKey, merged);
-      })
-      .catch(() => {
+
+        const byDay = new Map<string, typeof weekRes.items>();
+        for (const row of weekRes.items || []) {
+          const list = byDay.get(row.day) || [];
+          list.push(row);
+          byDay.set(row.day, list);
+        }
+        for (const [d, rows] of Array.from(byDay.entries())) {
+          const base = d === dayKey ? merged : loadDayCompletions(userId, chartId, d);
+          const m = mergeServerCompletions(base, rows);
+          saveDayCompletions(userId, chartId, d, m);
+        }
+        setShowUpRevision((n) => n + 1);
+      } catch {
         /* local cache still valid */
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [userId, chartId, dayKey]);
+  }, [userId, chartId, dayKey, weekKeysSig]);
 
   const persistToggle = useCallback(
     (itemId: string, label: string, kind: "move" | "baseline" = "move") => {
@@ -120,6 +146,7 @@ export default function TodayIndication({
           });
         return next;
       });
+      setShowUpRevision((n) => n + 1);
     },
     [userId, chartId, dayKey]
   );
@@ -277,6 +304,92 @@ export default function TodayIndication({
                         }}
                       />
                     </div>
+                  ) : null}
+                </div>
+              );
+            })()}
+
+            {(() => {
+              void showUpRevision; // recompute when completions / week hydrate
+              if (!userId || !chartId) return null;
+              const moveId = indication.move_item_id || "today-move";
+              const completedMoveDays = loadMoveCompletedDaysInWeek({
+                userId,
+                chartId,
+                moveItemId: moveId,
+                weekKeys,
+                todayKey: dayKey,
+                todayMap: completions,
+              });
+              const { days: showUpDays, hadMiss } = computeMoveShowUpWeek({
+                weekKeys,
+                todayKey: dayKey,
+                completedMoveDays,
+                allowGrace: true,
+              });
+              const weekdayLabel = (day: string) => {
+                const [y, m, d] = day.split("-").map(Number);
+                if (!y || !m || !d) return day;
+                const utc = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+                try {
+                  return new Intl.DateTimeFormat(undefined, {
+                    timeZone: "UTC",
+                    weekday: "short",
+                  }).format(utc);
+                } catch {
+                  return day.slice(5);
+                }
+              };
+              const dotClass = (status: string) => {
+                if (status === "filled") {
+                  return "border-growth bg-growth";
+                }
+                if (status === "empty") {
+                  return "border-border bg-elevated";
+                }
+                if (status === "future") {
+                  return "border-border/50 bg-transparent opacity-50";
+                }
+                // missed + grace: muted only (not warning colors)
+                return "border-border bg-fg-muted/30";
+              };
+              return (
+                <div
+                  className="mt-3"
+                  data-testid="today-show-up"
+                  aria-label={t("today.showUpLabel")}
+                >
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                    {t("today.showUpLabel")}
+                  </p>
+                  <ol className="flex flex-wrap items-center gap-2" data-testid="today-show-up-dots">
+                    {showUpDays.map((d) => (
+                      <li
+                        key={d.day}
+                        className="flex flex-col items-center gap-1"
+                        data-testid={`today-show-up-day-${d.day}`}
+                        data-status={d.status}
+                      >
+                        <span
+                          className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
+                          aria-hidden
+                        />
+                        <span className="text-[10px] font-medium text-fg-muted">
+                          {weekdayLabel(d.day)}
+                        </span>
+                        <span className="sr-only">
+                          {d.day}: {d.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  {hadMiss ? (
+                    <p
+                      className="mt-2 text-xs text-fg-muted"
+                      data-testid="today-show-up-kind"
+                    >
+                      {t("today.showUpStill")}
+                    </p>
                   ) : null}
                 </div>
               );

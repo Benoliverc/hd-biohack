@@ -310,3 +310,71 @@ export function progressPct(done: number, total: number): number {
   if (total <= 0) return 0;
   return Math.round((done / total) * 100);
 }
+
+export type ShowUpStatus = "filled" | "empty" | "missed" | "grace" | "future";
+
+export type ShowUpDay = {
+  day: string;
+  status: ShowUpStatus;
+};
+
+/**
+ * Mon-Sun lifestyle-Move show-up for Today.
+ * Counts only `moveItemId` completions — never kit/baseline.
+ * One past miss may be grace; remaining past misses are muted (not danger).
+ */
+export function computeMoveShowUpWeek(args: {
+  weekKeys: string[];
+  todayKey: string;
+  completedMoveDays: ReadonlySet<string>;
+  allowGrace?: boolean;
+}): { days: ShowUpDay[]; hadMiss: boolean; usedGrace: boolean } {
+  const allowGrace = args.allowGrace !== false;
+  let usedGrace = false;
+  let hadMiss = false;
+  const days: ShowUpDay[] = [];
+  for (const day of args.weekKeys) {
+    if (args.completedMoveDays.has(day)) {
+      days.push({ day, status: "filled" });
+      continue;
+    }
+    if (day > args.todayKey) {
+      days.push({ day, status: "future" });
+      continue;
+    }
+    if (day === args.todayKey) {
+      days.push({ day, status: "empty" });
+      continue;
+    }
+    // Past day, no Move completion
+    hadMiss = true;
+    if (allowGrace && !usedGrace) {
+      usedGrace = true;
+      days.push({ day, status: "grace" });
+    } else {
+      days.push({ day, status: "missed" });
+    }
+  }
+  return { days, hadMiss, usedGrace };
+}
+
+/** Day keys this week where the lifestyle Move item is done (local cache). */
+export function loadMoveCompletedDaysInWeek(args: {
+  userId: number;
+  chartId: number;
+  moveItemId: string;
+  weekKeys: string[];
+  /** Optional overlay for the current day (live React state). */
+  todayKey?: string;
+  todayMap?: DayCompletions;
+}): Set<string> {
+  const out = new Set<string>();
+  for (const day of args.weekKeys) {
+    const map =
+      args.todayKey && args.todayMap && day === args.todayKey
+        ? args.todayMap
+        : loadDayCompletions(args.userId, args.chartId, day);
+    if (map[args.moveItemId]?.done) out.add(day);
+  }
+  return out;
+}

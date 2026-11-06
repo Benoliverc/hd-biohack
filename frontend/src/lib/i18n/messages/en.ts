@@ -244,6 +244,8 @@ export const messages = {
   'today.moveComplete': 'You met the sky — nice work.',
   'today.moveNoteLabel': 'Optional note',
   'today.moveNotePlaceholder': 'One line about how it went…',
+  'today.showUpLabel': 'Show-up',
+  'today.showUpStill': 'Still showing up — one quiet day is fine.',
   "today.kitNoun.calm": "calm",
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "recovery",

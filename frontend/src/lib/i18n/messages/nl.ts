@@ -244,6 +244,8 @@ export const messages = {
   'today.moveComplete': 'Je ontmoette de hemel — goed gedaan.',
   'today.moveNoteLabel': 'Optionele notitie',
   'today.moveNotePlaceholder': 'Eén regel over hoe het ging…',
+  'today.showUpLabel': 'Aanwezig',
+  'today.showUpStill': 'Nog steeds aanwezig — één stille dag is oké.',
   "today.kitNoun.calm": "kalmte",
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "herstel",

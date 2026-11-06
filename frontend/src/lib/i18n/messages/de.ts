@@ -244,6 +244,8 @@ export const messages = {
   'today.moveComplete': 'Du hast den Himmel getroffen — gut gemacht.',
   'today.moveNoteLabel': 'Optionale Notiz',
   'today.moveNotePlaceholder': 'Ein Satz, wie es lief…',
+  'today.showUpLabel': 'Dabei sein',
+  'today.showUpStill': 'Immer noch dabei — ein ruhiger Tag ist in Ordnung.',
   "today.kitNoun.calm": "Ruhe",
   "today.kitNoun.focus": "Fokus",
   "today.kitNoun.recovery": "Erholung",
