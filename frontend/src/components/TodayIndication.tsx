@@ -6,12 +6,16 @@ import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import {
+  computeMoveShowUpWeek,
   dayKeyInZone,
   DEFAULT_PROTOCOLS_TZ,
   loadDayCompletions,
+  loadMoveCompletedDaysInWeek,
   mergeServerCompletions,
   saveDayCompletions,
+  setCompletionNote,
   toggleCompletion,
+  weekDayKeysInZone,
   type DayCompletions,
 } from "@/lib/protocolCompletions";
 import {
@@ -73,6 +77,11 @@ export default function TodayIndication({
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
   const [completions, setCompletions] = useState<DayCompletions>({});
 
+  const protocolsTz = preferredTimezone || DEFAULT_PROTOCOLS_TZ;
+  const weekKeys = weekDayKeysInZone(protocolsTz);
+  const weekKeysSig = weekKeys.join("|");
+  const [showUpRevision, setShowUpRevision] = useState(0);
+
   useEffect(() => {
     if (!userId || !chartId) {
       setCompletions({});
@@ -81,21 +90,39 @@ export default function TodayIndication({
     let cancelled = false;
     const local = loadDayCompletions(userId, chartId, dayKey);
     setCompletions(local);
-    api
-      .listProtocolCompletions(userId, chartId, { day: dayKey })
-      .then((res) => {
+    const from = weekKeys[0];
+    const to = weekKeys[6];
+    (async () => {
+      try {
+        const [dayRes, weekRes] = await Promise.all([
+          api.listProtocolCompletions(userId, chartId, { day: dayKey }),
+          api.listProtocolCompletions(userId, chartId, { from, to }),
+        ]);
         if (cancelled) return;
-        const merged = mergeServerCompletions(local, res.items || []);
+        const merged = mergeServerCompletions(local, dayRes.items || []);
         setCompletions(merged);
         saveDayCompletions(userId, chartId, dayKey, merged);
-      })
-      .catch(() => {
+
+        const byDay = new Map<string, typeof weekRes.items>();
+        for (const row of weekRes.items || []) {
+          const list = byDay.get(row.day) || [];
+          list.push(row);
+          byDay.set(row.day, list);
+        }
+        for (const [d, rows] of Array.from(byDay.entries())) {
+          const base = d === dayKey ? merged : loadDayCompletions(userId, chartId, d);
+          const m = mergeServerCompletions(base, rows);
+          saveDayCompletions(userId, chartId, d, m);
+        }
+        setShowUpRevision((n) => n + 1);
+      } catch {
         /* local cache still valid */
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [userId, chartId, dayKey]);
+  }, [userId, chartId, dayKey, weekKeysSig]);
 
   const persistToggle = useCallback(
     (itemId: string, label: string, kind: "move" | "baseline" = "move") => {
@@ -116,6 +143,34 @@ export default function TodayIndication({
           })
           .catch(() => {
             /* offline — local cache keeps the tap */
+          });
+        return next;
+      });
+      setShowUpRevision((n) => n + 1);
+    },
+    [userId, chartId, dayKey]
+  );
+
+  const persistNote = useCallback(
+    (itemId: string, note: string) => {
+      if (!userId || !chartId || !itemId) return;
+      setCompletions((prev) => {
+        const next = setCompletionNote(prev, itemId, note);
+        saveDayCompletions(userId, chartId, dayKey, next);
+        const row = next[itemId];
+        if (!row) return next;
+        void api
+          .putProtocolCompletion(userId, {
+            chart_id: chartId,
+            day: dayKey,
+            item_id: itemId,
+            kind: row.kind,
+            label: row.label,
+            done: Boolean(row.done),
+            note: row.note ?? null,
+          })
+          .catch(() => {
+            /* offline — local cache keeps the note */
           });
         return next;
       });
@@ -180,32 +235,162 @@ export default function TodayIndication({
             {(() => {
               const moveId = indication.move_item_id || "today-move";
               const moveDone = Boolean(completions[moveId]?.done);
+              const moveNote = completions[moveId]?.note || "";
               const canTap = Boolean(userId && chartId);
               return (
-                <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    disabled={!canTap}
-                    aria-pressed={moveDone}
-                    aria-label={t("today.iDidIt")}
-                    data-testid="today-move-done"
-                    onClick={() =>
-                      persistToggle(moveId, indication.main_action_text || t("today.move"))
-                    }
-                    className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
-                      moveDone
-                        ? "border-growth bg-growth text-fg-inverse"
-                        : "border-border bg-elevated text-fg-muted hover:border-growth/50"
-                    } ${!canTap ? "opacity-50" : ""}`}
-                  >
-                    <Check className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <p
-                    className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
-                    data-testid="main-action-text"
-                  >
-                    {indication.main_action_text}
+                <div>
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      disabled={!canTap}
+                      aria-pressed={moveDone}
+                      aria-label={t("today.iDidIt")}
+                      data-testid="today-move-done"
+                      onClick={() =>
+                        persistToggle(moveId, indication.main_action_text || t("today.move"))
+                      }
+                      className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                        moveDone
+                          ? "border-growth bg-growth text-fg-inverse"
+                          : "border-border bg-elevated text-fg-muted hover:border-growth/50"
+                      } ${!canTap ? "opacity-50" : ""}`}
+                    >
+                      <Check className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <p
+                      className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
+                      data-testid="main-action-text"
+                    >
+                      {indication.main_action_text}
+                    </p>
+                  </div>
+
+                  {moveDone ? (
+                    <div
+                      className="mt-3 rounded-xl border border-growth/40 bg-elevated px-3 py-2.5"
+                      data-testid="today-move-closure"
+                      role="status"
+                    >
+                      <p
+                        className="text-sm font-medium text-growth-ink"
+                        data-testid="today-move-receipt"
+                      >
+                        {t("today.moveComplete")}
+                      </p>
+                      <label
+                        className="mt-2 block text-[11px] text-fg-muted"
+                        htmlFor={`today-move-note-${moveId}`}
+                      >
+                        {t("today.moveNoteLabel")}
+                      </label>
+                      <input
+                        id={`today-move-note-${moveId}`}
+                        type="text"
+                        maxLength={120}
+                        defaultValue={moveNote}
+                        placeholder={t("today.moveNotePlaceholder")}
+                        disabled={!canTap}
+                        className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted disabled:opacity-50"
+                        data-testid="today-move-note"
+                        onBlur={(e) => {
+                          if (e.target.value.trim() !== (moveNote || "").trim()) {
+                            persistNote(moveId, e.target.value);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })()}
+
+            {(() => {
+              void showUpRevision; // recompute when completions / week hydrate
+              if (!userId || !chartId) return null;
+              const moveId = indication.move_item_id || "today-move";
+              const completedMoveDays = loadMoveCompletedDaysInWeek({
+                userId,
+                chartId,
+                moveItemId: moveId,
+                weekKeys,
+                todayKey: dayKey,
+                todayMap: completions,
+              });
+              const { days: showUpDays, hadMiss } = computeMoveShowUpWeek({
+                weekKeys,
+                todayKey: dayKey,
+                completedMoveDays,
+                allowGrace: true,
+              });
+              const weekdayLabel = (day: string) => {
+                const [y, m, d] = day.split("-").map(Number);
+                if (!y || !m || !d) return day;
+                const utc = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+                try {
+                  return new Intl.DateTimeFormat(undefined, {
+                    timeZone: "UTC",
+                    weekday: "short",
+                  }).format(utc);
+                } catch {
+                  return day.slice(5);
+                }
+              };
+              const dotClass = (status: string) => {
+                if (status === "filled") {
+                  return "border-growth bg-growth";
+                }
+                if (status === "empty") {
+                  return "border-border bg-elevated";
+                }
+                if (status === "future") {
+                  return "border-border/50 bg-transparent opacity-50";
+                }
+                // missed + grace: muted only (not warning colors)
+                return "border-border bg-fg-muted/30";
+              };
+              return (
+                <div
+                  className="mt-3"
+                  data-testid="today-show-up"
+                  aria-label={t("today.showUpLabel")}
+                >
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                    {t("today.showUpLabel")}
                   </p>
+                  <ol className="flex flex-wrap items-center gap-2" data-testid="today-show-up-dots">
+                    {showUpDays.map((d) => (
+                      <li
+                        key={d.day}
+                        className="flex flex-col items-center gap-1"
+                        data-testid={`today-show-up-day-${d.day}`}
+                        data-status={d.status}
+                      >
+                        <span
+                          className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
+                          aria-hidden
+                        />
+                        <span className="text-[10px] font-medium text-fg-muted">
+                          {weekdayLabel(d.day)}
+                        </span>
+                        <span className="sr-only">
+                          {d.day}: {d.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  {hadMiss ? (
+                    <p
+                      className="mt-2 text-xs text-fg-muted"
+                      data-testid="today-show-up-kind"
+                    >
+                      {t("today.showUpStill")}
+                    </p>
+                  ) : null}
                 </div>
               );
             })()}
