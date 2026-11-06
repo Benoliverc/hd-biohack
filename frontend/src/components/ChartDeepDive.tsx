@@ -73,6 +73,31 @@ function Accordion({
   );
 }
 
+
+function SummaryLearnMore({
+  info,
+  fallback,
+}: {
+  info?: { summary: string; learnMore: string };
+  fallback: string;
+}) {
+  if (!info) return <p>{fallback}</p>;
+  return (
+    <>
+      <p className="mb-2 text-fg">{info.summary}</p>
+      {info.learnMore
+        .split(/\n\n+/)
+        .map((para) => para.trim())
+        .filter(Boolean)
+        .map((para, i) => (
+          <p key={i} className={i === 0 ? undefined : "mt-3"}>
+            {para}
+          </p>
+        ))}
+    </>
+  );
+}
+
 function ActivationTable({
   title,
   rows,
@@ -384,37 +409,31 @@ export function ChartDeepDive({
               Tap each row to expand. Short labels on the card; deeper context inside.
             </p>
             <Accordion title="Type" subtitle={hdType} defaultOpen>
-              {typeInfo ? (
-                <>
-                  <p className="mb-2 text-fg">{typeInfo.summary}</p>
-                  {typeInfo.learnMore
-                    .split(/\n\n+/)
-                    .map((para) => para.trim())
-                    .filter(Boolean)
-                    .map((para, i) => (
-                      <p key={i} className={i === 0 ? undefined : "mt-3"}>
-                        {para}
-                      </p>
-                    ))}
-                </>
-              ) : (
-                <p>Your energetic Role in how you correctly engage with life.</p>
-              )}
+              <SummaryLearnMore
+                info={typeInfo}
+                fallback="Your energetic Role in how you correctly engage with life."
+              />
             </Accordion>
             <Accordion title="Strategy" subtitle={strategy}>
-              {STRATEGY_COPY[strategy] ||
-                "How you correctly engage opportunities so resistance drops."}
+              <SummaryLearnMore
+                info={STRATEGY_COPY[strategy]}
+                fallback="How you correctly engage opportunities so resistance drops."
+              />
             </Accordion>
             <Accordion title="Inner Authority" subtitle={authority}>
-              {AUTHORITY_COPY[authority] ||
-                "Your body's decision-making process — follow this over mental urgency."}
+              <SummaryLearnMore
+                info={AUTHORITY_COPY[authority]}
+                fallback="Your body's decision-making process — follow this over mental urgency."
+              />
             </Accordion>
             <Accordion title="Profile" subtitle={profile}>
               {profileLearnMore(profile)}
             </Accordion>
             <Accordion title="Definition" subtitle={definition}>
-              {DEFINITION_COPY[definition] ||
-                "How your defined centers connect into one or more circuits."}
+              <SummaryLearnMore
+                info={DEFINITION_COPY[definition]}
+                fallback="How your defined centers connect into one or more circuits."
+              />
             </Accordion>
           </div>
         )}

@@ -1588,7 +1588,7 @@ export default function ProfilePage() {
                   <div className="text-xs uppercase tracking-wide text-fg-muted">How you decide</div>
                   <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
                   <p className="mt-2 text-sm text-fg-secondary">
-                    {STRATEGY_COPY[strategyStr] || strategyStr}
+                    {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
                   </p>
                   <div className="mt-3 text-xs uppercase tracking-wide text-fg-muted">
                     Your body&apos;s yes
@@ -1596,7 +1596,7 @@ export default function ProfilePage() {
                   <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
                   <p className="mt-2 text-sm text-fg-secondary">
                     {AUTHORITY_PLAIN[authorityStr] ||
-                      AUTHORITY_COPY[authorityStr] ||
+                      AUTHORITY_COPY[authorityStr]?.summary ||
                       authorityStr}
                   </p>
                 </div>
