@@ -53,6 +53,10 @@ def _ensure_natal_chart_columns() -> None:
             conn.execute(text("ALTER TABLE natal_charts ADD COLUMN label VARCHAR(128) DEFAULT 'Me'"))
         if "slot_kind" not in cols:
             conn.execute(text("ALTER TABLE natal_charts ADD COLUMN slot_kind VARCHAR(32) DEFAULT 'self'"))
+        if "role" not in cols:
+            conn.execute(
+                text("ALTER TABLE natal_charts ADD COLUMN role VARCHAR(32) DEFAULT 'person'")
+            )
 
 
 def _ensure_user_auth_columns() -> None:

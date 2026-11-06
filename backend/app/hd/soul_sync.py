@@ -16,6 +16,7 @@ from .channels import (
     hanging_gates as compute_hanging_gates,
 )
 from .type_authority import derive_definition
+from .partner_insights import apply_partner_layer
 
 ContextId = Literal["work", "life", "play"]
 
@@ -1732,7 +1733,15 @@ def compute_soul_sync(
         "definition": def_b,
     }
 
-    return {
+    friend_role = (friend_meta or {}).get("role")
+    self_role = (self_meta or {}).get("role") or "self"
+    self_out = {**self_out, "role": self_role}
+    friend_out = {
+        **friend_out,
+        "role": friend_role if friend_role in ("partner", "person") else (friend_role or "person"),
+    }
+
+    result = {
         "self": self_out,
         "friend": friend_out,
         "context": context,
@@ -1759,3 +1768,9 @@ def compute_soul_sync(
         },
         "disclaimer": DISCLAIMER,
     }
+    return apply_partner_layer(
+        result,
+        friend_role=friend_out.get("role"),
+        type_a=type_a,
+        type_b=type_b,
+    )

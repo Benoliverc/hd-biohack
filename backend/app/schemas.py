@@ -16,6 +16,10 @@ class BirthDataIn(BaseModel):
     lon: float | None = None
     label: str | None = Field(None, description="Display name, e.g. Me or a friend")
     slot_kind: Literal["self", "friend"] = "self"
+    role: Literal["self", "person", "partner"] | None = Field(
+        None,
+        description="Relationship label: self for Me; person|partner for people charts",
+    )
     natal_chart_id: int | None = Field(
         None,
         description="When set with save=true, update this existing chart instead of inserting",
@@ -24,6 +28,9 @@ class BirthDataIn(BaseModel):
 
 class ChartLabelPatch(BaseModel):
     label: str = Field(..., min_length=1, max_length=128)
+    role: Literal["person", "partner"] | None = Field(
+        None, description="People charts only: person | partner"
+    )
 
 
 class ChartResponse(BaseModel):
@@ -285,6 +292,7 @@ class SoulPersonOut(BaseModel):
     profile: str | None = None
     authority: str | None = None
     definition: str | None = None
+    role: Literal["self", "person", "partner"] | None = None
 
 
 class SoulSignatureOut(BaseModel):
@@ -342,6 +350,17 @@ class SoulCompositeOut(BaseModel):
     defined_centers: list[str] = Field(default_factory=list)
 
 
+class SoulPartnerNuanceOut(BaseModel):
+    romantic_synergy: str
+    romantic_friction: str
+
+
+class SoulPartnerOverviewOut(BaseModel):
+    core_dynamic: str
+    mutual_growth: str
+    relationship_challenges: str
+
+
 class SoulSyncOut(BaseModel):
     self: SoulPersonOut
     friend: SoulPersonOut
@@ -358,3 +377,4 @@ class SoulSyncOut(BaseModel):
     conditioning_strip: list[dict[str, Any]] = Field(default_factory=list)
     composite: SoulCompositeOut
     disclaimer: str = ""
+    partner_overview: SoulPartnerOverviewOut | None = None

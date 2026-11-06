@@ -427,6 +427,12 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                     "Use update without changing role, or save as a new person.",
                 )
             row.label = label[:128]
+            # Relationship label: people may be person|partner; self stays self.
+            if slot_kind == "friend":
+                role_in = (getattr(body, "role", None) or getattr(row, "role", None) or "person")
+                row.role = role_in if role_in in ("person", "partner") else "person"
+            else:
+                row.role = "self"
             row.birth_date = body.birth_date
             row.birth_time = body.birth_time
             row.birth_city = body.birth_city
@@ -465,10 +471,16 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                     f"Chart limit reached ({MAX_CHARTS_PER_USER}/user). "
                     "Delete a saved person before adding another.",
                 )
+            if slot_kind == "friend":
+                role_in = getattr(body, "role", None) or "person"
+                chart_role = role_in if role_in in ("person", "partner") else "person"
+            else:
+                chart_role = "self"
             row = NatalChart(
                 user_id=body.user_id,
                 label=label[:128],
                 slot_kind=slot_kind,
+                role=chart_role,
                 birth_date=body.birth_date,
                 birth_time=body.birth_time,
                 birth_city=body.birth_city,
@@ -505,6 +517,10 @@ def get_user_charts(user_id: int, db: Session = Depends(get_db)):
             "id": r.id,
             "label": getattr(r, "label", None) or "Me",
             "slot_kind": getattr(r, "slot_kind", None) or "self",
+            "role": (
+                getattr(r, "role", None)
+                or ("self" if (getattr(r, "slot_kind", None) or "self") != "friend" else "person")
+            ),
             "birth_date": r.birth_date,
             "birth_time": r.birth_time,
             "birth_city": r.birth_city,
@@ -530,12 +546,21 @@ def rename_chart(chart_id: int, body: ChartLabelPatch, db: Session = Depends(get
     if not label:
         raise HTTPException(400, "Label is required")
     row.label = label[:128]
+    if body.role is not None:
+        if (row.slot_kind or "self") == "friend":
+            if body.role not in ("person", "partner"):
+                raise HTTPException(400, "People role must be person or partner")
+            row.role = body.role
+        elif body.role != "self":
+            raise HTTPException(400, "Me charts keep role self")
     db.commit()
     db.refresh(row)
     return {
         "id": row.id,
         "label": row.label,
         "slot_kind": row.slot_kind,
+        "role": getattr(row, "role", None)
+        or ("self" if (row.slot_kind or "self") != "friend" else "person"),
     }
 
 
@@ -995,6 +1020,7 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
             "type": chart_a.get("type"),
             "profile": chart_a.get("profile"),
             "authority": chart_a.get("authority"),
+            "role": getattr(self_row, "role", None) or "self",
         },
         friend_meta={
             "id": friend_row.id,
@@ -1002,6 +1028,11 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
             "type": chart_b.get("type"),
             "profile": chart_b.get("profile"),
             "authority": chart_b.get("authority"),
+            "role": (
+                getattr(friend_row, "role", None)
+                if getattr(friend_row, "role", None) in ("partner", "person")
+                else "person"
+            ),
         },
     )
     return result

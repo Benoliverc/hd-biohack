@@ -92,6 +92,8 @@ export type SavedChartRow = {
   id: number;
   label?: string;
   slot_kind?: "self" | "friend" | string;
+  /** People charts: person | partner. Me: self. */
+  role?: "self" | "person" | "partner" | string;
   birth_date?: string;
   birth_time?: string;
   birth_city: string;
@@ -220,6 +222,19 @@ export type SoulPerson = {
   profile?: string | null;
   authority?: string | null;
   definition?: string | null;
+  /** self for Me; person | partner for Person B. */
+  role?: "self" | "person" | "partner" | string | null;
+};
+
+export type SoulPartnerNuance = {
+  romantic_synergy: string;
+  romantic_friction: string;
+};
+
+export type SoulPartnerOverview = {
+  core_dynamic: string;
+  mutual_growth: string;
+  relationship_challenges: string;
 };
 
 export type SoulDriver = {
@@ -273,6 +288,7 @@ export type SoulCard = {
     channel: string;
     held_by: string;
     missing_for: string;
+    partner_nuance?: SoulPartnerNuance;
   }>;
   protocols?: Array<{ id: string; title: string; body: string }>;
 };
@@ -299,13 +315,17 @@ export type SoulSyncResult = {
     channel: string;
     held_by: string;
     missing_for: string;
+    partner_nuance?: SoulPartnerNuance;
   }>;
   friend_split_bridges?: Array<{
     gate: number;
     channel: string;
     held_by: string;
     missing_for: string;
+    partner_nuance?: SoulPartnerNuance;
   }>;
+  /** Present only when Person B role is partner. */
+  partner_overview?: SoulPartnerOverview | null;
   conditioning_strip: Array<{
     center: string;
     self: "defined" | "open" | string;
@@ -352,6 +372,7 @@ export const api = {
     lon?: number | null;
     label?: string | null;
     slot_kind?: "self" | "friend";
+    role?: "self" | "person" | "partner" | null;
     natal_chart_id?: number | null;
   }) =>
     req<{ chart: Record<string, unknown>; natal_chart_id: number | null }>("/chart/calculate", {
@@ -359,10 +380,10 @@ export const api = {
       body: JSON.stringify(body),
     }),
   charts: (userId: number) => req<SavedChartRow[]>(`/charts/${userId}`),
-  renameChart: (chartId: number, label: string) =>
-    req<{ id: number; label: string; slot_kind: string }>(`/charts/${chartId}`, {
+  renameChart: (chartId: number, label: string, role?: "person" | "partner") =>
+    req<{ id: number; label: string; slot_kind: string; role?: string }>(`/charts/${chartId}`, {
       method: "PATCH",
-      body: JSON.stringify({ label }),
+      body: JSON.stringify(role ? { label, role } : { label }),
     }),
   deleteChart: (chartId: number, userId: number) =>
     req<{ ok: boolean; id: number }>(`/charts/${chartId}?user_id=${userId}`, {
