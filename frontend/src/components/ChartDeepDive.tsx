@@ -387,7 +387,15 @@ export function ChartDeepDive({
               {typeInfo ? (
                 <>
                   <p className="mb-2 text-fg">{typeInfo.summary}</p>
-                  <p>{typeInfo.learnMore}</p>
+                  {typeInfo.learnMore
+                    .split(/\n\n+/)
+                    .map((para) => para.trim())
+                    .filter(Boolean)
+                    .map((para, i) => (
+                      <p key={i} className={i === 0 ? undefined : "mt-3"}>
+                        {para}
+                      </p>
+                    ))}
                 </>
               ) : (
                 <p>Your energetic Role in how you correctly engage with life.</p>

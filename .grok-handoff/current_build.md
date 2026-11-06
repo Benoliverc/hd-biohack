@@ -1,26 +1,23 @@
-# Current build — Today Move-first
+# Current build — Deep Dive Type copy ~3×
 
-**Status:** PR open — https://github.com/Benoliverc/hd-biohack/pull/68 — **Hold merge** for Benjamin yes · FE-only (Vercel later; no Railway).
+**Status:** Merging PR #69 after Benjamin yes · FE-only Vercel (no Railway).
 **Date:** 2026-11-06 (Asia/Hong_Kong)
 
 ## Branch / tip
-- **Branch:** `feat/today-move-first`
-- **Worktree:** `/workspace/hd-biohack-wt-today-move-first`
-- **Base:** `origin/main` @ `5ff5758` (includes #65+#66)
-- **Independent of PR #67** (`feat/share-card-hero-graph-lockup` tip `a5091a6`) — that Hero Graph Lockup PR is still open and separately held.
+- **Branch:** `feat/deep-dive-type-copy-3x`
+- **Tip (product, pre-main merge):** `593d215` (`593d215d73d135516211dc2f75609205a6567727`)
+- **Feature commit:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
+- **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
+- **Base now:** `origin/main` @ `5b5e3b1` (includes shipped #65+#66+#67+#68)
+- **Independent of** already-shipped #67 (merge `0ba0fa0`) and #68 (merge `5b5e3b1`). Conflict with main was only this handoff file; product files merged clean.
 
 ## Scope
-Move-first Today IA. Spec: `handoffs/today-tab-move-first-2026-11-06.md`
-Detail: `.grok-handoff/today-move-first-ux-2026-11-06.md`
+Exact longer Type essays in `TYPE_COPY` + visible paragraph breaks in Chart Deep Dive Type accordion.
 
-## Files changed
-- `frontend/src/app/transits/page.tsx` — slim header; drop friendsStay + Overlaying + conditioning-notes
-- `frontend/src/components/TodayIndication.tsx` — Move first; collapse vs-yesterday; drop eyebrow + still-conditioning; disclaimer footer
+## Files
+- `frontend/src/lib/hdCopy.ts` — TYPE_COPY only
+- `frontend/src/components/ChartDeepDive.tsx` — learnMore paragraph split
+- `.grok-handoff/deep-dive-type-copy-3x-ux-2026-11-06.md`
 
-## Preview
-- FE: http://127.0.0.1:3010
-- API: http://127.0.0.1:8000
-
-## Tests
-- tsc clean · next lint clean (pre-existing hooks warning OK)
-- Phone smoke 390×844 — Move visible without scrolling past sky chrome; vs closed by default
+## Deploy
+- Vercel FE after Benjamin yes + Ship Gate. No Railway.
