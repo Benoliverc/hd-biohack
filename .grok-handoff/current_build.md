@@ -1,6 +1,6 @@
 # Current build — Today Move-first
 
-**Status:** PR opening — **Hold merge** for Benjamin yes · FE-only (Vercel later; no Railway).
+**Status:** PR open — https://github.com/Benoliverc/hd-biohack/pull/68 — **Hold merge** for Benjamin yes · FE-only (Vercel later; no Railway).
 **Date:** 2026-11-06 (Asia/Hong_Kong)
 
 ## Branch / tip

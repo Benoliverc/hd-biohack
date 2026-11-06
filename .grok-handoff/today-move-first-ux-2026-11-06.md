@@ -1,7 +1,7 @@
 # Today Move-first — UX handoff
 
 **Date:** 2026-11-06 (Asia/Hong_Kong)
-**PR:** (fill after open)
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/68
 **Branch:** `feat/today-move-first`
 **Worktree:** `/workspace/hd-biohack-wt-today-move-first`
 **Base:** `origin/main` @ `5ff5758` (#65+#66). **Independent of PR #67** (Hero Graph Lockup, tip `a5091a6`).
