@@ -484,6 +484,149 @@ def test_consecutive_hkt_days_different_daily_signal_keys():
     print(f"PASS: 14/14 consecutive HKT days distinct keys; energies={energies}")
 
 
+
+def test_sky_story_chapter_and_tomorrow_tease():
+    """Sky Story: chapter lines under signal inputs; tomorrow never a Move."""
+    from datetime import date
+    from app.checkin.novelty import compute_sky_story, compute_tomorrow_tease
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=5, moon_g=51, moon_l=4)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"bridged_channels": [], "newly_defined_centers": []}
+
+    story = compute_sky_story(
+        natal=natal,
+        transit=today,
+        overlay=overlay,
+        prev_transit=yest,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+        daily_signal={"key": "moon:51.4", "headline": "Moon into Gate 51", "body": "x", "source": "moon_gate"},
+    )
+    assert 2 <= len(story["lines"]) <= 4
+    assert any("Moon" in ln for ln in story["lines"])
+    assert story["tomorrow"]["text"].startswith("Tomorrow:")
+    # Never invent a lifestyle Move in the tease
+    low = story["tomorrow"]["text"].lower()
+    assert "move" not in low
+    assert "walk" not in low
+    assert "breathe" not in low
+    assert story["tomorrow"]["kind"] in {
+        "moon_leaves",
+        "moon_holds",
+        "sun_theme_leaves",
+        "sun_theme_holds",
+    }
+    print("PASS: sky_story chapter + tomorrow tease")
+
+
+def test_sky_story_first_day_fallback():
+    from datetime import date
+    from app.checkin.novelty import compute_sky_story
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    story = compute_sky_story(
+        natal=natal,
+        transit=today,
+        overlay={"bridged_channels": [], "newly_defined_centers": []},
+        prev_transit=None,
+        prev_overlay=None,
+        day=date(2026, 10, 24),
+    )
+    assert any("Day 1" in ln for ln in story["lines"])
+    assert 2 <= len(story["lines"]) <= 4
+    print("PASS: sky_story first-day fallback")
+
+
+def test_sky_story_bridge_day_count_with_walker():
+    from datetime import date, timedelta
+    from app.checkin.novelty import compute_sky_story, hkt_bucket_instant
+
+    natal = _natal()
+    bridge = {
+        "bridged_channels": [
+            {"gates": [10, 20], "name": "Awakening", "centers": ["G", "Throat"]}
+        ],
+        "newly_defined_centers": [],
+    }
+    snap = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+
+    def calc_transit(when):
+        # Same sun/moon; overlay fixed via calc_overlay
+        return snap
+
+    def calc_overlay(_n, _t):
+        return bridge
+
+    day = date(2026, 10, 24)
+    story = compute_sky_story(
+        natal=natal,
+        transit=snap,
+        overlay=bridge,
+        prev_transit=snap,
+        prev_overlay=bridge,
+        day=day,
+        calc_transit=calc_transit,
+        calc_overlay=calc_overlay,
+    )
+    assert story["bridge_day"] >= 1
+    assert any("bridge" in ln.lower() for ln in story["lines"])
+    # tomorrow tease with walker present
+    assert story["tomorrow"]["moon_gate_today"] == 17
+    print("PASS: sky_story bridge continuity")
+
+
+def test_derive_attaches_sky_story():
+    from datetime import date
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=5, moon_g=51, moon_l=4)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    ind = derive_today_indication(
+        natal,
+        today,
+        overlay,
+        prev_transit=yest,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+    )
+    assert ind["sky_story"]["lines"]
+    assert ind["sky_story"]["tomorrow"]["text"].startswith("Tomorrow:")
+    assert "move" not in ind["sky_story"]["tomorrow"]["text"].lower()
+    print("PASS: derive attaches sky_story")
+
+
+def test_tomorrow_tease_moon_leaves_vs_holds():
+    from datetime import date
+    from app.checkin.novelty import compute_tomorrow_tease, hkt_bucket_instant
+
+    day = date(2026, 10, 24)
+    today = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+
+    def leaves(when):
+        d = when.date() if hasattr(when, "date") else day
+        if d == day + __import__("datetime").timedelta(days=1):
+            return _transit(sun_g=50, sun_l=4, moon_g=51, moon_l=1)
+        return today
+
+    tease = compute_tomorrow_tease(day=day, transit=today, calc_transit=leaves)
+    assert tease["kind"] == "moon_leaves"
+    assert tease["text"] == "Tomorrow: Moon leaves this gate"
+    assert tease["moon_gate_today"] == 17
+    assert tease["moon_gate_tomorrow"] == 51
+
+    def holds(when):
+        return today
+
+    tease2 = compute_tomorrow_tease(day=day, transit=today, calc_transit=holds)
+    assert tease2["kind"] == "moon_holds"
+    assert "Moon holds" in tease2["text"]
+    print("PASS: tomorrow tease moon leaves/holds")
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -508,4 +651,9 @@ if __name__ == "__main__":
     test_derive_attaches_novelty_fields()
     test_main_action_sky_on_hyper_and_charged()
     test_consecutive_hkt_days_different_daily_signal_keys()
+    test_sky_story_chapter_and_tomorrow_tease()
+    test_sky_story_first_day_fallback()
+    test_sky_story_bridge_day_count_with_walker()
+    test_derive_attaches_sky_story()
+    test_tomorrow_tease_moon_leaves_vs_holds()
     print("ALL indication unit tests passed")

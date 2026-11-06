@@ -165,6 +165,7 @@ export const messages = {
   'page.soul.subtitle': 'Aura tussen jou en iemand die je hebt gechart. · Pro',
   'today.hdFactLabel': 'Human Design-feit van de dag',
   'today.howToReadJump': 'Hoe te lezen',
+  'today.skyStory': 'Hemelverhaal',
   'today.whyHint': 'tik om te openen',
   'today.reading': 'Je chartweer lezen…',
   'today.vsYesterday': 'Vs gisteren',
