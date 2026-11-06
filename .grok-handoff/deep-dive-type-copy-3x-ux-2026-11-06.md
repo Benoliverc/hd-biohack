@@ -1,7 +1,8 @@
 # UX handoff — Deep Dive Type copy ~3×
 
 **PR:** https://github.com/Benoliverc/hd-biohack/pull/69
-**Tip:** `1b97bd0` (`1b97bd0ecc49772ef4817b68d0088b27f25f5df7`)
+**Tip (branch HEAD):** `a99ff58` (`a99ff58608a73786bd76e29646bf718714d61bb5`)
+**Feature commit:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
 **Branch:** `feat/deep-dive-type-copy-3x`
 **Base:** `origin/main` @ `5ff5758` (post #65+#66)
 **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
@@ -12,8 +13,8 @@
 `handoffs/deep-dive-type-copy-3x-2026-11-06.md` — exact `summary` + `learnMore` for all five types.
 
 ## What changed
-1. `frontend/src/lib/hdCopy.ts` — `TYPE_COPY` learnMore essays ~3–4× longer; summaries unchanged (one sentence each). Feature commit `b7d521f`.
-2. `frontend/src/components/ChartDeepDive.tsx` — Type accordion splits `learnMore` on blank lines (`\n\n`) into multiple `<p>` tags with `mt-3` between paragraphs so breaks are visible.
+1. `frontend/src/lib/hdCopy.ts` — `TYPE_COPY` learnMore essays ~3–4× longer; summaries unchanged (one sentence each).
+2. `frontend/src/components/ChartDeepDive.tsx` — Type accordion splits `learnMore` on blank lines into multiple `<p>` tags with `mt-3` between paragraphs so breaks are visible.
 
 ## Unchanged (by design)
 - Profile / Channels / Strategy / Authority / Definition essays

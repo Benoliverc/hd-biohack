@@ -6,7 +6,8 @@ Softs muted. **No merge until Benjamin yes.**
 
 ## This PR — Deep Dive Type copy ~3× — [#69](https://github.com/Benoliverc/hd-biohack/pull/69)
 
-- **Tip:** `1b97bd0` (`1b97bd0ecc49772ef4817b68d0088b27f25f5df7`) — feature `b7d521f`
+- **Tip (branch HEAD):** `a99ff58` (`a99ff58608a73786bd76e29646bf718714d61bb5`)
+- **Feature commit:** `b7d521f` (`b7d521feda2813b90334e42d53b318e2b44d5b7c`)
 - **Branch:** `feat/deep-dive-type-copy-3x`
 - **Base:** `origin/main` @ `5ff5758` (includes merged #65+#66)
 - **Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
