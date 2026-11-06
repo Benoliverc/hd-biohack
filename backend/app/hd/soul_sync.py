@@ -1773,4 +1773,8 @@ def compute_soul_sync(
         friend_role=friend_out.get("role"),
         type_a=type_a,
         type_b=type_b,
+        defined_a=defined_a,
+        defined_b=defined_b,
+        auth_a=auth_a,
+        auth_b=auth_b,
     )

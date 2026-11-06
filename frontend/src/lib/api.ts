@@ -256,6 +256,19 @@ export type SoulPartnerNuance = {
   tender_spot?: string | null;
 };
 
+export type SoulLoveGuidanceItem = {
+  id: string;
+  title: string;
+  body: string;
+  try: string;
+};
+
+export type SoulLoveGuidanceSection = {
+  title: string;
+  body: string;
+  try: string;
+};
+
 export type SoulPartnerOverview = {
   hook: string;
   the_current: string;
@@ -268,6 +281,12 @@ export type SoulPartnerOverview = {
   core_dynamic: string;
   mutual_growth: string;
   relationship_challenges: string;
+  /** Partner Love dynamics — omitted / empty for non-partner. */
+  harmonies?: SoulLoveGuidanceItem[];
+  frictions?: SoulLoveGuidanceItem[];
+  how_you_decide?: SoulLoveGuidanceSection | null;
+  how_you_communicate?: SoulLoveGuidanceSection | null;
+  when_you_clash?: SoulLoveGuidanceSection | null;
 };
 
 export type SoulDriver = {

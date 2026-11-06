@@ -382,6 +382,23 @@ class SoulPartnerNuanceOut(BaseModel):
     tender_spot: str | None = None
 
 
+class SoulLoveGuidanceItemOut(BaseModel):
+    id: str
+    title: str
+    body: str
+    try_: str = Field(alias="try")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class SoulLoveGuidanceSectionOut(BaseModel):
+    title: str
+    body: str
+    try_: str = Field(alias="try")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class SoulPartnerOverviewOut(BaseModel):
     hook: str
     the_current: str
@@ -394,6 +411,12 @@ class SoulPartnerOverviewOut(BaseModel):
     core_dynamic: str
     mutual_growth: str
     relationship_challenges: str
+    # Love dynamics (partner role) — nested on the overview hero object.
+    harmonies: list[SoulLoveGuidanceItemOut] = Field(default_factory=list)
+    frictions: list[SoulLoveGuidanceItemOut] = Field(default_factory=list)
+    how_you_decide: SoulLoveGuidanceSectionOut | None = None
+    how_you_communicate: SoulLoveGuidanceSectionOut | None = None
+    when_you_clash: SoulLoveGuidanceSectionOut | None = None
 
 
 class SoulSyncOut(BaseModel):
