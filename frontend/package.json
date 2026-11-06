@@ -14,7 +14,8 @@
     "assert:morning-ritual-option-a": "npx tsx scripts/assert-morning-ritual-option-a.mjs",
     "assert:i18n-settings": "npx tsx scripts/assert-i18n-settings-5-locales.mjs",
     "assert:literacy-pulse": "npx tsx scripts/assert-literacy-pulse.mjs",
-    "assert:sky-story": "npx tsx scripts/assert-sky-story.mjs"
+    "assert:sky-story": "npx tsx scripts/assert-sky-story.mjs",
+    "assert:quiet-move-closure": "npx tsx scripts/assert-quiet-move-closure.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

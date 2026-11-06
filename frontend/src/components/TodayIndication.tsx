@@ -11,6 +11,7 @@ import {
   loadDayCompletions,
   mergeServerCompletions,
   saveDayCompletions,
+  setCompletionNote,
   toggleCompletion,
   type DayCompletions,
 } from "@/lib/protocolCompletions";
@@ -122,6 +123,33 @@ export default function TodayIndication({
     },
     [userId, chartId, dayKey]
   );
+
+  const persistNote = useCallback(
+    (itemId: string, note: string) => {
+      if (!userId || !chartId || !itemId) return;
+      setCompletions((prev) => {
+        const next = setCompletionNote(prev, itemId, note);
+        saveDayCompletions(userId, chartId, dayKey, next);
+        const row = next[itemId];
+        if (!row) return next;
+        void api
+          .putProtocolCompletion(userId, {
+            chart_id: chartId,
+            day: dayKey,
+            item_id: itemId,
+            kind: row.kind,
+            label: row.label,
+            done: Boolean(row.done),
+            note: row.note ?? null,
+          })
+          .catch(() => {
+            /* offline — local cache keeps the note */
+          });
+        return next;
+      });
+    },
+    [userId, chartId, dayKey]
+  );
   if (bindingLoading || loading) {
     return (
       <div
@@ -180,32 +208,76 @@ export default function TodayIndication({
             {(() => {
               const moveId = indication.move_item_id || "today-move";
               const moveDone = Boolean(completions[moveId]?.done);
+              const moveNote = completions[moveId]?.note || "";
               const canTap = Boolean(userId && chartId);
               return (
-                <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    disabled={!canTap}
-                    aria-pressed={moveDone}
-                    aria-label={t("today.iDidIt")}
-                    data-testid="today-move-done"
-                    onClick={() =>
-                      persistToggle(moveId, indication.main_action_text || t("today.move"))
-                    }
-                    className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
-                      moveDone
-                        ? "border-growth bg-growth text-fg-inverse"
-                        : "border-border bg-elevated text-fg-muted hover:border-growth/50"
-                    } ${!canTap ? "opacity-50" : ""}`}
-                  >
-                    <Check className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <p
-                    className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
-                    data-testid="main-action-text"
-                  >
-                    {indication.main_action_text}
-                  </p>
+                <div>
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      disabled={!canTap}
+                      aria-pressed={moveDone}
+                      aria-label={t("today.iDidIt")}
+                      data-testid="today-move-done"
+                      onClick={() =>
+                        persistToggle(moveId, indication.main_action_text || t("today.move"))
+                      }
+                      className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                        moveDone
+                          ? "border-growth bg-growth text-fg-inverse"
+                          : "border-border bg-elevated text-fg-muted hover:border-growth/50"
+                      } ${!canTap ? "opacity-50" : ""}`}
+                    >
+                      <Check className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <p
+                      className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
+                      data-testid="main-action-text"
+                    >
+                      {indication.main_action_text}
+                    </p>
+                  </div>
+
+                  {moveDone ? (
+                    <div
+                      className="mt-3 rounded-xl border border-growth/40 bg-elevated px-3 py-2.5"
+                      data-testid="today-move-closure"
+                      role="status"
+                    >
+                      <p
+                        className="text-sm font-medium text-growth-ink"
+                        data-testid="today-move-receipt"
+                      >
+                        {t("today.moveComplete")}
+                      </p>
+                      <label
+                        className="mt-2 block text-[11px] text-fg-muted"
+                        htmlFor={`today-move-note-${moveId}`}
+                      >
+                        {t("today.moveNoteLabel")}
+                      </label>
+                      <input
+                        id={`today-move-note-${moveId}`}
+                        type="text"
+                        maxLength={120}
+                        defaultValue={moveNote}
+                        placeholder={t("today.moveNotePlaceholder")}
+                        disabled={!canTap}
+                        className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted disabled:opacity-50"
+                        data-testid="today-move-note"
+                        onBlur={(e) => {
+                          if (e.target.value.trim() !== (moveNote || "").trim()) {
+                            persistNote(moveId, e.target.value);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               );
             })()}
