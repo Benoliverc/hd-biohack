@@ -76,8 +76,22 @@ if (!/My Baseline · today/.test(card)) fail("today eyebrow missing");
 if (!/variant === "natal"/.test(card) && !/variant: "natal"/.test(card))
   fail("natal variant missing");
 if (!/moveText/.test(card)) fail("today moveText missing");
-if (!/shareSafeInsets|0\.14|14%/.test(read("src/lib/share/palette.ts")))
-  fail("safe-zone insets missing");
+const palette = read("src/lib/share/palette.ts");
+if (!/shareLayoutPad|shareTextSafeInsets/.test(palette))
+  fail("shareLayoutPad / shareTextSafeInsets missing");
+if (/export function shareSafeInsets\s*\(/.test(palette))
+  fail("legacy shareSafeInsets content box must be removed");
+if (/h \* 0\.14|h \* 0\.35|w \* 0\.06/.test(palette))
+  fail("legacy 14/35/6 inset math must be removed");
+if (!/shareGraphHeightFrac/.test(palette))
+  fail("shareGraphHeightFrac missing");
+if (!/0\.46|0\.5|0\.34/.test(palette))
+  fail("hero graph height targets missing");
+const cardSrc = card;
+if (/marginTop:\s*["']auto["']/.test(cardSrc))
+  fail("marginTop:auto void between graph and type must be removed");
+if (!/shareGraphHeightFrac|canvasH \* /.test(cardSrc) && !/shareGraphHeightFrac/.test(cardSrc))
+  fail("graph must size from full canvas %");
 if (!/1080/.test(read("src/lib/share/palette.ts"))) fail("1080 width missing");
 if (!/1920/.test(read("src/lib/share/palette.ts"))) fail("1920 height missing");
 if (!/1350/.test(read("src/lib/share/palette.ts"))) fail("1350 feed height missing");
