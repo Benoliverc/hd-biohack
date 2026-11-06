@@ -33,7 +33,7 @@ function GuidanceBlock({
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-xl border border-energy/25 bg-energy/5 px-3.5 py-3"
+            className="rounded-xl border border-energy/30 bg-energy/10 px-3.5 py-3"
             data-testid={`${itemTestIdPrefix}-${item.id}`}
           >
             <p className="text-sm font-semibold text-fg">{item.title}</p>
@@ -61,7 +61,7 @@ function SectionBlock({
   if (inset) {
     return (
       <section
-        className="rounded-xl border border-energy/30 bg-energy/10 px-4 py-3.5"
+        className="rounded-xl border border-energy/35 bg-energy/15 px-4 py-3.5"
         data-testid={testId}
       >
         <h3 className="text-sm font-semibold text-energy-ink">{heading}</h3>
@@ -102,7 +102,7 @@ export default function PartnerOverviewCard({
 
   return (
     <div
-      className="rounded-2xl border border-energy/40 bg-energy-soft/60 p-6"
+      className="soul-love-guidance-wash rounded-2xl border border-energy/50 p-6"
       data-testid="soul-partner-overview"
       data-love-guidance="true"
     >
@@ -211,7 +211,7 @@ export default function PartnerOverviewCard({
         />
 
         <section
-          className="rounded-xl border border-energy/30 bg-energy/10 px-4 py-3.5"
+          className="rounded-xl border border-energy/35 bg-energy/15 px-4 py-3.5"
           data-testid="soul-partner-try-this"
         >
           <h3 className="text-sm font-semibold text-energy-ink">Try this together</h3>

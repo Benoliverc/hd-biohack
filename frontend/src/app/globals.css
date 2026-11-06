@@ -127,3 +127,27 @@ body > * {
 [id^="soul-card-"] {
   scroll-margin-top: var(--soul-scroll-mt);
 }
+
+/*
+  Love guidance partner surface — warm copper / sand wash using Grounded
+  Vitality energy tokens. Distinct from canvas/elevated Soul chrome in both
+  Linen and Basalt; not a solid energy block.
+*/
+.soul-love-guidance-wash {
+  background-color: color-mix(in srgb, var(--energy-soft) 72%, var(--energy) 28%);
+  background-image:
+    radial-gradient(
+      ellipse 85% 60% at 8% 0%,
+      color-mix(in srgb, var(--energy) 16%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 100% 110%,
+      color-mix(in srgb, var(--recovery) 14%, transparent),
+      transparent 55%
+    );
+}
+
+.soul-love-guidance-aside {
+  background-color: color-mix(in srgb, var(--energy-soft) 78%, var(--energy) 22%);
+}
