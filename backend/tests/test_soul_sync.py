@@ -682,6 +682,8 @@ def test_partner_copy_has_no_forbidden_words():
         "destiny",
         "match meter",
         "compatibility score",
+        "compatible",
+        "incompatible",
     )
     blobs = []
     for ov in PARTNER_OVERVIEW_BY_TYPES.values():
@@ -694,6 +696,9 @@ def test_partner_copy_has_no_forbidden_words():
         built = partner_overview_for_types(a, "Manifestor")
         assert built is not None
         blobs.extend(built.values())
+    from app.hd.partner_love_dynamics import all_dynamics_copy_blobs
+
+    blobs.extend(all_dynamics_copy_blobs())
     joined = "\n".join(blobs).lower()
     for word in banned:
         assert word not in joined, f"forbidden phrase in partner copy: {word}"
@@ -761,3 +766,145 @@ def test_nuance_emits_gift_and_tender_aliases():
         assert "As a couple this often" not in nu["gift_in_love"]
         assert "As a couple this often" not in nu["tender_spot"]
     print(f"PASS: {len(PARTNER_NUANCE_BY_CHANNEL)} channel nuances have gift/tender aliases")
+
+
+def test_love_dynamics_solar_plexus_gold_and_authorities():
+    """Open SP + defined partner → Their emotional weather; reverse; Emotional+Sacral decide."""
+    from app.hd.partner_love_dynamics import CENTER_BANK, AUTHORITY_DECIDE_BANK, TYPE_PAIR_CLASH
+
+    gold_open = CENTER_BANK["Solar_Plexus"]["you_open_they_defined"]
+    gold_def = CENTER_BANK["Solar_Plexus"]["you_defined_they_open"]
+    gold_decide = AUTHORITY_DECIDE_BANK["emotional|sacral"]
+    gold_clash = TYPE_PAIR_CLASH["Generator|Projector"]
+
+    # You open Solar_Plexus + Throat; they define both (Synthesis + Structuring).
+    a = _chart([5, 15], type="Generator", authority="Emotional (Solar Plexus)", profile="3/5")
+    b = _chart([19, 49, 23, 43], type="Projector", authority="Sacral", profile="1/3")
+    assert "Solar_Plexus" not in a["defined_centers"]
+    assert "Throat" not in a["defined_centers"]
+    assert "Solar_Plexus" in b["defined_centers"]
+    assert "Throat" in b["defined_centers"]
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+    )
+    ov = out["partner_overview"]
+    assert ov is not None
+    frictions = ov.get("frictions") or []
+    sp = next(i for i in frictions if i["id"] == "center-Solar_Plexus")
+    assert sp["title"] == gold_open["title"]
+    assert sp["body"] == gold_open["body"]
+    assert sp["try"] == gold_open["try"]
+    decide = ov["how_you_decide"]
+    assert decide["title"] == gold_decide["title"]
+    assert decide["body"] == gold_decide["body"]
+    assert decide["try"] == gold_decide["try"]
+    clash = ov["when_you_clash"]
+    assert clash["title"] == gold_clash["title"]
+    assert clash["body"].startswith(gold_clash["body"])
+    assert (
+        "Also remember your decision clocks are different — don't try to settle "
+        "the fight on the faster clock."
+    ) in clash["body"]
+    assert clash["try"] == gold_clash["try"]
+    # Throat mismatch try on communicate
+    assert "signing a voice that isn't yours" in ov["how_you_communicate"]["try"]
+    assert "The Generator loves by engaging what lights them up" in ov["how_you_communicate"]["body"]
+
+    # Reverse centers + authorities (still Emotional|Sacral unordered)
+    a2 = _chart([19, 49], type="Generator", authority="Sacral", profile="3/5")
+    b2 = _chart([5, 15], type="Projector", authority="Emotional", profile="1/3")
+    out2 = compute_soul_sync(
+        a2,
+        b2,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+    )
+    ov2 = out2["partner_overview"]
+    sp2 = next(i for i in ov2["frictions"] if i["id"] == "center-Solar_Plexus")
+    assert sp2["title"] == gold_def["title"]
+    assert sp2["body"] == gold_def["body"]
+    assert sp2["try"] == gold_def["try"]
+    assert ov2["how_you_decide"]["title"] == gold_decide["title"]
+    assert ov2["how_you_decide"]["body"] == gold_decide["body"]
+    print("PASS: Solar Plexus + Emotional/Sacral + Gen/Proj clash gold")
+
+
+def test_love_dynamics_absent_for_person_role():
+    a = _chart([5, 15], type="Generator", authority="Emotional", profile="3/5")
+    b = _chart([19, 49], type="Projector", authority="Sacral", profile="1/3")
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Sam", "role": "person"},
+    )
+    assert out.get("partner_overview") is None
+    print("PASS: person role omits love dynamics layer")
+
+
+def test_love_dynamics_copy_has_no_forbidden_words():
+    from app.hd.partner_love_dynamics import all_dynamics_copy_blobs
+
+    banned = (
+        "soulmate",
+        "twin flame",
+        "twin-flame",
+        "meant to be",
+        "destiny",
+        "compatible",
+        "incompatible",
+        "compatibility score",
+        "match meter",
+    )
+    joined = "\n".join(all_dynamics_copy_blobs()).lower()
+    for word in banned:
+        assert word not in joined, f"forbidden in dynamics: {word}"
+    fancy = ("\u2018", "\u2019", "\u201c", "\u201d")
+    raw = "\n".join(all_dynamics_copy_blobs())
+    for ch in fancy:
+        assert ch not in raw, "curly quotes in dynamics copy"
+    # Cap sanity: banks complete
+    from app.hd.partner_love_dynamics import (
+        CENTER_BANK,
+        AUTHORITY_DECIDE_BANK,
+        TYPE_PAIR_COMMUNICATE,
+        TYPE_PAIR_CLASH,
+    )
+
+    assert len(CENTER_BANK) == 9
+    assert all(len(v) == 4 for v in CENTER_BANK.values())
+    assert len(AUTHORITY_DECIDE_BANK) == 28
+    assert len(TYPE_PAIR_COMMUNICATE) == 15
+    assert len(TYPE_PAIR_CLASH) == 15
+    print("PASS: dynamics banks complete + no forbidden words")
+
+
+def test_love_dynamics_both_defined_solar_plexus_harmony():
+    from app.hd.partner_love_dynamics import CENTER_BANK
+
+    gold = CENTER_BANK["Solar_Plexus"]["both_defined"]
+    # Both have Solar_Plexus via Community / Openness
+    a = _chart([37, 40], type="Generator", authority="Emotional", profile="3/5")
+    b = _chart([12, 22], type="Projector", authority="Emotional", profile="5/1")
+    assert "Solar_Plexus" in a["defined_centers"] and "Solar_Plexus" in b["defined_centers"]
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Pat", "role": "partner"},
+    )
+    harmonies = out["partner_overview"]["harmonies"]
+    sp = next(i for i in harmonies if i["id"] == "center-Solar_Plexus")
+    assert sp["title"] == gold["title"]
+    assert sp["body"] == gold["body"]
+    assert sp["try"] == gold["try"]
+    # shared authority class → shared-authority harmony
+    assert any(i["id"] == "shared-authority" for i in harmonies)
+    print("PASS: both_defined Solar Plexus harmony + shared authority")

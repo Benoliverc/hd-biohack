@@ -722,6 +722,10 @@ def apply_partner_layer(
     friend_role: str | None,
     type_a: str | None,
     type_b: str | None,
+    defined_a: set[str] | frozenset[str] | list[str] | None = None,
+    defined_b: set[str] | frozenset[str] | list[str] | None = None,
+    auth_a: str | None = None,
+    auth_b: str | None = None,
 ) -> dict[str, Any]:
     """Mutate/return soul sync dict with partner_overview + channel nuances when partner."""
     friend = result.get("friend") or {}
@@ -744,7 +748,22 @@ def apply_partner_layer(
 
     overview = partner_overview_for_types(type_a, type_b)
     if overview:
-        result["partner_overview"] = dict(overview)
+        overview = dict(overview)
+        # Late import avoids any chance of cycle if dynamics grows imports.
+        from .partner_love_dynamics import build_partner_dynamics
+
+        overview.update(
+            build_partner_dynamics(
+                type_a=type_a,
+                type_b=type_b,
+                defined_a=defined_a,
+                defined_b=defined_b,
+                auth_a=auth_a,
+                auth_b=auth_b,
+                channel_roles=result.get("channel_roles") or {},
+            )
+        )
+        result["partner_overview"] = overview
     else:
         result["partner_overview"] = None
 
