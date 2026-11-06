@@ -5,7 +5,7 @@
 **Branch:** feat/soul-love-dynamics  
 **Worktree:** /workspace/hd-biohack-wt-soul-love-dynamics  
 **Base SHA:** e507886016fd1e4a6671a04a8f9bc1bc5945b545 (main after #75)  
-**Tip SHA:**   
+**Tip SHA:** `d37246c035c5528bb2fc741fa619ac5da7079193`  
 **PR:** [#77](https://github.com/Benoliverc/hd-biohack/pull/77)  
 **Independent of:** daily-return #76 (Evening Signature Close) — do not mix  
 **Preview:** http://127.0.0.1:3019/soul (port 3019; #76 uses :3018)  
