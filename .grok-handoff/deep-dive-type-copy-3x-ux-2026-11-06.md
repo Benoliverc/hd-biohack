@@ -1,18 +1,18 @@
 # UX handoff — Deep Dive Type copy ~3×
 
-**PR:** https://github.com/Benoliverc/hd-biohack/pull/69  
-**Tip:** `b7d521f` (`59984365c0f322f8e06f708181cf14fc7e2f88c5`)
-**Branch:** `feat/deep-dive-type-copy-3x`  
-**Base:** `origin/main` @ `5ff5758` (post #65+#66)  
-**Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`  
-**FE-only** (Vercel later; no Railway). **Independent of** PR #67 (Hero Graph Lockup) and Today Move-first.  
+**PR:** https://github.com/Benoliverc/hd-biohack/pull/69
+**Tip:** `1b97bd0` (`1b97bd0ecc49772ef4817b68d0088b27f25f5df7`)
+**Branch:** `feat/deep-dive-type-copy-3x`
+**Base:** `origin/main` @ `5ff5758` (post #65+#66)
+**Worktree:** `/workspace/hd-biohack-wt-type-copy-3x`
+**FE-only** (Vercel later; no Railway). **Independent of** PR #67 (Hero Graph Lockup) and Today Move-first.
 **Hold merge for Benjamin yes.**
 
 ## Spec
-`/workspace/hd-biohack/handoffs/deep-dive-type-copy-3x-2026-11-06.md` — exact `summary` + `learnMore` for all five types.
+`handoffs/deep-dive-type-copy-3x-2026-11-06.md` — exact `summary` + `learnMore` for all five types.
 
 ## What changed
-1. `frontend/src/lib/hdCopy.ts` — `TYPE_COPY` learnMore essays ~3–4× longer; summaries unchanged (one sentence each).
+1. `frontend/src/lib/hdCopy.ts` — `TYPE_COPY` learnMore essays ~3–4× longer; summaries unchanged (one sentence each). Feature commit `b7d521f`.
 2. `frontend/src/components/ChartDeepDive.tsx` — Type accordion splits `learnMore` on blank lines (`\n\n`) into multiple `<p>` tags with `mt-3` between paragraphs so breaks are visible.
 
 ## Unchanged (by design)
@@ -27,4 +27,4 @@ Chart → Deep Dive → Core → Type (expanded). Check all five types if possib
 ## Verify
 - `tsc --noEmit` clean
 - `next lint` clean aside from pre-existing react-hooks warnings
-- Diff scoped to the two files above (+ this handoff)
+- Diff scoped to the two product files above (+ handoff notes)
