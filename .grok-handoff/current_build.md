@@ -5,8 +5,8 @@
 
 ## Branch / tip
 - **Branch:** `feat/deep-dive-strategy-authority-definition-copy-3x`
-- **Tip:** `b8cd4ca` (`b8cd4cafe2632abab5576bee6971b90346af51bf`)
-- **Feature commit:** `b8cd4ca` (`b8cd4cafe2632abab5576bee6971b90346af51bf`)
+- **Tip:** `e64b426` (`e64b42677e766bc7c26e19757eda7b7aceb64065`)
+- **Feature commit:** `116e188` (`116e188756b61079dcc95fe230830529c7ca36eb`)
 - **Worktree:** `/workspace/hd-biohack-wt-sad-copy-3x`
 - **Base:** `origin/main` @ `0a4b72c388f5a752c5dcdb9cefa6fc4545f8a92c` (includes shipped #65–#69)
 - **Independent of** other open work. No preview server (copy-only, same as #69). Do not touch :3009/:3010/:3011.
