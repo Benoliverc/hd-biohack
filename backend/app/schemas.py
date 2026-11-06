@@ -69,6 +69,30 @@ class VsYesterdayDelta(BaseModel):
     to: str
 
 
+class TomorrowTease(BaseModel):
+    kind: Literal[
+        "moon_leaves",
+        "moon_holds",
+        "sun_theme_leaves",
+        "sun_theme_holds",
+    ]
+    text: str
+    moon_gate_today: int | None = None
+    moon_gate_tomorrow: int | None = None
+    sun_gate_today: int | None = None
+    sun_gate_tomorrow: int | None = None
+
+
+class SkyStory(BaseModel):
+    """Free serial weather chapter under Today's new signal (mechanics only)."""
+
+    lines: list[str] = Field(default_factory=list)
+    tomorrow: TomorrowTease | None = None
+    continuity_day: int = 1
+    bridge_day: int = 0
+
+
+
 class TodayKitItem(BaseModel):
     name: str
     dose: str = ""
@@ -91,6 +115,7 @@ class TodayIndication(BaseModel):
     daily_signal: DailySignal | None = None
     vs_yesterday: list[VsYesterdayDelta] = Field(default_factory=list)
     conditioning_caption: str = ""
+    sky_story: SkyStory | None = None
     # PR1 transit→moment→Move + kit slot
     moment: str | None = None
     moment_noun: Literal["calm", "focus", "recovery"] | None = None

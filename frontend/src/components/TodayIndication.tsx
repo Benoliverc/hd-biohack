@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
-import { hdFactForDay } from "@/lib/hdFactOfTheDay";
+import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import {
   dayKeyInZone,
   DEFAULT_PROTOCOLS_TZ,
@@ -364,30 +364,92 @@ export default function TodayIndication({
         </div>
       </div>
 
-      {/* 2. Sky under the Move: today's new signal + collapsed vs yesterday */}
-      {daily ? (
+      {/* 2. Sky under the Move: new signal + Sky Story chapter + collapsed vs yesterday */}
+      {daily || indication.sky_story ? (
         <div
-          id="today-new-signal"
-          className="mb-3 scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
-          data-testid="daily-signal"
+          className="mb-3"
+          data-testid="today-sky-block"
         >
-          <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-            <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {t("today.newSignal")}
-          </p>
-          <h3
-            className="text-lg font-semibold text-fg"
-            data-testid="daily-signal-headline"
-          >
-            {daily.headline}
-          </h3>
-          <p className="mt-1 text-sm text-fg-secondary" data-testid="daily-signal-body">
-            {daily.body}
-          </p>
-        </div>
-      ) : null}
+          {daily ? (
+            <div
+              id="today-new-signal"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
+              data-testid="daily-signal"
+            >
+              <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
+                <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {t("today.newSignal")}
+              </p>
+              <h3
+                className="text-lg font-semibold text-fg"
+                data-testid="daily-signal-headline"
+              >
+                {daily.headline}
+              </h3>
+              <p className="mt-1 text-sm text-fg-secondary" data-testid="daily-signal-body">
+                {daily.body}
+              </p>
+            </div>
+          ) : null}
 
-      {vs.length > 0 ? (
+          {indication.sky_story?.lines?.length ? (
+            <div
+              className="mt-3 space-y-1.5"
+              data-testid="sky-story"
+              aria-label={t("today.skyStory")}
+            >
+              {indication.sky_story.lines.slice(0, 4).map((line, i) => (
+                <p
+                  key={`${i}-${line.slice(0, 24)}`}
+                  className="text-sm leading-relaxed text-fg-secondary"
+                  data-testid="sky-story-line"
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          {vs.length > 0 ? (
+            <details className="mt-3 group" data-testid="vs-yesterday">
+              <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+                <span
+                  aria-hidden
+                  className="inline-block text-fg-muted transition-transform group-open:rotate-90"
+                >
+                  ▸
+                </span>
+                <span>{t("today.vsYesterday")}</span>
+              </summary>
+              <div
+                className="mt-2 flex flex-wrap gap-2"
+                role="list"
+                aria-label={t("today.vsYesterday")}
+              >
+                {vs.map((d) => (
+                  <span
+                    key={`${d.field}-${d.from}-${d.to}`}
+                    role="listitem"
+                    className="inline-flex min-h-9 items-center rounded-full border border-border bg-sunken px-3 py-1.5 text-xs text-fg-secondary"
+                    data-testid={`vs-${d.field}`}
+                  >
+                    {vsPillLabel(d, t)}
+                  </span>
+                ))}
+              </div>
+            </details>
+          ) : null}
+
+          {indication.sky_story?.tomorrow?.text ? (
+            <p
+              className="mt-3 text-xs text-fg-muted"
+              data-testid="sky-story-tomorrow"
+            >
+              {indication.sky_story.tomorrow.text}
+            </p>
+          ) : null}
+        </div>
+      ) : vs.length > 0 ? (
         <details className="mb-3 group" data-testid="vs-yesterday">
           <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span
@@ -423,19 +485,35 @@ export default function TodayIndication({
         </p>
       ) : null}
 
-      {/* 3. HD fact of the day — below Move + sky */}
+      {/* 3. Contextual literacy pulse — below Move + sky, above disclaimer */}
       {(() => {
-        const { fact, dayKey } = hdFactForDay();
+        const pulse = contextualHdFact({
+          vsYesterday: vs,
+          dailySignal: daily,
+        });
         return (
           <aside
             className="mb-4 rounded-xl border border-border bg-sunken/50 px-4 py-3"
             data-testid="hd-fact-of-the-day"
-            data-day-key={dayKey}
+            data-day-key={pulse.dayKey}
+            data-sky-keyed={pulse.skyKeyed ? "true" : "false"}
+            data-literacy-field={pulse.field || undefined}
           >
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
               {t("today.hdFactLabel")}
             </p>
-            <p className="text-sm text-fg-secondary">{fact}</p>
+            <p className="text-sm text-fg-secondary" data-testid="hd-fact-text">
+              {pulse.fact}
+            </p>
+            {pulse.howToReadTargetId ? (
+              <a
+                href={`#${pulse.howToReadTargetId}`}
+                className="mt-2 inline-flex text-xs font-medium text-growth underline-offset-2 hover:underline"
+                data-testid="hd-fact-how-to-read"
+              >
+                {t("today.howToReadJump")}
+              </a>
+            ) : null}
           </aside>
         );
       })()}

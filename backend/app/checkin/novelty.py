@@ -399,6 +399,220 @@ def compute_vs_yesterday(
     return out
 
 
+
+def _field_continuity_day_index(
+    *,
+    natal: dict[str, Any] | None,
+    day: date,
+    today_sig: dict[str, Any],
+    calc_transit,
+    calc_overlay,
+    fields: tuple[str, ...],
+) -> int:
+    """Count consecutive HKT days (including today) matching selected sky_signature fields."""
+    n = 1
+    for i in range(1, 45):
+        prev_d = day - timedelta(days=i)
+        when = hkt_bucket_instant(prev_d)
+        t = calc_transit(when)
+        o = calc_overlay(natal, t) if natal else None
+        sig = sky_signature(natal, t, o)
+        same = all(sig.get(f) == today_sig.get(f) for f in fields)
+        if not same:
+            break
+        n += 1
+    return n
+
+
+def compute_tomorrow_tease(
+    *,
+    day: date,
+    transit: dict[str, Any] | None,
+    calc_transit=None,
+) -> dict[str, Any]:
+    """
+    Structured tomorrow tease from next HKT novelty-day Moon/Sun gates.
+    Mechanics only — never invents a lifestyle Move.
+    """
+    mg_t, _ml_t = gate_line(transit, "Moon")
+    sg_t, _sl_t = gate_line(transit, "Sun")
+    mg_n: int | None = None
+    sg_n: int | None = None
+    if calc_transit is not None:
+        next_t = calc_transit(hkt_bucket_instant(day + timedelta(days=1)))
+        mg_n, _ = gate_line(next_t, "Moon")
+        sg_n, _ = gate_line(next_t, "Sun")
+
+    if mg_t is not None and mg_n is not None and mg_t != mg_n:
+        kind = "moon_leaves"
+        text = "Tomorrow: Moon leaves this gate"
+    elif mg_t is not None and mg_n is not None and mg_t == mg_n:
+        kind = "moon_holds"
+        text = "Tomorrow: Moon holds this gate"
+    elif sg_t is not None and sg_n is not None and sg_t != sg_n:
+        kind = "sun_theme_leaves"
+        text = "Tomorrow: Sun theme turns"
+    elif sg_t is not None:
+        kind = "sun_theme_holds"
+        text = "Tomorrow: Sun theme holds"
+    else:
+        kind = "sun_theme_holds"
+        text = "Tomorrow: Sun theme holds"
+
+    return {
+        "kind": kind,
+        "text": text,
+        "moon_gate_today": mg_t,
+        "moon_gate_tomorrow": mg_n,
+        "sun_gate_today": sg_t,
+        "sun_gate_tomorrow": sg_n,
+    }
+
+
+def compute_sky_story(
+    *,
+    natal: dict[str, Any] | None,
+    transit: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+    prev_transit: dict[str, Any] | None,
+    prev_overlay: dict[str, Any] | None,
+    day: date,
+    daily_signal: dict[str, Any] | None = None,
+    calc_transit=None,
+    calc_overlay=None,
+) -> dict[str, Any]:
+    """
+    Free sky chapter: 2-4 observational lines + one muted tomorrow tease.
+    Deterministic templates only — no LLM, no destiny language, no Move tease.
+    """
+    today = sky_signature(natal, transit, overlay)
+    has_yest = prev_transit is not None
+    yest = sky_signature(natal, prev_transit, prev_overlay) if has_yest else None
+
+    mg, ml = today["moon_gate"], today["moon_line"]
+    sg, sl = today["sun_gate"], today["sun_line"]
+
+    overlay_fn = calc_overlay or (lambda _n, _t: None)
+    sun_day = 1
+    bridge_day = 1
+    if calc_transit is not None and sg is not None:
+        sun_day = _field_continuity_day_index(
+            natal=natal,
+            day=day,
+            today_sig=today,
+            calc_transit=calc_transit,
+            calc_overlay=overlay_fn,
+            fields=("sun_gate",),
+        )
+    if calc_transit is not None and today["bridges"]:
+        bridge_day = _field_continuity_day_index(
+            natal=natal,
+            day=day,
+            today_sig=today,
+            calc_transit=calc_transit,
+            calc_overlay=overlay_fn,
+            fields=("bridges",),
+        )
+
+    lines: list[str] = []
+
+    if not has_yest:
+        if sg is not None:
+            lines.append(f"Day 1 of this Sun theme (Gate {sg}).")
+        else:
+            lines.append("Day 1 of this sky chapter.")
+        if mg is not None:
+            lines.append(f"Moon in Gate {mg}" + (f" · line {ml}" if ml is not None else "") + ".")
+    else:
+        assert yest is not None
+        moon_flipped = (
+            today["moon_gate"] != yest["moon_gate"]
+            or today["moon_line"] != yest["moon_line"]
+        )
+        sun_flipped = (
+            today["sun_gate"] != yest["sun_gate"]
+            or today["sun_line"] != yest["sun_line"]
+        )
+        bridge_flipped = today["bridges"] != yest["bridges"]
+        newly_flipped = today["newly"] != yest["newly"]
+        hanging_flipped = today["hanging"] != yest["hanging"]
+
+        if moon_flipped and mg is not None:
+            if today["moon_gate"] != yest["moon_gate"]:
+                lines.append(f"Moon moved to Gate {mg}.")
+            else:
+                lines.append(f"Moon still Gate {mg}, now line {ml if ml is not None else '?'}.")
+        elif mg is not None:
+            lines.append(f"Moon holds Gate {_gl_label(mg, ml)}.")
+
+        if sun_flipped and sg is not None:
+            lines.append(f"Sun/Earth theme turned to Gate {sg}.")
+        elif sg is not None:
+            if sun_day <= 1:
+                lines.append(f"Day 1 of this Sun theme (Gate {sg}).")
+            else:
+                lines.append(f"Sun/Earth still in this theme — day {sun_day}.")
+
+        if today["bridges"]:
+            if bridge_flipped:
+                lines.append("A bridge flipped on today.")
+            elif bridge_day > 1:
+                lines.append(f"This bridge is on day {bridge_day}.")
+            else:
+                lines.append("A bridge is active today.")
+        elif bridge_flipped and yest["bridges"]:
+            lines.append("Yesterday's bridge cleared.")
+
+        if newly_flipped and today["newly"]:
+            centers = ", ".join(
+                _center_display(c) for c in today["newly"].split(",") if c
+            )
+            if centers:
+                lines.append(f"Temporary center peeks: {centers}.")
+        elif hanging_flipped and today["hanging_rows"]:
+            top = today["hanging_rows"][0]
+            lines.append(
+                f"Hanging pressure peeks at Gate {top['gate']} "
+                f"({_center_display(str(top['center']))})."
+            )
+
+    # Ensure 2-4 lines; pad from daily_signal observationally if thin
+    if len(lines) < 2 and daily_signal:
+        src = daily_signal.get("source")
+        if src == "continuity" and sg is not None:
+            pad = f"Hold the same Sun Gate {sg} theme."
+            if pad not in lines:
+                lines.append(pad)
+        elif daily_signal.get("headline"):
+            # Soft observational echo — not a second to-do
+            echo = str(daily_signal["headline"]).rstrip(".")
+            if echo and all(echo not in ln for ln in lines):
+                lines.append(f"{echo}.")
+
+    if len(lines) < 2:
+        if sg is not None and all("Sun" not in ln for ln in lines):
+            lines.append(f"Sun/Earth in Gate {sg}.")
+        if mg is not None and all("Moon" not in ln for ln in lines):
+            lines.append(f"Moon in Gate {_gl_label(mg, ml)}.")
+    if not lines:
+        lines.append("Sky chapter opens today.")
+
+    lines = lines[:4]
+
+    tomorrow = compute_tomorrow_tease(
+        day=day,
+        transit=transit,
+        calc_transit=calc_transit,
+    )
+
+    return {
+        "lines": lines,
+        "tomorrow": tomorrow,
+        "continuity_day": sun_day,
+        "bridge_day": bridge_day if today["bridges"] else 0,
+    }
+
+
 def sky_notice_sun_moon(transit: dict[str, Any] | None) -> str | None:
     """Compact Sun/Moon clause for Main action on every energy band."""
     sg, sl = gate_line(transit, "Sun")

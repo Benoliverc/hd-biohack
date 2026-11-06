@@ -139,6 +139,28 @@ export type VsYesterdayDelta = {
   to: string;
 };
 
+export type TomorrowTeaseKind =
+  | "moon_leaves"
+  | "moon_holds"
+  | "sun_theme_leaves"
+  | "sun_theme_holds";
+
+export type TomorrowTease = {
+  kind: TomorrowTeaseKind;
+  text: string;
+  moon_gate_today?: number | null;
+  moon_gate_tomorrow?: number | null;
+  sun_gate_today?: number | null;
+  sun_gate_tomorrow?: number | null;
+};
+
+export type SkyStory = {
+  lines: string[];
+  tomorrow?: TomorrowTease | null;
+  continuity_day?: number;
+  bridge_day?: number;
+};
+
 export type TodayKitItem = {
   name: string;
   dose?: string;
@@ -164,6 +186,7 @@ export type TodayIndicationPayload = {
   daily_signal?: DailySignal | null;
   vs_yesterday?: VsYesterdayDelta[];
   conditioning_caption?: string;
+  sky_story?: SkyStory | null;
   /** PR1 transit → moment → Move + kit */
   moment?: string | null;
   moment_noun?: TodayMomentNoun | null;

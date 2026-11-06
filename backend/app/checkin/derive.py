@@ -10,6 +10,7 @@ from ..hd.channels import MOTORS, active_channels, defined_centers
 from .novelty import (
     CONDITIONING_CAPTION,
     compute_daily_signal,
+    compute_sky_story,
     compute_vs_yesterday,
     hkt_today,
 )
@@ -232,6 +233,17 @@ def _attach_novelty(
     payload["daily_signal"] = daily
     payload["vs_yesterday"] = vs
     payload["conditioning_caption"] = CONDITIONING_CAPTION
+    payload["sky_story"] = compute_sky_story(
+        natal=natal,
+        transit=transit,
+        overlay=overlay,
+        prev_transit=prev_transit,
+        prev_overlay=prev_overlay,
+        day=bucket_day,
+        daily_signal=daily,
+        calc_transit=calc_transit,
+        calc_overlay=calc_overlay,
+    )
     return payload
 
 
