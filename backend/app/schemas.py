@@ -353,9 +353,19 @@ class SoulCompositeOut(BaseModel):
 class SoulPartnerNuanceOut(BaseModel):
     romantic_synergy: str
     romantic_friction: str
+    gift_in_love: str | None = None
+    tender_spot: str | None = None
 
 
 class SoulPartnerOverviewOut(BaseModel):
+    hook: str
+    the_current: str
+    how_you_love: str
+    how_they_love: str
+    what_this_asks: str
+    tender_spots: str
+    try_this: str
+    # Legacy aliases (same strings as the_current / what_this_asks / tender_spots).
     core_dynamic: str
     mutual_growth: str
     relationship_challenges: str

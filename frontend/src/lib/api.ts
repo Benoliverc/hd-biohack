@@ -229,9 +229,19 @@ export type SoulPerson = {
 export type SoulPartnerNuance = {
   romantic_synergy: string;
   romantic_friction: string;
+  gift_in_love?: string | null;
+  tender_spot?: string | null;
 };
 
 export type SoulPartnerOverview = {
+  hook: string;
+  the_current: string;
+  how_you_love: string;
+  how_they_love: string;
+  what_this_asks: string;
+  tender_spots: string;
+  try_this: string;
+  /** Legacy aliases — same strings as the new chapter fields. */
   core_dynamic: string;
   mutual_growth: string;
   relationship_challenges: string;
