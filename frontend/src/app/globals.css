@@ -25,11 +25,11 @@
   --growth-deep: #3a5642;
   --growth-soft: #dce5de;
 
-  --energy: #c87d55;
-  --energy-ink: #7a4528;
-  --energy-soft: #f0e4db;
+  --energy: #c59659;
+  --energy-ink: #6d4f2c;
+  --energy-soft: #f2ece3;
 
-  --recovery: #d4a373;
+  --recovery: #cbad80;
   --danger: #8f4a3a;
   --focus: #3a5642;
 }
@@ -53,11 +53,11 @@ html.dark,
   --growth-deep: #3a5642;
   --growth-soft: #1a241e;
 
-  --energy: #c87d55;
-  --energy-ink: #e0a882;
-  --energy-soft: #2a1f18;
+  --energy: #c59659;
+  --energy-ink: #e0c49a;
+  --energy-soft: #2c241c;
 
-  --recovery: #d4a373;
+  --recovery: #cbad80;
   --danger: #c47a6a;
   --focus: #4a6b53;
 }
@@ -129,25 +129,25 @@ body > * {
 }
 
 /*
-  Love guidance partner surface — warm copper / sand wash using Grounded
+  Love guidance partner surface — quieter sand-amber wash using Grounded
   Vitality energy tokens. Distinct from canvas/elevated Soul chrome in both
   Linen and Basalt; not a solid energy block.
 */
 .soul-love-guidance-wash {
-  background-color: color-mix(in srgb, var(--energy-soft) 72%, var(--energy) 28%);
+  background-color: color-mix(in srgb, var(--energy-soft) 82%, var(--energy) 18%);
   background-image:
     radial-gradient(
       ellipse 85% 60% at 8% 0%,
-      color-mix(in srgb, var(--energy) 16%, transparent),
+      color-mix(in srgb, var(--energy) 10%, transparent),
       transparent 58%
     ),
     radial-gradient(
       ellipse 55% 45% at 100% 110%,
-      color-mix(in srgb, var(--recovery) 14%, transparent),
+      color-mix(in srgb, var(--recovery) 12%, transparent),
       transparent 55%
     );
 }
 
 .soul-love-guidance-aside {
-  background-color: color-mix(in srgb, var(--energy-soft) 78%, var(--energy) 22%);
+  background-color: color-mix(in srgb, var(--energy-soft) 88%, var(--energy) 12%);
 }

@@ -137,7 +137,7 @@ _GEN_PROJ_OVERVIEW: PartnerPairChapters = _ov(
     "has a pulse you can trust; the Projector's gift is noticing what that pulse is "
     "actually for. When it is good, the Generator feels used well — not used up — and "
     "the Projector feels seen without having to perform a stamina they do not have.",
-    "This bond asks the Generator to wait for a real sacral yes before pouring energy "
+    "This bond asks the Generator to wait for a real gut yes before pouring energy "
     "into shared plans, and the Projector to invite and recognize that energy instead "
     "of managing it. Rest and recognition are part of how you love each other, not a "
     "prize you earn after overgiving.",
@@ -155,8 +155,8 @@ _GEN_PROJ_OVERVIEW: PartnerPairChapters = _ov(
 _INTIMACY_NUANCE: PartnerNuance = _nu(
     "When you complete Intimacy together, closeness can feel unusually available — "
     "bonding, fertility, a pull to let each other past the walls. In love this often "
-    "shows up as a natural honesty, physical and emotional, when the emotional wave is "
-    "open rather than pushed.",
+    "shows up as a natural honesty, physical and emotional, when feelings have room to settle, rather than being "
+    "pushed.",
     "The same wire can make space feel like rejection, or closeness feel like pressure. "
     "One of you reaching for bond while the other protects the walls can look like a "
     "love problem when it is really a request for timing and consent. Say the rhythm "
@@ -175,7 +175,7 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
         "you has a gut that knows, and when both are honored the days fill with real "
         "energy instead of polite overcommitment. When it is good, you build side by "
         "side without competing for who carried more.",
-        "This bond asks each of you to check your own sacral before agreeing to shared "
+        "This bond asks each of you to check your own gut before agreeing to shared "
         "plans, and to treat rest as part of how you love each other. Growth lives in "
         "designing days around two honest responses instead of one fused agenda.",
         "The usual ache is burnout theater: both saying yes to keep the peace, then "
@@ -192,13 +192,13 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
         "Life together can feel like reliable life force meeting agile course-corrections. "
         "The Generator's yes wants a clean answer; the Manifesting Generator's yes wants "
         "room to pivot. When it is good, the MG informs before leaping and the Generator "
-        "is allowed a real sacral answer without being rushed into the next lane.",
+        "is allowed a real gut answer without being rushed into the next lane.",
         "This bond asks the MG to finish or consciously park threads so the Generator is "
         "not left holding half-started plans, and the Generator to trust bursts of "
-        "initiation when the sacral is still a yes. Name which projects are shared versus "
+        "initiation when the gut is still a yes. Name which projects are shared versus "
         "solo.",
         "The usual ache is pace. The MG can feel slowed; the Generator can feel scattered "
-        "or overrun. Skipping the sacral check to match the other's tempo creates quiet "
+        "or overrun. Skipping the gut check to match the other's tempo creates quiet "
         "resentment that shows up as nagging, withdrawal, or busywork instead of clear "
         "nos.",
         "Sometime this week, pick one shared thread. The MG informs the next pivot out "
@@ -208,7 +208,7 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Generator|Manifestor": _ov(
         "One of you carries the steady yes. The other clears paths no one else would "
         "open. The heat is initiation meeting life force — when informing is care.",
-        "Life together can feel like a sacral engine meeting a spark that starts things. "
+        "Life together can feel like steady life-force meeting a spark that starts things. "
         "The Manifestor needs to move; the Generator needs a real response. When it is "
         "good, the Manifestor informs early enough for a gut answer, and the Generator "
         "does not treat every initiation as a personal override.",
@@ -217,7 +217,7 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
         "respond → adjust are how you love each other in motion.",
         "The usual ache clusters around surprise and control. The Generator can feel "
         "steamrolled by unannounced moves; the Manifestor can feel managed or slowed. "
-        "Turning every initiation into a committee — or every sacral no into a silent "
+        "Turning every initiation into a committee — or every gut no into a silent "
         "veto — drains trust that is not really about whether you care.",
         "Sometime this week, try one Manifestor move with a clear inform first, and one "
         "Generator response that is only a gut yes or no — spoken kindly. Afterward, "
@@ -226,10 +226,10 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Generator|Reflector": _ov(
         "One of you answers from the gut in the moment. The other needs a cycle and a "
         "healthy place to know. That timing gap is the care, not the problem.",
-        "Life together can feel like consistent sacral warmth meeting a lunar sampler. "
+        "Life together can feel like consistent life-force warmth meeting a lunar sampler. "
         "The Generator wants clarity; the Reflector needs environment and time. When it "
         "is good, the Generator protects calm space and the Reflector is not asked to "
-        "match sacral output or decide on Generator time.",
+        "match Generator output or decide on Generator time.",
         "This bond asks the Generator to protect clear rooms for honest sampling, and "
         "the Reflector to name environmental needs early. Treat the lunar wait as "
         "wisdom you share, not delay you argue about.",
@@ -243,10 +243,10 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Manifesting Generator|Manifesting Generator": _ov(
         "Two multi-lane yeses under one roof. The heat is voltage — and the care is "
         "informing each other before the next leap.",
-        "Life together can feel electric and productive: fast sacral response, many "
+        "Life together can feel electric and productive: fast gut response, many "
         "passions, a shared temptation to skip the update. When it is good, you both "
         "inform before lane-changes and let courses correct without shame.",
-        "This bond asks for shorter feedback loops — inform, sacral-check, adjust — "
+        "This bond asks for shorter feedback loops — inform, gut-check, adjust — "
         "and for recovery on the calendar so dual engines do not run until empty. "
         "Celebrate efficient pivots instead of unfinished guilt.",
         "The usual ache is parallel spinning: both mid-leap, neither fully landing — or "
@@ -259,15 +259,15 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Manifesting Generator|Manifestor": _ov(
         "One of you pivots across lanes. The other initiates clean and informs. Together "
         "you can feel like ignition meeting ignition — if who moves first stays kind.",
-        "Life together can feel fast: sacral agility meeting pure initiate-and-inform. "
+        "Life together can feel fast: gut agility meeting pure initiate-and-inform. "
         "When it is good, the Manifestor informs before the leap and the MG does not "
-        "treat every Manifestor move as a joint project needing a mid-flight sacral stamp.",
+        "treat every Manifestor move as a joint project needing a mid-flight gut stamp.",
         "This bond asks the Manifestor to leave clear space for the MG to respond without "
         "absorbing the initiation, and the MG to finish shared threads before starting "
         "three more. Separate solo initiations from couple decisions out loud.",
         "The usual ache is who got to move first, and who cleaned up. The MG can feel "
         "outpaced or under-informed; the Manifestor can feel managed. Skipping inform or "
-        "sacral checks to keep the thrill creates repair debt that is not about love.",
+        "gut checks to keep the thrill creates repair debt that is not about love.",
         "Sometime this week, try one leap with a full inform first and one shared thread "
         "finished before any new lane opens. Afterward, say what felt like teamwork "
         "instead of cleanup.",
@@ -275,22 +275,22 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Manifesting Generator|Projector": _ov(
         "One of you runs multi-track yeses. The other sees what those tracks are for. "
         "That is the heat — and the care — when recognition stays in the room.",
-        "Life together can feel like agile sacral response meeting a clear eye. When it "
+        "Life together can feel like agile gut response meeting a clear eye. When it "
         "is good, the Projector is invited into what they see, and the MG informs before "
         "dumping half-finished lanes into the shared field. The MG feels guided without "
-        "being managed; the Projector feels used well without matching sacral stamina.",
+        "being managed; the Projector feels used well without matching Generator stamina.",
         "This bond asks the MG to invite recognition before asking for guidance, and the "
         "Projector not to manage the MG's many threads. Rest and recognition are part of "
         "how you love — scheduled, not earned after burnout.",
         "The usual ache: the Projector feels scattered by MG pivots; the MG feels slowed "
-        "or critiqued. Forcing the Projector to keep sacral pace — or the MG to freeze "
+        "or critiqued. Forcing the Projector to keep Generator pace — or the MG to freeze "
         "until fully recognized — creates bitterness that is about design, not devotion.",
         "Sometime this week, the MG invites the Projector into one thread only, after a "
         "clear ask for recognition. The Projector guides that one. Afterward, name what "
         "felt easing — without fixing the whole week.",
     ),
     "Manifesting Generator|Reflector": _ov(
-        "One of you wants to move on a sacral spark. The other needs time and a clean "
+        "One of you wants to move on a gut spark. The other needs time and a clean "
         "field to know. Love here is shared pacing, not speed as proof.",
         "Life together can feel like fast multi-response meeting lunar sampling. When it "
         "is good, speed is not treated as proof of love and the Reflector's wait is not "
@@ -299,7 +299,7 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
         "and the Reflector to name which environments help them feel the relationship "
         "clearly. Revisit pacing agreements like care, not like rules.",
         "The usual ache clusters around urgency. The MG wants to move; the Reflector "
-        "needs time and space. Pushing for sacral-speed clarity — or reading sampling as "
+        "needs time and space. Pushing for gut-speed clarity — or reading sampling as "
         "disinterest — invents a love problem out of timing.",
         "Sometime this week, choose one non-urgent leap and give it a named sample "
         "window. The MG waits without sulking; the Reflector reports what the field "
@@ -365,7 +365,7 @@ PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
         "part of how you love, not a private secret. Speak recognition before either of "
         "you has to earn it through overgiving.",
         "The usual ache is unrecognized guidance, advice competitions, or both overgiving "
-        "until empty. Expecting the other Projector to supply sacral stamina they do not "
+        "until empty. Expecting the other Projector to supply Generator stamina they do not "
         "have creates exhaustion that gets mislabeled as relationship failure.",
         "Sometime this week, take a timed turn: one of you only receives recognition and "
         "guidance; then swap. Afterward, say what felt easing — without fixing each "
@@ -474,7 +474,7 @@ PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
     "10-34": _nu(
         "When you complete Exploration together, empowered self-expression can feel "
         "available — doing from identity. In love this often shows up as supporting bold "
-        "experiments when sacral energy is a yes.",
+        "experiments when gut energy is a yes.",
         "The same wire can confuse exploration with recklessness. One person's empowerment "
         "can feel like abandonment. Agree what experiments are solo versus shared before "
         "the leap.",
@@ -605,7 +605,7 @@ PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
         "saying yes to the process. In love this often shows up as adventures you finish "
         "together.",
         "The same wire can confuse persistence with stubbornness. Over-commitment without "
-        "sacral truth breeds regret. Re-check the yes mid-journey.",
+        "gut truth breeds regret. Re-check the yes mid-journey.",
     ),
     "30-41": _nu(
         "When you complete Recognition together, desire and feeling can feel vivid — "
@@ -622,7 +622,7 @@ PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
         "intimacy. Keep non-achievement time sacred.",
     ),
     "34-57": _nu(
-        "When you complete Power together, intuitive sacral force can feel available — "
+        "When you complete Power together, intuitive life-force can feel available — "
         "knowing when to act. In love this often shows up as clean bursts of capable "
         "action together.",
         "The same wire can make rest feel unsafe. Power without pauses becomes pressure. "

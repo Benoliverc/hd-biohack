@@ -18,6 +18,7 @@ import LiteracyCoach from "@/components/LiteracyCoach";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import PartnerOverviewCard from "@/components/soul/PartnerOverviewCard";
 import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
+import { partnerSignatureForId } from "@/components/soul/partnerSignatureCopy";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -440,7 +441,7 @@ function SoulUnlockedContent() {
           <div
             className={
               isPartnerSelected
-                ? "flex flex-col gap-3 rounded-2xl border border-energy/40 bg-energy-soft/40 p-4 sm:flex-row sm:items-end sm:gap-4"
+                ? "flex flex-col gap-3 rounded-2xl border border-energy/25 bg-energy-soft/30 p-4 sm:flex-row sm:items-end sm:gap-4"
                 : "flex flex-col gap-3 rounded-2xl border border-border bg-elevated p-4 sm:flex-row sm:items-end sm:gap-4"
             }
             data-testid="soul-pickers"
@@ -466,10 +467,10 @@ function SoulUnlockedContent() {
                 {isPartnerSelected ? "Partner" : "Person"}
                 {isPartnerSelected ? (
                   <span
-                    className="inline-flex items-center rounded-full border border-energy/40 bg-energy/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-energy-ink"
+                    className="inline-flex items-center rounded-full border border-energy/25 bg-energy/5 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-energy-ink"
                     data-testid="soul-love-guidance-chip"
                   >
-                    Love guidance
+                    Partner · Love guidance
                   </span>
                 ) : null}
               </span>
@@ -500,10 +501,10 @@ function SoulUnlockedContent() {
 
           {(apiMissing || schemaLag) && (
             <div
-              className="rounded-2xl border border-energy/40 bg-energy/10 p-5"
+              className="rounded-2xl border border-border bg-growth/10 p-5"
               data-testid="soul-api-missing"
             >
-              <p className="text-sm text-energy-ink">
+              <p className="text-sm text-fg-secondary">
                 {schemaLag
                   ? "Soul API is on an older schema. Redeploy with Aura Alchemy, then refresh."
                   : "Soul sync needs an API update. The page is ready; production API may still be on an older build (Railway deploy pause). Locally, restart the backend on this branch."}
@@ -528,54 +529,164 @@ function SoulUnlockedContent() {
 
           {result && (
             <>
-              {result.friend?.role === "partner" && result.partner_overview ? (
-                <PartnerOverviewCard
-                  overview={result.partner_overview}
-                  partnerFirstName={partnerFirstNameFromLabel(
-                    result.friend?.label || selectedFriend?.label
-                  )}
-                  yourType={result.self?.type}
-                  theirType={result.friend?.type}
-                />
-              ) : null}
+              {(() => {
+                const partnerRole = result.friend?.role === "partner";
+                const partnerName =
+                  partnerFirstNameFromLabel(
+                    result.friend?.label || selectedFriend?.label,
+                  ) || "them";
+                const reasonLine = partnerRole ? (
+                  <p
+                    className="text-xs text-fg-muted"
+                    data-testid="soul-love-guidance-reason"
+                  >
+                    Love guidance is on because you marked{" "}
+                    <span className="font-medium text-fg-secondary">{partnerName}</span>{" "}
+                    as Partner on Chart.{" "}
+                    <Link
+                      href="/profile"
+                      className="font-medium text-growth underline-offset-2 hover:underline"
+                    >
+                      Open Chart
+                    </Link>
+                  </p>
+                ) : null;
+                return (
+                  <>
+                    {partnerRole && result.partner_overview ? (
+                      <PartnerOverviewCard
+                        overview={result.partner_overview}
+                        partnerFirstName={partnerFirstNameFromLabel(
+                          result.friend?.label || selectedFriend?.label,
+                        )}
+                        yourType={result.self?.type}
+                        theirType={result.friend?.type}
+                        reasonLine={reasonLine}
+                      />
+                    ) : null}
+                    {partnerRole && !result.partner_overview ? (
+                      <div
+                        className="rounded-2xl border border-border bg-elevated p-4"
+                        data-testid="soul-partner-overview-missing"
+                      >
+                        {reasonLine}
+                        <p className="mt-2 text-sm text-fg-secondary">
+                          Partner is on; love chapters need a sync refresh.
+                        </p>
+                      </div>
+                    ) : null}
+                    {partnerRole && result.partner_overview ? (
+                      <p
+                        className="text-center text-xs tracking-wide text-fg-muted"
+                        data-testid="soul-partner-signature-bridge"
+                      >
+                        Underneath: the charge pattern between you
+                      </p>
+                    ) : null}
+                  </>
+                );
+              })()}
+              {(() => {
+                const isPartner = result.friend?.role === "partner";
+                const partnerCopy = isPartner
+                  ? partnerSignatureForId(result.signature?.id)
+                  : null;
+                const secondaryPartner = isPartner
+                  ? partnerSignatureForId(result.secondary_signature?.id)
+                  : null;
+                return (
               <div
                 id="soul-hero"
                 className="rounded-2xl border border-border bg-elevated p-5"
                 data-testid="soul-hero"
               >
-                <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <h2
-                    className="text-3xl font-bold text-growth"
-                    data-testid="soul-signature"
-                  >
-                    <span aria-hidden className="mr-2">
-                      {result.signature.emoji || "⚡"}
-                    </span>
-                    {result.signature.label}
-                  </h2>
-                  {(result.signature.tier === "highest" ||
-                    result.signature.id === "magnetic_alchemy") && (
-                    <span
-                      data-testid="soul-signature-tier"
-                      className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
+                {partnerCopy ? (
+                  <>
+                    <p className="text-xs uppercase tracking-wide text-fg-muted">
+                      Between you
+                    </p>
+                    <div
+                      className="mt-1.5 h-px w-12 bg-energy/50"
+                      aria-hidden
+                    />
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <h2
+                        className="text-3xl font-bold text-growth"
+                        data-testid="soul-signature"
+                      >
+                        <span aria-hidden className="mr-2">
+                          {result.signature.emoji || "⚡"}
+                        </span>
+                        {partnerCopy.title}
+                      </h2>
+                      {(result.signature.tier === "highest" ||
+                        result.signature.id === "magnetic_alchemy") && (
+                        <span
+                          data-testid="soul-signature-tier"
+                          className="rounded-full border border-energy/35 bg-energy/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-energy-ink"
+                        >
+                          {partnerCopy.chip || "Strong charge"}
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className="mt-3 max-w-2xl text-base italic leading-snug text-fg sm:text-lg"
+                      data-testid="soul-partner-signature-hook"
                     >
-                      {result.signature.tier_label || "Highest signature"}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
-                  {result.signature.subtext}
-                </p>
+                      {partnerCopy.hook}
+                    </p>
+                    <p className="mt-3 max-w-2xl text-sm text-fg-secondary">
+                      {partnerCopy.body}
+                    </p>
+                    <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
+                      <summary className="cursor-pointer text-xs font-semibold text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                        Why it feels this way
+                      </summary>
+                      <p className="mt-2 text-xs text-fg-secondary">{partnerCopy.why}</p>
+                    </details>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <h2
+                        className="text-3xl font-bold text-growth"
+                        data-testid="soul-signature"
+                      >
+                        <span aria-hidden className="mr-2">
+                          {result.signature.emoji || "⚡"}
+                        </span>
+                        {result.signature.label}
+                      </h2>
+                      {(result.signature.tier === "highest" ||
+                        result.signature.id === "magnetic_alchemy") && (
+                        <span
+                          data-testid="soul-signature-tier"
+                          className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
+                        >
+                          {result.signature.tier_label || "Highest signature"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
+                      {result.signature.subtext}
+                    </p>
+                  </>
+                )}
                 {result.secondary_signature && (
                   <div
                     className="mt-3 rounded-xl border border-border bg-sunken/60 px-3 py-2"
                     data-testid="soul-secondary-signature"
                   >
                     <p className="text-xs font-medium text-fg-secondary">
-                      Also: {result.secondary_signature.label}
+                      Also:{" "}
+                      {secondaryPartner?.title || result.secondary_signature.label}
                     </p>
-                    {result.secondary_signature.subtext ? (
+                    {secondaryPartner ? (
+                      <p className="mt-1 text-xs text-fg-muted">
+                        {secondaryPartner.hook}
+                      </p>
+                    ) : result.secondary_signature.subtext ? (
                       <p className="mt-1 text-xs text-fg-muted">
                         {result.secondary_signature.subtext.includes(". ")
                           ? `${result.secondary_signature.subtext.split(". ")[0]}.`
@@ -610,6 +721,8 @@ function SoulUnlockedContent() {
                   {result.disclaimer}
                 </p>
               </div>
+                );
+              })()}
 
               <LiteracyCoach
                 variant="soul"
