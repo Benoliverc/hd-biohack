@@ -197,7 +197,24 @@ export type TodayIndicationPayload = {
 };
 
 
-export type UsageEventType = "login" | "chart_generated" | "protocol_generated";
+export type UsageEventType =
+  | "login"
+  | "chart_generated"
+  | "protocol_generated"
+  | "page_view";
+
+export type PageVisitStat = {
+  views: number;
+  unique_users: number;
+};
+
+export type PageVisitsStats = {
+  home: PageVisitStat;
+  today: PageVisitStat;
+  chart: PageVisitStat;
+  protocols: PageVisitStat;
+  soul: PageVisitStat;
+};
 
 export type UsageEvent = {
   id: number;
@@ -220,6 +237,7 @@ export type UsageStatsBucket = {
   unique_users_logged_in: number;
   charts_generated: number;
   protocols_generated: number;
+  page_visits?: PageVisitsStats;
 };
 
 export type UsageStatsDay = UsageStatsBucket & { day: string };
@@ -485,6 +503,20 @@ export const api = {
     req<{ ok: boolean; id: number }>(`/inventory/${itemId}?user_id=${userId}`, {
       method: "DELETE",
     }),
+  recordPageView: (path: string, userId?: number | null) => {
+    const body: { path: string; user_id?: number } = { path };
+    if (userId != null) body.user_id = userId;
+    // Best-effort: ignore network/HTTP errors; 204 has no JSON body.
+    return fetch(`${API_BASE}/usage/page-view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    }).then(
+      () => undefined,
+      () => undefined
+    );
+  },
   adminUsageEvents: (
     actorUserId: number,
     opts?: { limit?: number; offset?: number; day?: string; event_type?: string }
