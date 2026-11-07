@@ -1,6 +1,8 @@
 # Full Partner mode — current build
 
 **Date:** 2026-11-07 (Asia/Hong Kong)
+**PR:** [#80](https://github.com/Benoliverc/hd-biohack/pull/80)
+**Tip SHA:** `d39cf7e9fb21654dd82570c98d84f4f813e759ab`
 **Branch:** `feat/full-partner-mode`
 **Base:** `origin/main` @ `12aaecf2d3d8e376bde93202bf7a3f528c8b4e0a` (post PR #79)
 **Worktree:** `/workspace/hd-biohack-wt-full-partner-mode`
@@ -19,8 +21,8 @@
 - Visibility gate unchanged
 
 ## Preview
-- Local: http://127.0.0.1:3022 (or next free ≥3022)
-- Expect HTTP 200 on `/` and `/soul`
+- Local: http://127.0.0.1:3022
+- HTTP: `/` 200, `/soul` 200 (verified 2026-11-07 Asia/Hong Kong)
 
 ## Tests
 - `npx tsc --noEmit` (frontend) — clean
