@@ -266,6 +266,9 @@ export default function TodayIndication({
   const caption = indication.conditioning_caption?.trim() || "";
   const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
+  const moveId = indication.move_item_id || "today-move";
+  const moveDone = Boolean(completions[moveId]?.done);
+  const moveNote = completions[moveId]?.note || "";
 
   return (
     <div
@@ -274,8 +277,11 @@ export default function TodayIndication({
     >
       {/* 1. Move hero first */}
       <div
-        className="mb-4 rounded-xl border border-growth/25 bg-canvas p-4 shadow-soft ring-1 ring-growth/10"
+        className={`mb-4 rounded-xl border border-growth/25 p-4 shadow-soft ring-1 ring-growth/10 transition-[background-color,background-image] duration-300 ease-out ${
+          moveDone ? "today-move-achieved" : "bg-canvas"
+        }`}
         data-testid="main-action"
+        data-achieved={moveDone ? "true" : "false"}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
@@ -283,9 +289,6 @@ export default function TodayIndication({
               {t("today.move")}
             </h3>
             {(() => {
-              const moveId = indication.move_item_id || "today-move";
-              const moveDone = Boolean(completions[moveId]?.done);
-              const moveNote = completions[moveId]?.note || "";
               const canTap = Boolean(userId && chartId);
               return (
                 <div>
@@ -409,10 +412,10 @@ export default function TodayIndication({
                   data-testid="today-show-up"
                   aria-label={t("today.showUpLabel")}
                 >
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                  <p className="mb-1 text-[10px] font-medium text-fg-muted">
                     {t("today.showUpLabel")}
                   </p>
-                  <ol className="flex flex-wrap items-center gap-2" data-testid="today-show-up-dots">
+                  <ol className="flex flex-wrap items-center gap-1.5" data-testid="today-show-up-dots">
                     {showUpDays.map((d) => (
                       <li
                         key={d.day}
@@ -424,7 +427,7 @@ export default function TodayIndication({
                           className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
                           aria-hidden
                         />
-                        <span className="text-[10px] font-medium text-fg-muted">
+                        <span className="text-[9px] font-medium text-fg-muted">
                           {weekdayLabel(d.day)}
                         </span>
                         <span className="sr-only">
@@ -445,99 +448,6 @@ export default function TodayIndication({
               );
             })()}
 
-
-            {(() => {
-              const typeKey = normalizeHdType(natalType);
-              if (!typeKey || !userId || !chartId) return null;
-              const itemId = eveningCloseItemId();
-              const row = completions[itemId];
-              const alreadyDone = Boolean(row?.done);
-              const visible = isEveningCloseVisible({
-                timeZone: protocolsTz,
-                whenSlot: indication.when_slot,
-                alreadyDone,
-              });
-              if (!visible) return null;
-              const saved = parseEveningCloseLabel(row?.label);
-              const qKey = eveningQuestionKey(typeKey);
-              const options = eveningAnswerOptions(typeKey);
-              const canTap = Boolean(userId && chartId);
-              const note = row?.note || "";
-              return (
-                <div
-                  className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
-                  data-testid="today-evening-close"
-                  data-type={typeKey}
-                  data-answer={saved?.answer || undefined}
-                >
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-                    {t("today.eveningClose.label")}
-                  </p>
-                  <p
-                    className="text-sm font-medium text-fg"
-                    data-testid="today-evening-close-question"
-                  >
-                    {t(qKey)}
-                  </p>
-                  <div
-                    className="mt-2 flex flex-wrap gap-2"
-                    data-testid="today-evening-close-choices"
-                  >
-                    {options.map((opt) => {
-                      const selected = saved?.answer === opt.answer;
-                      return (
-                        <button
-                          key={opt.answer}
-                          type="button"
-                          disabled={!canTap}
-                          aria-pressed={selected}
-                          data-testid={`today-evening-close-${opt.answer}`}
-                          onClick={() => persistEveningClose(opt.answer, typeKey)}
-                          className={`inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
-                            selected
-                              ? "border-growth bg-growth-soft text-growth-ink"
-                              : "border-border bg-elevated text-fg-secondary hover:border-growth/40"
-                          } ${!canTap ? "opacity-50" : ""}`}
-                        >
-                          {t(opt.labelKey)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {alreadyDone ? (
-                    <div className="mt-2" data-testid="today-evening-close-receipt">
-                      <p className="text-xs text-fg-muted">{t("today.eveningClose.saved")}</p>
-                      <label
-                        className="mt-2 block text-[11px] text-fg-muted"
-                        htmlFor={`today-evening-note-${itemId}`}
-                      >
-                        {t("today.eveningClose.noteLabel")}
-                      </label>
-                      <input
-                        id={`today-evening-note-${itemId}`}
-                        type="text"
-                        maxLength={120}
-                        defaultValue={note}
-                        placeholder={t("today.eveningClose.notePlaceholder")}
-                        disabled={!canTap}
-                        className="mt-0.5 w-full rounded-lg border border-border bg-elevated px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted disabled:opacity-50"
-                        data-testid="today-evening-close-note"
-                        onBlur={(e) => {
-                          if (e.target.value.trim() !== (note || "").trim()) {
-                            persistNote(itemId, e.target.value);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            (e.target as HTMLInputElement).blur();
-                          }
-                        }}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })()}
 
             {/* From your kit — live Pro item or muted placeholder (never hidden) */}
             {indication.kit_placeholder || !indication.kit_item ? (
@@ -692,6 +602,101 @@ export default function TodayIndication({
           </aside>
         </div>
       </div>
+
+
+      {/* Evening Close — own block under Move hero, above sky */}
+      {(() => {
+        const typeKey = normalizeHdType(natalType);
+        if (!typeKey || !userId || !chartId) return null;
+        const itemId = eveningCloseItemId();
+        const row = completions[itemId];
+        const alreadyDone = Boolean(row?.done);
+        const visible = isEveningCloseVisible({
+          timeZone: protocolsTz,
+          whenSlot: indication.when_slot,
+          alreadyDone,
+        });
+        if (!visible) return null;
+        const saved = parseEveningCloseLabel(row?.label);
+        const qKey = eveningQuestionKey(typeKey);
+        const options = eveningAnswerOptions(typeKey);
+        const canTap = Boolean(userId && chartId);
+        const note = row?.note || "";
+        return (
+          <div
+            className="mb-4 rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
+            data-testid="today-evening-close"
+            data-type={typeKey}
+            data-answer={saved?.answer || undefined}
+          >
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+              {t("today.eveningClose.label")}
+            </p>
+            <p
+              className="text-sm font-medium text-fg"
+              data-testid="today-evening-close-question"
+            >
+              {t(qKey)}
+            </p>
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              data-testid="today-evening-close-choices"
+            >
+              {options.map((opt) => {
+                const selected = saved?.answer === opt.answer;
+                return (
+                  <button
+                    key={opt.answer}
+                    type="button"
+                    disabled={!canTap}
+                    aria-pressed={selected}
+                    data-testid={`today-evening-close-${opt.answer}`}
+                    onClick={() => persistEveningClose(opt.answer, typeKey)}
+                    className={`inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                      selected
+                        ? "border-growth bg-growth-soft text-growth-ink"
+                        : "border-border bg-elevated text-fg-secondary hover:border-growth/40"
+                    } ${!canTap ? "opacity-50" : ""}`}
+                  >
+                    {t(opt.labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+            {alreadyDone ? (
+              <div className="mt-2" data-testid="today-evening-close-receipt">
+                <p className="text-xs text-fg-muted">{t("today.eveningClose.saved")}</p>
+                <label
+                  className="mt-2 block text-[11px] text-fg-muted"
+                  htmlFor={`today-evening-note-${itemId}`}
+                >
+                  {t("today.eveningClose.noteLabel")}
+                </label>
+                <input
+                  id={`today-evening-note-${itemId}`}
+                  type="text"
+                  maxLength={120}
+                  defaultValue={note}
+                  placeholder={t("today.eveningClose.notePlaceholder")}
+                  disabled={!canTap}
+                  className="mt-0.5 w-full rounded-lg border border-border bg-elevated px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted disabled:opacity-50"
+                  data-testid="today-evening-close-note"
+                  onBlur={(e) => {
+                    if (e.target.value.trim() !== (note || "").trim()) {
+                      persistNote(itemId, e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+        );
+      })()}
 
       {/* 2. Sky under the Move: new signal + Sky Story chapter + collapsed vs yesterday */}
       {daily || indication.sky_story ? (

@@ -114,8 +114,13 @@ assert.match(todayInd, /maxLength=\{120\}/);
 const moveIdx = todayInd.indexOf('data-testid="main-action"');
 const eveningIdx = todayInd.indexOf('data-testid="today-evening-close"');
 const kitIdx = todayInd.indexOf('data-testid="today-kit-placeholder"');
+const kitLineIdx = todayInd.indexOf('data-testid="today-kit-line"');
+const skyIdx = todayInd.indexOf('data-testid="today-sky-block"');
 assert.ok(eveningIdx > moveIdx, "evening close under Move hero");
-assert.ok(kitIdx > eveningIdx, "evening close before kit placeholder");
+// Settled Day: Close is a sibling after the hero (after kit), not between Move and kit
+assert.ok(eveningIdx > kitIdx, "evening close after kit placeholder");
+assert.ok(kitLineIdx > 0 && eveningIdx > kitLineIdx, "evening close after kit line");
+assert.ok(skyIdx > eveningIdx, "evening close before sky block");
 
 // Never above Move — evening block must sit after move-done
 const moveDoneIdx = todayInd.indexOf('data-testid="today-move-done"');
