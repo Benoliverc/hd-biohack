@@ -140,7 +140,7 @@ Extend `backend/tests/test_usage_admin.py` (and frontend types/UI as needed):
 
 - Branch: `feat/admin-page-visits`
 - Base: `76a537e2881f9a489b0e069885167a5144f3f284` (origin/main after PR #83)
-- Tip SHA: `16b140682d3614f4d7bbcc28ee238bf05a3b158e`
+- Tip SHA: `631c8cf9b9cfac0f9c0bb9becd52905029f05ff6`
 - PR: https://github.com/Benoliverc/hd-biohack/pull/84
 - Worktree: `/workspace/hd-biohack-wt-admin-page-visits`
 - Files: `backend/app/usage.py`, `backend/app/schemas.py`, `backend/app/api/routes.py`, `backend/tests/test_usage_admin.py`, `frontend/src/lib/api.ts`, `frontend/src/components/PageViewTracker.tsx`, `frontend/src/app/layout.tsx`, `frontend/src/app/admin/page.tsx`
