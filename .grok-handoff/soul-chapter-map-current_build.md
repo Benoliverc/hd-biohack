@@ -154,7 +154,7 @@ When the PR is up, tell Grok Bot: PR URL, branch, exact tip SHA, files changed, 
 
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/81 — OPEN, not merged
 - **Branch:** `feat/soul-chapter-map`
-- **Tip SHA:** `59a3e26fa0b3bfaa47f74f708184cb217d913ed3` (feature `ba6b54d9220db84fc112b2ede9fb238f3cf1737b`)
+- **Tip SHA:** `a6d7eea1af3a186774c1ffb401c94c4be4baad6f` (feature `ba6b54d9220db84fc112b2ede9fb238f3cf1737b`)
 - **Base SHA (origin/main):** `23f5efb4671607bec0b144b2ab9dbd1f10249559` (post-#80)
 - **Local preview:** http://127.0.0.1:3023 — `/` 200, `/soul` 200
 - **FE-only:** yes (no backend / Railway)
