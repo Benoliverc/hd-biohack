@@ -334,6 +334,9 @@ function SoulUnlockedContent() {
   const [schemaLag, setSchemaLag] = useState(false);
   const [openChapter, setOpenChapter] = useState<SoulChapterId | null>(null);
   const [openPlaybookCard, setOpenPlaybookCard] = useState<string | null>(null);
+  const [markingPartner, setMarkingPartner] = useState(false);
+  const [markPartnerError, setMarkPartnerError] = useState<string | null>(null);
+  const [syncEpoch, setSyncEpoch] = useState(0);
   const hashJumpDoneRef = useRef(false);
 
   const applySoulJumpPlan = useCallback((targetId: string) => {
@@ -409,6 +412,7 @@ function SoulUnlockedContent() {
   useEffect(() => {
     setOpenChapter(null);
     setOpenPlaybookCard(null);
+    setMarkPartnerError(null);
     hashJumpDoneRef.current = false;
   }, [friendId]);
 
@@ -417,6 +421,26 @@ function SoulUnlockedContent() {
     [personOptions, friendId]
   );
   const isPartnerSelected = selectedFriend?.role === "partner";
+
+  const handleMarkAsPartner = useCallback(async () => {
+    if (!selectedFriend || markingPartner) return;
+    setMarkingPartner(true);
+    setMarkPartnerError(null);
+    try {
+      await api.renameChart(selectedFriend.id, selectedFriend.label || "", "partner");
+      // Quiet charts refresh (avoid soul-loading flash) so picker gains · Partner.
+      if (user?.id) {
+        const rows = await api.charts(user.id);
+        setCharts(rows);
+      }
+      // Re-sync so Love can mount under existing partner gates.
+      setSyncEpoch((n) => n + 1);
+    } catch (e) {
+      setMarkPartnerError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setMarkingPartner(false);
+    }
+  }, [selectedFriend, markingPartner, user?.id]);
 
   useEffect(() => {
     if (!user?.id || meId == null || friendId == null || meId === friendId) {
@@ -465,7 +489,7 @@ function SoulUnlockedContent() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, meId, friendId, context]);
+  }, [user?.id, meId, friendId, context, syncEpoch]);
 
   // Deep-link: open matching chapter then scroll once result is ready.
   useEffect(() => {
@@ -536,15 +560,19 @@ function SoulUnlockedContent() {
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-empty"
         >
-          <p className="mb-3 text-sm text-fg-secondary">
-            Soul needs someone else saved — add a person on Chart before aura alchemy can run.
+          <p className="mb-1 text-sm text-fg-secondary">
+            Add someone to explore the aura between both of you.
+          </p>
+          <p className="mb-3 text-xs text-fg-muted">
+            Save their natal on Chart — Soul uses it as the other half of the pair.
           </p>
           <Link
             href="/profile"
+            data-soul-cta-add-person="soul-cta-add-person"
             className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30"
             data-testid="soul-cta-chart"
           >
-            Open Chart to add someone
+            Add a person on Chart
           </Link>
         </div>
       ) : (
@@ -584,6 +612,13 @@ function SoulUnlockedContent() {
                     Partner · Love guidance
                   </span>
                 ) : null}
+                <Link
+                  href="/profile"
+                  className="ml-auto text-xs font-medium text-growth underline-offset-2 hover:underline"
+                  data-testid="soul-add-person"
+                >
+                  Add person
+                </Link>
               </span>
               <select
                 className="min-h-11 rounded-lg border border-border bg-canvas px-3 text-sm text-fg"
@@ -609,7 +644,7 @@ function SoulUnlockedContent() {
               <span className="font-medium text-fg-secondary">
                 {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
               </span>{" "}
-              as Partner on Chart.{" "}
+              as Partner.{" "}
               <Link
                 href="/profile"
                 className="font-medium text-growth underline-offset-2 hover:underline"
@@ -617,7 +652,49 @@ function SoulUnlockedContent() {
                 Open Chart
               </Link>
             </p>
-          ) : null}
+          ) : (
+            <div
+              className="rounded-2xl border border-border bg-elevated p-4"
+              data-testid="soul-mark-partner-prompt"
+            >
+              <p
+                className="mb-3 text-xs text-fg-muted"
+                data-testid="soul-mark-partner-reason"
+              >
+                Want Love guidance with{" "}
+                <span className="font-medium text-fg-secondary">
+                  {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
+                </span>
+                ? Mark them as Partner — it opens a quieter love chapter.{" "}
+                It doesn&apos;t score the bond.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={markingPartner || !selectedFriend}
+                  onClick={() => void handleMarkAsPartner()}
+                  className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid="soul-mark-as-partner"
+                >
+                  {markingPartner ? "Marking…" : "Mark as Partner"}
+                </button>
+                <Link
+                  href="/profile"
+                  className="text-sm font-medium text-growth underline-offset-2 hover:underline"
+                >
+                  Open Chart
+                </Link>
+              </div>
+              {markPartnerError ? (
+                <p
+                  className="mt-2 text-sm text-danger"
+                  data-testid="soul-mark-partner-error"
+                >
+                  {markPartnerError}
+                </p>
+              ) : null}
+            </div>
+          )}
 
           <div data-testid="soul-playbook" className="space-y-6">
           {(apiMissing || schemaLag) && (
