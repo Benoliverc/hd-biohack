@@ -127,8 +127,8 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "you_open_they_defined": {
             "title": "Their emotional weather",
             "body": (
-                "Your emotional center is open, and theirs is defined. You don't just "
-                "notice how they feel — you can take their wave in and turn the volume "
+                "Their moods run on a steadier track than yours. You don't just "
+                "notice how they feel — you can take that weather in and turn the volume "
                 "up. A mood that is passing weather for them can start to feel like your "
                 "personality, your day, or a verdict on the relationship. The gift is "
                 "real empathy. The stretch is remembering the feeling may not have "
@@ -136,7 +136,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
             "try": (
                 "When a strong mood arrives around them, wait before you decide anything "
-                'about "us." Name it out loud: "I think I might be feeling your wave." '
+                'about "us." Name it out loud: "I think I might be feeling your mood, not mine." '
                 "Let their clarity come back before you treat the feeling as a conclusion."
             ),
         },
@@ -171,7 +171,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "both_open": {
             "title": "A shared emotional field",
             "body": (
-                "Neither of you has a fixed emotional wave. Moods in the room — a film, "
+                "Neither of you has a fixed emotional weather. Moods in the room — a film, "
                 "a crowded dinner, someone else's argument — can color both of you. The "
                 "gift is flexibility and a fine sensor for the field. The stretch is not "
                 "turning every shared mood into a story about the relationship."
@@ -187,12 +187,12 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "you_open_they_defined": {
             "title": "Their life-force pace",
             "body": (
-                "Your sacral center is open, and theirs is defined. Their gut response "
-                "— the uh-huh or unh-uh — can feel louder than your own sense of energy. "
+                "They get a clear body yes or no. That signal "
+                "can feel louder than your own sense of energy. "
                 "You may find yourself matching their work rate, their yes, or their "
                 "restlessness until your body is spent. The gift is learning what "
                 "sustainable response looks like beside them. The stretch is not treating "
-                "their sacral tempo as the couple's law."
+                "their pace as the law of the house."
             ),
             "try": (
                 "Before you agree to a shared push, put a hand on your own belly and "
@@ -203,10 +203,10 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "you_defined_they_open": {
             "title": "You set the energy tempo",
             "body": (
-                "Your sacral is defined — you get a gut sound about what has energy. "
+                "You get a clear gut sound about what has energy. "
                 "They can absorb that drive and try to keep up, then crash or resent "
-                "the pace. If you treat every sacral yes as a joint project, they may "
-                "say yes with your energy instead of their capacity."
+                "the pace. If you treat every gut yes as a joint project, they may "
+                "agree on your energy instead of their capacity."
             ),
             "try": (
                 "When your gut lights up for something big, ask whether they want in "
@@ -217,7 +217,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "both_defined": {
             "title": "Two gut engines",
             "body": (
-                "You both have a defined sacral, so each of you has a real gut yes and "
+                "You both carry a steady gut engine, so each of you has a real gut yes and "
                 "no. That is a lot of life force in one home — and two calendars that "
                 "can fill without either of you noticing. The harmony is honest response "
                 "meeting honest response when both are allowed to speak."
@@ -230,7 +230,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "both_open": {
             "title": "A shared energy field",
             "body": (
-                "Neither of you has a fixed sacral motor. The energy in the room — "
+                "Neither of you has a fixed life-force motor. The energy in the room — "
                 "work culture, friends who never stop, a week of urgency — can pull "
                 "both of you into overdoing. The gift is flexibility. The stretch is "
                 "not outsourcing your rest to whoever looks busier."
@@ -699,7 +699,7 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Generator|Manifesting Generator": {
         "body": (
-            "The Generator wants a clean sacral answer; the Manifesting Generator "
+            "The Generator wants a clean gut answer; the Manifesting Generator "
             "may already be mid-pivot while still talking. Conversation works when "
             "pivots are named and the Generator is not rushed into a yes."
         ),
@@ -712,7 +712,7 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
         "body": (
             "The Manifestor often informs to clear a path; the Generator needs a "
             "real response beat. Talks go sideways when informing sounds like a done "
-            "deal, or when a sacral no is taken as a personal stop sign."
+            "deal, or when a gut no is taken as a personal stop sign."
         ),
         "try": (
             "Manifestor: inform, then ask for a gut response. Generator: give a "
@@ -745,7 +745,7 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
         "body": (
             "Initiation meets multi-track response. Talks work when the Manifestor "
             "informs cleanly and the MG does not treat every inform as a joint "
-            "project needing instant sacral stamps."
+            "project needing instant gut stamps."
         ),
         "try": (
             "Separate \"I'm telling you\" from \"I need us to decide.\" Use those "
@@ -888,7 +888,7 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
         "title": "When things get hard",
         "body": (
             "The Manifestor can inform a decision that feels like a slam to the "
-            "Generator; the Generator's sacral no can feel like a cage to the "
+            "Generator; the Generator's gut no can feel like a cage to the "
             "Manifestor. Inform and respond are the repair path — not control."
         ),
         "try": (
@@ -1043,23 +1043,23 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|sacral": _auth(
         "Different decision clocks",
         (
-            "You decide on different clocks. One of you needs the emotional wave to "
+            "You decide on different clocks. One of you needs the emotional weather to "
             "rise and fall before a real yes exists. The other gets a gut sound now "
             "— uh-huh or unh-uh — that goes stale if you table it too long. This is "
-            "not stubbornness versus impulsiveness. It is two honest authorities on "
+            "not stubbornness versus impulsiveness. It is two honest ways of deciding "
             "two tempos."
         ),
         (
-            "Don't force a shared deadline. The sacral response can be spoken as a "
+            "Don't force a shared deadline. The gut response can be spoken as a "
             "first body read (\"my gut is a yes right now\") and the emotional "
-            "partner can sleep on it. Revisit once, after the wave has moved. A "
+            "partner can sleep on it. Revisit once, after the feeling has settled. A "
             "pressured \"just decide\" helps neither of you."
         ),
     ),
     "emotional|emotional": _auth(
         "Same emotional clock",
         (
-            "You both decide on the emotional wave. Clarity comes after feeling has "
+            "You both decide on the emotional weather. Clarity comes after feeling has "
             "moved — not in the spike. The harmony is that neither of you needs to "
             "fake certainty for the other. The stretch is two waves cresting on "
             "different nights and calling it a stalemate."
@@ -1073,7 +1073,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|splenic": _auth(
         "Different decision clocks",
         (
-            "You decide on different clocks. One of you needs the emotional wave to "
+            "You decide on different clocks. One of you needs the emotional weather to "
             "rise and fall before a real yes exists. The other gets a spontaneous "
             "splenic alert — a now-knowing about health, timing, or safety — that "
             "fades if you put it on trial. This is not drama versus paranoia. It is "
@@ -1088,7 +1088,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "sacral|splenic": _auth(
         "Two instant body clocks",
         (
-            "You both decide in the body now — sacral response and splenic alert. "
+            "You both decide in the body now — gut response and splenic alert. "
             "The harmony is speed with honesty when you trust the first signal. The "
             "stretch is stacking instant nos and yeses until the room feels jumpy, "
             "or overruling each other's body with logic after the fact."
@@ -1100,7 +1100,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
         ),
     ),
     "sacral|sacral": _auth(
-        "Same sacral clock",
+        "Same gut clock",
         (
             "You both get a gut sound — uh-huh or unh-uh — that wants to be trusted "
             "in the moment. The harmony is two honest responses that can build a "
@@ -1129,13 +1129,13 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "ego|emotional": _auth(
         "Wave meets will",
         (
-            "One of you needs the emotional wave before a real yes exists. The other "
+            "One of you needs the emotional weather before a real yes exists. The other "
             "decides through will and heart commitments — what they will stand behind. "
             "A pressured promise mid-wave can become a pride fight later. Neither "
             "clock is wrong."
         ),
         (
-            "Let the will name what it can commit to after the wave has moved — not "
+            "Let the will name what it can commit to after the feeling has settled — not "
             "as a dare mid-spike. Soften renegotiation so pride does not block honesty."
         ),
     ),
@@ -1155,7 +1155,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|lunar": _auth(
         "Wave meets lunar cycle",
         (
-            "One of you rides an emotional wave; the other needs a lunar cycle and a "
+            "One of you rides emotional weather; the other needs a lunar cycle and a "
             "healthy environment before certainty. Both are slow compared with gut "
             "speed — and that is a gift when you stop treating waiting as avoidance."
         ),
@@ -1173,55 +1173,55 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
             "helps neither clock."
         ),
         (
-            "Choose a calm sounding-board setting after the emotional wave has "
+            "Choose a calm sounding-board setting after the emotional weather has "
             "moved. Don't use friends as a court while feelings are still spiked."
         ),
     ),
     "ego|sacral": _auth(
         "Gut meets will",
         (
-            "One of you gets a sacral yes/no now. The other commits through will and "
+            "One of you gets a gut yes/no now. The other commits through will and "
             "heart. A gut no can feel like disrespect to pride; a willful yes can "
-            "override a flat sacral. Name which clock you are using."
+            "override a flat gut. Name which clock you are using."
         ),
         (
-            "Sacral speaks first as a body read. Will commits only to what the gut "
+            "Gut speaks first as a body read. Will commits only to what the gut "
             "can sustain — smaller bargains beat heroic promises."
         ),
     ),
     "sacral|self-projected": _auth(
         "Gut meets spoken identity",
         (
-            "One of you answers from the sacral now. The other finds direction by "
+            "One of you answers from the gut now. The other finds direction by "
             "talking it through. A gut no mid-monologue can feel like a shut door; "
-            "a long talk can stale a sacral yes."
+            "a long talk can stale a gut yes."
         ),
         (
             "Let the self-projected partner finish hearing themselves, then ask for "
-            "a fresh sacral read — not a leftover one from twenty minutes ago."
+            "a fresh gut read — not a leftover one from twenty minutes ago."
         ),
     ),
     "lunar|sacral": _auth(
         "Gut meets lunar cycle",
         (
-            "One of you gets a sacral sound now that goes stale if tabled too long. "
+            "One of you gets a gut sound now that goes stale if tabled too long. "
             "The other needs a cycle and a healthy place. This is not impulsiveness "
             "versus flakiness — protect both tempos."
         ),
         (
-            "Capture the sacral first read out loud, then give the lunar partner a "
+            "Capture the gut first read out loud, then give the lunar partner a "
             "named sample window. Revisit once — don't keep the gut on indefinite hold."
         ),
     ),
     "mental|sacral": _auth(
         "Gut meets sounding board",
         (
-            "One of you knows from the sacral now. The other needs to talk it out in "
+            "One of you knows from the gut now. The other needs to talk it out in "
             "the right environment. Over-processing a gut yes can kill it; skipping "
             "the sounding board can leave the mental authority unmoored."
         ),
         (
-            "Speak the sacral read first, then take it to one trusted sounding-board "
+            "Speak the gut read first, then take it to one trusted sounding-board "
             "setting — not a group debate that overrides the body."
         ),
     ),
