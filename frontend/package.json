@@ -18,6 +18,7 @@
     "assert:quiet-move-closure": "npx tsx scripts/assert-quiet-move-closure.mjs",
     "assert:kind-show-up": "npx tsx scripts/assert-kind-show-up.mjs",
     "assert:evening-signature-close": "npx tsx scripts/assert-evening-signature-close.mjs",
+    "assert:settled-day": "npx tsx scripts/assert-settled-day.mjs",
     "assert:soul-chapter-map": "npx tsx scripts/assert-soul-chapter-map.mjs",
     "assert:soul-dual-prompt": "npx tsx scripts/assert-soul-dual-prompt.mjs"
   },
