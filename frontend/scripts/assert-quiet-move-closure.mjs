@@ -52,7 +52,7 @@ assert.match(todayInd, /putProtocolCompletion/);
 assert.match(todayInd, /note: row\.note \?\? null/);
 
 assert.match(en, /today\.moveComplete/);
-assert.match(en, /You met the sky/);
+assert.match(en, /Nice work\. That's enough for today\./);
 assert.doesNotMatch(en, /broke your streak|freeze-out|fire icon/i);
 
 console.log("assert-quiet-move-closure PASS");

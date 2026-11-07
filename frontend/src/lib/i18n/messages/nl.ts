@@ -241,7 +241,7 @@ export const messages = {
   "today.when.midday": "Middag",
   "today.when.evening": "Avond",
   "today.iDidIt": "Gedaan",
-  'today.moveComplete': 'Je ontmoette de hemel — goed gedaan.',
+  'today.moveComplete': 'Goed gedaan. Dat is genoeg voor vandaag.',
   'today.moveNoteLabel': 'Optionele notitie',
   'today.moveNotePlaceholder': 'Eén regel over hoe het ging…',
   'today.showUpLabel': 'Aanwezig',
