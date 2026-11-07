@@ -1,0 +1,72 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+
+type Props = {
+  testId: string;
+  title: string;
+  tease?: string | null;
+  open: boolean;
+  onToggle: () => void;
+  children?: ReactNode;
+  /** Optional accent for Partner Love chapter shell. */
+  accent?: "default" | "energy";
+};
+
+/**
+ * Full-width tease-then-reveal chapter row for the Soul Chapter Map.
+ * Whole header is the hit target; one-open is owned by the parent.
+ */
+export default function SoulChapterCard({
+  testId,
+  title,
+  tease,
+  open,
+  onToggle,
+  children,
+  accent = "default",
+}: Props) {
+  const border =
+    accent === "energy" ? "border-energy/35" : "border-border";
+  const headerBg =
+    accent === "energy"
+      ? open
+        ? "bg-energy-soft/40"
+        : "bg-energy-soft/25 hover:bg-energy-soft/40"
+      : open
+        ? "bg-elevated"
+        : "bg-elevated/80 hover:bg-elevated";
+
+  return (
+    <div
+      data-testid={testId}
+      className={`overflow-hidden rounded-2xl border ${border} bg-elevated`}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className={`flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${headerBg}`}
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-fg">{title}</span>
+          {!open && tease ? (
+            <span className="mt-0.5 block text-xs text-fg-muted line-clamp-2">
+              {tease}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {open ? (
+        <div className="border-t border-border/80 px-4 py-4">{children}</div>
+      ) : null}
+    </div>
+  );
+}
