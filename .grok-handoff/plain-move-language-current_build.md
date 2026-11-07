@@ -123,5 +123,5 @@ Frontend + backend → after dual-gate + Benjamin’s yes: **Vercel and Railway 
 - **Files:** `backend/app/checkin/prescription.py` (MOMENT_MOVES → 5/moment), `backend/tests/test_today_prescription.py` (five-options + jargon-ban-every-line), `frontend/src/lib/i18n/messages/{en,de,es,nl,fr}.ts` (`today.moveComplete`), `frontend/scripts/assert-quiet-move-closure.mjs`
 - **Tests:** pytest `test_today_prescription.py` 16 passed; `tsc --noEmit` clean; `assert-quiet-move-closure` PASS
 - **PR:** https://github.com/Benoliverc/hd-biohack/pull/85
-- **Tip SHA:** `1babf2b9d96cf4bf5e4eaf80903b727215629142`
+- **Tip SHA:** `154d662c59e45d7f3c0222c5e061ae841abfe9c4`
 - **Not merged.** No deploy.
