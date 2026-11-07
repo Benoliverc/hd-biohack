@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -27,6 +27,7 @@ from ..auth import verify_password
 from ..usage import (
     backfill_usage_from_history,
     list_usage_events,
+    record_page_view,
     record_usage_event,
     require_admin_user,
     stats_daily,
@@ -49,6 +50,7 @@ from ..schemas import (
     ProtocolRequest,
     TelemetryIn,
     TransitResponse,
+    PageViewIn,
     UsageEventsPage,
     UsageStatsDay,
     UsageStatsMonth,
@@ -897,13 +899,24 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
 
 
 
+
+@router.post("/usage/page-view", status_code=204)
+def usage_page_view(body: PageViewIn):
+    """Best-effort primary-nav page visit. Always 204; never fails the caller."""
+    try:
+        record_page_view(path=body.path, user_id=body.user_id)
+    except Exception:  # noqa: BLE001
+        pass
+    return Response(status_code=204)
+
+
 @router.get("/admin/usage/events", response_model=UsageEventsPage)
 def admin_usage_events(
     actor_user_id: int = Query(..., description="Acting admin user id"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     day: str | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
-    event_type: str | None = Query(None, description="login|chart_generated|protocol_generated"),
+    event_type: str | None = Query(None, description="login|chart_generated|protocol_generated|page_view"),
     db: Session = Depends(get_db),
 ):
     require_admin_user(db, actor_user_id)

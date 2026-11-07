@@ -276,12 +276,31 @@ class UsageEventsPage(BaseModel):
     items: list[UsageEventOut]
 
 
+class PageVisitStat(BaseModel):
+    views: int = 0
+    unique_users: int = 0
+
+
+class PageVisitsStats(BaseModel):
+    home: PageVisitStat = Field(default_factory=PageVisitStat)
+    today: PageVisitStat = Field(default_factory=PageVisitStat)
+    chart: PageVisitStat = Field(default_factory=PageVisitStat)
+    protocols: PageVisitStat = Field(default_factory=PageVisitStat)
+    soul: PageVisitStat = Field(default_factory=PageVisitStat)
+
+
+class PageViewIn(BaseModel):
+    path: str
+    user_id: int | None = None
+
+
 class UsageStatsDay(BaseModel):
     day: str
     logins: int
     unique_users_logged_in: int
     charts_generated: int
     protocols_generated: int
+    page_visits: PageVisitsStats = Field(default_factory=PageVisitsStats)
 
 
 class UsageStatsWeek(BaseModel):
@@ -291,6 +310,7 @@ class UsageStatsWeek(BaseModel):
     unique_users_logged_in: int
     charts_generated: int
     protocols_generated: int
+    page_visits: PageVisitsStats = Field(default_factory=PageVisitsStats)
 
 
 class UsageStatsMonth(BaseModel):
@@ -299,6 +319,7 @@ class UsageStatsMonth(BaseModel):
     unique_users_logged_in: int
     charts_generated: int
     protocols_generated: int
+    page_visits: PageVisitsStats = Field(default_factory=PageVisitsStats)
 
 
 class SoulSyncIn(BaseModel):

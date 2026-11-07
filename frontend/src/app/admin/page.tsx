@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   api,
+  type PageVisitsStats,
   type UsageEvent,
   type UsageStatsDay,
   type UsageStatsMonth,
@@ -20,6 +21,31 @@ const EVENT_LABELS: Record<string, string> = {
   login: "Login",
   chart_generated: "Chart",
   protocol_generated: "Protocol",
+  page_view: "Page",
+};
+
+const PAGE_LABELS: Record<keyof PageVisitsStats, string> = {
+  home: "Home",
+  protocols: "Protocols",
+  today: "Today",
+  chart: "Chart",
+  soul: "Soul",
+};
+
+const PAGE_CARD_ORDER: { key: keyof PageVisitsStats; label: string }[] = [
+  { key: "home", label: "Home" },
+  { key: "protocols", label: "Protocols" },
+  { key: "today", label: "Today" },
+  { key: "chart", label: "Chart" },
+  { key: "soul", label: "Soul" },
+];
+
+const EMPTY_PAGE_VISITS: PageVisitsStats = {
+  home: { views: 0, unique_users: 0 },
+  today: { views: 0, unique_users: 0 },
+  chart: { views: 0, unique_users: 0 },
+  protocols: { views: 0, unique_users: 0 },
+  soul: { views: 0, unique_users: 0 },
 };
 
 function formatWhen(iso: string): string {
@@ -40,6 +66,12 @@ function formatWhen(iso: string): string {
 
 function notesFor(ev: UsageEvent): string {
   const m = ev.metadata || {};
+  if (ev.event_type === "page_view") {
+    const page = typeof m.page === "string" ? m.page : "";
+    const label =
+      page in PAGE_LABELS ? PAGE_LABELS[page as keyof PageVisitsStats] : "";
+    return label || (typeof m.path === "string" ? m.path : "—");
+  }
   const bits: string[] = [];
   if (m.saved === true) bits.push("saved");
   if (m.saved === false) bits.push("unsaved");
@@ -145,6 +177,7 @@ export default function AdminPage() {
         charts: today?.charts_generated ?? 0,
         protocols: today?.protocols_generated ?? 0,
         logins: today?.logins ?? 0,
+        pageVisits: today?.page_visits ?? EMPTY_PAGE_VISITS,
         series: daily,
       };
     }
@@ -156,6 +189,7 @@ export default function AdminPage() {
         charts: last?.charts_generated ?? 0,
         protocols: last?.protocols_generated ?? 0,
         logins: last?.logins ?? 0,
+        pageVisits: last?.page_visits ?? EMPTY_PAGE_VISITS,
         series: weekly,
       };
     }
@@ -166,6 +200,7 @@ export default function AdminPage() {
       charts: last?.charts_generated ?? 0,
       protocols: last?.protocols_generated ?? 0,
       logins: last?.logins ?? 0,
+      pageVisits: last?.page_visits ?? EMPTY_PAGE_VISITS,
       series: monthly,
     };
   }, [period, daily, weekly, monthly]);
@@ -226,7 +261,7 @@ export default function AdminPage() {
           <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">Admin</p>
           <h1 className="text-2xl font-semibold tracking-tight text-fg">Usage</h1>
           <p className="mt-1 text-sm text-fg-secondary">
-            Logins, charts, and protocols — UTC days. Times shown in Asia/Hong_Kong.
+            Logins, charts, protocols, and page visits — UTC days. Times shown in Asia/Hong_Kong.
           </p>
         </div>
         <div
@@ -389,6 +424,88 @@ export default function AdminPage() {
 
       <section className="mt-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-fg">Page visits</h2>
+            <p className="mt-1 text-xs text-fg-muted">
+              Page visits start from when this shipped — earlier days stay at 0.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {PAGE_CARD_ORDER.map((p) => {
+            const stat = cards.pageVisits?.[p.key] ?? { views: 0, unique_users: 0 };
+            return (
+              <div
+                key={p.key}
+                className="rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+              >
+                <p className="text-xs text-fg-muted">{p.label}</p>
+                <p className="mt-1 text-3xl font-semibold tabular-nums text-growth">
+                  {loadingStats ? "—" : stat.views}
+                </p>
+                <p className="mt-1 text-xs text-fg-secondary">
+                  {loadingStats ? "—" : `${stat.unique_users} unique visitors`}
+                </p>
+                <p className="mt-1 text-xs text-fg-muted">{cards.label}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {period === "day" && (
+        <section className="mt-4 overflow-hidden rounded-2xl border border-border">
+          <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
+            Page visits — last 14 days (UTC)
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-sunken/60 text-xs text-fg-muted">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Day</th>
+                  <th className="px-3 py-2 font-medium">Home</th>
+                  <th className="px-3 py-2 font-medium">Protocols</th>
+                  <th className="px-3 py-2 font-medium">Today</th>
+                  <th className="px-3 py-2 font-medium">Chart</th>
+                  <th className="px-3 py-2 font-medium">Soul</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingStats ? (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-6 text-fg-muted">
+                      Loading…
+                    </td>
+                  </tr>
+                ) : daily.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-6 text-fg-muted">
+                      No days yet.
+                    </td>
+                  </tr>
+                ) : (
+                  [...daily].reverse().map((row) => {
+                    const pv = row.page_visits ?? EMPTY_PAGE_VISITS;
+                    return (
+                      <tr key={`pv-${row.day}`} className="border-t border-border">
+                        <td className="px-3 py-2 tabular-nums">{row.day}</td>
+                        <td className="px-3 py-2 tabular-nums">{pv.home?.views ?? 0}</td>
+                        <td className="px-3 py-2 tabular-nums">{pv.protocols?.views ?? 0}</td>
+                        <td className="px-3 py-2 tabular-nums">{pv.today?.views ?? 0}</td>
+                        <td className="px-3 py-2 tabular-nums">{pv.chart?.views ?? 0}</td>
+                        <td className="px-3 py-2 tabular-nums">{pv.soul?.views ?? 0}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <section className="mt-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="text-lg font-semibold text-fg">Logbook</h2>
           <div className="flex flex-wrap gap-2">
             <div className="inline-flex rounded-xl border border-border bg-elevated p-1">
@@ -397,6 +514,7 @@ export default function AdminPage() {
                 { id: "login", label: "Login" },
                 { id: "chart_generated", label: "Chart" },
                 { id: "protocol_generated", label: "Protocol" },
+                { id: "page_view", label: "Pages" },
               ].map((f) => (
                 <button
                   key={f.id || "all"}

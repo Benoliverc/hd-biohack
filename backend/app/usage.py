@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from datetime import date, datetime, timedelta
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
 from sqlalchemy.orm import Session
 
@@ -14,8 +17,25 @@ from .models import NatalChart, UsageEvent, User, WeeklyProtocol
 
 logger = logging.getLogger(__name__)
 
-EventType = Literal["login", "chart_generated", "protocol_generated"]
-EVENT_TYPES = ("login", "chart_generated", "protocol_generated")
+EventType = Literal["login", "chart_generated", "protocol_generated", "page_view"]
+EVENT_TYPES = ("login", "chart_generated", "protocol_generated", "page_view")
+ACTION_EVENT_TYPES = ("login", "chart_generated", "protocol_generated")
+
+# Primary nav pages only (Header.tsx). Stats key → exact path.
+PAGE_PATHS: dict[str, str] = {
+    "home": "/",
+    "protocols": "/biohack",
+    "today": "/transits",
+    "chart": "/profile",
+    "soul": "/soul",
+}
+PATH_TO_PAGE: dict[str, str] = {v: k for k, v in PAGE_PATHS.items()}
+PAGE_KEYS = tuple(PAGE_PATHS.keys())
+
+# Best-effort in-process debounce for Strict Mode double-mount.
+_PAGE_VIEW_DEBOUNCE_SEC = 2.0
+_page_view_lock = threading.Lock()
+_page_view_recent: dict[tuple[str, str], float] = {}
 
 
 def admin_email_set() -> set[str]:
@@ -38,6 +58,34 @@ def require_admin_user(db: Session, actor_user_id: int) -> User:
     return user
 
 
+def normalize_page_path(raw: str | None) -> str:
+    """Strip query/hash; collapse empty/trailing slash to /; keep known prefixes exact."""
+    if raw is None:
+        return "/"
+    s = str(raw).strip()
+    if not s:
+        return "/"
+    # Drop scheme/host if a full URL sneaks in; keep path only.
+    try:
+        parts = urlsplit(s if "://" in s else f"http://local{s if s.startswith('/') else '/' + s}")
+        path = parts.path or "/"
+    except Exception:  # noqa: BLE001
+        path = s.split("?", 1)[0].split("#", 1)[0]
+    if not path.startswith("/"):
+        path = "/" + path
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/") or "/"
+    return path or "/"
+
+
+def page_key_for_path(path: str) -> str | None:
+    return PATH_TO_PAGE.get(normalize_page_path(path))
+
+
+def _empty_page_visits() -> dict[str, dict[str, int]]:
+    return {k: {"views": 0, "unique_users": 0} for k in PAGE_KEYS}
+
+
 def record_usage_event(
     *,
     user: User | None = None,
@@ -52,7 +100,8 @@ def record_usage_event(
         return
     uid = user_id if user_id is not None else (user.id if user else None)
     snap_email = (email if email is not None else (user.email if user else "")) or ""
-    if uid is None and not snap_email:
+    # Anonymous allowed only for page_view (logged-out Home visits).
+    if uid is None and not snap_email and event_type != "page_view":
         return
     db = SessionLocal()
     try:
@@ -74,6 +123,58 @@ def record_usage_event(
             pass
     finally:
         db.close()
+
+
+def _page_view_debounced(uid: int | None, page: str) -> bool:
+    """Return True if this write should be skipped (recent duplicate)."""
+    key = (str(uid) if uid is not None else "anon", page)
+    now = time.monotonic()
+    with _page_view_lock:
+        last = _page_view_recent.get(key)
+        # Prune stale entries opportunistically
+        stale = [k for k, t in _page_view_recent.items() if now - t > _PAGE_VIEW_DEBOUNCE_SEC * 5]
+        for k in stale:
+            _page_view_recent.pop(k, None)
+        if last is not None and (now - last) < _PAGE_VIEW_DEBOUNCE_SEC:
+            return True
+        _page_view_recent[key] = now
+        return False
+
+
+def record_page_view(*, path: str, user_id: int | None = None) -> bool:
+    """
+    Best-effort page_view for a known primary-nav path.
+    Returns True if a row was attempted/written, False if ignored (unknown path / debounce).
+    Never raises.
+    """
+    try:
+        norm = normalize_page_path(path)
+        page = page_key_for_path(norm)
+        if page is None:
+            return False
+        if _page_view_debounced(user_id, page):
+            return False
+        snap_email = ""
+        if user_id is not None:
+            db = SessionLocal()
+            try:
+                u = db.get(User, user_id)
+                if u and u.email:
+                    snap_email = u.email
+            except Exception:  # noqa: BLE001
+                logger.exception("page_view email lookup failed user_id=%s", user_id)
+            finally:
+                db.close()
+        record_usage_event(
+            user_id=user_id,
+            email=snap_email,
+            event_type="page_view",
+            metadata={"page": page, "path": PAGE_PATHS[page]},
+        )
+        return True
+    except Exception:  # noqa: BLE001
+        logger.exception("record_page_view failed path=%s user_id=%s", path, user_id)
+        return False
 
 
 def _parse_day(s: str) -> date:
@@ -100,6 +201,9 @@ def list_usage_events(
         if event_type not in EVENT_TYPES:
             return 0, []
         q = q.filter(UsageEvent.event_type == event_type)
+    else:
+        # Default logbook: action types only — do not flood with page_view.
+        q = q.filter(UsageEvent.event_type.in_(ACTION_EVENT_TYPES))
     if day:
         d = _parse_day(day)
         start, end = _day_bounds(d)
@@ -135,13 +239,25 @@ def list_usage_events(
     return total, items
 
 
+def _page_from_meta(meta: dict[str, Any] | None) -> str | None:
+    if not meta:
+        return None
+    page = meta.get("page")
+    if isinstance(page, str) and page in PAGE_PATHS:
+        return page
+    path = meta.get("path")
+    if isinstance(path, str):
+        return page_key_for_path(path)
+    return None
+
+
 def _aggregate_bucket(
     db: Session,
     start: datetime,
     end: datetime,
-) -> dict[str, int]:
+) -> dict[str, Any]:
     rows = (
-        db.query(UsageEvent.event_type, UsageEvent.user_id)
+        db.query(UsageEvent.event_type, UsageEvent.user_id, UsageEvent.metadata_json)
         .filter(UsageEvent.created_at >= start, UsageEvent.created_at < end)
         .all()
     )
@@ -149,7 +265,9 @@ def _aggregate_bucket(
     login_users: set[int] = set()
     charts = 0
     protocols = 0
-    for et, uid in rows:
+    page_visits = _empty_page_visits()
+    page_users: dict[str, set[int]] = {k: set() for k in PAGE_KEYS}
+    for et, uid, meta in rows:
         if et == "login":
             logins += 1
             if uid is not None:
@@ -158,11 +276,21 @@ def _aggregate_bucket(
             charts += 1
         elif et == "protocol_generated":
             protocols += 1
+        elif et == "page_view":
+            page = _page_from_meta(meta if isinstance(meta, dict) else None)
+            if page is None:
+                continue
+            page_visits[page]["views"] += 1
+            if uid is not None:
+                page_users[page].add(uid)
+    for k in PAGE_KEYS:
+        page_visits[k]["unique_users"] = len(page_users[k])
     return {
         "logins": logins,
         "unique_users_logged_in": len(login_users),
         "charts_generated": charts,
         "protocols_generated": protocols,
+        "page_visits": page_visits,
     }
 
 

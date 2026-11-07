@@ -29,14 +29,22 @@ from app.models import UsageEvent, User
 from app.usage import (
     admin_email_set,
     is_admin_email,
+    record_page_view,
     record_usage_event,
     stats_daily,
     stats_monthly,
     stats_weekly,
+    _page_view_recent,
+    _page_view_lock,
 )
 
 
 client = TestClient(app)
+
+
+def _clear_page_view_debounce() -> None:
+    with _page_view_lock:
+        _page_view_recent.clear()
 
 
 def _db() -> Session:
@@ -207,6 +215,21 @@ def test_ac4_chart_generated_even_without_save():
 
 def test_ac5_protocol_generated():
     admin, _ = _ensure_users()
+    # Protocol endpoint now requires a saved natal chart for the user.
+    save = client.post(
+        "/chart/calculate",
+        json={
+            "birth_date": "1990-05-15",
+            "birth_time": "14:30",
+            "birth_city": "Hong Kong",
+            "user_id": admin.id,
+            "save": True,
+        },
+    )
+    assert save.status_code == 200, save.text
+    natal_id = save.json().get("natal_chart_id")
+    assert natal_id is not None
+
     before = _db()
     try:
         n_before = (
@@ -222,7 +245,7 @@ def test_ac5_protocol_generated():
 
     r = client.post(
         "/biohack/protocol",
-        json={"user_id": admin.id, "natal_chart_id": None},
+        json={"user_id": admin.id, "natal_chart_id": natal_id},
     )
     assert r.status_code == 200, r.text
 
@@ -361,7 +384,229 @@ if __name__ == "__main__":
     test_ac7_week_month_rollups()
     test_ac8_empty_events_ok()
     test_ac9_event_write_failure_does_not_break_login()
+    test_page_view_known_path_records_metadata()
+    test_page_view_unknown_path_writes_nothing()
+    test_page_view_logged_out_counts_views_not_unique()
+    test_page_view_logged_in_increments_views_and_unique()
+    test_page_visits_in_week_month_rollups()
+    test_default_events_exclude_page_view_pages_filter_includes()
+    test_page_view_path_normalization()
+    test_non_admin_still_403_on_usage_stats()
     print("ALL usage admin tests passed")
+
+
+
+def test_page_view_known_path_records_metadata():
+    _clear_page_view_debounce()
+    admin, _ = _ensure_users()
+    before = _db()
+    try:
+        n_before = (
+            before.query(UsageEvent)
+            .filter(UsageEvent.event_type == "page_view")
+            .count()
+        )
+    finally:
+        before.close()
+
+    r = client.post("/usage/page-view", json={"path": "/biohack", "user_id": admin.id})
+    assert r.status_code == 204, r.text
+
+    after = _db()
+    try:
+        rows = (
+            after.query(UsageEvent)
+            .filter(UsageEvent.event_type == "page_view")
+            .order_by(UsageEvent.id.desc())
+            .all()
+        )
+        assert len(rows) == n_before + 1
+        meta = rows[0].metadata_json or {}
+        assert meta.get("page") == "protocols"
+        assert meta.get("path") == "/biohack"
+        assert rows[0].user_id == admin.id
+        assert rows[0].email == admin.email
+    finally:
+        after.close()
+    print("PASS: known path page_view metadata")
+
+
+def test_page_view_unknown_path_writes_nothing():
+    _clear_page_view_debounce()
+    admin, _ = _ensure_users()
+    before = _db()
+    try:
+        n_before = before.query(UsageEvent).filter(UsageEvent.event_type == "page_view").count()
+    finally:
+        before.close()
+
+    r = client.post("/usage/page-view", json={"path": "/settings", "user_id": admin.id})
+    assert r.status_code == 204
+    r2 = client.post("/usage/page-view", json={"path": "/login"})
+    assert r2.status_code == 204
+    r3 = client.post("/usage/page-view", json={"path": "/admin"})
+    assert r3.status_code == 204
+
+    after = _db()
+    try:
+        n_after = after.query(UsageEvent).filter(UsageEvent.event_type == "page_view").count()
+        assert n_after == n_before
+    finally:
+        after.close()
+    print("PASS: unknown path no write")
+
+
+def test_page_view_logged_out_counts_views_not_unique():
+    _clear_page_view_debounce()
+    day = __import__("datetime").datetime.utcnow().date()
+    start = __import__("datetime").datetime(day.year, day.month, day.day)
+
+    db = _db()
+    try:
+        db.query(UsageEvent).filter(
+            UsageEvent.event_type == "page_view",
+            UsageEvent.created_at >= start,
+        ).delete(synchronize_session=False)
+        db.commit()
+    finally:
+        db.close()
+
+    _clear_page_view_debounce()
+    r = client.post("/usage/page-view", json={"path": "/"})
+    assert r.status_code == 204
+
+    db = _db()
+    try:
+        row = (
+            db.query(UsageEvent)
+            .filter(UsageEvent.event_type == "page_view")
+            .order_by(UsageEvent.id.desc())
+            .first()
+        )
+        assert row is not None
+        assert row.user_id is None
+        assert row.email == ""
+        meta = row.metadata_json or {}
+        assert meta.get("page") == "home"
+        assert meta.get("path") == "/"
+
+        daily = stats_daily(db, from_day=day, to_day=day)
+        assert daily[0]["page_visits"]["home"]["views"] >= 1
+        assert daily[0]["page_visits"]["home"]["unique_users"] == 0
+    finally:
+        db.close()
+    print("PASS: logged-out home views, unique=0")
+
+
+def test_page_view_logged_in_increments_views_and_unique():
+    _clear_page_view_debounce()
+    admin, non = _ensure_users()
+    day = __import__("datetime").datetime.utcnow().date()
+    start = __import__("datetime").datetime(day.year, day.month, day.day)
+
+    db = _db()
+    try:
+        db.query(UsageEvent).filter(
+            UsageEvent.event_type == "page_view",
+            UsageEvent.created_at >= start,
+        ).delete(synchronize_session=False)
+        db.commit()
+    finally:
+        db.close()
+
+    _clear_page_view_debounce()
+    assert client.post("/usage/page-view", json={"path": "/soul", "user_id": admin.id}).status_code == 204
+    _clear_page_view_debounce()
+    assert client.post("/usage/page-view", json={"path": "/soul", "user_id": admin.id}).status_code == 204
+    _clear_page_view_debounce()
+    assert client.post("/usage/page-view", json={"path": "/soul", "user_id": non.id}).status_code == 204
+
+    db = _db()
+    try:
+        daily = stats_daily(db, from_day=day, to_day=day)
+        soul = daily[0]["page_visits"]["soul"]
+        assert soul["views"] == 3
+        assert soul["unique_users"] == 2
+    finally:
+        db.close()
+    print("PASS: logged-in views + unique")
+
+
+def test_page_visits_in_week_month_rollups():
+    db = _db()
+    try:
+        weekly = stats_weekly(db, weeks=2)
+        monthly = stats_monthly(db, months=2)
+        assert "page_visits" in weekly[-1]
+        assert "page_visits" in monthly[-1]
+        for key in ("home", "today", "chart", "protocols", "soul"):
+            assert "views" in weekly[-1]["page_visits"][key]
+            assert "unique_users" in weekly[-1]["page_visits"][key]
+    finally:
+        db.close()
+    admin, _ = _ensure_users()
+    r = client.get(f"/admin/usage/stats/weekly?actor_user_id={admin.id}")
+    assert r.status_code == 200
+    assert "page_visits" in r.json()[-1]
+    r2 = client.get(f"/admin/usage/stats/monthly?actor_user_id={admin.id}")
+    assert r2.status_code == 200
+    assert "page_visits" in r2.json()[-1]
+    print("PASS: week/month page_visits")
+
+
+def test_default_events_exclude_page_view_pages_filter_includes():
+    _clear_page_view_debounce()
+    admin, _ = _ensure_users()
+    # Ensure at least one page_view exists
+    client.post("/usage/page-view", json={"path": "/transits", "user_id": admin.id})
+
+    r_all = client.get(f"/admin/usage/events?actor_user_id={admin.id}&limit=200")
+    assert r_all.status_code == 200
+    items_all = r_all.json()["items"]
+    assert all(i["event_type"] != "page_view" for i in items_all)
+
+    r_pages = client.get(
+        f"/admin/usage/events?actor_user_id={admin.id}&event_type=page_view&limit=200"
+    )
+    assert r_pages.status_code == 200
+    items_pages = r_pages.json()["items"]
+    assert r_pages.json()["total"] >= 1
+    assert all(i["event_type"] == "page_view" for i in items_pages)
+    print("PASS: default excludes page_view; filter returns only those")
+
+
+def test_page_view_path_normalization():
+    _clear_page_view_debounce()
+    admin, _ = _ensure_users()
+    r = client.post(
+        "/usage/page-view",
+        json={"path": "/profile?x=1#hash", "user_id": admin.id},
+    )
+    assert r.status_code == 204
+    db = _db()
+    try:
+        row = (
+            db.query(UsageEvent)
+            .filter(UsageEvent.event_type == "page_view")
+            .order_by(UsageEvent.id.desc())
+            .first()
+        )
+        assert row is not None
+        meta = row.metadata_json or {}
+        assert meta.get("page") == "chart"
+        assert meta.get("path") == "/profile"
+        # No query in stored path
+        assert "?" not in meta.get("path", "")
+    finally:
+        db.close()
+    print("PASS: path normalization strips query/hash")
+
+
+def test_non_admin_still_403_on_usage_stats():
+    _, non = _ensure_users()
+    assert client.get(f"/admin/usage/stats/daily?actor_user_id={non.id}").status_code == 403
+    assert client.get(f"/admin/usage/events?actor_user_id={non.id}&event_type=page_view").status_code == 403
+    print("PASS: non-admin 403 on usage (incl page_view filter)")
 
 def test_set_tier_requires_admin_and_self_only():
     """PATCH /users/{id}/tier: admin + self only; open call rejected."""
