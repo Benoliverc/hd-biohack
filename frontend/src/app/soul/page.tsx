@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   api,
@@ -14,10 +14,12 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
+import { ChevronDown } from "lucide-react";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import PartnerOverviewCard from "@/components/soul/PartnerOverviewCard";
 import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
+import SoulChapterCard from "@/components/soul/SoulChapterCard";
 import { partnerSignatureForId } from "@/components/soul/partnerSignatureCopy";
 
 /** Default playbook context (tabs removed — single Playbook view). */
@@ -106,44 +108,65 @@ function partnerFirstNameFromLabel(label: string | null | undefined): string | n
 function InsightCard({
   card,
   showPartnerNuance,
+  open,
+  onToggle,
 }: {
   card: SoulCard;
   showPartnerNuance: boolean;
+  open: boolean;
+  onToggle: () => void;
 }) {
   return (
     <div
       id={`soul-card-${card.id}`}
-      className="rounded-2xl border border-border bg-elevated p-5"
+      className="overflow-hidden rounded-2xl border border-border bg-elevated"
       data-testid={`soul-card-${card.id}`}
     >
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-        {card.title}
-      </h2>
-      <ul className="space-y-3">
-        {card.body_blocks.map((blk, i) => (
-          <li key={`${card.id}-${i}`}>
-            <p className="text-sm font-medium text-fg">{blk.headline}</p>
-            <p className="mt-0.5 text-sm text-fg-secondary">{blk.body}</p>
-          </li>
-        ))}
-      </ul>
-      {card.id === "circuit_bridge" && card.bridges && card.bridges.length > 0 && (
-        <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 text-xs text-fg-muted">
-          {card.bridges.map((b) => {
-            const nuance =
-              showPartnerNuance ? asPartnerNuance(b.partner_nuance) : null;
-            return (
-              <li key={`${b.missing_for}-${b.gate}`}>
-                <p>
-                  Gate {b.gate} · {b.channel || "channel"} · completes{" "}
-                  {b.missing_for === "self" ? "you" : "them"}
-                </p>
-                {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className="flex min-h-11 w-full cursor-pointer items-center gap-3 px-5 py-3 text-left outline-none transition-colors hover:bg-sunken/40 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+      >
+        <h2 className="min-w-0 flex-1 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+          {card.title}
+        </h2>
+        <ChevronDown
+          aria-hidden
+          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {open ? (
+        <div className="border-t border-border/70 px-5 pb-5 pt-3">
+          <ul className="space-y-3">
+            {card.body_blocks.map((blk, i) => (
+              <li key={`${card.id}-${i}`}>
+                <p className="text-sm font-medium text-fg">{blk.headline}</p>
+                <p className="mt-0.5 text-sm text-fg-secondary">{blk.body}</p>
               </li>
-            );
-          })}
-        </ul>
-      )}
+            ))}
+          </ul>
+          {card.id === "circuit_bridge" && card.bridges && card.bridges.length > 0 && (
+            <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 text-xs text-fg-muted">
+              {card.bridges.map((b) => {
+                const nuance =
+                  showPartnerNuance ? asPartnerNuance(b.partner_nuance) : null;
+                return (
+                  <li key={`${b.missing_for}-${b.gate}`}>
+                    <p>
+                      Gate {b.gate} · {b.channel || "channel"} · completes{" "}
+                      {b.missing_for === "self" ? "you" : "them"}
+                    </p>
+                    {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -160,6 +183,7 @@ function CompletedChannelsList({
   if (!em.length && !comp.length) return null;
   return (
     <div
+      id="soul-completed-channels"
       className="rounded-2xl border border-border bg-elevated p-5"
       data-testid="soul-completed-channels"
     >
@@ -257,6 +281,43 @@ async function jumpSoulSection(id: string) {
   }
 }
 
+type SoulChapterId = "love" | "spectrums" | "playbook" | "channels" | "centers";
+
+type SoulJumpPlan = {
+  chapter: SoulChapterId | null;
+  playbookCard: string | null;
+};
+
+function planSoulJump(targetId: string): SoulJumpPlan {
+  if (targetId === "soul-hero") {
+    return { chapter: null, playbookCard: null };
+  }
+  if (targetId === "soul-spectrums") {
+    return { chapter: "spectrums", playbookCard: null };
+  }
+  if (targetId === "soul-completed-channels") {
+    return { chapter: "channels", playbookCard: null };
+  }
+  if (targetId === "soul-conditioning") {
+    return { chapter: "centers", playbookCard: null };
+  }
+  if (targetId === "soul-cards") {
+    return { chapter: "playbook", playbookCard: null };
+  }
+  const cardMatch = /^soul-card-(.+)$/.exec(targetId);
+  if (cardMatch) {
+    return { chapter: "playbook", playbookCard: cardMatch[1] };
+  }
+  return { chapter: null, playbookCard: null };
+}
+
+function truncateTease(text: string | null | undefined, max = 96): string | null {
+  const raw = (text || "").trim();
+  if (!raw) return null;
+  if (raw.length <= max) return raw;
+  return `${raw.slice(0, max - 1).trimEnd()}…`;
+}
+
 function SoulUnlockedContent() {
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
@@ -271,6 +332,30 @@ function SoulUnlockedContent() {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [apiMissing, setApiMissing] = useState(false);
   const [schemaLag, setSchemaLag] = useState(false);
+  const [openChapter, setOpenChapter] = useState<SoulChapterId | null>(null);
+  const [openPlaybookCard, setOpenPlaybookCard] = useState<string | null>(null);
+  const hashJumpDoneRef = useRef(false);
+
+  const applySoulJumpPlan = useCallback((targetId: string) => {
+    const plan = planSoulJump(targetId);
+    if (plan.chapter) {
+      setOpenChapter(plan.chapter);
+      if (plan.chapter === "playbook") {
+        setOpenPlaybookCard(plan.playbookCard);
+      }
+    }
+  }, []);
+
+  const handleSoulJump = useCallback(
+    async (targetId: string) => {
+      applySoulJumpPlan(targetId);
+      // Let React commit open chapter / nested card before scrolling.
+      await waitTwoFrames();
+      await waitTwoFrames();
+      await jumpSoulSection(targetId);
+    },
+    [applySoulJumpPlan],
+  );
 
   const loadCharts = useCallback(async () => {
     if (!user?.id) {
@@ -319,6 +404,13 @@ function SoulUnlockedContent() {
       return pickDefaultFriend(personOptions, meId);
     });
   }, [personOptions, meId]);
+
+  // Changing person resets the map so we don't leak Love open into a friend chart.
+  useEffect(() => {
+    setOpenChapter(null);
+    setOpenPlaybookCard(null);
+    hashJumpDoneRef.current = false;
+  }, [friendId]);
 
   const selectedFriend = useMemo(
     () => personOptions.find((r) => r.id === friendId) ?? null,
@@ -374,6 +466,25 @@ function SoulUnlockedContent() {
       cancelled = true;
     };
   }, [user?.id, meId, friendId, context]);
+
+  // Deep-link: open matching chapter then scroll once result is ready.
+  useEffect(() => {
+    if (!result || hashJumpDoneRef.current) return;
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) {
+      hashJumpDoneRef.current = true;
+      return;
+    }
+    hashJumpDoneRef.current = true;
+    applySoulJumpPlan(hash);
+    void (async () => {
+      await waitTwoFrames();
+      await waitTwoFrames();
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    })();
+  }, [result, applySoulJumpPlan]);
 
   const hasMe = meId != null;
   const enoughPeople = hasMe && personOptions.length >= 1;
@@ -489,16 +600,26 @@ function SoulUnlockedContent() {
             </label>
           </div>
 
-          <div data-testid="soul-playbook" className="space-y-6">
-            <div>
-              <p className="mb-1 text-sm font-medium text-fg">Playbook</p>
-              <p className="text-xs text-fg-muted">
-                {isPartnerSelected
-                  ? "Love guidance for the two of you — then the mechanics underneath."
-                  : "Guidance for this pair — signature, spectrums, and cards below."}
-              </p>
-            </div>
+          {isPartnerSelected ? (
+            <p
+              className="text-xs text-fg-muted"
+              data-testid="soul-love-guidance-reason"
+            >
+              Love guidance is on because you marked{" "}
+              <span className="font-medium text-fg-secondary">
+                {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
+              </span>{" "}
+              as Partner on Chart.{" "}
+              <Link
+                href="/profile"
+                className="font-medium text-growth underline-offset-2 hover:underline"
+              >
+                Open Chart
+              </Link>
+            </p>
+          ) : null}
 
+          <div data-testid="soul-playbook" className="space-y-6">
           {(apiMissing || schemaLag) && (
             <div
               className="rounded-2xl border border-border bg-growth/10 p-5"
@@ -529,63 +650,17 @@ function SoulUnlockedContent() {
 
           {result && (
             <>
-              {(() => {
-                const partnerRole = result.friend?.role === "partner";
-                const partnerName =
-                  partnerFirstNameFromLabel(
-                    result.friend?.label || selectedFriend?.label,
-                  ) || "them";
-                const reasonLine = partnerRole ? (
-                  <p
-                    className="text-xs text-fg-muted"
-                    data-testid="soul-love-guidance-reason"
-                  >
-                    Love guidance is on because you marked{" "}
-                    <span className="font-medium text-fg-secondary">{partnerName}</span>{" "}
-                    as Partner on Chart.{" "}
-                    <Link
-                      href="/profile"
-                      className="font-medium text-growth underline-offset-2 hover:underline"
-                    >
-                      Open Chart
-                    </Link>
+              {result.friend?.role === "partner" && !result.partner_overview ? (
+                <div
+                  className="rounded-2xl border border-border bg-elevated p-4"
+                  data-testid="soul-partner-overview-missing"
+                >
+                  <p className="text-sm text-fg-secondary">
+                    Partner is on; love chapters need a sync refresh.
                   </p>
-                ) : null;
-                return (
-                  <>
-                    {partnerRole && result.partner_overview ? (
-                      <PartnerOverviewCard
-                        overview={result.partner_overview}
-                        partnerFirstName={partnerFirstNameFromLabel(
-                          result.friend?.label || selectedFriend?.label,
-                        )}
-                        yourType={result.self?.type}
-                        theirType={result.friend?.type}
-                        reasonLine={reasonLine}
-                      />
-                    ) : null}
-                    {partnerRole && !result.partner_overview ? (
-                      <div
-                        className="rounded-2xl border border-border bg-elevated p-4"
-                        data-testid="soul-partner-overview-missing"
-                      >
-                        {reasonLine}
-                        <p className="mt-2 text-sm text-fg-secondary">
-                          Partner is on; love chapters need a sync refresh.
-                        </p>
-                      </div>
-                    ) : null}
-                    {partnerRole && result.partner_overview ? (
-                      <p
-                        className="text-center text-xs tracking-wide text-fg-muted"
-                        data-testid="soul-partner-signature-bridge"
-                      >
-                        Underneath: the charge pattern between you
-                      </p>
-                    ) : null}
-                  </>
-                );
-              })()}
+                </div>
+              ) : null}
+
               {(() => {
                 const isPartner = result.friend?.role === "partner";
                 const partnerCopy = isPartner
@@ -724,96 +799,223 @@ function SoulUnlockedContent() {
                 );
               })()}
 
+              {result.friend?.role === "partner" ? (
+                <p
+                  className="text-center text-xs tracking-wide text-fg-muted"
+                  data-testid="soul-explore-bond"
+                >
+                  Explore this bond
+                </p>
+              ) : null}
+
               <LiteracyCoach
                 variant="soul"
                 onJump={(targetId) => {
-                  void jumpSoulSection(targetId);
+                  void handleSoulJump(targetId);
                 }}
               />
 
-              <div id="soul-spectrums" className="grid gap-3 md:grid-cols-3" data-testid="soul-spectrums">
-                {result.spectrums.map((s) => (
-                  <SpectrumBar key={s.id} spectrum={s} />
-                ))}
-              </div>
+              {(() => {
+                const isPartner =
+                  result.friend?.role === "partner" &&
+                  Boolean(result.partner_overview);
+                const loveTease =
+                  truncateTease(result.partner_overview?.hook) ||
+                  "How you love · where you harmonize · when it’s hard";
+                const playbookTease =
+                  truncateTease(result.playbook?.lede) ||
+                  truncateTease(result.playbook?.focus_hint) ||
+                  "Body-first moves, power, bridges, and spark for this pair";
+                const toggleChapter = (id: SoulChapterId) => {
+                  setOpenChapter((prev) => (prev === id ? null : id));
+                  // Chapter header toggles start Playbook nested cards closed.
+                  setOpenPlaybookCard(null);
+                };
 
-              {(result.playbook?.lede || result.playbook?.focus_hint) && (
-                <div
-                  className="rounded-2xl border border-growth/30 bg-growth/10 p-4"
-                  data-testid="soul-playbook-lede"
-                >
-                  {result.playbook.focus_hint ? (
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth">
-                      {result.playbook.focus_hint}
-                    </p>
-                  ) : null}
-                  {result.playbook.lede ? (
-                    <p className="text-sm text-fg-secondary">{result.playbook.lede}</p>
-                  ) : null}
-                </div>
-              )}
-
-              <div id="soul-cards" className="space-y-4" data-testid="soul-cards">
-                {orderedCards.map((card) => (
-                  <InsightCard
-                    key={card.id}
-                    card={card}
-                    showPartnerNuance={result.friend?.role === "partner"}
-                  />
-                ))}
-              </div>
-
-              <CompletedChannelsList
-                channelRoles={result.channel_roles || {}}
-                showPartnerNuance={result.friend?.role === "partner"}
-              />
-
-              <details
-                id="soul-conditioning"
-                className="rounded-2xl border border-border bg-elevated p-5"
-                data-testid="soul-conditioning"
-              >
-                <summary className="cursor-pointer text-sm font-semibold text-fg">
-                  Centers &amp; how this is read
-                </summary>
-                <ul className="mt-3 space-y-2">
-                  {result.conditioning_strip.map((row) => {
-                    const arrow =
-                      row.direction === "friend_to_self"
-                        ? "Person → You"
-                        : row.direction === "self_to_friend"
-                          ? "You → Person"
-                          : row.direction === "both_defined"
-                            ? "Both defined"
-                            : "Both open";
-                    return (
-                      <li
-                        key={row.center}
-                        className="rounded-lg border border-border/70 bg-canvas/50 px-3 py-2 text-sm"
-                        data-testid={`soul-center-${row.center}`}
+                return (
+                  <div
+                    className="space-y-3"
+                    data-testid="soul-chapter-map"
+                  >
+                    {isPartner && result.partner_overview ? (
+                      <SoulChapterCard
+                        testId="soul-chapter-love"
+                        title="Love guidance"
+                        tease={loveTease}
+                        open={openChapter === "love"}
+                        onToggle={() => toggleChapter("love")}
+                        accent="energy"
                       >
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <span className="font-medium text-fg">{displayCenter(row.center)}</span>
-                          <span className="text-xs text-fg-muted">{arrow}</span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-fg-secondary">
-                          You: {row.self} · Person: {row.friend}
-                        </p>
-                        {row.hint ? (
-                          <p className="mt-1 text-xs text-fg-muted">{row.hint}</p>
+                        <PartnerOverviewCard
+                          overview={result.partner_overview}
+                          partnerFirstName={partnerFirstNameFromLabel(
+                            result.friend?.label || selectedFriend?.label,
+                          )}
+                          yourType={result.self?.type}
+                          theirType={result.friend?.type}
+                          chapterActive={openChapter === "love"}
+                        />
+                        {openChapter === "love" ? (
+                          <button
+                            type="button"
+                            className="mt-3 text-xs font-medium text-fg-muted underline-offset-2 hover:underline"
+                            onClick={() => setOpenChapter(null)}
+                          >
+                            Back to chapters
+                          </button>
                         ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="mt-4 space-y-2 text-sm text-fg-secondary">
-                  <p>
-                    Spectrum bars show relative charge, continuity, and pacing style — never a
-                    single compatibility percentage. Signature and spectrums stay for this pair;
-                    the Playbook blurb and cards are guidance for how you relate.
-                  </p>
-                </div>
-              </details>
+                      </SoulChapterCard>
+                    ) : null}
+
+                    <SoulChapterCard
+                      testId="soul-chapter-spectrums"
+                      title="Spectrums"
+                      tease="Pace · continuity · charge for this pair"
+                      open={openChapter === "spectrums"}
+                      onToggle={() => toggleChapter("spectrums")}
+                    >
+                      <div
+                        id="soul-spectrums"
+                        className="grid gap-3 md:grid-cols-3"
+                        data-testid="soul-spectrums"
+                      >
+                        {result.spectrums.map((s) => (
+                          <SpectrumBar key={s.id} spectrum={s} />
+                        ))}
+                      </div>
+                    </SoulChapterCard>
+
+                    <SoulChapterCard
+                      testId="soul-chapter-playbook"
+                      title="Playbook"
+                      tease={playbookTease}
+                      open={openChapter === "playbook"}
+                      onToggle={() => toggleChapter("playbook")}
+                    >
+                      {(result.playbook?.lede || result.playbook?.focus_hint) && (
+                        <div
+                          className="mb-4 rounded-2xl border border-growth/30 bg-growth/10 p-4"
+                          data-testid="soul-playbook-lede"
+                        >
+                          {result.playbook.focus_hint ? (
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth">
+                              {result.playbook.focus_hint}
+                            </p>
+                          ) : null}
+                          {result.playbook.lede ? (
+                            <p className="text-sm text-fg-secondary">
+                              {result.playbook.lede}
+                            </p>
+                          ) : null}
+                        </div>
+                      )}
+                      <div
+                        id="soul-cards"
+                        className="space-y-3"
+                        data-testid="soul-cards"
+                      >
+                        {orderedCards.map((card) => (
+                          <InsightCard
+                            key={card.id}
+                            card={card}
+                            showPartnerNuance={result.friend?.role === "partner"}
+                            open={openPlaybookCard === card.id}
+                            onToggle={() =>
+                              setOpenPlaybookCard((prev) =>
+                                prev === card.id ? null : card.id,
+                              )
+                            }
+                          />
+                        ))}
+                      </div>
+                    </SoulChapterCard>
+
+                    <SoulChapterCard
+                      testId="soul-chapter-channels"
+                      title="Channels"
+                      tease="Electromagnetic & companionship overlaps"
+                      open={openChapter === "channels"}
+                      onToggle={() => toggleChapter("channels")}
+                    >
+                      <CompletedChannelsList
+                        channelRoles={result.channel_roles || {}}
+                        showPartnerNuance={result.friend?.role === "partner"}
+                      />
+                      {!(
+                        (result.channel_roles?.electromagnetic || []).length ||
+                        (result.channel_roles?.companionship || []).length
+                      ) ? (
+                        <p
+                          id="soul-completed-channels"
+                          className="text-sm text-fg-muted"
+                          data-testid="soul-completed-channels"
+                        >
+                          No electromagnetic or companionship overlaps for this pair.
+                        </p>
+                      ) : null}
+                    </SoulChapterCard>
+
+                    <SoulChapterCard
+                      testId="soul-chapter-centers"
+                      title="Centers"
+                      tease="You vs them per center — how this is read"
+                      open={openChapter === "centers"}
+                      onToggle={() => toggleChapter("centers")}
+                    >
+                      <div
+                        id="soul-conditioning"
+                        className="space-y-3"
+                        data-testid="soul-conditioning"
+                      >
+                        <ul className="space-y-2">
+                          {result.conditioning_strip.map((row) => {
+                            const arrow =
+                              row.direction === "friend_to_self"
+                                ? "Person → You"
+                                : row.direction === "self_to_friend"
+                                  ? "You → Person"
+                                  : row.direction === "both_defined"
+                                    ? "Both defined"
+                                    : "Both open";
+                            return (
+                              <li
+                                key={row.center}
+                                className="rounded-lg border border-border/70 bg-canvas/50 px-3 py-2 text-sm"
+                                data-testid={`soul-center-${row.center}`}
+                              >
+                                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                  <span className="font-medium text-fg">
+                                    {displayCenter(row.center)}
+                                  </span>
+                                  <span className="text-xs text-fg-muted">
+                                    {arrow}
+                                  </span>
+                                </div>
+                                <p className="mt-0.5 text-xs text-fg-secondary">
+                                  You: {row.self} · Person: {row.friend}
+                                </p>
+                                {row.hint ? (
+                                  <p className="mt-1 text-xs text-fg-muted">
+                                    {row.hint}
+                                  </p>
+                                ) : null}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <div className="space-y-2 text-sm text-fg-secondary">
+                          <p>
+                            Spectrum bars show relative charge, continuity, and pacing
+                            style — never a single compatibility percentage. Signature
+                            and spectrums stay for this pair; the Playbook blurb and
+                            cards are guidance for how you relate.
+                          </p>
+                        </div>
+                      </div>
+                    </SoulChapterCard>
+                  </div>
+                );
+              })()}
             </>
           )}
           </div>
