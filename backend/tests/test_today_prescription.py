@@ -42,6 +42,40 @@ def test_move_word_cap_all_templates():
     print("PASS: all Move templates ≤20 words")
 
 
+def test_every_moment_has_exactly_five_moves():
+    for moment, lines in MOMENT_MOVES.items():
+        assert len(lines) == 5, (moment, len(lines))
+    print("PASS: every moment has exactly five Move options")
+
+
+def test_all_moves_ban_jargon():
+    banned = (
+        "sacral",
+        "gate",
+        "strategy",
+        "projector",
+        "manifestor",
+        "generator",
+        "reflector",
+        "authority",
+        "sky",
+        "wave",
+        "crest",
+        "battery",
+        "borrowed",
+        "charge",
+        "fuel",
+        "inputs",
+    )
+    for moment, lines in MOMENT_MOVES.items():
+        for line in lines:
+            lower = line.lower()
+            for word in banned:
+                assert word not in lower, (moment, word, line)
+    print("PASS: all Move lines ban jargon")
+
+
+
 def test_hyper_surplus_no_jargon():
     natal = _natal(
         type="Projector",
@@ -372,6 +406,8 @@ def test_offered_move_item_id_stable():
 
 if __name__ == "__main__":
     test_move_word_cap_all_templates()
+    test_every_moment_has_exactly_five_moves()
+    test_all_moves_ban_jargon()
     test_hyper_surplus_no_jargon()
     test_root_without_sacral_recover()
     test_mind_only_mental_pressure()

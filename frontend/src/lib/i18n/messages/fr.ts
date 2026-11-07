@@ -241,7 +241,7 @@ export const messages = {
   "today.when.midday": "Midi",
   "today.when.evening": "Soir",
   "today.iDidIt": "Fait",
-  'today.moveComplete': 'Tu as rejoint le ciel — beau travail.',
+  'today.moveComplete': "Beau travail. Ça suffit pour aujourd'hui.",
   'today.moveNoteLabel': 'Note optionnelle',
   "today.moveNotePlaceholder": "Une ligne sur comment ça s'est passé…",
   'today.showUpLabel': 'Présence',
