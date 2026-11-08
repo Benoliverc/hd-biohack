@@ -14,12 +14,12 @@ export type PartnerSignatureCopy = {
 
 export const PARTNER_SIGNATURE_COPY: Record<string, PartnerSignatureCopy> = {
   magnetic_alchemy: {
-    title: "The charge between you",
+    title: "Strong pull between you",
     hook: "Have you noticed how the air changes when you're in the same room?",
     body:
       "Closeness arrives fast here — and so does intensity. Pace that heat: say when you need the room, and don't make big calls in the middle of it.",
     why: "Electromagnetic completion, Intimacy channel 59-6, or a mutual Split-to-Single bridge.",
-    chip: "Strong charge",
+    chip: "Strong pull",
   },
   integrated_flow: {
     title: "When you become one current",

@@ -722,7 +722,7 @@ function SoulUnlockedContent() {
               className="rounded-2xl border border-border bg-elevated p-5"
               data-testid="soul-sync-loading"
             >
-              <p className="text-sm text-fg-muted">Reading aura mechanics…</p>
+              <p className="text-sm text-fg-muted">Reading how your charts meet…</p>
             </div>
           )}
 
@@ -784,7 +784,7 @@ function SoulUnlockedContent() {
                           data-testid="soul-signature-tier"
                           className="rounded-full border border-energy/35 bg-energy/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-energy-ink"
                         >
-                          {partnerCopy.chip || "Strong charge"}
+                          {partnerCopy.chip || "Strong pull"}
                         </span>
                       )}
                     </div>
@@ -1072,7 +1072,7 @@ function SoulUnlockedContent() {
                     <SoulChapterCard
                       testId="soul-chapter-centers"
                       title="Centers"
-                      tease="You vs them per center — how this is read"
+                      tease="Who brings which always-on theme"
                       open={openChapter === "centers"}
                       onToggle={() => toggleChapter("centers")}
                     >
@@ -1119,8 +1119,8 @@ function SoulUnlockedContent() {
                         </ul>
                         <div className="space-y-2 text-sm text-fg-secondary">
                           <p>
-                            Spectrum bars show relative charge, continuity, and pacing
-                            style — never a single compatibility percentage. Signature
+                            Spectrum bars show relative intensity, steadiness, and pace
+                            — never a single compatibility percentage. Signature
                             and spectrums stay for this pair; the Playbook blurb and
                             cards are guidance for how you relate.
                           </p>

@@ -237,6 +237,16 @@ def test_spectrums_shape_and_somatic_drivers():
         assert 0 <= s["position"] <= 100
         assert s["low_label"] and s["high_label"]
         assert "Fit" not in s["label"] and "compatible" not in s["summary"].lower()
+    by_id = {s["id"]: s for s in out["spectrums"]}
+    assert by_id["auric_charge"]["label"] == "Intensity"
+    assert by_id["auric_charge"]["low_label"] == "Calmer"
+    assert by_id["auric_charge"]["high_label"] == "High intensity"
+    assert by_id["circuit_continuity"]["label"] == "Steadiness"
+    assert by_id["circuit_continuity"]["low_label"] == "More separate"
+    assert by_id["circuit_continuity"]["high_label"] == "One loop"
+    assert by_id["somatic_pacing"]["label"] == "Pace"
+    assert by_id["somatic_pacing"]["low_label"] == "Easy pace"
+    assert by_id["somatic_pacing"]["high_label"] == "Needs pacing"
     pacing = next(s for s in out["spectrums"] if s["id"] == "somatic_pacing")
     assert any(d["kind"] == "double_emotional" for d in pacing["drivers"])
     assert any(d["kind"] == "sacral_asymmetry" for d in pacing["drivers"])
@@ -540,6 +550,11 @@ def test_playbook_ledes_vary_by_signature_and_context():
         assert work["playbook"]["lede"] != out["playbook"]["lede"]
         assert work["signature"]["id"] == out["signature"]["id"]
     assert len(set(life_ledes.values())) == 3
+    # Open-layer match: magnetic life lede + Body-first playbook title
+    assert life_ledes["magnetic_alchemy"].startswith("Closeness runs hot here.")
+    mag = compute_soul_sync(*fixtures["magnetic_alchemy"], context="life")
+    soma = next(c for c in mag["cards"] if c["id"] == "somatic_playbook")
+    assert soma["title"] == "Body-first playbook"
     print(f"PASS: playbook ledes vary by signature×context {list(life_ledes)}")
 
 

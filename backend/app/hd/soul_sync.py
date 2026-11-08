@@ -183,83 +183,75 @@ BADGE_DESCRIPTIONS: dict[str, str] = {
 PLAYBOOK_LEDES: dict[str, dict[str, str]] = {
     "magnetic_alchemy": {
         "life": (
-            "Highest-signature intimacy field. Prioritize consent, Emotional-wave "
-            "timing, and solo wind-down after contact. Use Sacral/Non-Sacral hygiene "
-            "if present, and treat 59-6 heat as creative fuel you both steward — not "
-            "as proof you must merge calendars."
+            "Closeness runs hot here. Prioritize consent, wait for feelings to settle "
+            "before big calls, and take solo wind-down after contact."
         ),
         "work": (
-            "Channel the magnetic charge into short, high-clarity collaboration "
-            "bursts. Define roles before brainstorming so EM spark does not become "
-            "meeting chaos. End sessions with a hard stop so borrowed sacral/ego "
-            "charge can discharge."
+            "Use the strong pull for short, clear work bursts. Agree roles before you "
+            "brainstorm, and end on time so you can both reset."
         ),
         "play": (
-            "Play hard, recover harder. Prefer novel shared experiences that burn "
-            "the charge cleanly, then separate auras before sleep. Avoid \"one more "
-            "deep talk\" at wave bottom; schedule joy when both authorities say yes."
+            "Play hard, then recover harder. Share something new, then take space "
+            "before sleep. Skip one more deep talk when feelings are low; pick joy "
+            "when you both feel ready."
         ),
     },
     "integrated_flow": {
         "life": (
-            "You wire into one continuous circuit — beautiful for shared direction, "
-            "risky for fused identity. Practice \"my north / our north\" check-ins. "
-            "Protect the open spaces that still belong to each person alone."
+            "You often move as one — great for shared direction, risky if you lose "
+            "your own north. Check in on what is yours and what is ours. Protect time "
+            "that still belongs to each of you alone."
         ),
         "work": (
-            "Use the Single-flow composite for shipping and systems work: one "
-            "backlog, clear owners, shared True North if G unlocked. Break the "
-            "circuit with async solo deep work so Split individuals can think "
-            "without the bridge."
+            "Use the shared flow to ship work: one list, clear owners, a shared aim. "
+            "Also work alone sometimes so each of you can think without the other in "
+            "the room."
         ),
         "play": (
-            "Choose recovery that keeps flow without forcing productivity — walks, "
-            "music, low-stakes making. The triad wants expression; give it a "
-            "playground, then step out of aura so the loop can idle."
+            "Choose rest that keeps you close without turning into more work — walks, "
+            "music, low-stakes making. Give that energy a playground, then step apart "
+            "so the loop can idle."
         ),
     },
     "harmonic_sanctuary": {
         "life": (
-            "Low-friction bond: lean into companionship comfort (food, presence, "
-            "tribal care) and name needs before resentment. Sanctuary dies when "
-            "assumed telepathy replaces requests."
+            "This is a low-friction bond. Lean into comfort — food, presence, care — "
+            "and name needs before resentment. The ease fades when you assume the "
+            "other already knows."
         ),
         "work": (
-            "Favor steady cadence over heroic sprints. Shared authority class helps "
-            "decision rhythm — still write agreements so familiarity does not skip "
-            "scope."
+            "Favor a steady rhythm over heroic sprints. Similar decision styles help — "
+            "still write agreements so familiarity does not skip the details."
         ),
         "play": (
             "Rest together without optimizing. Familiar play, same café, quiet "
-            "parallel presence. Novelty is optional; safety is the feature."
+            "parallel presence. Novelty is optional; feeling safe is the point."
         ),
     },
     "catalytic_growth": {
         "life": (
-            "Developmental mirror with thermostat collisions. Tune compromise "
-            "channels early (Struggle, Recognition, etc.) and celebrate growth "
-            "without turning every evening into a workshop."
+            "You grow each other, and you also collide. Name the tender spots early, "
+            "and celebrate growth without turning every evening into a workshop."
         ),
         "work": (
-            "High momentum pair — assign dominance gifts as explicit strengths and "
-            "schedule conflict reviews. Dense 8-1/9-0 composites burn out teams "
+            "This is a high-momentum pair — name each person's strengths out loud, "
+            "and schedule time to clear friction. Dense time together burns out teams "
             "that never separate."
         ),
         "play": (
             "Alternate intensity with empty space. Competitive play or skill quests "
-            "fit; add mandatory recovery blocks so Active Co-Regulation does not "
-            "become chronic activation."
+            "fit; add real recovery so the push does not become constant activation."
         ),
     },
     "spacious_explorers": {
         "life": (
-            "Breathable field — design intimacy around choice and novelty, not "
-            "locked circuitry. Check Spark & Glue for selective ignition; do not "
-            "force a Magnetic script."
+            "This field needs room to breathe. Design closeness around choice and "
+            "novelty, not a constant merge. Notice what actually lights you up; do "
+            "not force a high-intensity script."
         ),
         "work": (
             "Collaborate through experiments and changing environments. Keep "
-            "ownership clear because open composites dilute \"who decides.\""
+            "ownership clear, because open pairs can blur who decides."
         ),
         "play": (
             "Explore. New places, light plans, easy exits. Space is the chemistry; "
@@ -269,9 +261,9 @@ PLAYBOOK_LEDES: dict[str, dict[str, str]] = {
 }
 
 PLAYBOOK_FOCUS_HINTS: dict[str, str] = {
-    "life": "Lead with pacing & intimacy protocols",
-    "work": "Lead with circuit bridge and role clarity",
-    "play": "Lead with spark, joy, and recovery",
+    "life": "Lead with pace and how you get close",
+    "work": "Lead with who holds which theme, and clear roles",
+    "play": "Lead with joy, spark, and recovery",
 }
 
 
@@ -952,7 +944,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "mutual_split_bridge",
-                "label": "Mutual Split-Bridge (Single Flow)",
+                "label": "You bridge each other's gaps (Split→Single)",
                 "detail": detail,
             }
         )
@@ -965,7 +957,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "shared_compass",
-                "label": "Shared Compass Unlocked (G-Center Defined)",
+                "label": "You find direction together (G Center)",
                 "detail": "Open G + Open G → Defined G together",
             }
         )
@@ -974,7 +966,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "intimacy_lock",
-                "label": "Intimacy & Creative Lock (59-6)",
+                "label": "Closeness runs strong here (59-6)",
                 "detail": "Electromagnetic Intimacy",
             }
         )
@@ -984,7 +976,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "integration_triad",
-                "label": "Integration Triad (10-20-34)",
+                "label": "Identity, voice, and drive link as one (10-20-34)",
                 "detail": triad_detail,
             }
         )
@@ -993,7 +985,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "tribal_bond",
-                "label": "Tribal Bond (Shared 19-49)",
+                "label": "You look after each other's needs (19-49)",
                 "detail": "Companionship Synthesis",
             }
         )
@@ -1005,7 +997,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "mirror_gates",
-                "label": "Mirror Gates (Shared Hanging Gates)",
+                "label": "You share the same open themes",
                 "detail": mirror_detail,
             }
         )
@@ -1015,7 +1007,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "composite_8_1",
-                "label": '8-1 "Have Some Fun" Composite',
+                "label": "Almost fully on together — leave one space (8-1)",
                 "detail": "8 defined / 1 open",
             }
         )
@@ -1023,7 +1015,7 @@ def detect_badges(
         badges.append(
             {
                 "id": "composite_9_0",
-                "label": '9-0 "Full Circuit" Composite',
+                "label": "Fully on together — plan time apart (9-0)",
                 "detail": "9 defined / 0 open",
             }
         )
@@ -1141,13 +1133,13 @@ def build_spectrums(
     charge = int(clamp(charge))
     if charge >= 60:
         charge_summary = (
-            "High-voltage activation — catalytic spark, shared momentum, "
-            "and amplified nervous system output."
+            "You stir each other strongly — lots of shared momentum. Plan rest so "
+            "the intensity does not run the day."
         )
     elif charge >= 30:
-        charge_summary = "Moderate auric charge — noticeable spark with room to breathe."
+        charge_summary = "You stir each other noticeably — with room to breathe."
     else:
-        charge_summary = "Calmer field — independent baselines with selective ignition points."
+        charge_summary = "Each of you stays more yourself — spark shows up in selected moments."
 
     # --- Circuit Continuity ---
     cont_drivers: list[dict[str, Any]] = []
@@ -1188,13 +1180,13 @@ def build_spectrums(
     cont = int(clamp(cont))
     if cont >= 60:
         cont_summary = (
-            "You complete each other's circuitry — thoughts, emotions, and "
-            "actions wire into a single continuous loop."
+            "Together, thoughts and moves often feel like one loop — in Human Design, "
+            "more continuous circuitry."
         )
     elif cont >= 30:
-        cont_summary = "Partial circuit completion — some bridges, some islands."
+        cont_summary = "Some parts of life flow as one; other parts you still handle separately."
     else:
-        cont_summary = "Mostly independent islands — connection through choice, not circuitry."
+        cont_summary = "You connect by choice more than by a constant loop."
 
     # --- Somatic Pacing ---
     pace_drivers: list[dict[str, Any]] = []
@@ -1226,38 +1218,38 @@ def build_spectrums(
     pace = int(clamp(pace))
     if pace >= 60:
         pace_summary = (
-            "High-depth connection that thrives on intentional pacing, "
-            "emotional wave surfing, and solo aura recovery."
+            "This pair goes deep. Slow big decisions, and take time alone after "
+            "intense time together."
         )
     elif pace >= 30:
-        pace_summary = "Some co-regulation helps — name pace before pushing decisions."
+        pace_summary = "Agree on pace before you push a decision."
     else:
-        pace_summary = "Effortless cruise on paper — still protect solo aura after high-charge days."
+        pace_summary = "Pace looks easy on paper — still take time alone after busy or intense days."
 
     return [
         {
             "id": "auric_charge",
-            "label": "Auric Charge",
-            "low_label": "Independent Calm",
-            "high_label": "High-Voltage Lock",
+            "label": "Intensity",
+            "low_label": "Calmer",
+            "high_label": "High intensity",
             "position": charge,
             "summary": charge_summary,
             "drivers": charge_drivers,
         },
         {
             "id": "circuit_continuity",
-            "label": "Circuit Continuity",
-            "low_label": "Independent Islands",
-            "high_label": "Unified Single Flow",
+            "label": "Steadiness",
+            "low_label": "More separate",
+            "high_label": "One loop",
             "position": cont,
             "summary": cont_summary,
             "drivers": cont_drivers,
         },
         {
             "id": "somatic_pacing",
-            "label": "Somatic Pacing Style",
-            "low_label": "Effortless Cruise",
-            "high_label": "Active Co-Regulation",
+            "label": "Pace",
+            "low_label": "Easy pace",
+            "high_label": "Needs pacing",
             "position": pace,
             "summary": pace_summary,
             "drivers": pace_drivers,
@@ -1590,15 +1582,15 @@ def build_cards(
         {"headline": p["title"], "body": p["body"]} for p in protocols
     ]
     easy_pacing_body = (
-        "Pacing looks relatively easy on paper — fewer built-in sacral or double-wave "
-        "collisions — and that can lull a pair into skipping recovery. Quiet fields "
-        "still accumulate charge from sleep debt, travel, and social density. Habit: "
-        "protect solo aura time after high-charge days anyway, and treat \"we feel "
-        "fine\" as a cue to book the buffer before you need it."
+        "Pace looks easy on paper — fewer built-in speed clashes — and that can lull "
+        "a pair into skipping recovery. Quiet days still add up after late nights, "
+        "travel, and busy social time. Habit: protect time alone after intense days "
+        "anyway, and treat \"we feel fine\" as a cue to book the buffer before you "
+        "need it."
     )
     somatic_card: dict[str, Any] = {
         "id": "somatic_playbook",
-        "title": "Tailored Somatic Playbook",
+        "title": "Body-first playbook",
         "body_blocks": soma_blocks
         or [
             {

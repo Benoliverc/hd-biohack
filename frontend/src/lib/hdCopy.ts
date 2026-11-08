@@ -495,10 +495,10 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
   },
   {
     id: "wire-somatic",
-    title: "Somatic playbook + Wire",
+    title: "Body-first playbook + how you wire",
     body:
       "The playbook is body-first: simple co-regulation moves for this pair in the context you picked (work, life, or play). How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label.",
-    jumpLabel: "Somatic playbook",
+    jumpLabel: "Body-first playbook",
     targetId: "soul-card-somatic_playbook",
   },
   {
