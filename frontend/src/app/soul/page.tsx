@@ -21,6 +21,7 @@ import PartnerOverviewCard from "@/components/soul/PartnerOverviewCard";
 import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
 import SoulChapterCard from "@/components/soul/SoulChapterCard";
 import { partnerSignatureForId } from "@/components/soul/partnerSignatureCopy";
+import { friendSignatureForId } from "@/components/soul/friendSignatureCopy";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -191,7 +192,7 @@ function CompletedChannelsList({
         Completed channels
       </h2>
       <p className="mb-3 text-xs text-fg-muted">
-        Electromagnetic and companionship overlaps for this pair — base mechanics stay
+        Where you spark and where you share a baseline — base mechanics stay
         the same; partner notes appear only when Person is marked Partner.
       </p>
       <ul className="space-y-3">
@@ -208,7 +209,7 @@ function CompletedChannelsList({
             >
               <p className="text-sm font-medium text-fg">
                 {name}
-                {gateTxt ? ` (${gateTxt})` : ""} · Electromagnetic
+                {gateTxt ? ` (${gateTxt})` : ""} · Spark
               </p>
               {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
             </li>
@@ -227,7 +228,7 @@ function CompletedChannelsList({
             >
               <p className="text-sm font-medium text-fg">
                 {name}
-                {gateTxt ? ` (${gateTxt})` : ""} · Companionship
+                {gateTxt ? ` (${gateTxt})` : ""} · Shared baseline
               </p>
               {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
             </li>
@@ -743,8 +744,14 @@ function SoulUnlockedContent() {
                 const partnerCopy = isPartner
                   ? partnerSignatureForId(result.signature?.id)
                   : null;
+                const friendCopy = !isPartner
+                  ? friendSignatureForId(result.signature?.id)
+                  : null;
                 const secondaryPartner = isPartner
                   ? partnerSignatureForId(result.secondary_signature?.id)
+                  : null;
+                const secondaryFriend = !isPartner
+                  ? friendSignatureForId(result.secondary_signature?.id)
                   : null;
                 return (
               <div
@@ -797,6 +804,39 @@ function SoulUnlockedContent() {
                       <p className="mt-2 text-xs text-fg-secondary">{partnerCopy.why}</p>
                     </details>
                   </>
+                ) : friendCopy ? (
+                  <>
+                    <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <h2
+                        className="text-3xl font-bold text-growth"
+                        data-testid="soul-signature"
+                      >
+                        <span aria-hidden className="mr-2">
+                          {result.signature.emoji || "⚡"}
+                        </span>
+                        {friendCopy.title}
+                      </h2>
+                      {(result.signature.tier === "highest" ||
+                        result.signature.id === "magnetic_alchemy") && (
+                        <span
+                          data-testid="soul-signature-tier"
+                          className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
+                        >
+                          {friendCopy.chip || "Strong pull"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
+                      {friendCopy.body}
+                    </p>
+                    <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
+                      <summary className="cursor-pointer text-xs font-semibold text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                        Why it feels this way
+                      </summary>
+                      <p className="mt-2 text-xs text-fg-secondary">{friendCopy.why}</p>
+                    </details>
+                  </>
                 ) : (
                   <>
                     <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
@@ -810,15 +850,6 @@ function SoulUnlockedContent() {
                         </span>
                         {result.signature.label}
                       </h2>
-                      {(result.signature.tier === "highest" ||
-                        result.signature.id === "magnetic_alchemy") && (
-                        <span
-                          data-testid="soul-signature-tier"
-                          className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
-                        >
-                          {result.signature.tier_label || "Highest signature"}
-                        </span>
-                      )}
                     </div>
                     <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
                       {result.signature.subtext}
@@ -832,11 +863,17 @@ function SoulUnlockedContent() {
                   >
                     <p className="text-xs font-medium text-fg-secondary">
                       Also:{" "}
-                      {secondaryPartner?.title || result.secondary_signature.label}
+                      {secondaryPartner?.title ||
+                        secondaryFriend?.title ||
+                        result.secondary_signature.label}
                     </p>
                     {secondaryPartner ? (
                       <p className="mt-1 text-xs text-fg-muted">
                         {secondaryPartner.hook}
+                      </p>
+                    ) : secondaryFriend ? (
+                      <p className="mt-1 text-xs text-fg-muted">
+                        {secondaryFriend.body}
                       </p>
                     ) : result.secondary_signature.subtext ? (
                       <p className="mt-1 text-xs text-fg-muted">
@@ -947,7 +984,7 @@ function SoulUnlockedContent() {
                     <SoulChapterCard
                       testId="soul-chapter-spectrums"
                       title="Spectrums"
-                      tease="Pace · continuity · charge for this pair"
+                      tease="Pace · steadiness · intensity for this pair"
                       open={openChapter === "spectrums"}
                       onToggle={() => toggleChapter("spectrums")}
                     >
@@ -1010,7 +1047,7 @@ function SoulUnlockedContent() {
                     <SoulChapterCard
                       testId="soul-chapter-channels"
                       title="Channels"
-                      tease="Electromagnetic & companionship overlaps"
+                      tease="Where you spark and where you share a baseline"
                       open={openChapter === "channels"}
                       onToggle={() => toggleChapter("channels")}
                     >
@@ -1027,7 +1064,7 @@ function SoulUnlockedContent() {
                           className="text-sm text-fg-muted"
                           data-testid="soul-completed-channels"
                         >
-                          No electromagnetic or companionship overlaps for this pair.
+                          No spark wires or shared-baseline channels for this pair yet.
                         </p>
                       ) : null}
                     </SoulChapterCard>
@@ -1109,7 +1146,7 @@ function LockedSoulMock() {
     <div className="space-y-4" aria-hidden data-testid="soul-locked-mock">
       <div className="rounded-2xl border border-border bg-elevated p-5">
         <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
-        <p className="mt-1 text-3xl font-bold text-growth">⚡ Magnetic Alchemy</p>
+        <p className="mt-1 text-3xl font-bold text-growth">⚡ Strong pull between you</p>
         <p className="mt-2 text-sm text-fg-secondary">
           Static preview — live pair sync unlocks with Pro.
         </p>

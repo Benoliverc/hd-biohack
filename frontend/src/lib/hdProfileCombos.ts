@@ -1,7 +1,6 @@
 /** Dedicated Deep Dive profile combo essays (en-GB, educational HD). */
 export const PROFILE_COMBO_ESSAYS: Record<string, string> = {
-  "1/3": `What 1/3 is
-The 1/3 profile is Investigator / Martyr — foundations built through contact with reality. You meet the world by digging for solid ground, and you digest life by experimenting until the map matches what actually happens. This is not a tidy armchair profile; it is research that refuses to stay theoretical.
+  "1/3": `You dig for solid ground, then learn by trying — foundations built through contact with reality. (Profile 1/3 · Investigator / Martyr — Martyr here means trial-and-error learner, not victim.)
 
 Conscious line 1 — Investigator
 Line 1 needs a base: facts, frameworks, skills, and proof that the ground will hold. Anxiety often shows when the foundation feels thin — more study, more prep, more “not yet.” Authority grows when you have investigated enough to stand without pretending. You are here to know the base so thoroughly that others can lean on what you have checked.
@@ -21,8 +20,7 @@ Before big commitments, do your digging — then set a date to test in the real 
 Going deeper
 Think of 1/3 as a laboratory with a library attached. The library (line 1) wants shelves that do not wobble; the laboratory (line 3) keeps running experiments that rearrange those shelves. Maturity is learning to label both rooms. When you feel ashamed after a failed trial, walk yourself back to the lab notebook instead of the courtroom. When you feel frozen before starting, give the investigator a minimum viable base and a calendar date for contact with reality. Friends help most when they ask what you are testing and what you already trust. Over years, your voice becomes calm because it is sourced from foundations embarrassed into honesty — dig, try, revise, dig again.`,
 
-  "1/4": `What 1/4 is
-The 1/4 profile is Investigator / Opportunist — solid foundations that travel through people you already know. You dig for security, then opportunities tend to open sideways through friendship, reputation, and trusted circles rather than cold launches into the void.
+  "1/4": `You dig for a sturdy base, then opportunities travel through people you already know. (Profile 1/4 · Investigator / Opportunist)
 
 Conscious line 1 — Investigator
 You need to feel the base under your feet: study, skill, and evidence. Until the foundation feels real, promoting yourself or changing worlds feels shaky. Once it is solid, you can offer what you know with quiet confidence.
@@ -45,8 +43,7 @@ Going deeper
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "2/4": `What 2/4 is
-The 2/4 profile is Hermit / Opportunist — natural gift meets network. Others call out what you do without trying, and life often advances through friends and familiar communities once you step out of retreat.
+  "2/4": `Natural gift meets network — others call out what you do without trying, and life often advances through friends once you step out of retreat. (Profile 2/4 · Hermit / Opportunist)
 
 Conscious line 2 — Hermit
 You carry talent that can feel effortless from outside and oddly unclaimed inside. Alone-time keeps the gift clear. Being pushed to perform on demand drains you; being sincerely called invites the hermit out with less friction.
@@ -72,8 +69,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "2/5": `What 2/5 is
-The 2/5 profile is Hermit / Heretic — a natural gift wrapped in projection. People cast you as the practical saviour while you privately need retreat to keep the gift real. Visibility and solitude must negotiate constantly.
+  "2/5": `A natural gift wrapped in projection — people cast you as the practical fixer while you privately need retreat to keep the gift real. (Profile 2/5 · Hermit / Heretic — Heretic here means projected problem-solver.)
 
 Conscious line 2 — Hermit
 Talent others spot; solitude you need. You are not designed to be endlessly available. The call matters: forced exposure muddies what is natural; right invitation lets the gift flow.
@@ -96,8 +92,7 @@ Projection is sticky because it is often half-true: you have a gift; people infl
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "3/5": `What 3/5 is
-The 3/5 profile is Martyr / Heretic — discovery through trial, seen by others as the one who should have the practical answer. You learn in public weather: experiments plus projections.
+  "3/5": `You learn by bumping into life, then others project that you have the practical fix. (Profile 3/5 · Martyr / Heretic — trial-and-error meeting projected problem-solver.)
 
 Conscious line 3 — Martyr
 You are built to bump into life, test, break, and revise. Resilience is the curriculum. Perfect first attempts are not the point; honest data from contact is.
@@ -123,8 +118,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "3/6": `What 3/6 is
-The 3/6 profile is Martyr / Role Model — a life that experiments consciously while a longer role-model process runs underneath. Early chaos and later embodiment are both on the map; the bridge is integration.
+  "3/6": `You experiment early, then step back to watch, and later embody what you lived. (Profile 3/6 · Martyr / Role Model)
 
 Conscious line 3 — Martyr
 You meet the world through trial. Bonds, jobs, and ideas get stress-tested. Mistakes refine the compass when you stay curious instead of condemned.
@@ -150,8 +144,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "4/6": `What 4/6 is
-The 4/6 profile is Opportunist / Role Model — influence through known people, ripened into example over a lifetime. Your network meets a long game of becoming someone others can trust by watching how you live.
+  "4/6": `Opportunities arrive through known people, while a longer arc turns you into a living example. (Profile 4/6 · Opportunist / Role Model)
 
 Conscious line 4 — Opportunist
 Opportunities travel through friendship and familiar circles. Warmth, loyalty, and reputation in the tribe open doors that cold ambition cannot. Your people are your path.
@@ -177,8 +170,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "4/1": `What 4/1 is
-The 4/1 profile is Opportunist / Investigator — fixed foundations delivered through network. You are less of a restless experimenter than some profiles; once the base is set and the circle is right, you can be remarkably steady.
+  "4/1": `Network opens doors, and underneath you still need a foundation solid enough to stand on. (Profile 4/1 · Opportunist / Investigator)
 
 Conscious line 4 — Opportunist
 You thrive where you are known. Influence and opportunity move along friendship lines. Investing in community is strategic, not merely social.
@@ -204,8 +196,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "5/1": `What 5/1 is
-The 5/1 profile is Heretic / Investigator — projected practical saviour with a deep need for solid foundations. People look to you for answers; you look underneath for proof those answers deserve to exist.
+  "5/1": `People project practical solutions onto you, and you need a researched base before you carry that projection. (Profile 5/1 · Heretic / Investigator — projected fixer over foundation-builder.)
 
 Conscious line 5 — Heretic
 Others cast you in the fixer role. Universal, practical solutions are your best offerings; vague rescuing is a trap. Managing projection is daily hygiene.
@@ -231,8 +222,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "5/2": `What 5/2 is
-The 5/2 profile is Heretic / Hermit — public projection over a private gift. You are seen as the practical answer while your design needs alone-time to keep that answer clean. The tension between stage and cabin defines the profile.
+  "5/2": `You are cast as the fixer while your gift wants hermit time — visibility and solitude must negotiate. (Profile 5/2 · Heretic / Hermit)
 
 Conscious line 5 — Heretic
 Projections arrive: fix this, save us, make it practical. You can be extraordinarily effective with universal solutions — and exhausted when you wear every story people throw.
@@ -258,8 +248,7 @@ Return to Strategy and Authority before you force this profile to perform. Profi
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
-  "6/2": `What 6/2 is
-The 6/2 profile is Role Model / Hermit — a two-storey life that matures in public view while privately protecting a natural gift. Outwardly you are on a long arc toward embodied example; underneath, you digest experience as someone who needs solitude and sincere invitation. Others often meet the “wise one in progress” before they understand how much alone-time fuels the gift they admire.
+  "6/2": `You grow through a three-part life process toward living example, with a hermit gift others call out. (Profile 6/2 · Role Model / Hermit)
 
 Conscious line 6 — Role Model
 Line 6 is a three-part process across a lifetime. The early chapter often feels like trial and error: bonds form and break, experiments pile up, and you may wonder why life will not stay tidy. A middle chapter tends toward the rooftop — watching, integrating, less eager to dive into every fight. Later, the invitation is to step down as a living example: not lecturing theory, but showing what you have actually lived. You do not need to force the timeline; noticing which chapter you are in already softens shame about “not being there yet.”
@@ -279,8 +268,7 @@ Protect daily or weekly hermit windows before you schedule teaching, leading, or
 Going deeper
 Track your chapter without weaponising it. Early needs permission to experiment without performing wisdom. Rooftop needs permission to watch without being accused of apathy. Later needs permission to embody without entertaining perfection fantasies. In all chapters, hermit time keeps the example human. Answer sincere calls to the real gift, then go dark long enough that the next answer is still yours.`,
 
-  "6/3": `What 6/3 is
-The 6/3 profile is Role Model / Martyr — a long arc toward example that keeps learning through trial underneath. You are oriented toward embodiment over time while still bumping into life for fresh data.
+  "6/3": `You grow toward living example while still learning by trial — the roof and the experiment share one house. (Profile 6/3 · Role Model / Martyr)
 
 Conscious line 6 — Role Model
 The three-part process shapes how you meet the world: early experiments, rooftop observation, later living example. People may cast you as “the one who should have it figured out” even while you are mid-chapter.
