@@ -163,7 +163,7 @@ Authorized by Benjamin’s own-words answer to widget t517s2366: “Yes, build C
 
 - **Branch:** `feat/chart-soul-plain-language`
 - **Base:** `e8c77481f0b6de57b3ed61bf0c42e301ec0e7a70` (main after PR #85)
-- **Tip:** `43367f13e1517a23ff0ec8ed2582fab3a73a90fb`
+- **Tip:** `369f31f0b3c20ad6f6a04f6e18394d2443a849cb`
 - **PR:** (URL after `gh pr create`)
 - **FE+BE:** Yes — frontend friend display map + Chart/Soul copy; backend Love gloss only in `partner_insights.py` (TYPE_LOVE_BANK first-use of gut / inform / invitation). Backend `soul_sync.SIGNATURES` scoring labels left unchanged (friend UI uses frontend map).
 - **Files:** `friendSignatureCopy.ts` (new), `soul/page.tsx`, `hdCopy.ts`, `hdChannelCopy.ts`, `hdProfileCombos.ts`, `profile/page.tsx` (battery fallback), `partner_insights.py`
