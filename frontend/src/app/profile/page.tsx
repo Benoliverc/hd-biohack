@@ -1624,7 +1624,7 @@ export default function ProfilePage() {
                 </p>
                 <p className="mt-2 text-sm text-fg">
                   {TYPE_BATTERY[typeKey] ||
-                    "This is your energy map — how your battery fills and how you decide."}
+                    "This is your energy map — how you fill and how you decide."}
                 </p>
               </div>
 

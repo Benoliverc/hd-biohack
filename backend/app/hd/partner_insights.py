@@ -78,7 +78,7 @@ TYPE_LOVE_BANK: dict[str, str] = {
     "Generator": (
         "You love by putting real energy where a yes lives — showing up, building, "
         "staying with what lights you. The person next to you feels that love when "
-        "you wait for your gut before you promise them the world, and when your yes "
+        "you wait for your gut (body yes/no) before you promise them the world, and when your yes "
         "is allowed to be as honest as your no."
     ),
     "Manifesting Generator": (
@@ -88,13 +88,14 @@ TYPE_LOVE_BANK: dict[str, str] = {
     ),
     "Manifestor": (
         "You love by starting things and clearing a path no one else would have opened. "
-        "The person next to you feels that love when you inform them before you leap, "
+        "The person next to you feels that love when you inform them (tell them first) before you leap, "
         "so your initiation lands as devotion instead of surprise."
     ),
     "Projector": (
         "You love by seeing someone clearly — guiding, noticing, inviting the right use "
-        "of their energy. The person next to you feels that love when you are recognized "
-        "for that sight, not asked to match a stamina you were never built to run."
+        "of their energy. The person next to you feels that love when you get a real "
+        "invitation (asked to share your sight), not asked to match a stamina you were "
+        "never built to run."
     ),
     "Reflector": (
         "You love by sampling the life you share and reflecting it back with surprising "
