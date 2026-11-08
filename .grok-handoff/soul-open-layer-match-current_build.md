@@ -252,7 +252,7 @@ Closed teasers already shipped in #86 stay:
 
 - **Branch:** `feat/soul-open-layer-match`
 - **Base:** `aff0079c44284b8294628d0f9998a58c1572b79d` (main after PR #86)
-- **Tip:** (filled after commit)
+- **Tip:** `d3c408fe0271125082ff0a4891eaf1bbd3cc7b70`
 - **PR:** (filled after create)
 - **FE+BE:** Yes — backend `soul_sync.py` Spectrums / Playbook / badges / easy-pacing + frontend partner title, chrome, i18n, literacy titles.
 - **Friend copy:** unchanged (`friendSignatureCopy.ts`)
