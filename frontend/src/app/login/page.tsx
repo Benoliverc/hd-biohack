@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { writeSessionToken } from "@/lib/session";
+import Link from "next/link";
 
 type Mode = "signin" | "create" | "forgot";
 
@@ -367,6 +368,21 @@ export default function LoginPage() {
               </>
             )}
           </div>
+          <p
+            className="mt-4 text-center type-caption text-fg-muted"
+            data-testid="login-privacy-footer"
+          >
+            <Link
+              href="/privacy"
+              className="text-fg-secondary underline-offset-2 hover:underline"
+            >
+              {t("privacy.link")}
+            </Link>
+            <span aria-hidden className="mx-1.5">
+              ·
+            </span>
+            <span>{t("privacy.copyrightShort")}</span>
+          </p>
         </section>
       </div>
     </div>
