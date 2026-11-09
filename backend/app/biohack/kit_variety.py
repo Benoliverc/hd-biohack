@@ -227,6 +227,10 @@ def pick_kit_lead(
 ) -> dict[str, Any] | None:
     """Pick one moment-fit kit action for a timed slot; rotate across HKT days.
 
+    Bank ``moments.slots`` is a hard filter: an evening-only action (e.g. glycine)
+    never leads Morning, and a morning-only action (e.g. spirulina) never leads
+    Evening. Empty slots means anytime.
+
     Returns a plan-shaped dict (when/item/dose_hint/why/in_inventory/…) or None
     when the kit has no bank match for this slot context.
     """
@@ -246,6 +250,13 @@ def pick_kit_lead(
             continue
         for action in supp.get("actions") or []:
             moments = action.get("moments") or {}
+            slots = {str(s).lower() for s in (moments.get("slots") or [])}
+            # Hard exclude: never place a kit action in a daypart outside its bank slots.
+            # (Off-slot discount used to rotate multi-item kits, but left Morning cards
+            # carrying Evening when/line — e.g. glycine — and Evening cards with Morning
+            # spirulina.) Empty slots = anytime (none in current bank).
+            if slots and slot.lower() not in slots:
+                continue
             score = _moment_score(
                 moments,
                 slot=slot,
@@ -254,10 +265,6 @@ def pick_kit_lead(
                 focus_centers=focus,
                 signal_source=signal_source,
             )
-            # Allow off-slot actions at a discount so multi-item kits still rotate.
-            slots = {str(s).lower() for s in (moments.get("slots") or [])}
-            if slot.lower() not in slots:
-                score = max(0, score - 2)
             candidates.append((score, sid, supp, action))
 
     if not candidates:
