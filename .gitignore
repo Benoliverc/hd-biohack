@@ -18,3 +18,4 @@ frontend/.ux-verify/
 frontend/header-390-biohack.png
 frontend/src/app/biohack/page.tsx.bak*
 node_modules/
+backend/.venv

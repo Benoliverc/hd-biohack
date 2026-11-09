@@ -152,9 +152,35 @@ class UserOut(BaseModel):
     preferred_locale: str | None = None
     first_name: str | None = None
     is_admin: bool = False
+    # Effective Pro access (includes BETA_FULL_ACCESS). FE must not invent this.
+    biohacking_unlocked: bool = False
+    beta_full_access: bool = False
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):  # type: ignore[override]
+        data = super().model_validate(obj, *args, **kwargs)
+        from .entitlements import user_has_biohacking
+
+        unlocked = False
+        if hasattr(obj, "subscription_tier"):
+            unlocked = user_has_biohacking(obj)
+        else:
+            class _U:
+                biohacking_enabled = data.biohacking_enabled
+                subscription_tier = data.subscription_tier
+
+            unlocked = user_has_biohacking(_U())
+        from .config import get_settings
+
+        return data.model_copy(
+            update={
+                "biohacking_unlocked": unlocked,
+                "beta_full_access": bool(get_settings().beta_full_access),
+            }
+        )
 
 
 class UserSettingsPatch(BaseModel):
@@ -217,8 +243,34 @@ class ProtocolCompletionsOut(BaseModel):
 
 
 class LoginIn(BaseModel):
-    username: str = Field(..., min_length=1, max_length=64)
+    """`username` accepts email or username during the overlap period."""
+    username: str = Field(..., min_length=1, max_length=255)
     password: str = Field(..., min_length=1, max_length=128)
+
+
+class RegisterIn(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+    first_name: str | None = Field(default=None, max_length=64)
+
+
+class AuthSessionOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
+
+
+class ForgotPasswordIn(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+
+
+class ResetPasswordIn(BaseModel):
+    token: str = Field(..., min_length=8, max_length=256)
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class MessageOut(BaseModel):
+    message: str
 
 
 class InventoryItemIn(BaseModel):

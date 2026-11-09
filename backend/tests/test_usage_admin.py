@@ -151,7 +151,7 @@ def test_ac3_login_records_event():
 
     r = client.post("/auth/login", json={"username": "Benjamin", "password": "Wolkje"})
     assert r.status_code == 200, r.text
-    assert r.json().get("is_admin") is True
+    assert r.json().get("user", {}).get("is_admin") is True
 
     after = _db()
     try:

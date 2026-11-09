@@ -32,11 +32,49 @@ def seed_test_password_users() -> None:
         db.close()
 
 
+
+def cleanup_probe_user() -> None:
+    """Delete ONLY the auth-audit probe user (id 18 / exact email) if present."""
+    from sqlalchemy import text as sql_text
+    from .database import SessionLocal, engine
+    from .models import User
+
+    db = SessionLocal()
+    try:
+        target_email = "probe-should-not-create@example.invalid"
+        row = db.query(User).filter(User.email == target_email).first()
+        if row is None:
+            # Also match exact id 18 only when email matches the probe (belt-and-suspenders)
+            return
+        uid = row.id
+        # Cascade-clean lightweight child rows we own; avoid broad deletes
+        for table in (
+            "password_reset_tokens",
+            "auth_sessions",
+            "usage_events",
+            "protocol_completions",
+            "user_daily_intentions",
+            "user_biometrics_daily",
+            "user_supplement_inventory",
+            "weekly_protocols",
+            "natal_charts",
+        ):
+            try:
+                db.execute(sql_text(f"DELETE FROM {table} WHERE user_id = :uid"), {"uid": uid})
+            except Exception:
+                pass
+        db.delete(row)
+        db.commit()
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings = get_settings()
     init_ephemeris()
     init_db()
+    cleanup_probe_user()
     if settings.seed_dev_users:
         seed_dev_users()
         seed_test_password_users()

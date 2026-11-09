@@ -33,7 +33,20 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     nominatim_user_agent: str = "hd-biohack-v1/1.0 (local-dev; contact@example.com)"
     enforce_paywall: bool = False
-    seed_dev_users: bool = True
+    # Default OFF for public signup beta — set SEED_DEV_USERS=true only for local/demo.
+    seed_dev_users: bool = False
+    # When true, every signed-in user gets Pro entitlements without rewriting subscription_tier.
+    beta_full_access: bool = True
+    # HMAC / opaque-session signing secret. Empty → ephemeral per-process secret (dev only).
+    session_secret: str = ""
+    # Resend transactional mail (password reset only). Missing key → generic success, no send.
+    resend_api_key: str = ""
+    resend_from_email: str = "Baseline <onboarding@resend.dev>"
+    # Public FE origin for reset links (no trailing slash).
+    frontend_base_url: str = "http://localhost:3000"
+    # Session / reset token lifetimes
+    session_ttl_hours: int = 720  # 30 days
+    reset_token_ttl_minutes: int = 60
     # Comma-separated admin emails (case-insensitive). Prod: include benjaminlammens@gmail.com
     # Local seed Benjamin: benjamin@test.hd-biohack.local
     admin_emails: str = "benjaminlammens@gmail.com,benjamin@test.hd-biohack.local"

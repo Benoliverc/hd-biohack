@@ -6,10 +6,13 @@ import { Activity, FlaskConical, Orbit, Eye, EyeOff, Sparkles } from "lucide-rea
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
+import { writeSessionToken } from "@/lib/session";
+
+type Mode = "signin" | "create" | "forgot";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setSessionUser, refreshUsers } = useApp();
+  const { setSessionUser } = useApp();
   const { t } = useI18n();
   const pillars = [
     { icon: Orbit, title: t("login.pillar.chart.title"), body: t("login.pillar.chart.body") },
@@ -17,34 +20,108 @@ export default function LoginPage() {
     { icon: FlaskConical, title: t("login.pillar.protocols.title"), body: t("login.pillar.protocols.body") },
     { icon: Sparkles, title: t("login.pillar.soul.title"), body: t("login.pillar.soul.body") },
   ];
-  const [username, setUsername] = useState("");
+  const [mode, setMode] = useState<Mode>("signin");
+  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function applySession(accessToken: string, user: Parameters<typeof setSessionUser>[0]) {
+    writeSessionToken(accessToken);
+    setSessionUser(user);
+    router.replace("/");
+  }
+
+  async function onSignIn(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const u = username.trim();
+    setInfo(null);
+    const u = identifier.trim();
     if (!u || !password) {
       setError(t("login.missingCreds"));
       return;
     }
     setLoading(true);
     try {
-      const user = await api.login(u, password);
-      // Seed session with login UserOut (is_admin) so Admin link appears even if
-      // a subsequent GET /users is from an older API that omits the field.
-      setSessionUser(user);
-      await refreshUsers();
-      router.replace("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("login.failed"));
+      const session = await api.login(u, password);
+      await applySession(session.access_token, session.user);
+    } catch {
+      setError(t("login.genericAuthError"));
     } finally {
       setLoading(false);
     }
   }
+
+  async function onCreate(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const em = email.trim();
+    if (!em || !password) {
+      setError(t("login.genericAuthError"));
+      return;
+    }
+    if (password.length < 8) {
+      setError(t("login.passwordTooShort"));
+      return;
+    }
+    setLoading(true);
+    try {
+      const session = await api.register({
+        email: em,
+        password,
+        first_name: firstName.trim() || undefined,
+      });
+      await applySession(session.access_token, session.user);
+    } catch {
+      setError(t("login.genericAuthError"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onForgot(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const em = email.trim();
+    if (!em) {
+      setError(t("login.genericAuthError"));
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.forgotPassword(em);
+      setInfo(res.message || t("login.resetSent"));
+    } catch {
+      // Still generic success — no existence leak
+      setInfo(t("login.resetSent"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const betaNote = (
+    <p
+      className="mt-4 rounded-xl border border-growth/30 bg-growth-soft/60 px-3.5 py-3 type-body text-fg-secondary"
+      data-testid="login-beta-note"
+    >
+      {mode === "create" ? t("login.betaCreateHint") : t("login.betaNote")}
+    </p>
+  );
+
+  const supportLine = (
+    <p className="mt-4 type-caption text-fg-muted">
+      {t("login.supportPrefix")}{" "}
+      <a className="text-growth underline-offset-2 hover:underline" href="mailto:baselineapp@proton.me">
+        baselineapp@proton.me
+      </a>
+    </p>
+  );
 
   return (
     <div className="relative min-h-[calc(100dvh-0px)] overflow-x-clip bg-canvas">
@@ -59,16 +136,14 @@ export default function LoginPage() {
 
       <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
         <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
-          <p className="text-sm font-medium uppercase tracking-[0.14em] text-growth">{t("brand.name")}</p>
+          <p className="type-meta font-medium uppercase tracking-[0.14em] text-growth">{t("brand.name")}</p>
           <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
             {t("login.headline")}
             <span className="mt-2 block text-xl font-normal text-fg-secondary sm:text-2xl">
               {t("login.subhead")}
             </span>
           </h1>
-          <p className="max-w-md text-sm leading-relaxed text-fg-secondary sm:text-base">
-            {t("login.intro")}
-          </p>
+          <p className="max-w-md type-body leading-relaxed text-fg-secondary">{t("login.intro")}</p>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {pillars.map(({ icon: Icon, title, body }) => (
               <li
@@ -80,7 +155,7 @@ export default function LoginPage() {
                 </span>
                 <div className="min-w-0">
                   <p className="font-medium text-fg">{title}</p>
-                  <p className="mt-0.5 text-sm text-fg-muted">{body}</p>
+                  <p className="mt-0.5 type-body text-fg-muted">{body}</p>
                 </div>
               </li>
             ))}
@@ -89,84 +164,269 @@ export default function LoginPage() {
 
         <section className="order-1 w-full max-w-md justify-self-center lg:order-2 lg:justify-self-end">
           <div className="rounded-2xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
-            <h2 className="text-xl font-semibold text-fg">{t("login.title")}</h2>
-            <p className="mt-1 text-sm text-fg-muted">{t("login.hint")}</p>
+            {mode !== "forgot" && (
+              <div className="flex gap-1 rounded-xl bg-canvas/80 p-1" role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "signin"}
+                  className={`min-h-10 flex-1 rounded-lg px-3 type-body font-medium transition ${
+                    mode === "signin" ? "bg-elevated text-fg shadow-sm" : "text-fg-muted hover:text-fg"
+                  }`}
+                  onClick={() => {
+                    setMode("signin");
+                    setError(null);
+                    setInfo(null);
+                  }}
+                  data-testid="login-tab-signin"
+                >
+                  {t("login.title")}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "create"}
+                  className={`min-h-10 flex-1 rounded-lg px-3 type-body font-medium transition ${
+                    mode === "create" ? "bg-elevated text-fg shadow-sm" : "text-fg-muted hover:text-fg"
+                  }`}
+                  onClick={() => {
+                    setMode("create");
+                    setError(null);
+                    setInfo(null);
+                  }}
+                  data-testid="login-tab-create"
+                >
+                  {t("login.createAccount")}
+                </button>
+              </div>
+            )}
 
-            <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-fg-secondary">{t("login.username")}</span>
-                <input
-                  autoComplete="username"
-                  className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
-                  placeholder={t("login.usernamePlaceholder")}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={loading}
-                  data-testid="login-username"
-                />
-              </label>
-
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-fg-secondary">{t("login.password")}</span>
-                <div className="relative">
-                  <input
-                    type={showPw ? "text" : "password"}
+            {mode === "signin" && (
+              <>
+                <h2 className="mt-5 text-xl font-semibold text-fg">{t("login.title")}</h2>
+                <p className="mt-1 type-body text-fg-muted">{t("login.hintEmail")}</p>
+                <form className="mt-6 space-y-4" onSubmit={onSignIn} noValidate>
+                  <label className="block space-y-1.5">
+                    <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
+                    <input
+                      autoComplete="username"
+                      className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+                      placeholder={t("login.emailPlaceholder")}
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      disabled={loading}
+                      data-testid="login-username"
+                    />
+                  </label>
+                  <PasswordField
+                    showPw={showPw}
+                    setShowPw={setShowPw}
+                    password={password}
+                    setPassword={setPassword}
+                    loading={loading}
+                    t={t}
                     autoComplete="current-password"
-                    className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 pr-12 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                    data-testid="login-password"
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg-muted hover:text-fg"
-                    onClick={() => setShowPw((v) => !v)}
-                    aria-label={showPw ? t("login.hidePassword") : t("login.showPassword")}
-                    tabIndex={-1}
+                    className="type-caption font-medium text-growth underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setMode("forgot");
+                      setError(null);
+                      setInfo(null);
+                      setEmail(identifier.includes("@") ? identifier : "");
+                    }}
+                    data-testid="login-forgot-link"
                   >
-                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {t("login.forgotPassword")}
                   </button>
-                </div>
-              </label>
+                  {error && <AuthError message={error} />}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    data-testid="login-submit"
+                    className="flex min-h-12 w-full items-center justify-center rounded-xl bg-growth px-4 text-base font-semibold text-fg-inverse transition hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? t("login.submitting") : t("login.submit")}
+                  </button>
+                </form>
+                {betaNote}
+                {supportLine}
+              </>
+            )}
 
-              {error && (
-                <p
-                  role="alert"
-                  className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger"
-                  data-testid="login-error"
+            {mode === "create" && (
+              <>
+                <h2 className="mt-5 text-xl font-semibold text-fg">{t("login.createAccount")}</h2>
+                <p className="mt-1 type-body text-fg-muted">{t("login.betaCreateHint")}</p>
+                <form className="mt-6 space-y-4" onSubmit={onCreate} noValidate>
+                  <label className="block space-y-1.5">
+                    <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
+                    <input
+                      autoComplete="email"
+                      type="email"
+                      className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+                      placeholder={t("login.emailPlaceholder")}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={loading}
+                      data-testid="create-email"
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="type-body font-medium text-fg-secondary">{t("login.firstNameOptional")}</span>
+                    <input
+                      autoComplete="given-name"
+                      className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={loading}
+                      data-testid="create-first-name"
+                    />
+                  </label>
+                  <PasswordField
+                    showPw={showPw}
+                    setShowPw={setShowPw}
+                    password={password}
+                    setPassword={setPassword}
+                    loading={loading}
+                    t={t}
+                    autoComplete="new-password"
+                  />
+                  {error && <AuthError message={error} />}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    data-testid="create-submit"
+                    className="flex min-h-12 w-full items-center justify-center rounded-xl bg-growth px-4 text-base font-semibold text-fg-inverse transition hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? t("login.creating") : t("login.createAccount")}
+                  </button>
+                </form>
+                <button
+                  type="button"
+                  className="mt-4 type-body text-fg-secondary underline-offset-2 hover:underline"
+                  onClick={() => setMode("signin")}
+                  data-testid="create-switch-signin"
                 >
-                  {error}
-                </p>
-              )}
+                  {t("login.alreadyHaveAccount")}
+                </button>
+                {betaNote}
+                {supportLine}
+              </>
+            )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                data-testid="login-submit"
-                className="flex min-h-12 w-full items-center justify-center rounded-xl bg-growth px-4 text-base font-semibold text-fg-inverse transition hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? t("login.submitting") : t("login.submit")}
-              </button>
-            </form>
-
-            <p
-              className="mt-5 rounded-xl border border-border bg-canvas/60 px-3.5 py-3 text-sm text-fg-muted"
-              data-testid="login-invite-only"
-            >
-              {t("login.inviteOnly")}{" "}
-              <a
-                className="font-medium text-growth underline-offset-2 hover:underline"
-                href="mailto:baselineapp@proton.me?subject=Baseline%20invite%20request"
-              >
-                baselineapp@proton.me
-              </a>{" "}
-              {t("login.waitlist")}
-            </p>
+            {mode === "forgot" && (
+              <>
+                <h2 className="text-xl font-semibold text-fg">{t("login.forgotPassword")}</h2>
+                <p className="mt-1 type-body text-fg-muted">{t("login.forgotHint")}</p>
+                <form className="mt-6 space-y-4" onSubmit={onForgot} noValidate>
+                  <label className="block space-y-1.5">
+                    <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
+                    <input
+                      autoComplete="email"
+                      type="email"
+                      className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={loading}
+                      data-testid="forgot-email"
+                    />
+                  </label>
+                  {error && <AuthError message={error} />}
+                  {info && (
+                    <p
+                      role="status"
+                      className="rounded-lg border border-growth/30 bg-growth/10 px-3 py-2 type-body text-fg-secondary"
+                      data-testid="forgot-success"
+                    >
+                      {info}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    data-testid="forgot-submit"
+                    className="flex min-h-12 w-full items-center justify-center rounded-xl bg-growth px-4 text-base font-semibold text-fg-inverse transition hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? t("login.submitting") : t("login.sendResetLink")}
+                  </button>
+                </form>
+                <button
+                  type="button"
+                  className="mt-4 type-body text-fg-secondary underline-offset-2 hover:underline"
+                  onClick={() => {
+                    setMode("signin");
+                    setInfo(null);
+                    setError(null);
+                  }}
+                >
+                  {t("login.backToSignIn")}
+                </button>
+                {supportLine}
+              </>
+            )}
           </div>
         </section>
       </div>
     </div>
+  );
+}
+
+function AuthError({ message }: { message: string }) {
+  return (
+    <p
+      role="alert"
+      className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 type-body text-danger"
+      data-testid="login-error"
+    >
+      {message}
+    </p>
+  );
+}
+
+function PasswordField({
+  showPw,
+  setShowPw,
+  password,
+  setPassword,
+  loading,
+  t,
+  autoComplete,
+}: {
+  showPw: boolean;
+  setShowPw: (v: boolean | ((p: boolean) => boolean)) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  loading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: (key: any) => string;
+  autoComplete: string;
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="type-body font-medium text-fg-secondary">{t("login.password")}</span>
+      <div className="relative">
+        <input
+          type={showPw ? "text" : "password"}
+          autoComplete={autoComplete}
+          className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 pr-12 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
+          data-testid="login-password"
+        />
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg-muted hover:text-fg"
+          onClick={() => setShowPw((v) => !v)}
+          aria-label={showPw ? t("login.hidePassword") : t("login.showPassword")}
+          tabIndex={-1}
+        >
+          {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+    </label>
   );
 }
