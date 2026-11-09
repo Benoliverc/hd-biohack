@@ -5,7 +5,7 @@
 - **Worktree:** `/workspace/hd-biohack-wt-admin-insights`
 - **Base:** `21a9c4c202c75acbc001983e65fd1919ab1b85bb` (main after #92 kit daypart slots landed)
 - **PR:** #93 — https://github.com/Benoliverc/hd-biohack/pull/93
-- **Tip SHA:** `2a8e5ca623a7b4ff2b0405dfd3a7b8d42b5ac46c`
+- **Tip SHA:** `8f9bacff7898c2526dfc8a8881124d77a8f09d1a`
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Deploy on ship:** FE+BE → **Vercel AND Railway**
 
