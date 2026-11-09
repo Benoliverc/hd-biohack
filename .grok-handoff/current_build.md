@@ -2,6 +2,8 @@
 
 **Branch:** `fix/kit-supplement-daypart-slots`  
 **Worktree:** `/workspace/hd-biohack-wt-kit-timing`  
+**Tip:** `9cb5138cdde46cc891519c2538d6f7cdb611ab5b`
+**PR:** [#92](https://github.com/Benoliverc/hd-biohack/pull/92)
 **Base:** `338433fea46093954fd8dd3be2a6c29d84930f4b` (main @ PR #91 merge)  
 **Scope:** **BE-only** → Railway on ship (no Vercel)
 
