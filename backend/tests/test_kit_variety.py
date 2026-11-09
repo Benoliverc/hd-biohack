@@ -351,6 +351,182 @@ def test_no_duplicate_supplement_across_morning_midday_evening():
     print("PASS: no duplicate supplements across timed slots (21 Hyper days)")
 
 
+def test_glycine_never_morning_spirulina_never_evening():
+    """Regression: bank slots are hard filters (no off-slot discount placement).
+
+    Live bug: glycine landed in Morning with when/line still Evening; spirulina
+    landed in Evening with when still Morning.
+    """
+    kit = ["Glycine", "Spirulina", "Omega-3", "Zinc", "Creatine", "B-Complex"]
+    for i in range(45):
+        day = (date(2026, 10, 1) + timedelta(days=i)).isoformat()
+        for energy, space, focus, signal in (
+            ("Steady", "alone", ["Head", "Root"], "sun_line"),
+            ("Hyper", "alone", ["Head", "Root", "Solar_Plexus"], "moon_gate"),
+            ("Low", "focus", ["Spleen"], "continuity"),
+            ("Charged", "out", ["Sacral"], "conditioning"),
+        ):
+            morn = pick_kit_lead(
+                kit,
+                slot="morning",
+                energy_label=energy,
+                preferred_space=space,
+                focus_centers=focus,
+                signal_source=signal,
+                day_key=day,
+            )
+            if morn:
+                assert morn.get("kit_supplement_id") != "glycine", (
+                    f"glycine must not lead morning ({day} {energy}): {morn}"
+                )
+                when = str(morn.get("when") or "").lower()
+                assert "evening" not in when and "before bed" not in when, (
+                    f"morning lead when/line must not say evening: {morn}"
+                )
+            eve = pick_kit_lead(
+                kit,
+                slot="evening",
+                energy_label=energy,
+                preferred_space=space,
+                focus_centers=focus,
+                signal_source=signal,
+                day_key=day,
+            )
+            if eve:
+                assert eve.get("kit_supplement_id") != "spirulina", (
+                    f"spirulina must not lead evening ({day} {energy}): {eve}"
+                )
+                when = str(eve.get("when") or "").lower()
+                assert when != "morning", f"evening lead when must not be Morning: {eve}"
+    # Positive: glycine can lead evening; spirulina can lead morning
+    glycine_ok = spirulina_ok = False
+    for i in range(60):
+        day = (date(2026, 9, 1) + timedelta(days=i)).isoformat()
+        g = pick_kit_lead(
+            ["Glycine", "Spirulina"],
+            slot="evening",
+            energy_label="Hyper",
+            preferred_space="alone",
+            focus_centers=["Head", "Root"],
+            day_key=day,
+        )
+        if g and g.get("kit_supplement_id") == "glycine":
+            glycine_ok = True
+            assert "evening" in str(g.get("when") or "").lower() or "bed" in str(
+                g.get("item") or ""
+            ).lower()
+        s = pick_kit_lead(
+            ["Glycine", "Spirulina"],
+            slot="morning",
+            energy_label="Steady",
+            preferred_space="focus",
+            focus_centers=["Spleen", "Sacral"],
+            day_key=day,
+        )
+        if s and s.get("kit_supplement_id") == "spirulina":
+            spirulina_ok = True
+            assert "morning" in str(s.get("when") or "").lower() or "spirulina" in str(
+                s.get("item") or ""
+            ).lower()
+    assert glycine_ok, "expected glycine to lead at least one evening"
+    assert spirulina_ok, "expected spirulina to lead at least one morning"
+    print("PASS: glycine evening-only / spirulina morning-only across days")
+
+
+def test_single_slot_bank_actions_stay_in_allowed_slots():
+    """Any action with a single bank slot must only surface in that daypart."""
+    clear_caches()
+    from app.biohack.kit_variety import _load_actions
+
+    bank = _load_actions().get("supplements") or []
+    # Build owned names covering every single-slot-only supplement id we care about
+    # (display name → id). Prefer glycine/spirulina + a spread of others.
+    owned = []
+    single_slot_ids: dict[str, set[str]] = {}
+    for supp in bank:
+        sid = str(supp.get("id") or "")
+        actions = list(supp.get("actions") or [])
+        slot_sets = []
+        for a in actions:
+            slots = {str(s).lower() for s in ((a.get("moments") or {}).get("slots") or [])}
+            if slots:
+                slot_sets.append(slots)
+        if not slot_sets:
+            continue
+        union = set().union(*slot_sets)
+        # Track ids that have NO action for a given daypart
+        single_slot_ids[sid] = union
+        owned.append(str(supp.get("display") or sid))
+    assert "glycine" in single_slot_ids and single_slot_ids["glycine"] == {"evening"}
+    assert "spirulina" in single_slot_ids and single_slot_ids["spirulina"] == {"morning"}
+
+    violations = []
+    for i in range(21):
+        day = (date(2026, 10, 1) + timedelta(days=i)).isoformat()
+        for slot in ("morning", "midday", "evening"):
+            hit = pick_kit_lead(
+                owned,
+                slot=slot,
+                energy_label="Steady",
+                preferred_space="focus",
+                focus_centers=["Head", "Sacral", "Root"],
+                signal_source="sun_line",
+                day_key=f"{day}|{slot}",
+            )
+            if not hit:
+                continue
+            sid = str(hit.get("kit_supplement_id") or "")
+            allowed = single_slot_ids.get(sid) or set()
+            if allowed and slot not in allowed:
+                violations.append((day, slot, sid, hit.get("when"), allowed))
+    assert not violations, f"off-slot kit leads: {violations[:8]}"
+    print(
+        f"PASS: single-slot bank actions honor slots "
+        f"(checked {len(single_slot_ids)} supplements × 21 days)"
+    )
+
+
+def test_glycine_spirulina_only_kit_no_cross_daypart():
+    """Kit of only glycine+spirulina: morning never glycine, evening never spirulina."""
+    kit = ["Glycine", "Spirulina"]
+    for i in range(30):
+        day = (date(2026, 10, 1) + timedelta(days=i)).isoformat()
+        morn = pick_kit_lead(
+            kit,
+            slot="morning",
+            energy_label="Steady",
+            preferred_space="alone",
+            focus_centers=["Head", "Spleen"],
+            day_key=day,
+        )
+        assert morn is not None
+        assert morn["kit_supplement_id"] == "spirulina"
+        assert "evening" not in str(morn.get("when") or "").lower()
+        eve = pick_kit_lead(
+            kit,
+            slot="evening",
+            energy_label="Hyper",
+            preferred_space="alone",
+            focus_centers=["Head", "Root"],
+            day_key=day,
+        )
+        assert eve is not None
+        assert eve["kit_supplement_id"] == "glycine"
+        assert str(eve.get("when") or "").lower() != "morning"
+        # Midday: neither has a midday slot → no kit lead
+        mid = pick_kit_lead(
+            kit,
+            slot="midday",
+            energy_label="Steady",
+            preferred_space="focus",
+            focus_centers=["Sacral"],
+            day_key=day,
+        )
+        assert mid is None, f"expected no midday lead for glycine/spirulina-only kit: {mid}"
+    print("PASS: glycine+spirulina kit respects dayparts; midday empty")
+
+
+
 if __name__ == "__main__":
     test_library_size()
     test_fact_only_for_kit_members()
@@ -365,3 +541,6 @@ if __name__ == "__main__":
     test_multi_item_not_stuck_on_b_or_mag()
     test_fact_has_foot_and_owned_only()
     test_no_duplicate_supplement_across_morning_midday_evening()
+    test_glycine_never_morning_spirulina_never_evening()
+    test_single_slot_bank_actions_stay_in_allowed_slots()
+    test_glycine_spirulina_only_kit_no_cross_daypart()

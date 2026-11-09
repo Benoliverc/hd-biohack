@@ -1,51 +1,45 @@
-# current_build — Subtle Privacy + copyright cover
+# Kit supplement daypart slots — current build
 
-- **Date:** 2026-11-09 (Asia/Hong_Kong)
-- **Branch:** `feat/privacy-copyright-cover`
-- **Worktree:** `/workspace/hd-biohack-wt-privacy-copyright`
-- **Base:** `6adedf1593cc460a4213474c4ee81ef2477b8229` (main after #90 merge)
-- **PR:** #91 — https://github.com/Benoliverc/hd-biohack/pull/91
-- **Tip SHA:** `d873683b11d385314feb7743fcb9b8c9b0af3071`
-- **Do not merge** until Benjamin yes after UX → Ship Gate.
+**Branch:** `fix/kit-supplement-daypart-slots`  
+**Worktree:** `/workspace/hd-biohack-wt-kit-timing`  
+**Tip:** `dab135e4ff2b0dd33683f763845d41bb1c02079e`
+**PR:** [#92](https://github.com/Benoliverc/hd-biohack/pull/92)
+**Base:** `338433fea46093954fd8dd3be2a6c29d84930f4b` (main @ PR #91 merge)  
+**Scope:** **BE-only** → Railway on ship (no Vercel)
 
-## Intent
-Light risk cover only: quiet Privacy link + short `/privacy` page + © line. Not ToS, not modal, not scare copy. Existing medical disclaimers unchanged.
+## Problem (Benjamin)
 
-## Approach (FE-only)
-1. AuthGate allowlists `/privacy` alongside `/login` and `/reset-password` (signed-in users can stay on Privacy; only `/login` redirects home).
-2. New calm `frontend/src/app/privacy/page.tsx` — title, intro, four sections, HD note, full copyright, reuses `home.trust.disclaimer`.
-3. Quiet caption footers: Login under-card + Settings under `settings.footerAccount` — `Privacy` · `© 2026 Baseline`.
-4. i18n keys in en/nl/de/fr/es; non-EN EN verbatim.
-5. Assert: `npm run assert:privacy-copyright-cover`.
+> In protocol it recommends glycine in the morning but also mentions evening. Spirulina in evening which should be a morning supplement. All not right.
 
-## Deploy target
-- **FE-only** → Vercel only (no Railway / BE change).
+## Root cause
+
+`kit_variety.pick_kit_lead` allowed **off-slot** bank actions at a score discount (`score - 2`) so multi-item kits could rotate. That placed evening-only glycine into **Morning** (with `when`/`line` still Evening / “before bed”) and morning-only spirulina into **Evening** (with `when` still Morning). FE only displays BE fields — no FE rewrite needed.
+
+## Fix
+
+Hard-exclude actions whose `moments.slots` is non-empty and does not include the requested daypart. Empty slots = anytime (none in current bank). Bank entries unchanged (no new medical copy/doses).
 
 ## Files
-- `frontend/src/components/AuthGate.tsx`
-- `frontend/src/app/privacy/page.tsx` (new)
-- `frontend/src/app/login/page.tsx`
-- `frontend/src/app/settings/page.tsx`
-- `frontend/src/lib/i18n/messages/{en,nl,de,fr,es}.ts`
-- `frontend/scripts/assert-privacy-copyright-cover.mjs`
-- `frontend/package.json` (script)
+
+- `backend/app/biohack/kit_variety.py` — hard slot filter + docstring
+- `backend/tests/test_kit_variety.py` — glycine/spirulina + general single-slot regressions
+- `.grok-handoff/current_build.md` — this brief
 
 ## Tests
-- `./node_modules/.bin/tsc --noEmit` — exit 0
-- `assert:privacy-copyright-cover` — PASS
-- `assert:i18n-settings` — PASS · keys=309 · parity ok
 
-## Verify
-1. Logged out → open `/privacy` → calm page, locked copy, no session required.
-2. `/login` → under-card `Privacy · © 2026 Baseline`; beta note unchanged.
-3. Settings → quiet strip under account footer; Open Privacy.
-4. Existing Home / Today / Protocols disclaimers unchanged.
+```bash
+cd backend && python -m pytest tests/test_kit_variety.py tests/test_today_prescription.py tests/test_protocols_redesign.py -v
+```
 
-## Out of scope
-- Full ToS / cookie banner / GDPR modal / age gate
-- Stripe / paid checkout legal
-- Resend keys / soft #89–#90 residuals
-- Chart/Soul/Today/Move copy beyond quiet links
+- `test_kit_variety.py`: **17 passed** (incl. 3 new)
+- `test_today_prescription.py` + `test_protocols_redesign.py`: **20 passed**
+
+## Ship
+
+- Open PR → UX → Ship Gate → Benjamin merge-yes
+- Deploy: **Railway only** (BE)
+- Softs muted
 
 ## Open questions
-- None for ship. (Not legal advice — product risk cover as PO requested.)
+
+None. Soft polish from prior PRs not touched.
