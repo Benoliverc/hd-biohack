@@ -509,3 +509,100 @@ class SoulSyncOut(BaseModel):
     composite: SoulCompositeOut
     disclaimer: str = ""
     partner_overview: SoulPartnerOverviewOut | None = None
+
+
+# --- Admin User Insights -------------------------------------------------------
+
+
+class AdminNewUserBrief(BaseModel):
+    id: int
+    display_name: str = ""
+    username: str | None = None
+    email: str
+    created_at: datetime
+
+
+class AdminSignupBannerItem(BaseModel):
+    user_id: int | None = None
+    display_name: str = ""
+    email: str = ""
+    created_at: datetime
+    source: str = "signup_event"
+
+
+class AdminOverviewPulseOut(BaseModel):
+    new_today_count: int
+    new_today: list[AdminNewUserBrief]
+    new_this_week: int
+    new_last_week: int
+    week_spark_delta: int
+    total_accounts: int
+    total_accounts_including_seed: int
+    signups_last_24h: list[AdminSignupBannerItem]
+
+
+class AdminInsightsOut(BaseModel):
+    period_days: int
+    active_users: int
+    new_users: int
+    avg_logins_per_active: float
+    median_days_since_last_login: float | None = None
+    activation_pct: float | None = None
+    activation_count: int = 0
+    today_engagement_pct: float | None = None
+    avg_page_visits_per_active: dict[str, float] = Field(default_factory=dict)
+    avg_charts_per_active: float = 0.0
+    avg_protocols_per_active: float = 0.0
+    return_d1_pct: float | None = None
+    return_d7_pct: float | None = None
+
+
+class AdminUserListItem(BaseModel):
+    id: int
+    email: str
+    username: str | None = None
+    display_name: str = ""
+    first_name: str | None = None
+    created_at: datetime | None = None
+    last_login_at: datetime | None = None
+    login_count: int = 0
+    subscription_tier: str = "free"
+    biohacking_enabled: bool = False
+    biohacking_unlocked: bool = False
+    beta_full_access: bool = False
+    has_me_natal: bool = False
+    last_active_at: datetime | None = None
+    is_seed_or_dev: bool = False
+
+
+class AdminUsersPage(BaseModel):
+    total: int
+    items: list[AdminUserListItem]
+
+
+class AdminUserDetailOut(BaseModel):
+    id: int
+    email: str
+    username: str | None = None
+    display_name: str = ""
+    first_name: str | None = None
+    created_at: datetime | None = None
+    auth_provider: str = "password"
+    subscription_tier: str = "free"
+    biohacking_enabled: bool = False
+    biohacking_unlocked: bool = False
+    beta_full_access: bool = False
+    login_count: int = 0
+    first_login_at: datetime | None = None
+    last_login_at: datetime | None = None
+    days_since_last_login: float | None = None
+    has_me_natal: bool = False
+    people_count: int = 0
+    partner_tagged: bool = False
+    charts_generated: int = 0
+    protocols_generated: int = 0
+    page_views: dict[str, int] = Field(default_factory=dict)
+    recent_events: list[UsageEventOut] = Field(default_factory=list)
+    kit_items_active: int = 0
+    move_completions: int = 0
+    is_seed_or_dev: bool = False

@@ -38,6 +38,7 @@ def init_db() -> None:
     _ensure_natal_chart_columns()
     _ensure_user_auth_columns()
     _ensure_user_settings_columns()
+    _ensure_user_last_login_column()
 
 
 def _ensure_natal_chart_columns() -> None:
@@ -95,3 +96,17 @@ def _ensure_user_settings_columns() -> None:
             conn.execute(text("ALTER TABLE users ADD COLUMN preferred_locale VARCHAR(16)"))
         if "first_name" not in cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN first_name VARCHAR(64)"))
+
+
+def _ensure_user_last_login_column() -> None:
+    """SQLite-friendly ALTER for users.last_login_at when upgrading an existing DB."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    if "users" not in insp.get_table_names():
+        return
+    cols = {c["name"] for c in insp.get_columns("users")}
+    if "last_login_at" in cols:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME"))
