@@ -17,6 +17,27 @@ from app.models import NatalChart, User
 
 client = TestClient(app)
 
+def _headers_for(user: User) -> dict[str, str]:
+    """Login so chart save uses the session user (client user_id is ignored)."""
+    # Ensure password login works
+    db = _db()
+    try:
+        row = db.get(User, user.id)
+        if row and not row.password_hash:
+            row.password_hash = hash_password("test123")
+            db.commit()
+        username = (row.username if row else None) or "ChartSaveUx"
+        email = row.email if row else user.email
+    finally:
+        db.close()
+    # Prefer email login
+    r = client.post("/auth/login", json={"username": email, "password": "test123"})
+    if r.status_code != 200:
+        r = client.post("/auth/login", json={"username": username, "password": "test123"})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
 
 def _db() -> Session:
     return SessionLocal()
@@ -54,6 +75,7 @@ def _ensure_user() -> User:
 
 def test_update_rejects_slot_kind_change():
     user = _ensure_user()
+    headers = _headers_for(user)
     # Clean prior charts for this user
     db = _db()
     try:
@@ -64,6 +86,7 @@ def test_update_rejects_slot_kind_change():
 
     create = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1990-05-15",
             "birth_time": "14:30:00",
@@ -82,6 +105,7 @@ def test_update_rejects_slot_kind_change():
 
     flip = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1991-06-16",
             "birth_time": "10:00:00",
@@ -101,6 +125,7 @@ def test_update_rejects_slot_kind_change():
     # Same role still updates
     ok = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1991-06-16",
             "birth_time": "10:00:00",
@@ -132,6 +157,7 @@ def test_update_rejects_slot_kind_change():
 def test_free_create_friend_rejected():
     """Free users cannot create People charts (403)."""
     user = _ensure_user()
+    headers = _headers_for(user)
     # Ensure free
     db = _db()
     try:
@@ -147,6 +173,7 @@ def test_free_create_friend_rejected():
 
     r = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1988-01-02",
             "birth_time": "08:15:00",
@@ -210,6 +237,7 @@ def test_pro_create_friend_omits_id_inserts():
 
     r = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1988-01-02",
             "birth_time": "08:15:00",
@@ -242,6 +270,7 @@ def test_pro_create_friend_omits_id_inserts():
 def test_free_update_existing_friend_ok():
     """Legacy Free friend rows remain updatable."""
     user = _ensure_user()
+    headers = _headers_for(user)
     db = _db()
     try:
         u = db.get(User, user.id)
@@ -271,6 +300,7 @@ def test_free_update_existing_friend_ok():
 
     ok = client.post(
         "/chart/calculate",
+        headers=headers,
         json={
             "birth_date": "1986-04-04",
             "birth_time": "11:00:00",

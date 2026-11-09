@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -23,7 +23,23 @@ from ..models import (
     UserDailyIntention,
     WeeklyProtocol,
 )
-from ..auth import verify_password
+from ..session_auth import (
+    GENERIC_AUTH_ERROR,
+    GENERIC_RESET_OK,
+    create_password_reset_token,
+    create_session,
+    consume_password_reset_token,
+    get_current_user,
+    get_optional_user,
+    rate_limit,
+    require_self,
+    revoke_all_sessions_for_user,
+    revoke_session,
+    bearer_from_header,
+)
+from ..mail import send_password_reset_email
+from ..config import get_settings
+from ..auth import hash_password, verify_password
 from ..usage import (
     backfill_usage_from_history,
     list_usage_events,
@@ -60,14 +76,20 @@ from ..schemas import (
     UserCreate,
     UserOut,
     UserSettingsPatch,
+    AuthSessionOut,
+    RegisterIn,
+    ForgotPasswordIn,
+    ResetPasswordIn,
+    MessageOut,
 )
 
 MAX_CHARTS_PER_USER = 10
 
 
 def _user_has_biohacking(user: User) -> bool:
-    """Pro / biohacking entitlement (same rule as Soul sync)."""
-    return bool(user.biohacking_enabled or user.subscription_tier == "biohacker_pro")
+    from ..entitlements import user_has_biohacking
+
+    return user_has_biohacking(user)
 
 
 router = APIRouter()
@@ -88,44 +110,132 @@ def health():
 
 
 
-@router.post("/auth/login", response_model=UserOut)
-def login(body: LoginIn, db: Session = Depends(get_db)):
-    """Username + password login for test / demo accounts."""
-    username = body.username.strip()
-    user = db.query(User).filter(User.username == username).first()
-    if not user:
-        # Case-insensitive fallback for convenience
+@router.post("/auth/login", response_model=AuthSessionOut)
+def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
+    """Email or username + password → opaque bearer session."""
+    rate_limit("login", limit=20, window_sec=300, request=request)
+    ident = body.username.strip()
+    user = None
+    if "@" in ident:
         user = (
             db.query(User)
-            .filter(func.lower(User.username) == username.lower())
+            .filter(func.lower(User.email) == ident.lower())
+            .first()
+        )
+    if user is None:
+        user = db.query(User).filter(User.username == ident).first()
+    if user is None:
+        user = (
+            db.query(User)
+            .filter(func.lower(User.username) == ident.lower())
             .first()
         )
     if not user or not verify_password(body.password, user.password_hash):
-        raise HTTPException(401, "Invalid username or password")
+        raise HTTPException(401, GENERIC_AUTH_ERROR)
+    token = create_session(db, user)
     record_usage_event(user=user, event_type="login")
-    return user
-
-@router.get("/users", response_model=list[UserOut])
-def list_users(db: Session = Depends(get_db)):
-    return db.query(User).order_by(User.id).all()
+    return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
 
 
-@router.post("/users", response_model=UserOut)
-def create_user(body: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == body.email).first()
+@router.post("/auth/register", response_model=AuthSessionOut)
+def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
+    """Create a password account. Tier is always free; caller cannot pick Pro."""
+    rate_limit("register", limit=10, window_sec=600, request=request)
+    email = body.email.strip().lower()
+    if "@" not in email or "." not in email.split("@", 1)[-1]:
+        raise HTTPException(400, GENERIC_AUTH_ERROR)
+    if len(body.password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    existing = db.query(User).filter(func.lower(User.email) == email).first()
     if existing:
-        return existing
+        # Generic — do not reveal that the email exists
+        raise HTTPException(401, GENERIC_AUTH_ERROR)
+    first = (body.first_name or "").strip() or None
+    if first and len(first) > 64:
+        raise HTTPException(400, "first_name must be at most 64 characters")
+    display = first or email.split("@")[0]
     user = User(
-        email=body.email,
-        display_name=body.display_name or body.email.split("@")[0],
-        auth_provider=body.auth_provider,
-        subscription_tier=body.subscription_tier,
-        biohacking_enabled=body.biohacking_enabled or body.subscription_tier == "biohacker_pro",
+        email=email,
+        display_name=display,
+        first_name=first,
+        auth_provider="password",
+        subscription_tier="free",
+        biohacking_enabled=False,
+        password_hash=hash_password(body.password),
+        username=None,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    token = create_session(db, user)
+    record_usage_event(user=user, event_type="login")
+    return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.post("/auth/logout", response_model=MessageOut)
+def logout(
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    revoke_session(db, bearer_from_header(authorization))
+    return MessageOut(message="Signed out")
+
+
+@router.get("/auth/me", response_model=UserOut)
+def auth_me(user: User = Depends(get_current_user)):
+    return UserOut.model_validate(user)
+
+
+@router.post("/auth/forgot-password", response_model=MessageOut)
+def forgot_password(body: ForgotPasswordIn, request: Request, db: Session = Depends(get_db)):
+    rate_limit("forgot", limit=10, window_sec=600, request=request)
+    email = body.email.strip().lower()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if user and user.password_hash:
+        raw = create_password_reset_token(db, user)
+        settings = get_settings()
+        base = (settings.frontend_base_url or "").rstrip("/") or "http://localhost:3000"
+        reset_url = f"{base}/reset-password?token={raw}"
+        send_password_reset_email(to_email=user.email, reset_url=reset_url)
+    return MessageOut(message=GENERIC_RESET_OK)
+
+
+@router.post("/auth/reset-password", response_model=AuthSessionOut)
+def reset_password(body: ResetPasswordIn, request: Request, db: Session = Depends(get_db)):
+    """Consume one-time token, set password, start a signed session (go home)."""
+    rate_limit("reset", limit=10, window_sec=600, request=request)
+    if len(body.password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    user = consume_password_reset_token(db, body.token.strip())
+    if not user:
+        raise HTTPException(400, "This reset link expired. Request a new one.")
+    user.password_hash = hash_password(body.password)
+    user.auth_provider = "password"
+    db.commit()
+    db.refresh(user)
+    revoke_all_sessions_for_user(db, user.id)
+    token = create_session(db, user)
+    record_usage_event(user=user, event_type="login")
+    return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.get("/users", response_model=list[UserOut])
+def list_users(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Admin-only user list (was public — locked for signup beta)."""
+    from ..usage import is_admin_email
+
+    if not is_admin_email(user.email):
+        raise HTTPException(403, "Admin only")
+    return db.query(User).order_by(User.id).all()
+
+
+@router.post("/users", response_model=UserOut)
+def create_user_legacy(_: UserCreate, db: Session = Depends(get_db)):
+    """Locked — use POST /auth/register. Caller must not pick tier."""
+    raise HTTPException(403, "Use POST /auth/register to create an account")
 
 
 @router.patch("/users/{user_id}/tier", response_model=UserOut)
@@ -134,8 +244,10 @@ def set_tier(
     tier: str = Query(...),
     actor_user_id: int = Query(..., description="Acting admin user id"),
     db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
     """Admin-only plan switch. v1: actor must be allowlisted admin and may change self only."""
+    require_self(current, actor_user_id)
     actor = require_admin_user(db, actor_user_id)
     if actor.id != user_id:
         raise HTTPException(403, "Admin may only change their own plan")
@@ -214,7 +326,12 @@ def _validate_first_name(name: str | None) -> str | None:
 
 
 @router.get("/users/{user_id}", response_model=UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -223,8 +340,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/users/{user_id}/settings", response_model=UserOut)
 def patch_user_settings(
-    user_id: int, body: UserSettingsPatch, db: Session = Depends(get_db)
+    user_id: int,
+    body: UserSettingsPatch,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -244,7 +365,9 @@ def get_daily_intention(
     user_id: int,
     day: date = Query(..., description="YYYY-MM-DD in account timezone"),
     db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -260,8 +383,12 @@ def get_daily_intention(
 
 @router.put("/users/{user_id}/intention", response_model=DailyIntentionOut)
 def upsert_daily_intention(
-    user_id: int, body: DailyIntentionIn, db: Session = Depends(get_db)
+    user_id: int,
+    body: DailyIntentionIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -292,7 +419,9 @@ def list_protocol_completions(
     day_to: date | None = Query(None, alias="to"),
     day: date | None = Query(None, description="Single day shorthand"),
     db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -318,8 +447,12 @@ def list_protocol_completions(
     "/users/{user_id}/protocol-completions", response_model=ProtocolCompletionOut
 )
 def upsert_protocol_completion(
-    user_id: int, body: ProtocolCompletionIn, db: Session = Depends(get_db)
+    user_id: int,
+    body: ProtocolCompletionIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
 ):
+    require_self(current, user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -386,7 +519,11 @@ def geocode_seeds():
 
 
 @router.post("/chart/calculate", response_model=ChartResponse)
-def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
+def calc_chart(
+    body: BirthDataIn,
+    db: Session = Depends(get_db),
+    current: User | None = Depends(get_optional_user),
+):
     if body.lat is not None and body.lon is not None:
         geo = {
             "display_name": body.birth_city,
@@ -410,17 +547,19 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
         raise HTTPException(500, f"Chart calculation failed: {e}") from e
 
     natal_id = None
-    if body.save and body.user_id:
-        user = db.get(User, body.user_id)
-        if not user:
-            raise HTTPException(404, "User not found")
+    if body.save:
+        if current is None:
+            raise HTTPException(401, "Not authenticated")
+        # Ignore client-supplied user_id — act as the session user only.
+        user = current
+        owner_id = current.id
         label = (body.label or "").strip() or ("Me" if body.slot_kind == "self" else "Friend")
         slot_kind = body.slot_kind if body.slot_kind in ("self", "friend") else "self"
 
         row = None
         if body.natal_chart_id is not None:
             row = db.get(NatalChart, body.natal_chart_id)
-            if not row or row.user_id != body.user_id:
+            if not row or row.user_id != owner_id:
                 raise HTTPException(404, "Chart not found")
             # Freeze role on update — FE must create a new row to change Me ↔ Friend.
             if slot_kind != (row.slot_kind or "self"):
@@ -456,7 +595,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                 existing_self = (
                     db.query(NatalChart)
                     .filter(
-                        NatalChart.user_id == body.user_id,
+                        NatalChart.user_id == owner_id,
                         NatalChart.slot_kind != "friend",
                     )
                     .count()
@@ -466,7 +605,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                         403,
                         "Free can keep one Me chart — update your existing chart instead of creating another.",
                     )
-            count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
+            count = db.query(NatalChart).filter(NatalChart.user_id == owner_id).count()
             if count >= MAX_CHARTS_PER_USER:
                 raise HTTPException(
                     400,
@@ -479,7 +618,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             else:
                 chart_role = "self"
             row = NatalChart(
-                user_id=body.user_id,
+                user_id=owner_id,
                 label=label[:128],
                 slot_kind=slot_kind,
                 role=chart_role,
@@ -496,23 +635,26 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             db.refresh(row)
             natal_id = row.id
 
-    if body.user_id:
-        user_for_event = db.get(User, body.user_id)
-        if user_for_event:
-            record_usage_event(
-                user=user_for_event,
-                event_type="chart_generated",
-                metadata={
-                    "natal_chart_id": natal_id,
-                    "saved": bool(body.save and natal_id),
-                    "slot_kind": body.slot_kind,
-                },
-            )
+    if current is not None:
+        record_usage_event(
+            user=current,
+            event_type="chart_generated",
+            metadata={
+                "natal_chart_id": natal_id,
+                "saved": bool(body.save and natal_id),
+                "slot_kind": body.slot_kind,
+            },
+        )
     return ChartResponse(chart=chart, natal_chart_id=natal_id)
 
 
 @router.get("/charts/{user_id}")
-def get_user_charts(user_id: int, db: Session = Depends(get_db)):
+def get_user_charts(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    require_self(current, user_id)
     rows = db.query(NatalChart).filter(NatalChart.user_id == user_id).order_by(NatalChart.id.desc()).all()
     return [
         {
@@ -717,10 +859,14 @@ def transits_today(
 
 
 @router.post("/inventory")
-def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+def add_inventory(
+    body: InventoryItemIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
     name = body.name.strip()
     if not name:
         raise HTTPException(400, "Name is required")
@@ -729,7 +875,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
     existing = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             func.lower(SupplementInventory.name) == name.lower(),
             SupplementInventory.active.is_(True),
         )
@@ -747,7 +893,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
     inactive = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             func.lower(SupplementInventory.name) == name.lower(),
             SupplementInventory.active.is_(False),
         )
@@ -768,7 +914,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
         }
 
     item = SupplementInventory(
-        user_id=body.user_id, name=name, notes=body.notes, active=body.active
+        user_id=owner_id, name=name, notes=body.notes, active=body.active
     )
     db.add(item)
     db.commit()
@@ -791,7 +937,12 @@ def delete_inventory(
 
 
 @router.get("/inventory/{user_id}")
-def list_inventory(user_id: int, db: Session = Depends(get_db)):
+def list_inventory(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    require_self(current, user_id)
     rows = db.query(SupplementInventory).filter(
         SupplementInventory.user_id == user_id,
         SupplementInventory.active.is_(True),
@@ -800,12 +951,16 @@ def list_inventory(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/biohack/protocol")
-def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+def protocol(
+    body: ProtocolRequest,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
 
-    q = db.query(NatalChart).filter(NatalChart.user_id == body.user_id)
+    q = db.query(NatalChart).filter(NatalChart.user_id == owner_id)
     if body.natal_chart_id:
         q = q.filter(NatalChart.id == body.natal_chart_id)
     natal_row = q.order_by(NatalChart.id.desc()).first()
@@ -824,7 +979,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
     inv_rows = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             SupplementInventory.active.is_(True),
         )
         .all()
@@ -873,7 +1028,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
 
     # Persist weekly snapshot
     week_start = date.today()
-    snap = WeeklyProtocol(user_id=body.user_id, week_start=week_start, protocol_json=proto)
+    snap = WeeklyProtocol(user_id=owner_id, week_start=week_start, protocol_json=proto)
     db.add(snap)
     db.commit()
     db.refresh(snap)
@@ -998,16 +1153,20 @@ def telemetry_ingest(body: TelemetryIn, db: Session = Depends(get_db)):
     return {"status": "accepted", "id": row.id, "note": "V2 stub — not yet merged into protocols"}
 
 @router.post("/soul/sync", response_model=SoulSyncOut)
-def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
+def soul_sync(
+    body: SoulSyncIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
     """Aura Alchemy between two natal charts owned by the same user."""
     if body.self_chart_id == body.friend_chart_id:
         raise HTTPException(400, "Pick two different charts")
     if body.context not in CONTEXT_IDS:
         raise HTTPException(400, "Invalid context")
 
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
     # Soft Pro gate (same truth as Protocols FE): Free cannot run Soul sync.
     # Preview-as-Free is FE-only; DB-Pro accounts still pass here.
     if not _user_has_biohacking(user):
@@ -1017,7 +1176,7 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
     friend_row = db.get(NatalChart, body.friend_chart_id)
     if not self_row or not friend_row:
         raise HTTPException(404, "Chart not found")
-    if self_row.user_id != body.user_id or friend_row.user_id != body.user_id:
+    if self_row.user_id != owner_id or friend_row.user_id != owner_id:
         raise HTTPException(403, "Chart not owned by user")
 
     chart_a = self_row.chart_json or {}

@@ -44,7 +44,7 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 | `CORS_ORIGINS` | `https://hd-biohack.vercel.app,https://www.yourdomain.com` (comma-separated; also accepts `ALLOWED_ORIGINS`) |
 | `SQLITE_PATH` | `/data/hd_biohack.db` |
 | `NOMINATIM_USER_AGENT` | `hd-biohack/1.0 (you@email.com)` |
-| `SEED_DEV_USERS` | `true` until Google auth exists (seeds Dev Free / Dev Pro) |
+| `SEED_DEV_USERS` | `false` by default (public signup). Set `true` only for local/demo seed accounts |
 | `ENFORCE_PAYWALL` | `false` until Stripe is real (backend flag; **FE Free/Pro gates on `subscription_tier` even when this / `NEXT_PUBLIC_ENFORCE_PAYWALL` are soft-false**) |
 | `DATABASE_URL` | leave empty for SQLite; set later for Postgres |
 | `LLM_PROVIDER` / `LLM_API_KEY` | optional |
@@ -101,7 +101,12 @@ Local `npm run dev` + `uvicorn` is unchanged. Production sets `NEXT_PUBLIC_API_U
 | `CORS_ORIGINS` / `ALLOWED_ORIGINS` | **Yes** | Browser origins allowed (credentials on → no `*`) |
 | `SQLITE_PATH` | Yes for durable SQLite | e.g. `/data/hd_biohack.db` + volume `/data` |
 | `DATABASE_URL` | No | Postgres when ready |
-| `SEED_DEV_USERS` | No (default true) | Empty-DB seed of Dev Free / Dev Pro |
+| `SEED_DEV_USERS` | No (default **false**) | Empty-DB seed of Dev Free / Dev Pro — leave off in production |
+| `BETA_FULL_ACCESS` | No (default **true** during beta) | Grant Pro entitlements to all signed-in users without rewriting `subscription_tier` |
+| `SESSION_SECRET` | Recommended | Reserved for future signed-cookie mode; opaque bearer sessions use DB hashes today |
+| `RESEND_API_KEY` | Yes for real reset mail | Resend API key — password-reset mail only |
+| `RESEND_FROM_EMAIL` | Recommended | e.g. `Baseline <noreply@yourdomain.com>` — never `baselineapp@proton.me` |
+| `FRONTEND_BASE_URL` | Yes for reset links | Public FE origin, no trailing slash (e.g. `https://hd-biohack.vercel.app`) |
 | `ENFORCE_PAYWALL` | No | Backend paywall flag |
 | `NOMINATIM_USER_AGENT` | Recommended | Nominatim ToS |
 | `LLM_*` / `SUPABASE_*` | No | Optional |
@@ -182,3 +187,19 @@ Do not point production at `127.0.0.1` or leave `/api/backend` without a rewrite
 | Dev panel visible to users | Unset `NEXT_PUBLIC_SHOW_DEV_CONTROLS`; ensure production build |
 
 See also root `README.md` for local quick start.
+
+
+## Auth beta (login-card)
+
+Public create-account + password reset on `/login`. Session model: **opaque bearer token** in `Authorization: Bearer …` (not httpOnly cookies), because Vercel FE + Railway API are cross-origin and the FE also supports a same-origin Next rewrite. Sign-out clears localStorage and revokes the server `auth_sessions` row.
+
+Required / recommended Railway variables for this beta:
+
+- `BETA_FULL_ACCESS=true`
+- `SEED_DEV_USERS=false`
+- `RESEND_API_KEY` (optional locally — missing key still returns the generic reset success)
+- `RESEND_FROM_EMAIL` (transactional from-address; not the Proton support inbox)
+- `FRONTEND_BASE_URL=https://hd-biohack.vercel.app`
+- `CORS_ORIGINS` must include the Vercel origin(s); credentials remain enabled for future cookie mode
+
+Do not commit real API keys. Soft email verify and Google OAuth stay out of this pass.

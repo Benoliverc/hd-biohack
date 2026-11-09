@@ -2,7 +2,12 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, SavedChartRow, User } from "./api";
-import { readSessionUserId, writeSessionUserId } from "./session";
+import {
+  clearSession,
+  readSessionToken,
+  readSessionUserId,
+  writeSessionUserId,
+} from "./session";
 import { isAdminUser } from "./admin";
 import { I18nProvider } from "./i18n";
 
@@ -46,21 +51,6 @@ type AppState = {
 };
 
 const Ctx = createContext<AppState | null>(null);
-
-const FALLBACK_USER: User = {
-  id: 1,
-  email: "dev.free@example.com",
-  username: null,
-  display_name: "Dev Free",
-  auth_provider: "dev",
-  subscription_tier: "free",
-  stripe_customer_id: null,
-  biohacking_enabled: false,
-  preferred_timezone: null,
-  preferred_locale: null,
-  first_name: null,
-  is_admin: false,
-};
 
 function hydrateAdminFlag(u: User): User {
   if (u.is_admin === true) return u;
@@ -161,30 +151,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUsersLoading(true);
     setUsersError(null);
     try {
-      const list = (await api.users()).map(hydrateAdminFlag);
-      setUsers(list);
-      setUserId((prev) => {
-        if (prev && list.some((u) => u.id === prev)) return prev;
-        const sessionId = readSessionUserId();
-        if (sessionId != null && list.some((u) => u.id === sessionId)) return sessionId;
-        // Stale or missing session → signed out
-        if (sessionId != null) writeSessionUserId(null);
-        return null;
-      });
-      return list;
+      const token = readSessionToken();
+      if (!token) {
+        setUsers([]);
+        writeSessionUserId(null);
+        setUserId(null);
+        return [] as User[];
+      }
+      const me = hydrateAdminFlag(await api.me());
+      setUsers([me]);
+      writeSessionUserId(me.id);
+      setUserId(me.id);
+      try {
+        if (me.is_admin) {
+          const list = (await api.users()).map(hydrateAdminFlag);
+          if (list.length) {
+            setUsers(list);
+            return list;
+          }
+        }
+      } catch {
+        /* keep [me] */
+      }
+      return [me];
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setUsersError(msg);
       const sessionId = readSessionUserId();
-      // Keep UI usable offline only if we already had a session
-      if (sessionId != null) {
-        setUsers((prev) => (prev.length ? prev : [FALLBACK_USER]));
+      if (sessionId != null && readSessionToken()) {
         setUserId((prev) => prev ?? sessionId);
       } else {
-        setUsers((prev) => prev);
+        clearSession();
+        setUsers([]);
         setUserId(null);
       }
-      return [];
+      setUsersError(e instanceof Error ? e.message : "Failed to load session");
+      return [] as User[];
     } finally {
       setUsersLoading(false);
     }
@@ -273,6 +273,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Dev "Preview as Free" still forces the locked Protocols path for Pro accounts.
   const biohackingUnlocked = useMemo(() => {
     if (previewAsFree) return false;
+    if (user?.biohacking_unlocked === true) return true;
+    if (user?.biohacking_unlocked === false) {
+      return Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
+    }
     return Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
   }, [previewAsFree, user]);
 
@@ -303,10 +307,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
         sessionReady,
         signOut: () => {
-          writeSessionUserId(null);
+          const token = readSessionToken();
+          if (token) {
+            void api.logout().catch(() => undefined);
+          }
+          clearSession();
           setNatalChart(null);
           setNatalBindingLoading(false);
           setUserId(null);
+          setUsers([]);
         },
         enforcePaywall,
         setEnforcePaywall,

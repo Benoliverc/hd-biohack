@@ -1,6 +1,18 @@
 // Relative proxy via Next.js rewrite → FastAPI on :8000 (browser never hits :8000)
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
 
+function authHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const token = localStorage.getItem("hd-biohack:session-token");
+    if (token) return { Authorization: `Bearer ${token}` };
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
+
 function isNetworkFailure(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const msg = err.message.toLowerCase();
@@ -26,6 +38,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       headers: {
         "Content-Type": "application/json",
+        ...authHeaders(),
         ...(init?.headers || {}),
       },
       cache: "no-store",
@@ -61,7 +74,17 @@ export type User = {
   preferred_locale?: string | null;
   first_name?: string | null;
   is_admin?: boolean;
+  /** Effective Pro access from API (includes BETA_FULL_ACCESS). */
+  biohacking_unlocked?: boolean;
+  beta_full_access?: boolean;
 };
+
+export type AuthSession = {
+  access_token: string;
+  token_type: string;
+  user: User;
+};
+
 
 export type DailyIntention = {
   day: string;
@@ -417,9 +440,27 @@ export type SoulSyncResult = {
 export const api = {
   health: () => req<{ status: string }>("/health"),
   login: (username: string, password: string) =>
-    req<User>("/auth/login", {
+    req<AuthSession>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
+    }),
+  register: (body: { email: string; password: string; first_name?: string }) =>
+    req<AuthSession>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  logout: () =>
+    req<{ message: string }>("/auth/logout", { method: "POST" }),
+  me: () => req<User>("/auth/me"),
+  forgotPassword: (email: string) =>
+    req<{ message: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (token: string, password: string) =>
+    req<AuthSession>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
     }),
   users: () => req<User[]>("/users"),
   setTier: (id: number, tier: string, actorUserId: number) =>
@@ -509,7 +550,7 @@ export const api = {
     // Best-effort: ignore network/HTTP errors; 204 has no JSON body.
     return fetch(`${API_BASE}/usage/page-view`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(body),
       cache: "no-store",
     }).then(

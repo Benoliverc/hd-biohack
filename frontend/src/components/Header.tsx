@@ -78,11 +78,16 @@ export function Header() {
   const { t } = useI18n();
   const headerRef = useRef<HTMLElement>(null);
 
-  // Badge follows subscription_tier (and Preview as Free) — never "Pro" just because paywall env is off.
+  // Badge follows effective entitlement (BETA_FULL_ACCESS → unlocked) and Preview as Free.
   const tierIsPro =
     !previewAsFree &&
-    Boolean(user?.biohacking_enabled || user?.subscription_tier === "biohacker_pro");
+    Boolean(
+      user?.biohacking_unlocked === true ||
+        user?.biohacking_enabled ||
+        user?.subscription_tier === "biohacker_pro"
+    );
   const tierBadge = tierIsPro ? t("tier.pro") : t("tier.free");
+  const showBetaChrome = Boolean(user && user.beta_full_access === true);
 
   useEffect(() => {
     const el = headerRef.current;
@@ -103,7 +108,7 @@ export function Header() {
     };
   }, [pathname, user, tierBadge]);
 
-  if (pathname === "/login") return null;
+  if (pathname === "/login" || pathname === "/reset-password") return null;
 
   return (
     <header
@@ -225,6 +230,14 @@ export function Header() {
           })}
         </nav>
       </div>
+      {showBetaChrome && (
+        <p
+          className="border-t border-border/60 bg-growth-soft/40 px-4 py-1.5 text-center type-caption text-fg-secondary"
+          data-testid="beta-chrome-note"
+        >
+          {t("beta.chromeNote")}
+        </p>
+      )}
     </header>
   );
 }
