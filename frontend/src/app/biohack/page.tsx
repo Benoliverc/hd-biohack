@@ -904,9 +904,9 @@ function ProtocolsHeader({
   return (
     <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-fg">{t("page.protocols.h1")}</h1>
-        {asOfLabel && <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>}
-        <p className="mt-1 text-sm text-fg-muted">{t("page.protocols.subtitle")}</p>
+        <h1 className="type-title text-fg">{t("page.protocols.h1")}</h1>
+        {asOfLabel && <p className="mt-1 type-caption text-fg-secondary">{asOfLabel}</p>}
+        <p className="mt-1 type-meta">{t("page.protocols.subtitle")}</p>
       </div>
       <div className="flex flex-col items-start gap-1.5 sm:items-end">
         {resolvingYou ? (
@@ -1017,16 +1017,16 @@ function KitFactCallout({
         data-testid="kit-fact-callout"
         aria-label="Kit fact"
       >
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+        <p className="type-chip uppercase tracking-wide text-fg-secondary">
           Kit fact · today
           {fact.supplement ? (
-            <span className="ml-1.5 rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 text-[10px] font-medium normal-case tracking-normal text-fg-secondary">
+            <span className="ml-1.5 rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 type-caption font-medium normal-case tracking-normal text-fg-secondary">
               {fact.supplement}
             </span>
           ) : null}
         </p>
-        <p className="mt-1 text-sm leading-snug text-fg-secondary line-clamp-2">{body}</p>
-        <p className="mt-1 text-[10px] text-fg-muted">
+        <p className="mt-1 type-body text-fg-secondary line-clamp-2">{body}</p>
+        <p className="mt-1 type-caption text-fg-secondary">
           {fact.foot || "Informational — not medical advice"}
         </p>
       </aside>
@@ -1077,19 +1077,19 @@ function WeekSkyCard({
     >
       <h2 className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</h2>
       {theme && (
-        <p className="text-sm text-fg" data-testid="week-theme">
+        <p className="type-body text-fg" data-testid="week-theme">
           {theme}
         </p>
       )}
       {skyNote && (
         <details className="rounded-xl border border-border bg-sunken/40 px-4 py-3" data-testid="week-sky-note">
-          <summary className="cursor-pointer list-none text-[10px] font-semibold uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none type-chip uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden>▸</span>
               Sky note · this week
             </span>
           </summary>
-          <p className="mt-1.5 text-sm text-fg-secondary">{skyNote}</p>
+          <p className="mt-1.5 type-body text-fg-secondary">{skyNote}</p>
         </details>
       )}
 
@@ -1098,15 +1098,15 @@ function WeekSkyCard({
         data-testid="week-completed"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-growth-ink">
+          <p className="type-chip uppercase tracking-wide text-growth-ink">
             Completed this week
           </p>
-          <span className="text-[11px] text-fg-secondary" data-testid="week-completed-count">
+          <span className="type-caption text-fg-secondary" data-testid="week-completed-count">
             {weekRows.length} checked · {weekLabel}
           </span>
         </div>
         {weekRows.length === 0 ? (
-          <p className="mt-2 text-sm text-fg-secondary" data-testid="week-completed-empty">
+          <p className="mt-2 type-body text-fg-secondary" data-testid="week-completed-empty">
             Nothing checked yet — tick Today&apos;s Move or baseline kit items as you go.
           </p>
         ) : (
@@ -1116,19 +1116,19 @@ function WeekSkyCard({
                 key={`${r.day}:${r.id}`}
                 className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
               >
-                <span className="shrink-0 text-[11px] font-medium text-fg-muted">
+                <span className="shrink-0 type-caption font-medium text-fg-secondary">
                   {formatWeekDayLabel(r.day)}
                 </span>
                 <span className={r.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
                   {r.label}
                 </span>
                 {r.kind === "baseline" && (
-                  <span className="rounded-full bg-sunken px-1.5 py-0.5 text-[10px] text-fg-muted">
+                  <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
                     baseline
                   </span>
                 )}
                 {r.note && (
-                  <span className="w-full text-[11px] italic text-fg-muted sm:w-auto">
+                  <span className="w-full type-caption italic text-fg-secondary sm:w-auto">
                     — {r.note}
                   </span>
                 )}
@@ -1137,7 +1137,7 @@ function WeekSkyCard({
           </ul>
         )}
         {(moveRows.length > 0 || baselineRows.length > 0) && (
-          <p className="mt-2 text-[11px] text-fg-muted">
+          <p className="mt-2 type-caption text-fg-secondary">
             {moveRows.length} move · {baselineRows.length} baseline · synced to your account
           </p>
         )}
@@ -1173,7 +1173,7 @@ function NatalBaselineCard({
       >
         <span>
           <span className="block text-sm font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
-          <span className="block text-xs text-fg-muted">Always-on for this chart</span>
+          <span className="block type-caption text-fg-secondary">Always-on for this chart</span>
         </span>
         <span className="shrink-0 text-xs text-fg-muted">{open ? "Hide" : "Show"}</span>
       </button>
@@ -1184,7 +1184,7 @@ function NatalBaselineCard({
               <h3 className="text-base font-semibold text-growth-ink">
                 {labels.natal_baseline || String(baseline.label || "Standard care for your chart")}
               </h3>
-              <p className="text-sm text-fg-secondary">{String(baseline.description || "")}</p>
+              <p className="type-body text-fg-secondary">{String(baseline.description || "")}</p>
               <div className="grid gap-3 md:grid-cols-3">
                 <BaselineColumn
                   title="Emphasize"
@@ -1360,7 +1360,7 @@ function LockedPaywallMock() {
       </div>
       <div className="rounded-2xl border border-growth/40 bg-growth-soft p-5">
         <p className="text-lg font-semibold text-growth-ink">Today&apos;s Move</p>
-        <p className="mt-2 text-sm text-fg-secondary">Morning · Midday · Evening checklist</p>
+        <p className="mt-2 type-body text-fg-secondary">Morning · Midday · Evening checklist</p>
         <div className="mt-3 space-y-2">
           {[1, 2, 3, 4].map((n) => (
             <div key={n} className="h-10 rounded-xl border border-border bg-elevated/80" />
@@ -1369,7 +1369,7 @@ function LockedPaywallMock() {
       </div>
       <div className="rounded-2xl border border-border bg-elevated p-5">
         <p className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</p>
-        <p className="mt-2 text-sm text-fg-secondary">Sun/Earth theme + one sky note</p>
+        <p className="mt-2 type-body text-fg-secondary">Sun/Earth theme + one sky note</p>
       </div>
     </div>
   );
@@ -1400,7 +1400,7 @@ function BaselineColumn({
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="min-w-0 font-medium text-fg">{it.name}</span>
               {it.in_inventory && (
-                <span className="shrink-0 whitespace-nowrap text-[10px] font-medium tracking-wide text-growth">
+                <span className="shrink-0 whitespace-nowrap type-caption font-medium tracking-wide text-growth">
                   From your kit
                 </span>
               )}

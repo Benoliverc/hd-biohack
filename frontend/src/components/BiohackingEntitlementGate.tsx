@@ -42,7 +42,7 @@ export function BiohackingEntitlementGate({
       {/* Clear value teaser above the lock — readable, not blurred */}
       <div className="rounded-2xl border border-growth/30 bg-growth-soft p-5">
         <h2 className="mb-2 text-sm font-semibold text-growth">{title}</h2>
-        <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-fg-secondary">
+        <ul className="mb-4 list-disc space-y-1.5 pl-5 type-body text-fg-secondary">
           {lines.map((line, i) => (
             <li key={i}>
               <span className={lineClasses[i] ?? "text-fg"}>{line}</span>
@@ -53,7 +53,7 @@ export function BiohackingEntitlementGate({
           <p
             role="status"
             data-testid="unlock-waitlist-joined"
-            className="rounded-xl border border-growth/30 bg-canvas/60 px-4 py-3 text-sm text-fg-secondary"
+            className="rounded-xl border border-growth/30 bg-canvas/60 px-4 py-3 type-body text-fg-secondary"
           >
             {t("gate.waitlistJoined")}
           </p>

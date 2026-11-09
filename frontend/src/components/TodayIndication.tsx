@@ -311,7 +311,7 @@ export default function TodayIndication({
                       <Check className="h-3.5 w-3.5" aria-hidden />
                     </button>
                     <p
-                      className={`text-sm font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
+                      className={`type-body font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
                       data-testid="main-action-text"
                     >
                       {indication.main_action_text}
@@ -325,13 +325,13 @@ export default function TodayIndication({
                       role="status"
                     >
                       <p
-                        className="text-sm font-medium text-growth-ink"
+                        className="type-body font-medium text-growth-ink"
                         data-testid="today-move-receipt"
                       >
                         {t("today.moveComplete")}
                       </p>
                       <label
-                        className="mt-2 block text-[11px] text-fg-muted"
+                        className="mt-2 block type-caption text-fg-secondary"
                         htmlFor={`today-move-note-${moveId}`}
                       >
                         {t("today.moveNoteLabel")}
@@ -412,7 +412,7 @@ export default function TodayIndication({
                   data-testid="today-show-up"
                   aria-label={t("today.showUpLabel")}
                 >
-                  <p className="mb-1 text-[10px] font-medium text-fg-muted">
+                  <p className="mb-1 type-caption text-fg-secondary">
                     {t("today.showUpLabel")}
                   </p>
                   <ol className="flex flex-wrap items-center gap-1.5" data-testid="today-show-up-dots">
@@ -427,7 +427,7 @@ export default function TodayIndication({
                           className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
                           aria-hidden
                         />
-                        <span className="text-[9px] font-medium text-fg-muted">
+                        <span className="type-caption text-fg-secondary">
                           {weekdayLabel(d.day)}
                         </span>
                         <span className="sr-only">
@@ -490,11 +490,11 @@ export default function TodayIndication({
                       <Check className="h-3.5 w-3.5" aria-hidden />
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                      <p className="type-chip uppercase tracking-wide text-fg-secondary">
                         {t("today.fromKit")}
                       </p>
                       <p
-                        className={`text-sm font-medium text-fg ${kitDone ? "line-through opacity-80" : ""}`}
+                        className={`type-body font-medium text-fg ${kitDone ? "line-through opacity-80" : ""}`}
                       >
                         {kit.name}
                         {kit.dose ? (
@@ -582,7 +582,7 @@ export default function TodayIndication({
             aria-label={`${t("today.energy")} · ${t("today.space")}`}
           >
             <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
-              <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+              <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
                 <BatteryMedium className="h-3 w-3" aria-hidden />
                 {t("today.energy")}
               </p>
@@ -591,7 +591,7 @@ export default function TodayIndication({
               </span>
             </div>
             <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
-              <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+              <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
                 <MapPin className="h-3 w-3" aria-hidden />
                 {t("today.space")}
               </p>
@@ -629,11 +629,11 @@ export default function TodayIndication({
             data-type={typeKey}
             data-answer={saved?.answer || undefined}
           >
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            <p className="mb-1 type-chip uppercase tracking-wide text-fg-secondary">
               {t("today.eveningClose.label")}
             </p>
             <p
-              className="text-sm font-medium text-fg"
+              className="type-body font-medium text-fg"
               data-testid="today-evening-close-question"
             >
               {t(qKey)}
@@ -667,7 +667,7 @@ export default function TodayIndication({
               <div className="mt-2" data-testid="today-evening-close-receipt">
                 <p className="text-xs text-fg-muted">{t("today.eveningClose.saved")}</p>
                 <label
-                  className="mt-2 block text-[11px] text-fg-muted"
+                  className="mt-2 block type-caption text-fg-secondary"
                   htmlFor={`today-evening-note-${itemId}`}
                 >
                   {t("today.eveningClose.noteLabel")}
@@ -833,7 +833,7 @@ export default function TodayIndication({
             data-sky-keyed={pulse.skyKeyed ? "true" : "false"}
             data-literacy-field={pulse.field || undefined}
           >
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            <p className="mb-1 type-chip uppercase tracking-wide text-fg-secondary">
               {t("today.hdFactLabel")}
             </p>
             <p className="text-sm text-fg-secondary" data-testid="hd-fact-text">
@@ -854,7 +854,7 @@ export default function TodayIndication({
 
       {/* 4. Quiet disclaimer footer */}
       <p
-        className="text-[11px] leading-relaxed text-fg-muted"
+        className="type-caption leading-relaxed text-fg-secondary"
         data-testid="indication-disclaimer"
       >
         {indication.disclaimer || t("today.disclaimerFallback")}

@@ -21,13 +21,13 @@ export default function PartnerNuanceBlock({
       data-testid={testId}
     >
       <div>
-        <p className="text-[11px] font-semibold text-energy-ink">The gift in love</p>
+        <p className="type-caption font-semibold text-energy-ink">The gift in love</p>
         <p className="mt-0.5 text-xs text-fg-secondary" data-testid={`${testId}-gift`}>
           {gift}
         </p>
       </div>
       <div>
-        <p className="text-[11px] font-semibold text-fg-muted">The tender spot</p>
+        <p className="type-caption font-semibold text-fg-secondary">The tender spot</p>
         <p className="mt-0.5 text-xs text-fg-secondary" data-testid={`${testId}-tender`}>
           {tender}
         </p>

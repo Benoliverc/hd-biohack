@@ -51,8 +51,8 @@ function GuidanceBlock({
             data-testid={`${itemTestIdPrefix}-${item.id}`}
           >
             <p className="text-sm font-semibold text-fg">{item.title}</p>
-            <p className="mt-1.5 text-sm text-fg-secondary">{item.body}</p>
-            <p className="mt-2 text-xs text-fg-muted">{item.try}</p>
+            <p className="mt-1.5 type-body text-fg-secondary max-w-prose">{item.body}</p>
+            <p className="mt-2 type-caption text-fg-secondary">{item.try}</p>
           </li>
         ))}
       </ul>
@@ -77,9 +77,9 @@ function CareInset({
       data-testid={testId}
     >
       <h3 className="text-sm font-semibold text-energy-ink">{heading}</h3>
-      <p className="mt-1.5 text-sm text-fg-secondary">{body}</p>
+      <p className="mt-1.5 type-body text-fg-secondary max-w-prose">{body}</p>
       {hasText(tryLine) ? (
-        <p className="mt-2 text-xs text-fg-muted">{tryLine}</p>
+        <p className="mt-2 type-caption text-fg-secondary">{tryLine}</p>
       ) : null}
     </section>
   );
@@ -246,13 +246,13 @@ export default function PartnerOverviewCard({
         Love guidance
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center rounded-full border border-energy/30 bg-energy/5 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-energy-ink">
+        <span className="type-chip inline-flex items-center rounded-full border border-energy/30 bg-energy/5 px-2.5 py-0.5 tracking-wide text-energy-ink">
           Partner · Love guidance
         </span>
       </div>
       <h2 className="mt-2 text-2xl font-semibold text-fg">{title}</h2>
       {typeLine ? (
-        <p className="mt-1 text-sm text-fg-muted">{typeLine}</p>
+        <p className="mt-1 type-meta">{typeLine}</p>
       ) : null}
       {reasonLine ? <div className="mt-2">{reasonLine}</div> : null}
       <p
@@ -261,7 +261,7 @@ export default function PartnerOverviewCard({
       >
         {overview.hook}
       </p>
-      <p className="mt-2 text-xs text-fg-muted">
+      <p className="mt-2 type-caption text-fg-secondary">
         How your designs meet in love — not a score, not a verdict.
       </p>
 
@@ -279,7 +279,7 @@ export default function PartnerOverviewCard({
                   The current between you
                 </h3>
                 <p
-                  className="mt-1.5 text-sm text-fg-secondary"
+                  className="mt-1.5 type-body text-fg-secondary max-w-prose"
                   data-testid="soul-partner-the-current"
                 >
                   {overview.the_current}
@@ -295,7 +295,7 @@ export default function PartnerOverviewCard({
                       How you love
                     </h3>
                     <p
-                      className="mt-1.5 text-sm text-fg-secondary"
+                      className="mt-1.5 type-body text-fg-secondary max-w-prose"
                       data-testid="soul-partner-how-you-love"
                     >
                       {overview.how_you_love}
@@ -308,7 +308,7 @@ export default function PartnerOverviewCard({
                       {theyHeading}
                     </h3>
                     <p
-                      className="mt-1.5 text-sm text-fg-secondary"
+                      className="mt-1.5 type-body text-fg-secondary max-w-prose"
                       data-testid="soul-partner-how-they-love"
                     >
                       {overview.how_they_love}
@@ -359,13 +359,13 @@ export default function PartnerOverviewCard({
                   open={decideOpen}
                   onOpenChange={setDecideOpen}
                 >
-                  <p className="text-sm font-medium text-fg">
+                  <p className="type-body font-medium text-fg">
                     {overview.how_you_decide.title}
                   </p>
-                  <p className="mt-1.5 text-sm text-fg-secondary">
+                  <p className="mt-1.5 type-body text-fg-secondary max-w-prose">
                     {overview.how_you_decide.body}
                   </p>
-                  <p className="mt-2 text-xs text-fg-muted">
+                  <p className="mt-2 type-caption text-fg-secondary">
                     {overview.how_you_decide.try}
                   </p>
                 </AccordionPanel>
@@ -377,13 +377,13 @@ export default function PartnerOverviewCard({
                   open={communicateOpen}
                   onOpenChange={setCommunicateOpen}
                 >
-                  <p className="text-sm font-medium text-fg">
+                  <p className="type-body font-medium text-fg">
                     {overview.how_you_communicate.title}
                   </p>
-                  <p className="mt-1.5 text-sm text-fg-secondary">
+                  <p className="mt-1.5 type-body text-fg-secondary max-w-prose">
                     {overview.how_you_communicate.body}
                   </p>
-                  <p className="mt-2 text-xs text-fg-muted">
+                  <p className="mt-2 type-caption text-fg-secondary">
                     {overview.how_you_communicate.try}
                   </p>
                 </AccordionPanel>
@@ -406,7 +406,7 @@ export default function PartnerOverviewCard({
                     What this bond asks
                   </h4>
                   <p
-                    className="mt-1.5 text-sm text-fg-secondary"
+                    className="mt-1.5 type-body text-fg-secondary max-w-prose"
                     data-testid="soul-partner-what-this-asks"
                   >
                     {overview.what_this_asks}
@@ -423,7 +423,7 @@ export default function PartnerOverviewCard({
                     The tender spots
                   </h4>
                   <p
-                    className="mt-1.5 text-sm text-fg-secondary"
+                    className="mt-1.5 type-body text-fg-secondary max-w-prose"
                     data-testid="soul-partner-tender-spots"
                   >
                     {overview.tender_spots}

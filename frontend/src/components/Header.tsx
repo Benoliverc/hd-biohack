@@ -56,7 +56,7 @@ function DevChrome() {
         />
         Enforce paywall (legacy flag)
       </label>
-      <p className="text-[10px] leading-snug text-fg-muted">
+      <p className="type-caption leading-snug text-fg-secondary">
         UI Free/Pro gating follows subscription_tier even when this is off.
       </p>
       <label className="flex min-h-10 items-center gap-1.5">

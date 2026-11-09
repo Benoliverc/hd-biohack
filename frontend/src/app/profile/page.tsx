@@ -1011,7 +1011,7 @@ export default function ProfilePage() {
             <div className="space-y-4">
               {youRow && (
                 <div>
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-growth">
+                  <p className="mb-1.5 type-chip uppercase tracking-wide text-growth">
                     You
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
@@ -1037,7 +1037,7 @@ export default function ProfilePage() {
                           return name === "You" ? meta : ` · ${name}${meta}`;
                         })()}
                       </span>
-                      <span className="mt-0.5 block text-[11px] leading-snug text-fg-muted">
+                      <span className="mt-0.5 block type-caption leading-snug text-fg-secondary">
                         {[youRow.birth_city, youRow.birth_date].filter(Boolean).join(" · ") ||
                           "—"}
                       </span>
@@ -1057,7 +1057,7 @@ export default function ProfilePage() {
               )}
 
               <div>
-                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-energy-ink">
+                <p className="mb-1.5 type-chip uppercase tracking-wide text-energy-ink">
                   People
                 </p>
                 {friendRows.length === 0 ? (
@@ -1089,7 +1089,7 @@ export default function ProfilePage() {
                               · {row.type || "—"} · {row.profile || "—"}
                               {row.role === "partner" ? " · Partner" : ""}
                             </span>
-                            <span className="mt-0.5 block text-[10px] leading-snug text-fg-muted">
+                            <span className="mt-0.5 block type-caption leading-snug text-fg-secondary">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
                                 "—"}
                             </span>
@@ -1112,7 +1112,7 @@ export default function ProfilePage() {
 
               {extraSelfRows.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+                  <p className="mb-1.5 type-chip uppercase tracking-wide text-fg-secondary">
                     Other charts (you)
                   </p>
                   <p className="mb-2 text-xs text-energy-ink">
@@ -1135,7 +1135,7 @@ export default function ProfilePage() {
                             <span className="font-medium">
                               {youChipLabel(row)} #{row.id}
                             </span>
-                            <span className="mt-0.5 block text-[10px] leading-snug">
+                            <span className="mt-0.5 block type-caption leading-snug">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
                                 "—"}
                             </span>
@@ -1266,9 +1266,9 @@ export default function ProfilePage() {
             required
           />
           {tzBesideTime && (
-            <span className="mt-1 block text-[11px] text-fg-muted">{tzBesideTime}</span>
+            <span className="mt-1 block type-caption text-fg-secondary">{tzBesideTime}</span>
           )}
-          <span className="mt-1 block text-[11px] text-fg-muted">
+          <span className="mt-1 block type-caption text-fg-secondary">
             Approximate is OK if exact time unknown — chart authority may be less precise.
           </span>
         </label>
@@ -1513,8 +1513,8 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold">{t("page.chart.h1")}</h1>
-          <p className="mt-1 text-sm text-fg-muted">
+          <h1 className="type-title">{t("page.chart.h1")}</h1>
+          <p className="mt-1 type-meta">
             Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + others).
             Plain language — how your battery and decisions work.
           </p>
@@ -1622,7 +1622,7 @@ export default function ProfilePage() {
                   You&apos;re a {typeKey}
                   {TYPE_COPY[typeKey] ? ` — ${TYPE_COPY[typeKey].summary}` : ""}
                 </p>
-                <p className="mt-2 text-sm text-fg">
+                <p className="mt-2 type-body text-fg">
                   {TYPE_BATTERY[typeKey] ||
                     "This is your energy map — how you fill and how you decide."}
                 </p>
@@ -1630,21 +1630,21 @@ export default function ProfilePage() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="text-xs uppercase tracking-wide text-fg-muted">Profile</div>
+                  <div className="type-caption uppercase tracking-wide text-fg-secondary">Profile</div>
                   <div className="mt-1 font-semibold text-growth">{profileStr}</div>
-                  <p className="mt-2 text-sm leading-relaxed text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
+                  <p className="mt-2 type-body text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="text-xs uppercase tracking-wide text-fg-muted">How you decide</div>
+                  <div className="type-caption uppercase tracking-wide text-fg-secondary">How you decide</div>
                   <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
-                  <p className="mt-2 text-sm text-fg-secondary">
+                  <p className="mt-2 type-body text-fg-secondary">
                     {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
                   </p>
-                  <div className="mt-3 text-xs uppercase tracking-wide text-fg-muted">
+                  <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
                     Your body&apos;s yes
                   </div>
                   <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
-                  <p className="mt-2 text-sm text-fg-secondary">
+                  <p className="mt-2 type-body text-fg-secondary">
                     {AUTHORITY_PLAIN[authorityStr] ||
                       AUTHORITY_COPY[authorityStr]?.summary ||
                       authorityStr}
@@ -1658,12 +1658,12 @@ export default function ProfilePage() {
                   className="rounded-xl border border-border bg-elevated p-4"
                 >
                   <h3 className="text-sm font-semibold text-fg">Centers to watch</h3>
-                  <p className="mb-2 text-xs text-fg-muted">
+                  <p className="mb-2 type-caption text-fg-secondary">
                     Open centers — where you can pick up other people’s energy (energy leaks to notice).
                   </p>
                   <ul className="space-y-2">
                     {watch.map((w) => (
-                      <li key={w.center} className="text-sm text-fg-secondary">
+                      <li key={w.center} className="type-body text-fg-secondary">
                         <span className="font-medium text-fg">{displayCenter(w.center)}</span>
                         {" — "}
                         {w.tip}
@@ -1682,7 +1682,7 @@ export default function ProfilePage() {
                   ["Definition", chart.definition],
                 ].map(([k, v]) => (
                   <div key={String(k)} className="rounded-xl border border-border bg-elevated p-4">
-                    <div className="text-xs uppercase tracking-wide text-fg-muted">{String(k)}</div>
+                    <div className="type-caption uppercase tracking-wide text-fg-secondary">{String(k)}</div>
                     <div className="mt-1 font-semibold text-growth">{String(v)}</div>
                   </div>
                 ))}

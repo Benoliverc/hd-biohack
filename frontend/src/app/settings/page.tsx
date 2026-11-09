@@ -185,7 +185,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6" data-testid="settings-page">
       <div>
-        <h1 className="text-2xl font-semibold text-fg">{t("settings.title")}</h1>
+        <h1 className="type-title text-fg">{t("settings.title")}</h1>
         <p className="mt-1 text-sm text-fg-secondary">{t("settings.subtitle")}</p>
       </div>
 

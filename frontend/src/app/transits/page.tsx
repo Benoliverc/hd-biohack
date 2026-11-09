@@ -151,11 +151,11 @@ export default function TransitsPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           {/* Modest H1 for a11y; visual weight lives on You + Move */}
-          <h1 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
+          <h1 className="text-sm font-semibold uppercase tracking-wide text-fg-secondary">
             {t("page.today.h1")}
           </h1>
           {resolvingYou ? (
-            <p className="mt-1 text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
+            <p className="mt-1 type-meta">{t("page.today.lookingUp")}</p>
           ) : youChart ? (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
               <span
@@ -166,16 +166,16 @@ export default function TransitsPage() {
                 {youChipLabel(youChart)}
               </span>
               {asOfLabel ? (
-                <p className="text-xs text-fg-muted">{asOfLabel}</p>
+                <p className="type-caption text-fg-secondary">{asOfLabel}</p>
               ) : null}
             </div>
           ) : (
-            <p className="mt-1 text-sm text-fg-muted">
+            <p className="mt-1 type-meta">
               {t("page.today.savePrompt")}
             </p>
           )}
           {!youChart && asOfLabel ? (
-            <p className="mt-1 text-xs text-fg-muted">{asOfLabel}</p>
+            <p className="mt-1 type-caption text-fg-secondary">{asOfLabel}</p>
           ) : null}
         </div>
         {data?.indication?.main_action_text && youChartPayload ? (
@@ -191,7 +191,7 @@ export default function TransitsPage() {
 
       {resolvingYou && (
         <div className="rounded-xl border border-border bg-elevated px-4 py-3">
-          <p className="text-sm text-fg-muted">{t("page.today.lookingUp")}</p>
+          <p className="type-meta">{t("page.today.lookingUp")}</p>
         </div>
       )}
 

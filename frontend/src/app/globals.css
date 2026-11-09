@@ -166,3 +166,49 @@ body > * {
   );
   transition: background-color 250ms ease, background-image 250ms ease;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Body-first type roles (PR: feat/body-first-roles)                          */
+/* Size/weight/leading; ink stays composable except .type-meta default.       */
+/* -------------------------------------------------------------------------- */
+.type-display {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 700;
+  line-height: 1.25;
+}
+@media (min-width: 768px) {
+  .type-display {
+    font-size: 2.25rem; /* 36px — heroes that already step up */
+  }
+}
+.type-title {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+.type-section {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  line-height: 1.375;
+}
+.type-body {
+  font-size: 1rem; /* 16px */
+  line-height: 1.625;
+}
+.type-meta {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--fg-secondary);
+}
+.type-caption {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+  line-height: 1.5;
+}
+.type-chip {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  line-height: 1.5;
+}

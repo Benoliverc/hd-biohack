@@ -189,7 +189,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                 aria-selected={isActive}
                 onClick={() => setActiveIndex(index)}
                 data-testid={`${testId}-dot-${step.id}`}
-                className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 text-[11px] font-semibold tabular-nums ${
+                className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 type-chip tabular-nums ${
                   isActive
                     ? "border-growth/40 bg-growth/15 text-growth"
                     : "border-border bg-elevated text-fg-muted"
@@ -222,7 +222,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                   aria-expanded={false}
                 >
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-elevated text-[11px] font-semibold tabular-nums text-fg-muted"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-elevated type-chip tabular-nums text-fg-muted"
                     aria-hidden
                   >
                     {n}
@@ -254,7 +254,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                 aria-expanded={isActive}
               >
                 <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border type-chip tabular-nums ${
                     isActive
                       ? "border-growth/40 bg-growth/15 text-growth"
                       : "border-border bg-elevated text-fg-muted"
@@ -276,7 +276,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
               {compactNarrow && isActive ? (
                 <div className="mb-1 flex items-center gap-3 sm:hidden">
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-growth/40 bg-growth/15 text-[11px] font-semibold tabular-nums text-growth"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-growth/40 bg-growth/15 type-chip tabular-nums text-growth"
                     aria-hidden
                   >
                     {n}
@@ -293,7 +293,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
                     compactNarrow ? "pl-0 sm:pl-10" : "pl-10"
                   }`}
                 >
-                  <div className="space-y-2 text-sm leading-relaxed text-fg-secondary">
+                  <div className="space-y-2 type-body text-fg-secondary max-w-prose">
                     {step.body.split(/\n\n+/).map((para, i) => (
                       <p key={i}>{para}</p>
                     ))}
