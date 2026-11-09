@@ -6,7 +6,7 @@ import { useApp } from "@/lib/store";
 import { readSessionToken, readSessionUserId } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
 
-const PUBLIC_PATHS = new Set(["/login", "/reset-password"]);
+const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
 
 /**
  * Soft client gate: no session → /login.

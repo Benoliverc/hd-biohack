@@ -375,6 +375,22 @@ export default function SettingsPage() {
       >
         {t("settings.footerAccount")}
       </p>
+
+      <p
+        className="type-caption text-fg-muted"
+        data-testid="settings-privacy-footer"
+      >
+        <Link
+          href="/privacy"
+          className="text-fg-secondary underline-offset-2 hover:underline"
+        >
+          {t("privacy.link")}
+        </Link>
+        <span aria-hidden className="mx-1.5">
+          ·
+        </span>
+        <span>{t("privacy.copyrightShort")}</span>
+      </p>
     </div>
   );
 }
