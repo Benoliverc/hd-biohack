@@ -49,12 +49,12 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
       className="rounded-xl border border-border bg-sunken/40 p-4"
     >
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-fg">{spectrum.label}</span>
+        <span className="type-meta font-semibold text-fg">{spectrum.label}</span>
         <span className={`text-xs font-medium tabular-nums ${highClass}`}>
           {fillPct}%
         </span>
       </div>
-      <div className="mb-2 flex justify-between gap-2 text-[10px] uppercase tracking-wide text-fg-muted">
+      <div className="mb-2 flex justify-between gap-2 type-caption uppercase tracking-wide text-fg-secondary">
         <span>{spectrum.low_label}</span>
         <span className={isPacing ? "text-energy" : undefined}>{spectrum.high_label}</span>
       </div>
@@ -65,7 +65,7 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
           data-testid={`soul-spectrum-fill-${spectrum.id}`}
         />
       </div>
-      <p className="text-xs text-fg-muted">{spectrum.summary}</p>
+      <p className="type-body text-fg-secondary max-w-prose">{spectrum.summary}</p>
     </div>
   );
 }
@@ -129,7 +129,7 @@ function InsightCard({
         onClick={onToggle}
         className="flex min-h-11 w-full cursor-pointer items-center gap-3 px-5 py-3 text-left outline-none transition-colors hover:bg-sunken/40 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
       >
-        <h2 className="min-w-0 flex-1 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+        <h2 className="min-w-0 flex-1 type-caption font-semibold uppercase tracking-wide text-fg-secondary">
           {card.title}
         </h2>
         <ChevronDown
@@ -144,13 +144,13 @@ function InsightCard({
           <ul className="space-y-3">
             {card.body_blocks.map((blk, i) => (
               <li key={`${card.id}-${i}`}>
-                <p className="text-sm font-medium text-fg">{blk.headline}</p>
-                <p className="mt-0.5 text-sm text-fg-secondary">{blk.body}</p>
+                <p className="type-body font-medium text-fg">{blk.headline}</p>
+                <p className="mt-0.5 type-body text-fg-secondary max-w-prose">{blk.body}</p>
               </li>
             ))}
           </ul>
           {card.id === "circuit_bridge" && card.bridges && card.bridges.length > 0 && (
-            <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 text-xs text-fg-muted">
+            <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 type-caption text-fg-secondary">
               {card.bridges.map((b) => {
                 const nuance =
                   showPartnerNuance ? asPartnerNuance(b.partner_nuance) : null;
@@ -188,10 +188,10 @@ function CompletedChannelsList({
       className="rounded-2xl border border-border bg-elevated p-5"
       data-testid="soul-completed-channels"
     >
-      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+      <h2 className="mb-1 type-caption font-semibold uppercase tracking-wide text-fg-secondary">
         Completed channels
       </h2>
-      <p className="mb-3 text-xs text-fg-muted">
+      <p className="mb-3 type-caption text-fg-secondary">
         Where you spark and where you share a baseline — base mechanics stay
         the same; partner notes appear only when Person is marked Partner.
       </p>
@@ -207,7 +207,7 @@ function CompletedChannelsList({
               className="rounded-xl border border-border/70 bg-sunken/40 px-3 py-2.5"
               data-testid={`soul-channel-em-${gateTxt || i}`}
             >
-              <p className="text-sm font-medium text-fg">
+              <p className="type-body font-medium text-fg">
                 {name}
                 {gateTxt ? ` (${gateTxt})` : ""} · Spark
               </p>
@@ -226,7 +226,7 @@ function CompletedChannelsList({
               className="rounded-xl border border-border/70 bg-sunken/40 px-3 py-2.5"
               data-testid={`soul-channel-comp-${gateTxt || i}`}
             >
-              <p className="text-sm font-medium text-fg">
+              <p className="type-body font-medium text-fg">
                 {name}
                 {gateTxt ? ` (${gateTxt})` : ""} · Shared baseline
               </p>
@@ -534,7 +534,7 @@ function SoulUnlockedContent() {
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-loading"
         >
-          <p className="text-sm text-fg-muted">Loading saved charts…</p>
+          <p className="type-body text-fg-secondary">Loading saved charts…</p>
         </div>
       ) : chartsError ? (
         <p className="text-sm text-danger" data-testid="soul-charts-error">
@@ -545,7 +545,7 @@ function SoulUnlockedContent() {
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-empty-me"
         >
-          <p className="mb-3 text-sm text-fg-secondary">
+          <p className="mb-3 type-body text-fg-secondary">
             Soul needs your Me chart first — save your own natal on Chart, then pick a person.
           </p>
           <Link
@@ -561,10 +561,10 @@ function SoulUnlockedContent() {
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-empty"
         >
-          <p className="mb-1 text-sm text-fg-secondary">
+          <p className="mb-1 type-body text-fg-secondary">
             Add someone to explore the aura between both of you.
           </p>
-          <p className="mb-3 text-xs text-fg-muted">
+          <p className="mb-3 type-caption text-fg-secondary">
             Save their natal on Chart — Soul uses it as the other half of the pair.
           </p>
           <Link
@@ -586,7 +586,7 @@ function SoulUnlockedContent() {
             }
             data-testid="soul-pickers"
           >
-            <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
+            <div className="flex min-w-0 flex-1 flex-col gap-1 type-caption text-fg-secondary">
               You
               <div
                 className="flex min-h-11 items-center rounded-lg border border-border bg-sunken/60 px-3 text-sm text-fg"
@@ -597,17 +597,17 @@ function SoulUnlockedContent() {
                 <span className="truncate font-medium">
                   {meRow ? chartOptionLabel(meRow, "Me") : "Me"}
                 </span>
-                <span className="ml-2 shrink-0 rounded-full border border-growth/40 bg-growth/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth">
+                <span className="type-chip ml-2 shrink-0 rounded-full border border-growth/40 bg-growth/15 px-2 py-0.5 uppercase tracking-wide text-growth">
                   Me
                 </span>
               </div>
             </div>
-            <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-muted">
+            <label className="flex min-w-0 flex-1 flex-col gap-1 type-caption text-fg-secondary">
               <span className="flex flex-wrap items-center gap-2">
                 {isPartnerSelected ? "Partner" : "Person"}
                 {isPartnerSelected ? (
                   <span
-                    className="inline-flex items-center rounded-full border border-energy/25 bg-energy/5 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-energy-ink"
+                    className="type-chip inline-flex items-center rounded-full border border-energy/25 bg-energy/5 px-2 py-0.5 tracking-wide text-energy-ink"
                     data-testid="soul-love-guidance-chip"
                   >
                     Partner · Love guidance
@@ -638,7 +638,7 @@ function SoulUnlockedContent() {
 
           {isPartnerSelected ? (
             <p
-              className="text-xs text-fg-muted"
+              className="type-caption text-fg-secondary"
               data-testid="soul-love-guidance-reason"
             >
               Love guidance is on because you marked{" "}
@@ -659,7 +659,7 @@ function SoulUnlockedContent() {
               data-testid="soul-mark-partner-prompt"
             >
               <p
-                className="mb-3 text-xs text-fg-muted"
+                className="mb-3 type-caption text-fg-secondary"
                 data-testid="soul-mark-partner-reason"
               >
                 Want Love guidance with{" "}
@@ -703,7 +703,7 @@ function SoulUnlockedContent() {
               className="rounded-2xl border border-border bg-growth/10 p-5"
               data-testid="soul-api-missing"
             >
-              <p className="text-sm text-fg-secondary">
+              <p className="type-body text-fg-secondary">
                 {schemaLag
                   ? "Soul API is on an older schema. Redeploy with Aura Alchemy, then refresh."
                   : "Soul sync needs an API update. The page is ready; production API may still be on an older build (Railway deploy pause). Locally, restart the backend on this branch."}
@@ -722,7 +722,7 @@ function SoulUnlockedContent() {
               className="rounded-2xl border border-border bg-elevated p-5"
               data-testid="soul-sync-loading"
             >
-              <p className="text-sm text-fg-muted">Reading how your charts meet…</p>
+              <p className="type-meta">Reading how your charts meet…</p>
             </div>
           )}
 
@@ -733,7 +733,7 @@ function SoulUnlockedContent() {
                   className="rounded-2xl border border-border bg-elevated p-4"
                   data-testid="soul-partner-overview-missing"
                 >
-                  <p className="text-sm text-fg-secondary">
+                  <p className="type-body text-fg-secondary">
                     Partner is on; love chapters need a sync refresh.
                   </p>
                 </div>
@@ -761,7 +761,7 @@ function SoulUnlockedContent() {
               >
                 {partnerCopy ? (
                   <>
-                    <p className="text-xs uppercase tracking-wide text-fg-muted">
+                    <p className="type-caption uppercase tracking-wide text-fg-secondary">
                       Between you
                     </p>
                     <div
@@ -782,7 +782,7 @@ function SoulUnlockedContent() {
                         result.signature.id === "magnetic_alchemy") && (
                         <span
                           data-testid="soul-signature-tier"
-                          className="rounded-full border border-energy/35 bg-energy/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-energy-ink"
+                          className="type-chip rounded-full border border-energy/35 bg-energy/5 px-2.5 py-0.5 uppercase tracking-wide text-energy-ink"
                         >
                           {partnerCopy.chip || "Strong pull"}
                         </span>
@@ -794,11 +794,11 @@ function SoulUnlockedContent() {
                     >
                       {partnerCopy.hook}
                     </p>
-                    <p className="mt-3 max-w-2xl text-sm text-fg-secondary">
+                    <p className="mt-3 max-w-2xl type-body text-fg-secondary">
                       {partnerCopy.body}
                     </p>
                     <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
-                      <summary className="cursor-pointer text-xs font-semibold text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                      <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         Why it feels this way
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{partnerCopy.why}</p>
@@ -806,7 +806,7 @@ function SoulUnlockedContent() {
                   </>
                 ) : friendCopy ? (
                   <>
-                    <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+                    <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <h2
                         className="text-3xl font-bold text-growth"
@@ -821,17 +821,17 @@ function SoulUnlockedContent() {
                         result.signature.id === "magnetic_alchemy") && (
                         <span
                           data-testid="soul-signature-tier"
-                          className="rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-growth"
+                          className="type-chip rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 uppercase tracking-wide text-growth"
                         >
                           {friendCopy.chip || "Strong pull"}
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
+                    <p className="mt-2 max-w-2xl type-body text-fg-secondary">
                       {friendCopy.body}
                     </p>
                     <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
-                      <summary className="cursor-pointer text-xs font-semibold text-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                      <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         Why it feels this way
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{friendCopy.why}</p>
@@ -839,7 +839,7 @@ function SoulUnlockedContent() {
                   </>
                 ) : (
                   <>
-                    <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+                    <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <h2
                         className="text-3xl font-bold text-growth"
@@ -851,7 +851,7 @@ function SoulUnlockedContent() {
                         {result.signature.label}
                       </h2>
                     </div>
-                    <p className="mt-2 max-w-2xl text-sm text-fg-secondary">
+                    <p className="mt-2 max-w-2xl type-body text-fg-secondary">
                       {result.signature.subtext}
                     </p>
                   </>
@@ -868,15 +868,15 @@ function SoulUnlockedContent() {
                         result.secondary_signature.label}
                     </p>
                     {secondaryPartner ? (
-                      <p className="mt-1 text-xs text-fg-muted">
+                      <p className="mt-1 type-caption text-fg-secondary">
                         {secondaryPartner.hook}
                       </p>
                     ) : secondaryFriend ? (
-                      <p className="mt-1 text-xs text-fg-muted">
+                      <p className="mt-1 type-caption text-fg-secondary">
                         {secondaryFriend.body}
                       </p>
                     ) : result.secondary_signature.subtext ? (
-                      <p className="mt-1 text-xs text-fg-muted">
+                      <p className="mt-1 type-caption text-fg-secondary">
                         {result.secondary_signature.subtext.includes(". ")
                           ? `${result.secondary_signature.subtext.split(". ")[0]}.`
                           : result.secondary_signature.subtext}
@@ -897,16 +897,16 @@ function SoulUnlockedContent() {
                       >
                         <p className="text-xs font-semibold text-growth">{b.label}</p>
                         {b.description ? (
-                          <p className="mt-1 text-sm text-fg-secondary">{b.description}</p>
+                          <p className="mt-1 type-body text-fg-secondary max-w-prose">{b.description}</p>
                         ) : null}
                         {b.detail ? (
-                          <p className="mt-1 text-[10px] text-fg-muted">{b.detail}</p>
+                          <p className="mt-1 type-caption text-fg-secondary">{b.detail}</p>
                         ) : null}
                       </li>
                     ))}
                   </ul>
                 )}
-                <p className="mt-4 text-xs text-fg-muted" data-testid="soul-disclaimer">
+                <p className="mt-4 type-caption text-fg-secondary" data-testid="soul-disclaimer">
                   {result.disclaimer}
                 </p>
               </div>
@@ -915,7 +915,7 @@ function SoulUnlockedContent() {
 
               {result.friend?.role === "partner" ? (
                 <p
-                  className="text-center text-xs tracking-wide text-fg-muted"
+                  className="type-caption text-center tracking-wide text-fg-secondary"
                   data-testid="soul-explore-bond"
                 >
                   Explore this bond
@@ -972,7 +972,7 @@ function SoulUnlockedContent() {
                         {openChapter === "love" ? (
                           <button
                             type="button"
-                            className="mt-3 text-xs font-medium text-fg-muted underline-offset-2 hover:underline"
+                            className="mt-3 type-caption font-medium text-fg-secondary underline-offset-2 hover:underline"
                             onClick={() => setOpenChapter(null)}
                           >
                             Back to chapters
@@ -1012,12 +1012,12 @@ function SoulUnlockedContent() {
                           data-testid="soul-playbook-lede"
                         >
                           {result.playbook.focus_hint ? (
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth">
+                            <p className="mb-1 type-chip uppercase tracking-wide text-growth">
                               {result.playbook.focus_hint}
                             </p>
                           ) : null}
                           {result.playbook.lede ? (
-                            <p className="text-sm text-fg-secondary">
+                            <p className="type-body text-fg-secondary">
                               {result.playbook.lede}
                             </p>
                           ) : null}
@@ -1061,7 +1061,7 @@ function SoulUnlockedContent() {
                       ) ? (
                         <p
                           id="soul-completed-channels"
-                          className="text-sm text-fg-muted"
+                          className="type-body text-fg-secondary"
                           data-testid="soul-completed-channels"
                         >
                           No spark wires or shared-baseline channels for this pair yet.
@@ -1101,7 +1101,7 @@ function SoulUnlockedContent() {
                                   <span className="font-medium text-fg">
                                     {displayCenter(row.center)}
                                   </span>
-                                  <span className="text-xs text-fg-muted">
+                                  <span className="type-caption text-fg-secondary">
                                     {arrow}
                                   </span>
                                 </div>
@@ -1109,7 +1109,7 @@ function SoulUnlockedContent() {
                                   You: {row.self} · Person: {row.friend}
                                 </p>
                                 {row.hint ? (
-                                  <p className="mt-1 text-xs text-fg-muted">
+                                  <p className="mt-1 type-caption text-fg-secondary">
                                     {row.hint}
                                   </p>
                                 ) : null}
@@ -1117,7 +1117,7 @@ function SoulUnlockedContent() {
                             );
                           })}
                         </ul>
-                        <div className="space-y-2 text-sm text-fg-secondary">
+                        <div className="space-y-2 type-body text-fg-secondary max-w-prose">
                           <p>
                             Spectrum bars show relative intensity, steadiness, and pace
                             — never a single compatibility percentage. Signature
@@ -1145,7 +1145,7 @@ function LockedSoulMock() {
   return (
     <div className="space-y-4" aria-hidden data-testid="soul-locked-mock">
       <div className="rounded-2xl border border-border bg-elevated p-5">
-        <p className="text-xs uppercase tracking-wide text-fg-muted">Aura Signature</p>
+        <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
         <p className="mt-1 text-3xl font-bold text-growth">⚡ Strong pull between you</p>
         <p className="mt-2 text-sm text-fg-secondary">
           Static preview — live pair sync unlocks with Pro.
@@ -1162,7 +1162,7 @@ function LockedSoulMock() {
         ))}
       </div>
       <div className="rounded-2xl border border-border bg-elevated p-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
+        <p className="type-caption font-semibold uppercase tracking-wide text-fg-secondary">
           {t("page.soul.h1")} Playbook
         </p>
         <div className="mt-3 space-y-2">
@@ -1180,8 +1180,8 @@ export default function SoulPage() {
   return (
     <div className="space-y-6" data-testid="soul-page">
       <div>
-        <h1 className="text-2xl font-bold">{t("page.soul.h1")}</h1>
-        <p className="text-sm text-fg-muted">{t("page.soul.subtitle")}</p>
+        <h1 className="type-title">{t("page.soul.h1")}</h1>
+        <p className="type-meta">{t("page.soul.subtitle")}</p>
       </div>
 
       <BiohackingEntitlementGate

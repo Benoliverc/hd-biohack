@@ -77,7 +77,7 @@ export function TodaysMoveCard({
           data-testid="protocol-progress-strip"
         >
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-growth-ink">
+            <span className="type-chip uppercase tracking-wide text-growth-ink">
               {t("protocols.moveProgress")}
             </span>
             <span className="text-xs font-semibold tabular-nums text-fg" data-testid="protocol-done-count-inline">
@@ -103,7 +103,7 @@ export function TodaysMoveCard({
 
       {(completeFlash || moveComplete) && items.length > 0 && (
         <div
-          className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 text-sm font-medium text-growth-ink ${
+          className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 type-body font-medium text-growth-ink ${
             completeFlash ? "animate-pulse" : ""
           }`}
           data-testid="protocol-move-complete"
@@ -138,7 +138,7 @@ export function TodaysMoveCard({
                     <span className="flex flex-wrap items-center gap-2">
                       <SlotGlyph slot={it.slot} />
                       <span
-                        className={`text-sm ${
+                        className={`type-body ${
                           idx === 0 ? "font-semibold text-growth-ink" : "font-medium text-fg"
                         } ${checked ? "line-through" : ""}`}
                       >
@@ -156,7 +156,7 @@ export function TodaysMoveCard({
                         it.momentChip &&
                         !(rotatedSlot && it.id === rotatedSlot) && (
                           <span
-                            className="inline-flex items-center rounded-full border border-border/70 bg-elevated/80 px-2 py-0.5 text-[11px] font-medium text-fg-muted"
+                            className="inline-flex items-center rounded-full border border-border/70 bg-elevated/80 px-2 py-0.5 type-chip font-medium text-fg-secondary"
                             data-testid={`moment-chip-${it.id}`}
                           >
                             {it.momentChip}
@@ -164,7 +164,7 @@ export function TodaysMoveCard({
                         )}
                     </span>
                     {it.sub && (
-                      <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
+                      <span className="mt-0.5 block type-caption text-fg-secondary">{it.sub}</span>
                     )}
                     {it.why && (
                       <span className="mt-1 block text-xs text-fg-secondary">{it.why}</span>
@@ -181,7 +181,7 @@ export function TodaysMoveCard({
                 </label>
                 {checked && (
                   <div className="mt-2 pl-7">
-                    <label className="block text-[11px] text-fg-muted" htmlFor={`note-${it.id}`}>
+                    <label className="block type-caption text-fg-secondary" htmlFor={`note-${it.id}`}>
                       {t("protocols.reflection")}
                     </label>
                     <input
@@ -211,7 +211,7 @@ export function TodaysMoveCard({
         })}
       </ul>
       {showNoKitFootnote && (
-        <p className="text-xs text-fg-muted" data-testid="no-kit-match-footnote">
+        <p className="type-caption text-fg-secondary" data-testid="no-kit-match-footnote">
           {t("protocols.noKitMatch")}
         </p>
       )}
@@ -222,7 +222,7 @@ export function TodaysMoveCard({
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-growth-ink">
               {t("protocols.do")}
             </h3>
-            <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
+            <ul className="list-disc space-y-1 pl-4 type-body text-fg-secondary">
               {doList.map((d) => (
                 <li key={d}>{d}</li>
               ))}
@@ -232,7 +232,7 @@ export function TodaysMoveCard({
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
               {t("protocols.dont")}
             </h3>
-            <ul className="list-disc space-y-1 pl-4 text-sm text-fg-secondary">
+            <ul className="list-disc space-y-1 pl-4 type-body text-fg-secondary">
               {dontList.map((d) => (
                 <li key={d}>{d}</li>
               ))}
@@ -290,15 +290,15 @@ export function TodaysMoveCard({
                           />
                           <span className="min-w-0 flex-1">
                             <span
-                              className={`text-sm font-medium text-fg ${checked ? "line-through" : ""}`}
+                              className={`type-body font-medium text-fg ${checked ? "line-through" : ""}`}
                             >
                               {it.label}
                             </span>
                             {it.sub && (
-                              <span className="mt-0.5 block text-[11px] text-fg-muted">{it.sub}</span>
+                              <span className="mt-0.5 block type-caption text-fg-secondary">{it.sub}</span>
                             )}
                             {it.why && (
-                              <span className="mt-0.5 block text-xs text-fg-muted">{it.why}</span>
+                              <span className="mt-0.5 block type-caption text-fg-secondary">{it.why}</span>
                             )}
                           </span>
                         </label>

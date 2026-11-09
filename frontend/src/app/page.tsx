@@ -65,7 +65,7 @@ export default function HomePage() {
     <div className="space-y-8 pb-4">
       {/* Hero */}
       <section className="rounded-3xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
-        <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-growth">
+        <p className="mb-2 type-chip tracking-[0.12em] text-growth">
           {t("home.eyebrow")}
         </p>
 
@@ -195,7 +195,7 @@ export default function HomePage() {
                 {t("common.change")}
               </Link>
             </div>
-            <p className="text-[11px] text-fg-secondary">
+            <p className="type-caption text-fg-secondary">
               {biohackingUnlocked
                 ? t("home.morning.pro")
                 : t("home.morning.free")}
@@ -215,10 +215,10 @@ export default function HomePage() {
             <FlaskConical className="h-5 w-5" aria-hidden />
           </span>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-fg group-hover:text-growth-deep">
+            <h2 className="type-section text-fg group-hover:text-growth-deep">
               {t("home.outcome.protocols.title")}
             </h2>
-            <span className="inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-secondary">
+            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
               {!ready
                 ? "…"
                 : !hasChart
@@ -228,7 +228,7 @@ export default function HomePage() {
                     : t("home.status.proUnlock")}
             </span>
           </div>
-          <div className="text-sm text-fg-secondary">
+          <div className="type-body text-fg-secondary">
             <p>{t("home.outcome.protocols.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.protocols.b1")}</li>
@@ -242,7 +242,7 @@ export default function HomePage() {
           className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-energy"
           data-testid="home-card-today"
         >
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-energy-ink">
+          <p className="mb-2 type-chip uppercase tracking-wider text-energy-ink">
             {t("home.card.today")}
           </p>
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-energy/15 text-energy-ink">
@@ -251,7 +251,7 @@ export default function HomePage() {
           <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
             {t("home.outcome.today.title")}
           </h2>
-          <div className="text-sm text-fg-secondary">
+          <div className="type-body text-fg-secondary">
             <p>{t("home.outcome.today.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.today.b1")}</li>
@@ -269,10 +269,10 @@ export default function HomePage() {
             <UserRound className="h-5 w-5" aria-hidden />
           </span>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-fg group-hover:text-growth-deep">
+            <h2 className="type-section text-fg group-hover:text-growth-deep">
               {t("home.outcome.chart.title")}
             </h2>
-            <span className="inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-secondary">
+            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
               {!ready
                 ? "…"
                 : hasChart
@@ -282,7 +282,7 @@ export default function HomePage() {
                   : t("home.status.notSaved")}
             </span>
           </div>
-          <div className="text-sm text-fg-secondary">
+          <div className="type-body text-fg-secondary">
             <p>{t("home.outcome.chart.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.chart.b1")}</li>
@@ -300,10 +300,10 @@ export default function HomePage() {
             <Sparkles className="h-5 w-5" aria-hidden />
           </span>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-fg group-hover:text-growth-deep">
+            <h2 className="type-section text-fg group-hover:text-growth-deep">
               {t("home.outcome.soul.title")}
             </h2>
-            <span className="inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-secondary">
+            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
               {!ready
                 ? "…"
                 : !hasChart
@@ -313,7 +313,7 @@ export default function HomePage() {
                     : t("home.status.proUnlock")}
             </span>
           </div>
-          <div className="text-sm text-fg-secondary">
+          <div className="type-body text-fg-secondary">
             <p>{t("home.outcome.soul.body")}</p>
             <ul className="mt-2 list-disc space-y-0.5 pl-4">
               <li>{t("home.outcome.soul.b1")}</li>
@@ -324,7 +324,7 @@ export default function HomePage() {
       </div>
 
       {/* Thin trust line */}
-      <p className="text-center text-sm text-fg-secondary">
+      <p className="text-center type-body text-fg-secondary">
         {t("home.trust.line")}
         <span className="mt-1 block text-xs text-fg-secondary/80">
           {t("home.trust.disclaimer")}

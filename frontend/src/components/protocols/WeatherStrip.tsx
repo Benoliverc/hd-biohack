@@ -55,7 +55,7 @@ export function WeatherStrip({
           </span>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-fg-secondary">
+      <p className="mt-2 type-caption text-fg-secondary">
         <Link
           href="/transits"
           className="text-growth underline-offset-2 hover:underline"

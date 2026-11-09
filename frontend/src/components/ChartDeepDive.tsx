@@ -66,7 +66,7 @@ function Accordion({
         <span className="mt-0.5 shrink-0 text-xs text-fg-muted group-open:hidden">Learn more</span>
         <span className="mt-0.5 hidden shrink-0 text-xs text-fg-muted group-open:inline">Hide</span>
       </summary>
-      <div className="border-t border-border px-4 py-3 text-sm leading-relaxed text-fg-secondary whitespace-pre-wrap">
+      <div className="border-t border-border px-4 py-3 type-body text-fg-secondary max-w-prose whitespace-pre-wrap">
         {children}
       </div>
     </details>
@@ -230,7 +230,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
                     {displayCenter(key)}
                   </div>
                   <div
-                    className={`mt-1 text-[10px] uppercase tracking-wide sm:text-xs ${
+                    className={`mt-1 type-caption uppercase tracking-wide ${
                       isDefined ? "text-growth" : "text-fg-muted"
                     }`}
                   >
@@ -251,7 +251,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
 
       {expanded && expandedCopy && matchesFilter(expanded) && (
         <div
-          className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm leading-relaxed text-fg-secondary"
+          className="rounded-xl border border-border bg-elevated px-4 py-3 type-body text-fg-secondary max-w-prose"
           role="region"
           aria-label={`${displayCenter(expanded)} detail`}
         >

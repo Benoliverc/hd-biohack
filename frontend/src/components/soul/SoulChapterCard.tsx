@@ -50,9 +50,9 @@ export default function SoulChapterCard({
         className={`flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${headerBg}`}
       >
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-fg">{title}</span>
+          <span className="block type-meta font-semibold text-fg">{title}</span>
           {!open && tease ? (
-            <span className="mt-0.5 block text-xs text-fg-muted line-clamp-2">
+            <span className="mt-0.5 block type-caption text-fg-secondary line-clamp-2">
               {tease}
             </span>
           ) : null}

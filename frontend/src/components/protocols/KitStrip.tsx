@@ -52,7 +52,7 @@ export function KitStrip({
                 type="button"
                 disabled={disabled || adding}
                 onClick={() => onAddStarter(name)}
-                className="rounded-full border border-border bg-sunken px-2.5 py-1 text-[11px] text-fg-secondary hover:border-growth disabled:opacity-50"
+                className="type-chip rounded-full border border-border bg-sunken px-2.5 py-1 text-fg-secondary hover:border-growth disabled:opacity-50"
                 data-testid={`kit-starter-${name}`}
               >
                 +{name.split(" ")[0]}
