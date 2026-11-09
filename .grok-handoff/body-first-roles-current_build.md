@@ -116,7 +116,7 @@ Frontend only. Open a PR against current `main`. Do **not** merge or deploy. Rep
 
 - **Branch:** `feat/body-first-roles`
 - **Base:** `afd18a8495b9abc1a6e48d41595d76a8f067c100` (main after PR #87)
-- **Tip:** (after commit)
+- **Tip:** `78543336646d2304dbc815a389a8e899ee348cc4`
 - **PR:** (after create)
 - **FE-only:** Yes — Vercel only after later yes (no Railway). Named `.type-*` utilities in `globals.css` + Tailwind `fontSize` aliases.
 - **Preview:** not started
