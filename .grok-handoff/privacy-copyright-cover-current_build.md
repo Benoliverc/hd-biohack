@@ -4,6 +4,8 @@
 - **Branch:** `feat/privacy-copyright-cover`
 - **Worktree:** `/workspace/hd-biohack-wt-privacy-copyright`
 - **Base:** `6adedf1593cc460a4213474c4ee81ef2477b8229` (main after #90 merge)
+- **PR:** #91 — https://github.com/Benoliverc/hd-biohack/pull/91
+- **Tip SHA:** `d873683b11d385314feb7743fcb9b8c9b0af3071`
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 
 ## Intent
