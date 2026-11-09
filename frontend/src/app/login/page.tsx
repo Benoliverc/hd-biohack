@@ -110,7 +110,7 @@ export default function LoginPage() {
       className="mt-4 rounded-xl border border-growth/30 bg-growth-soft/60 px-3.5 py-3 type-body text-fg-secondary"
       data-testid="login-beta-note"
     >
-      {mode === "create" ? t("login.betaCreateHint") : t("login.betaNote")}
+      {t("login.betaNote")}
     </p>
   );
 

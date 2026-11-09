@@ -27,7 +27,7 @@ from app.auth import hash_password
 from app.database import SessionLocal, init_db
 from app.entitlements import user_has_biohacking
 from app.main import app
-from app.models import User
+from app.models import NatalChart, User
 from app.session_auth import create_password_reset_token
 
 
@@ -265,3 +265,149 @@ if __name__ == "__main__":
     print("PASS forgot/reset/logout")
     test_probe_cleanup_targets_only_probe_email()
     print("PASS probe cleanup")
+
+
+def _auth_headers(c, email: str, password: str = "password1") -> dict[str, str]:
+    r = c.post("/auth/login", json={"username": email, "password": password})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def _register(c, email: str, password: str = "password1", first_name: str = "T") -> tuple[dict, dict]:
+    r = c.post(
+        "/auth/register",
+        json={"email": email, "password": password, "first_name": first_name},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+    return body["user"], headers
+
+
+BIRTH = {
+    "birth_date": "1990-05-15",
+    "birth_time": "14:30:00",
+    "birth_city": "Hong Kong",
+    "lat": 22.3193,
+    "lon": 114.1694,
+}
+
+
+def test_chart_save_inventory_protocol_soul_use_session_user():
+    """Client-supplied user_id must not act as another user on the four leftover routes."""
+    with _client() as c:
+        victim, _ = _register(c, "victim-gate@example.com")
+        attacker, headers = _register(c, "attacker-gate@example.com")
+        # Victim id must not be writable by attacker session
+        assert victim["id"] != attacker["id"]
+
+        # 1) chart calculate save — unauthenticated save → 401
+        bare = c.post(
+            "/chart/calculate",
+            json={**BIRTH, "user_id": victim["id"], "save": True, "label": "Me", "slot_kind": "self"},
+        )
+        assert bare.status_code == 401
+
+        # save with attacker's session but victim's user_id → chart owned by attacker
+        save = c.post(
+            "/chart/calculate",
+            json={
+                **BIRTH,
+                "user_id": victim["id"],
+                "save": True,
+                "label": "Me",
+                "slot_kind": "self",
+            },
+            headers=headers,
+        )
+        assert save.status_code == 200, save.text
+        natal_id = save.json()["natal_chart_id"]
+        assert natal_id is not None
+        db = SessionLocal()
+        try:
+            row = db.get(NatalChart, natal_id)
+            assert row is not None
+            assert row.user_id == attacker["id"]
+            assert row.user_id != victim["id"]
+        finally:
+            db.close()
+
+        # calc without save still works anonymously
+        anon = c.post("/chart/calculate", json={**BIRTH, "save": False})
+        assert anon.status_code == 200
+
+        # 2) inventory POST — no auth → 401; spoofed user_id → lands on attacker
+        assert c.post("/inventory", json={"user_id": victim["id"], "name": "Magnesium"}).status_code == 401
+        inv = c.post(
+            "/inventory",
+            json={"user_id": victim["id"], "name": "Magnesium"},
+            headers=headers,
+        )
+        assert inv.status_code == 200, inv.text
+        inv_id = inv.json()["id"]
+        db = SessionLocal()
+        try:
+            from app.models import SupplementInventory
+
+            item = db.get(SupplementInventory, inv_id)
+            assert item is not None
+            assert item.user_id == attacker["id"]
+        finally:
+            db.close()
+
+        # 3) protocol POST — no auth → 401; spoofed id cannot generate for victim
+        assert (
+            c.post(
+                "/biohack/protocol",
+                json={"user_id": victim["id"], "natal_chart_id": natal_id},
+            ).status_code
+            == 401
+        )
+        proto = c.post(
+            "/biohack/protocol",
+            json={"user_id": victim["id"], "natal_chart_id": natal_id},
+            headers=headers,
+        )
+        assert proto.status_code == 200, proto.text
+
+        # Victim needs a friend chart for soul — create second chart as friend under attacker (Pro via beta)
+        friend = c.post(
+            "/chart/calculate",
+            json={
+                **BIRTH,
+                "birth_date": "1988-01-02",
+                "user_id": victim["id"],
+                "save": True,
+                "label": "Friend",
+                "slot_kind": "friend",
+                "role": "person",
+            },
+            headers=headers,
+        )
+        assert friend.status_code == 200, friend.text
+        friend_id = friend.json()["natal_chart_id"]
+
+        # 4) soul sync — no auth → 401; spoofed user_id still uses attacker ownership check
+        assert (
+            c.post(
+                "/soul/sync",
+                json={
+                    "user_id": victim["id"],
+                    "self_chart_id": natal_id,
+                    "friend_chart_id": friend_id,
+                    "context": "life",
+                },
+            ).status_code
+            == 401
+        )
+        soul = c.post(
+            "/soul/sync",
+            json={
+                "user_id": victim["id"],
+                "self_chart_id": natal_id,
+                "friend_chart_id": friend_id,
+                "context": "life",
+            },
+            headers=headers,
+        )
+        assert soul.status_code == 200, soul.text

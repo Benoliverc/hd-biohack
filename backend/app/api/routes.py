@@ -519,7 +519,11 @@ def geocode_seeds():
 
 
 @router.post("/chart/calculate", response_model=ChartResponse)
-def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
+def calc_chart(
+    body: BirthDataIn,
+    db: Session = Depends(get_db),
+    current: User | None = Depends(get_optional_user),
+):
     if body.lat is not None and body.lon is not None:
         geo = {
             "display_name": body.birth_city,
@@ -543,17 +547,19 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
         raise HTTPException(500, f"Chart calculation failed: {e}") from e
 
     natal_id = None
-    if body.save and body.user_id:
-        user = db.get(User, body.user_id)
-        if not user:
-            raise HTTPException(404, "User not found")
+    if body.save:
+        if current is None:
+            raise HTTPException(401, "Not authenticated")
+        # Ignore client-supplied user_id — act as the session user only.
+        user = current
+        owner_id = current.id
         label = (body.label or "").strip() or ("Me" if body.slot_kind == "self" else "Friend")
         slot_kind = body.slot_kind if body.slot_kind in ("self", "friend") else "self"
 
         row = None
         if body.natal_chart_id is not None:
             row = db.get(NatalChart, body.natal_chart_id)
-            if not row or row.user_id != body.user_id:
+            if not row or row.user_id != owner_id:
                 raise HTTPException(404, "Chart not found")
             # Freeze role on update — FE must create a new row to change Me ↔ Friend.
             if slot_kind != (row.slot_kind or "self"):
@@ -589,7 +595,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                 existing_self = (
                     db.query(NatalChart)
                     .filter(
-                        NatalChart.user_id == body.user_id,
+                        NatalChart.user_id == owner_id,
                         NatalChart.slot_kind != "friend",
                     )
                     .count()
@@ -599,7 +605,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
                         403,
                         "Free can keep one Me chart — update your existing chart instead of creating another.",
                     )
-            count = db.query(NatalChart).filter(NatalChart.user_id == body.user_id).count()
+            count = db.query(NatalChart).filter(NatalChart.user_id == owner_id).count()
             if count >= MAX_CHARTS_PER_USER:
                 raise HTTPException(
                     400,
@@ -612,7 +618,7 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             else:
                 chart_role = "self"
             row = NatalChart(
-                user_id=body.user_id,
+                user_id=owner_id,
                 label=label[:128],
                 slot_kind=slot_kind,
                 role=chart_role,
@@ -629,18 +635,16 @@ def calc_chart(body: BirthDataIn, db: Session = Depends(get_db)):
             db.refresh(row)
             natal_id = row.id
 
-    if body.user_id:
-        user_for_event = db.get(User, body.user_id)
-        if user_for_event:
-            record_usage_event(
-                user=user_for_event,
-                event_type="chart_generated",
-                metadata={
-                    "natal_chart_id": natal_id,
-                    "saved": bool(body.save and natal_id),
-                    "slot_kind": body.slot_kind,
-                },
-            )
+    if current is not None:
+        record_usage_event(
+            user=current,
+            event_type="chart_generated",
+            metadata={
+                "natal_chart_id": natal_id,
+                "saved": bool(body.save and natal_id),
+                "slot_kind": body.slot_kind,
+            },
+        )
     return ChartResponse(chart=chart, natal_chart_id=natal_id)
 
 
@@ -855,10 +859,14 @@ def transits_today(
 
 
 @router.post("/inventory")
-def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+def add_inventory(
+    body: InventoryItemIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
     name = body.name.strip()
     if not name:
         raise HTTPException(400, "Name is required")
@@ -867,7 +875,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
     existing = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             func.lower(SupplementInventory.name) == name.lower(),
             SupplementInventory.active.is_(True),
         )
@@ -885,7 +893,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
     inactive = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             func.lower(SupplementInventory.name) == name.lower(),
             SupplementInventory.active.is_(False),
         )
@@ -906,7 +914,7 @@ def add_inventory(body: InventoryItemIn, db: Session = Depends(get_db)):
         }
 
     item = SupplementInventory(
-        user_id=body.user_id, name=name, notes=body.notes, active=body.active
+        user_id=owner_id, name=name, notes=body.notes, active=body.active
     )
     db.add(item)
     db.commit()
@@ -943,12 +951,16 @@ def list_inventory(
 
 
 @router.post("/biohack/protocol")
-def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+def protocol(
+    body: ProtocolRequest,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
 
-    q = db.query(NatalChart).filter(NatalChart.user_id == body.user_id)
+    q = db.query(NatalChart).filter(NatalChart.user_id == owner_id)
     if body.natal_chart_id:
         q = q.filter(NatalChart.id == body.natal_chart_id)
     natal_row = q.order_by(NatalChart.id.desc()).first()
@@ -967,7 +979,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
     inv_rows = (
         db.query(SupplementInventory)
         .filter(
-            SupplementInventory.user_id == body.user_id,
+            SupplementInventory.user_id == owner_id,
             SupplementInventory.active.is_(True),
         )
         .all()
@@ -1016,7 +1028,7 @@ def protocol(body: ProtocolRequest, db: Session = Depends(get_db)):
 
     # Persist weekly snapshot
     week_start = date.today()
-    snap = WeeklyProtocol(user_id=body.user_id, week_start=week_start, protocol_json=proto)
+    snap = WeeklyProtocol(user_id=owner_id, week_start=week_start, protocol_json=proto)
     db.add(snap)
     db.commit()
     db.refresh(snap)
@@ -1141,16 +1153,20 @@ def telemetry_ingest(body: TelemetryIn, db: Session = Depends(get_db)):
     return {"status": "accepted", "id": row.id, "note": "V2 stub — not yet merged into protocols"}
 
 @router.post("/soul/sync", response_model=SoulSyncOut)
-def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
+def soul_sync(
+    body: SoulSyncIn,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
     """Aura Alchemy between two natal charts owned by the same user."""
     if body.self_chart_id == body.friend_chart_id:
         raise HTTPException(400, "Pick two different charts")
     if body.context not in CONTEXT_IDS:
         raise HTTPException(400, "Invalid context")
 
-    user = db.get(User, body.user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
+    # Ignore client-supplied user_id — act as the session user only.
+    user = current
+    owner_id = current.id
     # Soft Pro gate (same truth as Protocols FE): Free cannot run Soul sync.
     # Preview-as-Free is FE-only; DB-Pro accounts still pass here.
     if not _user_has_biohacking(user):
@@ -1160,7 +1176,7 @@ def soul_sync(body: SoulSyncIn, db: Session = Depends(get_db)):
     friend_row = db.get(NatalChart, body.friend_chart_id)
     if not self_row or not friend_row:
         raise HTTPException(404, "Chart not found")
-    if self_row.user_id != body.user_id or friend_row.user_id != body.user_id:
+    if self_row.user_id != owner_id or friend_row.user_id != owner_id:
         raise HTTPException(403, "Chart not owned by user")
 
     chart_a = self_row.chart_json or {}
