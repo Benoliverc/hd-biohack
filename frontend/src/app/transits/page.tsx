@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { Hexagon } from "lucide-react";
 
@@ -114,12 +115,19 @@ export default function TransitsPage() {
       setData(null);
       return;
     }
+    // No Me natal → empty Today. Do not call sky/Move API (avoids painting a fake filled day).
+    if (!youChart) {
+      setLoading(false);
+      setData(null);
+      setError(null);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(null);
     setData(null);
     api
-      .transitsToday(youChart?.id, {
+      .transitsToday(youChart.id, {
         userId: user?.id,
         previewAsFree,
       })
@@ -195,22 +203,43 @@ export default function TransitsPage() {
         </div>
       )}
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {!resolvingYou && !youChart && (
+        <div
+          className="rounded-2xl border border-dashed border-border bg-elevated/60 px-5 py-8 text-center"
+          data-testid="today-empty-no-you"
+        >
+          <p className="text-base font-semibold text-fg">{t("page.today.emptyTitle")}</p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-fg-secondary">
+            {t("page.today.emptyBody")}
+          </p>
+          <Link
+            href="/profile"
+            className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse"
+            data-testid="today-empty-open-chart"
+          >
+            {t("page.today.openChart")}
+          </Link>
+        </div>
+      )}
 
-      <TodayIndication
-        indication={data?.indication}
-        loading={loading && !data}
-        error={error}
-        bindingLoading={resolvingYou}
-        userId={user?.id ?? null}
-        chartId={youChart?.id ?? null}
-        preferredTimezone={user?.preferred_timezone ?? null}
-        natalType={typeFromChart(youChartPayload)}
-      />
+      {error && youChart ? <p className="text-sm text-danger">{error}</p> : null}
 
-      <LiteracyCoach variant="today" />
+      {youChart ? (
+        <TodayIndication
+          indication={data?.indication}
+          loading={loading && !data}
+          error={error}
+          bindingLoading={resolvingYou}
+          userId={user?.id ?? null}
+          chartId={youChart?.id ?? null}
+          preferredTimezone={user?.preferred_timezone ?? null}
+          natalType={typeFromChart(youChartPayload)}
+        />
+      ) : null}
 
-      {sunEarth && (
+      {youChart ? <LiteracyCoach variant="today" /> : null}
+
+      {youChart && sunEarth && (
         <div
           id="today-sun-earth"
           className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-energy/40 bg-energy/10 p-5"
@@ -231,7 +260,7 @@ export default function TransitsPage() {
         </div>
       )}
 
-      {overlay && (
+      {youChart && overlay && (
         <div className="grid gap-4 md:grid-cols-2">
           <div
             id="today-bridged-channels"
@@ -276,6 +305,7 @@ export default function TransitsPage() {
         </div>
       )}
 
+      {youChart ? (
       <div className="overflow-hidden rounded-2xl border border-border">
         <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
           Current planetary gates
@@ -316,6 +346,7 @@ export default function TransitsPage() {
           </tbody>
         </table>
       </div>
+      ) : null}
     </div>
   );
 }

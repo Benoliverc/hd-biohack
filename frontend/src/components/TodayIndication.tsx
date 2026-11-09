@@ -259,6 +259,29 @@ export default function TodayIndication({
     return null;
   }
 
+  // Defense: never paint a filled Move cockpit without a Me natal.
+  // (Transits page also gates the fetch/mount; this covers any other caller.)
+  if (!indication.has_natal) {
+    return (
+      <div
+        className="rounded-2xl border border-dashed border-border bg-elevated/60 px-5 py-8 text-center"
+        data-testid="today-indication-needs-natal"
+      >
+        <p className="text-base font-semibold text-fg">{t("page.today.emptyTitle")}</p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-fg-secondary">
+          {t("page.today.emptyBody")}
+        </p>
+        <Link
+          href="/profile"
+          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
+          data-testid="indication-save-chart-cta"
+        >
+          {t("today.saveNatal")}
+        </Link>
+      </div>
+    );
+  }
+
   const energy = indication.energy_level as 1 | 2 | 3 | 4 | 5;
   const space = indication.preferred_space;
   const daily = indication.daily_signal;

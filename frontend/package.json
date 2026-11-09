@@ -20,7 +20,8 @@
     "assert:evening-signature-close": "npx tsx scripts/assert-evening-signature-close.mjs",
     "assert:settled-day": "npx tsx scripts/assert-settled-day.mjs",
     "assert:soul-chapter-map": "npx tsx scripts/assert-soul-chapter-map.mjs",
-    "assert:soul-dual-prompt": "npx tsx scripts/assert-soul-dual-prompt.mjs"
+    "assert:soul-dual-prompt": "npx tsx scripts/assert-soul-dual-prompt.mjs",
+    "assert:today-empty-no-me-chart": "npx tsx scripts/assert-today-empty-no-me-chart.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

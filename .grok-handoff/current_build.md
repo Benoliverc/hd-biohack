@@ -1,48 +1,49 @@
-# current_build — daily-return PR 3 Evening Signature Close
+# current_build — Today empty when no Me natal
 
-- **Date:** 2026-11-06 (Asia/Hong_Kong)
-- **Branch:** `feat/daily-return-evening-signature-close`
-- **Worktree:** `/workspace/hd-biohack-wt-daily-return-pr3`
-- **Base:** `e507886016fd1e4a6671a04a8f9bc1bc5945b545` (main after #75 merge)
-- **Story:** Story 5 Evening Signature Close only (daily-return PR 3)
+- **Date:** 2026-11-09 (Asia/Hong_Kong)
+- **Branch:** `feat/today-empty-no-me-chart`
+- **Worktree:** `/workspace/hd-biohack-wt-today-empty-no-me-chart`
+- **Base:** `0507fa54badfc7145d25fc0d66a14b870dc0039f` (main after #89 merge)
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 
-## Backend / deploy target
-- **BE changed:** YES — extended `protocol-completions` `kind` with `"evening"` (schemas + upsert allowlist + model comment). Same PUT `/users/{id}/protocol-completions` endpoint; label encodes `Type|answer` (e.g. `Generator|yes`).
-- **Also:** one-line SyntaxError fix in `backend/app/biohack/rules.py` (nested quotes) so the API module can import — pre-existing on main, already fixed in PR1 worktree.
-- **Ship deploy:** Vercel **and** Railway.
+## Root cause (confirmed)
+1. `frontend/src/app/transits/page.tsx` always called `api.transitsToday(youChart?.id, …)` even when `youChart` was null.
+2. Backend `_no_natal_indication` intentionally returns a full lifestyle Move (`has_natal: false`, `save_chart_cta: true`) for sky-only.
+3. Page always mounted `TodayIndication`, which rendered the filled Move cockpit; save CTA was buried under it. Header savePrompt alone was not enough.
 
-## Persistence
-- item_id: `today-evening-close`
-- kind: `evening`
-- label: `{HdType}|{answer}` where answer is `yes`/`no` or Projector `recognized`/`rest`
-- note: optional ≤120 via existing `setCompletionNote` + putProtocolCompletion
-- Free + Pro both persist same-day via existing completion plumbing (Pro history ready for later adaptive ranking; no ranking algorithm in this ticket)
+## Fix (FE-only)
+- Gate Today fetch + body on Me natal (`youChart`). No `transitsToday` without Me chart.
+- Empty state card `today-empty-no-you` + CTA `today-empty-open-chart` → `/profile` (mirrors Protocols empty).
+- Hide Move / LiteracyCoach / sun-earth / overlay / planetary gates until Me natal exists.
+- Defense in `TodayIndication`: if `!indication.has_natal`, render needs-natal empty instead of filled Move.
+- i18n: `page.today.emptyTitle` / `emptyBody` / `openChart` (all 5 locales; non-EN EN-verbatim).
+- Assert: `npm run assert:today-empty-no-me-chart`
 
-## Evening visibility
-- preferredTimezone with fallback `DEFAULT_PROTOCOLS_TZ = Asia/Hong_Kong`
-- Visible when local hour ≥ 17, OR `indication.when_slot === "evening"`, OR already answered today
-- Hidden before evening (does not block morning Move)
+## Deploy target
+- **FE-only** → Vercel only (no Railway / BE change).
 
-## Type copy (en)
-- Generator / Manifesting Generator: "Did anything satisfy?"
-- Manifestor: "Did you have peace to start — and did you inform?"
-- Projector: "Were you recognized, or did you rest?"
-- Reflector: "Did the place feel right?"
-
-## data-testid
-- `today-evening-close`, `today-evening-close-question`, `today-evening-close-choices`, `today-evening-close-{answer}`, `today-evening-close-receipt`, `today-evening-close-note`
-
-## Preview
-- FE: http://127.0.0.1:3018/ and /transits (port 3018)
-- API: reuse default rewrite → :8000 if running; else FE-only smoke
+## Files
+- `frontend/src/app/transits/page.tsx`
+- `frontend/src/components/TodayIndication.tsx`
+- `frontend/src/lib/i18n/messages/{en,nl,de,fr,es}.ts`
+- `frontend/scripts/assert-today-empty-no-me-chart.mjs`
+- `frontend/package.json` (script)
 
 ## Tests
-- `npx tsc --noEmit` — exit 0
-- `npm run assert:evening-signature-close` — PASS
-- quiet-move-closure, kind-show-up, protocol-completions, literacy-pulse, sky-story — PASS
-- `assert-i18n-settings` — PASS, keys=270, parity ok
-- `pytest tests/test_evening_signature_close.py` — PASS
+- `./node_modules/.bin/tsc --noEmit` — exit 0
+- `assert:today-empty-no-me-chart` — PASS
+- `assert:i18n-settings` — PASS · keys=295 · parity ok
+- evening-signature-close, morning-ritual-option-a, settled-day, quiet-move-closure, kind-show-up, sky-story — PASS
+- BE unchanged (no pytest required for this tip)
 
-## Placement
-- Inside `main-action`, after Move/closure/show-up, before kit. Never above Move. Never Chart/Soul.
+## Preview
+- Ports not left running (use :3029 FE / :8029 API if needed; leave :3028/:8028 alone)
+
+## Verify
+1. New account → /transits → empty card + Open Chart; no Move / energy / sun-earth / gates.
+2. Save Me natal on Chart → Today fills (Move-first, Settled Day, Evening Close, Share when payload).
+3. Friend charts never drive Today (self-only resolveYouChart unchanged).
+
+## Out of scope
+- Soft #89 residuals (Resend, settings ORM, leftover tests)
+- Changing BE `_no_natal_indication` (still valid for any non-UI caller; FE no longer paints it)
