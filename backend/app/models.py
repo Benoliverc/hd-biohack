@@ -35,6 +35,7 @@ class User(Base):
     biohacking_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     preferred_timezone: Mapped[str | None] = mapped_column(String(128), nullable=True)
     preferred_locale: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     natal_charts: Mapped[list[NatalChart]] = relationship(back_populates="user")

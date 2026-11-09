@@ -222,6 +222,7 @@ export type TodayIndicationPayload = {
 
 export type UsageEventType =
   | "login"
+  | "signup"
   | "chart_generated"
   | "protocol_generated"
   | "page_view";
@@ -266,6 +267,100 @@ export type UsageStatsBucket = {
 export type UsageStatsDay = UsageStatsBucket & { day: string };
 export type UsageStatsWeek = UsageStatsBucket & { week: string; week_start: string };
 export type UsageStatsMonth = UsageStatsBucket & { month: string };
+
+export type AdminNewUserBrief = {
+  id: number;
+  display_name: string;
+  username?: string | null;
+  email: string;
+  created_at: string;
+};
+
+export type AdminSignupBannerItem = {
+  user_id: number | null;
+  display_name: string;
+  email: string;
+  created_at: string;
+  source: string;
+};
+
+export type AdminOverviewPulse = {
+  new_today_count: number;
+  new_today: AdminNewUserBrief[];
+  new_this_week: number;
+  new_last_week: number;
+  week_spark_delta: number;
+  total_accounts: number;
+  total_accounts_including_seed: number;
+  signups_last_24h: AdminSignupBannerItem[];
+};
+
+export type AdminInsights = {
+  period_days: number;
+  active_users: number;
+  new_users: number;
+  avg_logins_per_active: number;
+  median_days_since_last_login: number | null;
+  activation_pct: number | null;
+  activation_count: number;
+  today_engagement_pct: number | null;
+  avg_page_visits_per_active: Record<string, number>;
+  avg_charts_per_active: number;
+  avg_protocols_per_active: number;
+  return_d1_pct: number | null;
+  return_d7_pct: number | null;
+};
+
+export type AdminUserListItem = {
+  id: number;
+  email: string;
+  username?: string | null;
+  display_name: string;
+  first_name?: string | null;
+  created_at: string | null;
+  last_login_at: string | null;
+  login_count: number;
+  subscription_tier: string;
+  biohacking_enabled: boolean;
+  biohacking_unlocked: boolean;
+  beta_full_access: boolean;
+  has_me_natal: boolean;
+  last_active_at: string | null;
+  is_seed_or_dev: boolean;
+};
+
+export type AdminUsersPage = {
+  total: number;
+  items: AdminUserListItem[];
+};
+
+export type AdminUserDetail = {
+  id: number;
+  email: string;
+  username?: string | null;
+  display_name: string;
+  first_name?: string | null;
+  created_at: string | null;
+  auth_provider: string;
+  subscription_tier: string;
+  biohacking_enabled: boolean;
+  biohacking_unlocked: boolean;
+  beta_full_access: boolean;
+  login_count: number;
+  first_login_at: string | null;
+  last_login_at: string | null;
+  days_since_last_login: number | null;
+  has_me_natal: boolean;
+  people_count: number;
+  partner_tagged: boolean;
+  charts_generated: number;
+  protocols_generated: number;
+  page_views: Record<string, number>;
+  recent_events: UsageEvent[];
+  kit_items_active: number;
+  move_completions: number;
+  is_seed_or_dev: boolean;
+};
 
 
 export type SoulContext = "work" | "life" | "play";
@@ -582,6 +677,29 @@ export const api = {
   adminUsageStatsMonthly: (actorUserId: number, months = 12) =>
     req<UsageStatsMonth[]>(
       `/admin/usage/stats/monthly?actor_user_id=${actorUserId}&months=${months}`
+    ),
+  adminOverviewPulse: (actorUserId: number) =>
+    req<AdminOverviewPulse>(
+      `/admin/overview/pulse?actor_user_id=${actorUserId}`
+    ),
+  adminInsights: (actorUserId: number, period: 7 | 30 | 90 = 30) =>
+    req<AdminInsights>(
+      `/admin/insights?actor_user_id=${actorUserId}&period=${period}`
+    ),
+  adminUsers: (
+    actorUserId: number,
+    opts?: { q?: string; limit?: number; offset?: number; sort?: string }
+  ) => {
+    const q = new URLSearchParams({ actor_user_id: String(actorUserId) });
+    if (opts?.q) q.set("q", opts.q);
+    if (opts?.limit != null) q.set("limit", String(opts.limit));
+    if (opts?.offset != null) q.set("offset", String(opts.offset));
+    if (opts?.sort) q.set("sort", opts.sort);
+    return req<AdminUsersPage>(`/admin/users?${q}`);
+  },
+  adminUserDetail: (actorUserId: number, userId: number) =>
+    req<AdminUserDetail>(
+      `/admin/users/${userId}?actor_user_id=${actorUserId}`
     ),
   soulSync: (body: SoulSyncRequest) =>
     req<SoulSyncResult>("/soul/sync", {

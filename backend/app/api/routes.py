@@ -42,13 +42,18 @@ from ..config import get_settings
 from ..auth import hash_password, verify_password
 from ..usage import (
     backfill_usage_from_history,
+    compute_insights,
+    get_admin_user_detail,
+    list_admin_users,
     list_usage_events,
+    overview_new_user_pulse,
     record_page_view,
     record_usage_event,
     require_admin_user,
     stats_daily,
     stats_monthly,
     stats_weekly,
+    touch_last_login,
 )
 from ..schemas import (
     BirthDataIn,
@@ -71,6 +76,10 @@ from ..schemas import (
     UsageStatsDay,
     UsageStatsMonth,
     UsageStatsWeek,
+    AdminOverviewPulseOut,
+    AdminInsightsOut,
+    AdminUsersPage,
+    AdminUserDetailOut,
     SoulSyncIn,
     SoulSyncOut,
     UserCreate,
@@ -133,6 +142,8 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(401, GENERIC_AUTH_ERROR)
     token = create_session(db, user)
+    touch_last_login(db, user)
+    db.commit()
     record_usage_event(user=user, event_type="login")
     return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
 
@@ -168,6 +179,9 @@ def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     token = create_session(db, user)
+    touch_last_login(db, user)
+    db.commit()
+    record_usage_event(user=user, event_type="signup")
     record_usage_event(user=user, event_type="login")
     return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
 
@@ -215,6 +229,8 @@ def reset_password(body: ResetPasswordIn, request: Request, db: Session = Depend
     db.refresh(user)
     revoke_all_sessions_for_user(db, user.id)
     token = create_session(db, user)
+    touch_last_login(db, user)
+    db.commit()
     record_usage_event(user=user, event_type="login")
     return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
 
@@ -1071,7 +1087,7 @@ def admin_usage_events(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     day: str | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
-    event_type: str | None = Query(None, description="login|chart_generated|protocol_generated|page_view"),
+    event_type: str | None = Query(None, description="login|signup|chart_generated|protocol_generated|page_view"),
     db: Session = Depends(get_db),
 ):
     require_admin_user(db, actor_user_id)
@@ -1122,6 +1138,54 @@ def admin_usage_backfill(
     """Optional idempotent historical backfill from natal_charts / weekly_protocols."""
     require_admin_user(db, actor_user_id)
     return backfill_usage_from_history(db)
+
+
+@router.get("/admin/overview/pulse", response_model=AdminOverviewPulseOut)
+def admin_overview_pulse(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    return overview_new_user_pulse(db)
+
+
+@router.get("/admin/insights", response_model=AdminInsightsOut)
+def admin_insights(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    period: int = Query(30, description="7 | 30 | 90"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    if period not in (7, 30, 90):
+        raise HTTPException(400, "period must be 7, 30, or 90")
+    return compute_insights(db, period_days=period)
+
+
+@router.get("/admin/users", response_model=AdminUsersPage)
+def admin_users_list(
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    q: str | None = Query(None, description="Search name/email/username"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    sort: str = Query("joined_desc", description="joined_desc | last_login_desc"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    total, items = list_admin_users(db, q=q, limit=limit, offset=offset, sort=sort)
+    return {"total": total, "items": items}
+
+
+@router.get("/admin/users/{user_id}", response_model=AdminUserDetailOut)
+def admin_user_detail(
+    user_id: int,
+    actor_user_id: int = Query(..., description="Acting admin user id"),
+    db: Session = Depends(get_db),
+):
+    require_admin_user(db, actor_user_id)
+    detail = get_admin_user_detail(db, user_id)
+    if not detail:
+        raise HTTPException(404, "User not found")
+    return detail
 
 @router.post("/api/v2/telemetry/ingest")
 @router.post("/v2/telemetry/ingest")
