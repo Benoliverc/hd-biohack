@@ -22,6 +22,11 @@ import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
 import SoulChapterCard from "@/components/soul/SoulChapterCard";
 import { partnerSignatureForId } from "@/components/soul/partnerSignatureCopy";
 import { friendSignatureForId } from "@/components/soul/friendSignatureCopy";
+import {
+  pickSoulOpenPerson,
+  readSoulLastPersonId,
+  writeSoulLastPersonId,
+} from "@/lib/soulLastSelected";
 
 /** Default playbook context (tabs removed — single Playbook view). */
 const PLAYBOOK_CONTEXT: SoulContext = "life";
@@ -252,12 +257,6 @@ function pickMeRow(rows: SavedChartRow[], natalId: number | null): SavedChartRow
   return rows.find((r) => r.slot_kind === "self") ?? rows.find((r) => isSelfSlot(r)) ?? null;
 }
 
-function pickDefaultFriend(rows: SavedChartRow[], meId: number | null): number | null {
-  const others = rows.filter((r) => r.id !== meId);
-  const prefer = others.find((r) => r.slot_kind === "friend");
-  return (prefer ?? others[0])?.id ?? null;
-}
-
 function chartOptionLabel(r: SavedChartRow, fallback: string): string {
   const base = `${r.label || fallback} · ${r.type || "—"} · ${r.profile || "—"}`;
   return r.role === "partner" ? `${base} · Partner` : base;
@@ -398,16 +397,25 @@ function SoulUnlockedContent() {
     return friends.length ? friends : others;
   }, [charts, meId]);
 
+  const lastUserIdRef = useRef<number | null>(null);
+
   useEffect(() => {
+    const userChanged = lastUserIdRef.current !== (user?.id ?? null);
+    lastUserIdRef.current = user?.id ?? null;
     if (!personOptions.length) {
       setFriendId(null);
       return;
     }
-    setFriendId((prev) => {
-      if (prev != null && personOptions.some((r) => r.id === prev)) return prev;
-      return pickDefaultFriend(personOptions, meId);
-    });
-  }, [personOptions, meId]);
+    const rememberedId = user?.id != null ? readSoulLastPersonId(user.id) : null;
+    setFriendId((prev) =>
+      pickSoulOpenPerson({
+        options: personOptions,
+        meId,
+        previousId: userChanged ? null : prev,
+        rememberedId,
+      }),
+    );
+  }, [personOptions, meId, user?.id]);
 
   // Changing person resets the map so we don't leak Love open into a friend chart.
   useEffect(() => {
@@ -624,7 +632,12 @@ function SoulUnlockedContent() {
               <select
                 className="min-h-11 rounded-lg border border-border bg-canvas px-3 text-sm text-fg"
                 value={friendId ?? ""}
-                onChange={(e) => setFriendId(Number(e.target.value))}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  if (!Number.isFinite(next)) return;
+                  setFriendId(next);
+                  if (user?.id != null) writeSoulLastPersonId(user.id, next);
+                }}
                 data-testid="soul-friend-select"
               >
                 {personOptions.map((r) => (

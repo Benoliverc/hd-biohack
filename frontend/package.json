@@ -22,7 +22,8 @@
     "assert:soul-chapter-map": "npx tsx scripts/assert-soul-chapter-map.mjs",
     "assert:soul-dual-prompt": "npx tsx scripts/assert-soul-dual-prompt.mjs",
     "assert:today-empty-no-me-chart": "npx tsx scripts/assert-today-empty-no-me-chart.mjs",
-    "assert:privacy-copyright-cover": "npx tsx scripts/assert-privacy-copyright-cover.mjs"
+    "assert:privacy-copyright-cover": "npx tsx scripts/assert-privacy-copyright-cover.mjs",
+    "assert:soul-last-selected": "npx tsx scripts/assert-soul-last-selected.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

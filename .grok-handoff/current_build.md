@@ -1,66 +1,53 @@
-# current_build — Admin User Insights
+# current_build — Soul last-selected person open
 
 - **Date:** 2026-11-10 (Asia/Hong_Kong)
-- **Branch:** `feat/admin-user-insights`
-- **Worktree:** `/workspace/hd-biohack-wt-admin-insights`
-- **Base:** `21a9c4c202c75acbc001983e65fd1919ab1b85bb` (main after #92 kit daypart slots landed)
-- **PR:** #93 — https://github.com/Benoliverc/hd-biohack/pull/93
-- **Tip SHA:** `8f9bacff7898c2526dfc8a8881124d77a8f09d1a`
+- **Branch:** `feat/soul-last-selected-person`
+- **Worktree:** `/workspace/hd-biohack-wt-soul-last-selected`
+- **Base:** `a8849913029cbbea7d5dcc5d392a0499b794a6a6` (main after #93 merge)
+- **PR:** #94 — https://github.com/Benoliverc/hd-biohack/pull/94
+- **Tip SHA:** `df9a8bb76bf270b37d7f444cdaf3fe070c7d3543`
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
-- **Deploy on ship:** FE+BE → **Vercel AND Railway**
-
-> Note: #92 (`fix/kit-supplement-daypart-slots`) is on main. This brief is the active in-flight build for **PR #93 Admin User Insights** only (handoff conflict resolved on rebase).
+- **Brief:** `.grok-handoff/soul-last-selected-person-build-brief-2026-11-10.md`
 
 ## Intent
-Admin User Insights as signed off: three tabs on `/admin` — Overview (new-user pulse + existing Usage), Insights (period averages), People (searchable list + detail panel). Canvas: https://cursor.com/canvas/store-f5d34951-c924-450e-b54b-b19b5400da0d/3bdb7117-23e5-4ea7-a8e4-d0130086749f
+When Soul opens, show the person the user last picked on Soul, instead of defaulting to the first person in the list (which currently feels alphabetical).
 
-## Shipped (first cut — full metrics)
-### Instrument
-- `signup` usage_event on successful `/auth/register` (best-effort; still also records login)
-- `users.last_login_at` column + SQLite-friendly ensure; updated on login / register / reset-password
+## Approach (FE-only)
+1. New helper `frontend/src/lib/soulLastSelected.ts` — localStorage key `hd-biohack:soul-last-person:{userId}`; read/write; `pickSoulOpenPerson`.
+2. Open order: in-session selection if still in `personOptions` → remembered id if still in options → marked Partner if present → `pickDefaultFriend` (first friend slot, else first remaining). Empty options stay empty.
+3. Write on picker change only, keyed by signed-in `user.id`. Account switch drops in-session id (`lastUserIdRef`) and reads the new account's key.
+4. Dropdown order, Dual prompt, Mark as Partner, Love gates, Chart, and backend unchanged.
+5. Assert: `npm run assert:soul-last-selected`.
 
-### APIs (admin gate unchanged)
-- `GET /admin/overview/pulse`
-- `GET /admin/insights?period=7|30|90` (default 30)
-- `GET /admin/users` (search + sort + page)
-- `GET /admin/users/{id}` (rollup; no passwords/tokens/birth/natal dumps)
-
-### Insights metrics included
-- new users, active users, avg logins / active, median days since last login, Me-natal activation %
-- Today engagement %, avg page visits by page, charts & protocols / active, Return D1 / D7
-- **No soft-follow for metrics** — all shipped in this PR. Fancy charts muted as soft.
-
-### FE
-- Tabs: Overview | Insights | People
-- Overview: new-today / new-week spark / total accounts (excludes `.local`); 24h signup banner; Signups logbook filter
-- People: searchable table + side panel detail
-
-## Soft-follow / muted
-- Fancy Insights charts, CSV export, signup email alerts (out of scope)
+## Deploy target
+- **FE-only** → Vercel only (no Railway / BE change).
 
 ## Files
-- `backend/app/models.py` — `last_login_at`
-- `backend/app/database.py` — ensure column
-- `backend/app/usage.py` — signup type + pulse/insights/people rollups
-- `backend/app/schemas.py` — admin insight DTOs
-- `backend/app/api/routes.py` — instrument + admin routes
-- `backend/tests/test_admin_user_insights.py` — new
-- `frontend/src/lib/api.ts` — client types/methods
-- `frontend/src/app/admin/page.tsx` — tabs UI
+- `frontend/src/lib/soulLastSelected.ts` (new)
+- `frontend/src/app/soul/page.tsx`
+- `frontend/scripts/assert-soul-last-selected.mjs` (new)
+- `frontend/package.json` (script)
+- `.grok-handoff/soul-last-selected-person-build-brief-2026-11-10.md`
+- `.grok-handoff/current_build.md`
 
 ## Tests
-- `cd backend && .venv/bin/python -m pytest tests/test_admin_user_insights.py -q` → **6 passed**
-- `cd frontend && ./node_modules/.bin/tsc --noEmit` → **exit 0**
-- Note: shared local SQLite can pollute `test_usage_admin` AC6 if prior register tests left login rows; wipe today's logins or run AC6 in isolation — not a product regression.
+- `./node_modules/.bin/tsc --noEmit` — exit 0
+- `npx tsx scripts/assert-soul-last-selected.mjs` — ok
+- `npx tsx scripts/assert-soul-dual-prompt.mjs` — ok
+- `./node_modules/.bin/next lint --file src/app/soul/page.tsx --file src/lib/soulLastSelected.ts` — no warnings or errors
 
 ## Verify
-1. Admin → Overview: pulse cards + signup banner when any signup in 24h; Signups filter in logbook.
-2. Insights: switch 7/30/90; activation + D1/D7 + page mix visible.
-3. People: search; open panel — no birth/natal/password fields.
-4. Register a new account → signup + login events; `last_login_at` set.
+1. Fresh `/soul` visit with a remembered, still-saved person opens that person, not the first list row.
+2. Change person, leave Soul, return — opens the one just picked.
+3. Delete the remembered person — opens a marked Partner if present, otherwise another remaining person. Empty / add-person state still works.
+4. Switch accounts — does not open the previous account's last person.
+5. Dual prompt, Mark as Partner, and Love-only-when-Partner unchanged. Dropdown order unchanged.
 
 ## Out of scope
-Email/push alerts, CSV, Mixpanel funnels, impersonation, session replay, editing accounts from admin.
+- Reordering the dropdown
+- Server-side last-selected / cross-device sync
+- Chart person pickers
+- Dual prompt copy / Mark as Partner / Love gates / backend
 
 ## Open questions
 - None for ship.
