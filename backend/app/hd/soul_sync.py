@@ -17,6 +17,7 @@ from .channels import (
 )
 from .type_authority import derive_definition
 from .partner_insights import apply_partner_layer
+from .partner_names import first_name_from_label, personalize_type_prose
 
 ContextId = Literal["work", "life", "play"]
 
@@ -1273,6 +1274,7 @@ def build_cards(
     profile_b: str | None,
     auth_a: str | None,
     auth_b: str | None,
+    label_b: str | None = None,
 ) -> list[dict[str, Any]]:
     # Card 1 — circuit_bridge
     bridge_blocks: list[dict[str, str]] = []
@@ -1502,7 +1504,12 @@ def build_cards(
                 "id": "sacral_aura_hygiene",
                 "title": "Sacral / Non-Sacral Aura Hygiene",
                 "body": (
-                    f"{type_a or 'You'} ↔ {type_b or 'Friend'}. The Sacral partner is a "
+                    (
+                        f"You ↔ {first_name_from_label(label_b)}"
+                        if first_name_from_label(label_b)
+                        else f"{type_a or 'You'} ↔ {type_b or 'Friend'}"
+                    )
+                    + ". The Sacral partner is a "
                     "nuclear reactor amplifier for the non-Sacral — shared aura can feel "
                     "energizing for hours and then leave the non-Sacral overstimulated "
                     "or oddly depleted once alone. Protect both sides: the Sacral does "
@@ -1536,6 +1543,11 @@ def build_cards(
                 "quiet resentment even when love is high. Habit: name your default "
                 "recovery style (alone / parallel presence / people) at the start of "
                 "a busy week so neither person treats the other's need as rejection."
+            )
+        name_b = first_name_from_label(label_b)
+        if name_b:
+            body = personalize_type_prose(
+                body, type_a=type_a, type_b=type_b, name_b=name_b
             )
         protocols.append(
             {
@@ -1706,6 +1718,7 @@ def compute_soul_sync(
         profile_b=profile_b,
         auth_a=auth_a,
         auth_b=auth_b,
+        label_b=(friend_meta or {}).get("label"),
     )
 
     self_out = {
@@ -1769,4 +1782,6 @@ def compute_soul_sync(
         defined_b=defined_b,
         auth_a=auth_a,
         auth_b=auth_b,
+        label_a=(self_meta or {}).get("label"),
+        label_b=(friend_meta or {}).get("label"),
     )

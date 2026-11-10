@@ -596,13 +596,13 @@ def test_partner_overview_generator_projector_exact_copy():
         b,
         context="life",
         self_meta={"id": 1, "label": "Me", "role": "self"},
-        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+        friend_meta={"id": 2, "label": "Partner", "role": "partner"},
     )
     assert out["friend"]["role"] == "partner"
     assert out["self"]["role"] == "self"
     overview = out.get("partner_overview")
     assert overview is not None
-    # New Love guidance chapters (exact gold)
+    # New Love guidance chapters (exact gold — no usable first name)
     assert overview["hook"] == expected["hook"]
     assert overview["the_current"] == expected["the_current"]
     assert overview["how_you_love"] == TYPE_LOVE_BANK["Generator"]
@@ -804,7 +804,7 @@ def test_love_dynamics_solar_plexus_gold_and_authorities():
         b,
         context="life",
         self_meta={"id": 1, "label": "Me", "role": "self"},
-        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+        friend_meta={"id": 2, "label": "Partner", "role": "partner"},
     )
     ov = out["partner_overview"]
     assert ov is not None
@@ -837,7 +837,7 @@ def test_love_dynamics_solar_plexus_gold_and_authorities():
         b2,
         context="life",
         self_meta={"id": 1, "label": "Me", "role": "self"},
-        friend_meta={"id": 2, "label": "Sam", "role": "partner"},
+        friend_meta={"id": 2, "label": "Partner", "role": "partner"},
     )
     ov2 = out2["partner_overview"]
     sp2 = next(i for i in ov2["frictions"] if i["id"] == "center-Solar_Plexus")

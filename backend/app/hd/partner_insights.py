@@ -7,6 +7,11 @@ from __future__ import annotations
 from typing import Any
 
 from .channels import CHANNELS
+from .partner_names import (
+    first_name_from_label,
+    how_they_love_for_type,
+    personalize_structure,
+)
 
 # Canonical HD types used in natal chart_json["type"].
 HD_TYPES = (
@@ -727,6 +732,8 @@ def apply_partner_layer(
     defined_b: set[str] | frozenset[str] | list[str] | None = None,
     auth_a: str | None = None,
     auth_b: str | None = None,
+    label_a: str | None = None,
+    label_b: str | None = None,
 ) -> dict[str, Any]:
     """Mutate/return soul sync dict with partner_overview + channel nuances when partner."""
     friend = result.get("friend") or {}
@@ -764,6 +771,15 @@ def apply_partner_layer(
                 channel_roles=result.get("channel_roles") or {},
             )
         )
+        # label_a is accepted for API symmetry; Me running prose stays "you".
+        name_b = first_name_from_label(label_b)
+        if name_b:
+            they = how_they_love_for_type(type_b, name_b)
+            if they:
+                overview["how_they_love"] = they
+            overview = personalize_structure(
+                overview, type_a=type_a, type_b=type_b, name_b=name_b
+            )
         result["partner_overview"] = overview
     else:
         result["partner_overview"] = None
@@ -799,5 +815,16 @@ def apply_partner_layer(
             card["bridges"] = new_bridges
         new_cards.append(card)
     result["cards"] = new_cards
+
+    name_b = first_name_from_label(label_b)
+    if name_b:
+        if result.get("channel_roles"):
+            result["channel_roles"] = personalize_structure(
+                result["channel_roles"], type_a=type_a, type_b=type_b, name_b=name_b
+            )
+        if result.get("cards"):
+            result["cards"] = personalize_structure(
+                result["cards"], type_a=type_a, type_b=type_b, name_b=name_b
+            )
 
     return result
