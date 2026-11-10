@@ -243,14 +243,20 @@ export default function PartnerOverviewCard({
       data-love-guidance="true"
     >
       <span className="sr-only" data-testid="soul-love-guidance">
-        Love guidance
+        Partner mode · Love guidance
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="type-chip inline-flex items-center rounded-full border border-energy/30 bg-energy/5 px-2.5 py-0.5 tracking-wide text-energy-ink">
-          Partner · Love guidance
+        <span className="type-chip inline-flex items-center rounded-full border border-energy/40 bg-energy/10 px-2.5 py-0.5 tracking-wide text-energy-ink">
+          Partner mode · Love guidance
         </span>
       </div>
-      <h2 className="mt-2 text-2xl font-semibold text-fg">{title}</h2>
+      <h2
+        className="mt-2 text-lg font-semibold text-energy-ink sm:text-xl"
+        data-testid="soul-love-guidance-heading"
+      >
+        Partner mode · Love guidance
+      </h2>
+      <p className="mt-3 text-2xl font-semibold text-fg">{title}</p>
       {typeLine ? (
         <p className="mt-1 type-meta">{typeLine}</p>
       ) : null}

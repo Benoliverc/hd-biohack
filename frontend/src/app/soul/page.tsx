@@ -336,6 +336,8 @@ function SoulUnlockedContent() {
   const [openPlaybookCard, setOpenPlaybookCard] = useState<string | null>(null);
   const [markingPartner, setMarkingPartner] = useState(false);
   const [markPartnerError, setMarkPartnerError] = useState<string | null>(null);
+  const [removingPartner, setRemovingPartner] = useState(false);
+  const [removePartnerError, setRemovePartnerError] = useState<string | null>(null);
   const [syncEpoch, setSyncEpoch] = useState(0);
   const hashJumpDoneRef = useRef(false);
 
@@ -422,6 +424,7 @@ function SoulUnlockedContent() {
     setOpenChapter(null);
     setOpenPlaybookCard(null);
     setMarkPartnerError(null);
+    setRemovePartnerError(null);
     hashJumpDoneRef.current = false;
   }, [friendId]);
 
@@ -450,6 +453,25 @@ function SoulUnlockedContent() {
       setMarkingPartner(false);
     }
   }, [selectedFriend, markingPartner, user?.id]);
+
+  const handleRemoveAsPartner = useCallback(async () => {
+    if (!selectedFriend || removingPartner) return;
+    setRemovingPartner(true);
+    setRemovePartnerError(null);
+    try {
+      // Clear the Partner tag only — same label, existing rename API, person stays selected.
+      await api.renameChart(selectedFriend.id, selectedFriend.label || "", "person");
+      if (user?.id) {
+        const rows = await api.charts(user.id);
+        setCharts(rows);
+      }
+      setSyncEpoch((n) => n + 1);
+    } catch (e) {
+      setRemovePartnerError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRemovingPartner(false);
+    }
+  }, [selectedFriend, removingPartner, user?.id]);
 
   useEffect(() => {
     if (!user?.id || meId == null || friendId == null || meId === friendId) {
@@ -650,22 +672,43 @@ function SoulUnlockedContent() {
           </div>
 
           {isPartnerSelected ? (
-            <p
-              className="type-caption text-fg-secondary"
-              data-testid="soul-love-guidance-reason"
-            >
-              Love guidance is on because you marked{" "}
-              <span className="font-medium text-fg-secondary">
-                {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
-              </span>{" "}
-              as Partner.{" "}
-              <Link
-                href="/profile"
-                className="font-medium text-growth underline-offset-2 hover:underline"
+            <div data-testid="soul-partner-reason-row">
+              <p
+                className="type-caption text-fg-secondary"
+                data-testid="soul-love-guidance-reason"
               >
-                Open Chart
-              </Link>
-            </p>
+                Love guidance is on because you marked{" "}
+                <span className="font-medium text-fg-secondary">
+                  {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
+                </span>{" "}
+                as Partner.{" "}
+                <Link
+                  href="/profile"
+                  className="font-medium text-growth underline-offset-2 hover:underline"
+                >
+                  Open Chart
+                </Link>
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={removingPartner || !selectedFriend}
+                  onClick={() => void handleRemoveAsPartner()}
+                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid="soul-remove-as-partner"
+                >
+                  {removingPartner ? "Removing…" : "Remove as Partner"}
+                </button>
+              </div>
+              {removePartnerError ? (
+                <p
+                  className="mt-2 text-sm text-danger"
+                  data-testid="soul-remove-partner-error"
+                >
+                  {removePartnerError}
+                </p>
+              ) : null}
+            </div>
           ) : (
             <div
               className="rounded-2xl border border-border bg-elevated p-4"
@@ -967,7 +1010,7 @@ function SoulUnlockedContent() {
                     {isPartner && result.partner_overview ? (
                       <SoulChapterCard
                         testId="soul-chapter-love"
-                        title="Love guidance"
+                        title="Partner mode · Love guidance"
                         tease={loveTease}
                         open={openChapter === "love"}
                         onToggle={() => toggleChapter("love")}

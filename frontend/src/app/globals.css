@@ -129,21 +129,37 @@ body > * {
 }
 
 /*
-  Love guidance partner surface — quieter sand-amber wash using Grounded
-  Vitality energy tokens. Distinct from canvas/elevated Soul chrome in both
-  Linen and Basalt; not a solid energy block.
+  Love guidance partner surface — deeper copper-amber wash using Grounded
+  Vitality energy tokens. Distinct from canvas/elevated friend-mode Soul
+  chrome in both Linen and Basalt; not a solid energy block, not pink/red.
 */
+.soul-love-guidance-chapter {
+  background-color: color-mix(in srgb, var(--energy-soft) 68%, var(--energy) 32%);
+  background-image:
+    radial-gradient(
+      ellipse 90% 70% at 6% 0%,
+      color-mix(in srgb, var(--energy) 22%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 100% 100%,
+      color-mix(in srgb, var(--energy) 14%, transparent),
+      transparent 55%
+    );
+  border-color: color-mix(in srgb, var(--energy) 55%, var(--border, #c9bba8) 45%);
+}
+
 .soul-love-guidance-wash {
-  background-color: color-mix(in srgb, var(--energy-soft) 82%, var(--energy) 18%);
+  background-color: color-mix(in srgb, var(--energy-soft) 56%, var(--energy) 44%);
   background-image:
     radial-gradient(
       ellipse 85% 60% at 8% 0%,
-      color-mix(in srgb, var(--energy) 10%, transparent),
+      color-mix(in srgb, var(--energy) 26%, transparent),
       transparent 58%
     ),
     radial-gradient(
       ellipse 55% 45% at 100% 110%,
-      color-mix(in srgb, var(--recovery) 12%, transparent),
+      color-mix(in srgb, var(--energy) 16%, transparent),
       transparent 55%
     );
 }

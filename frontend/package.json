@@ -24,6 +24,7 @@
     "assert:today-empty-no-me-chart": "npx tsx scripts/assert-today-empty-no-me-chart.mjs",
     "assert:privacy-copyright-cover": "npx tsx scripts/assert-privacy-copyright-cover.mjs",
     "assert:soul-last-selected": "npx tsx scripts/assert-soul-last-selected.mjs",
+    "assert:soul-names-partner-mode": "npx tsx scripts/assert-soul-names-partner-mode.mjs",
     "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs"
   },
   "dependencies": {

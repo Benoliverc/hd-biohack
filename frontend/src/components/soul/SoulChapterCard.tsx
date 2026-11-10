@@ -28,21 +28,22 @@ export default function SoulChapterCard({
   accent = "default",
 }: Props) {
   const border =
-    accent === "energy" ? "border-energy/35" : "border-border";
+    accent === "energy" ? "border-energy/55" : "border-border";
   const headerBg =
     accent === "energy"
       ? open
-        ? "bg-energy-soft/40"
-        : "bg-energy-soft/25 hover:bg-energy-soft/40"
+        ? "bg-transparent"
+        : "bg-transparent hover:bg-energy/10"
       : open
         ? "bg-elevated"
         : "bg-elevated/80 hover:bg-elevated";
+  const shell =
+    accent === "energy"
+      ? `soul-love-guidance-chapter overflow-hidden rounded-2xl border ${border}`
+      : `overflow-hidden rounded-2xl border ${border} bg-elevated`;
 
   return (
-    <div
-      data-testid={testId}
-      className={`overflow-hidden rounded-2xl border ${border} bg-elevated`}
-    >
+    <div data-testid={testId} className={shell}>
       <button
         type="button"
         aria-expanded={open}
