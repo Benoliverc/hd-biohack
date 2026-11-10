@@ -164,8 +164,6 @@ export const messages = {
   'page.today.openChart': 'Open Chart',
   'page.protocols.h1': 'Protocols',
   'page.protocols.subtitle': "Your stack — prove today's timed leads. · Pro",
-  'page.protocols.refresh': 'Refresh',
-  'page.protocols.building': 'Building…',
   'page.protocols.dismiss': 'Dismiss',
   'page.protocols.retry': 'Retry',
   'page.protocols.lookingUp': 'Looking up your natal chart…',

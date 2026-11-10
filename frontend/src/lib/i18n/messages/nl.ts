@@ -164,8 +164,6 @@ export const messages = {
   'page.today.openChart': 'Open Chart',
   'page.protocols.h1': 'Protocollen',
   'page.protocols.subtitle': 'Jouw stack — bewijs de getimede leads van vandaag. · Pro',
-  'page.protocols.refresh': 'Vernieuwen',
-  'page.protocols.building': 'Bezig…',
   'page.protocols.dismiss': 'Sluiten',
   'page.protocols.retry': 'Opnieuw',
   'page.protocols.lookingUp': 'Je natal chart opzoeken…',

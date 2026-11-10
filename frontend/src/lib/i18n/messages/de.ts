@@ -164,8 +164,6 @@ export const messages = {
   'page.today.openChart': 'Open Chart',
   'page.protocols.h1': 'Protokolle',
   'page.protocols.subtitle': 'Dein Stack — beweise die getimeten Leads von heute. · Pro',
-  'page.protocols.refresh': 'Aktualisieren',
-  'page.protocols.building': 'Wird erstellt…',
   'page.protocols.dismiss': 'Schließen',
   'page.protocols.retry': 'Erneut',
   'page.protocols.lookingUp': 'Dein Natalchart wird gesucht…',
