@@ -5,7 +5,7 @@
 - **Worktree:** `/workspace/hd-biohack-wt-soul-last-selected`
 - **Base:** `a8849913029cbbea7d5dcc5d392a0499b794a6a6` (main after #93 merge)
 - **PR:** #94 — https://github.com/Benoliverc/hd-biohack/pull/94
-- **Tip SHA:** 
+- **Tip SHA:** `6bdc5b35faf914a43cdb1c8e2ee3253d009a3c4f` (PR #94 URL stamp)
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Brief:** `.grok-handoff/soul-last-selected-person-build-brief-2026-11-10.md`
 
