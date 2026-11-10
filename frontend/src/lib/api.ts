@@ -403,6 +403,8 @@ export type SoulLoveGuidanceSection = {
   title: string;
   body: string;
   try: string;
+  /** Optional second beat for "How you talk" (how voices land). */
+  voice?: string | null;
 };
 
 export type SoulPartnerOverview = {

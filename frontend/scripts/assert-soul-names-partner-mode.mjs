@@ -65,18 +65,14 @@ assert.ok(
   "Remove is not in the Mark as Partner prompt",
 );
 
-// 2) Chapter title + visible open-card heading
+// 2) Chapter title lives on the chapter row (open card no longer repeats it)
 assert.ok(
   page.includes('title="Partner mode · Love guidance"'),
   "chapter title",
 );
 assert.ok(
   overview.includes("Partner mode · Love guidance"),
-  "open card heading/chip",
-);
-assert.ok(
-  overview.includes('data-testid="soul-love-guidance-heading"'),
-  "visible heading testid",
+  "sr-only / a11y title remains in the open card source",
 );
 
 // 3) Deeper copper-amber wash on Love guidance only — not a whole-page re-wash
@@ -89,11 +85,11 @@ assert.ok(
   "wash still gated on energy accent",
 );
 assert.ok(
-  overview.includes("soul-love-guidance-wash"),
-  "open card keeps wash class",
+  !overview.includes("soul-love-guidance-wash"),
+  "open inner card does not stack a second wash",
 );
 assert.ok(css.includes(".soul-love-guidance-chapter"), "chapter wash CSS");
-assert.ok(css.includes(".soul-love-guidance-wash"), "open-card wash CSS");
+assert.ok(css.includes(".soul-love-guidance-wash"), "wash class remains in CSS");
 // Deeper than the previous 82/18 sand mix; stay in energy/copper-amber family
 assert.ok(
   /var\(--energy\) 4[0-9]%/.test(css) || /var\(--energy\) 3[2-9]%/.test(css),

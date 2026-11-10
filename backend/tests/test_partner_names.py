@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.hd.channels import active_channels, defined_centers, hanging_gates
 from app.hd.partner_insights import TYPE_LOVE_BANK, partner_overview_for_types
-from app.hd.partner_names import first_name_from_label, how_they_love_for_type
+from app.hd.partner_names import first_name_from_label, how_they_love_for_type, personalize_type_prose
 from app.hd.soul_sync import compute_soul_sync
 
 _TYPE_PERSON_RE = re.compile(
@@ -99,7 +99,8 @@ def test_nameless_role_labels_keep_gold_type_wording():
         assert ov["hook"] == gold["hook"], label
         assert ov["the_current"] == gold["the_current"], label
         assert ov["how_you_love"] == TYPE_LOVE_BANK["Generator"], label
-        assert ov["how_they_love"] == TYPE_LOVE_BANK["Projector"], label
+        assert ov["how_they_love"] == how_they_love_for_type("Projector"), label
+        assert ov["how_they_love"].startswith("They love"), label
         assert ov["what_this_asks"] == gold["what_this_asks"], label
         assert ov["tender_spots"] == gold["tender_spots"], label
         assert ov["try_this"] == gold["try_this"], label
@@ -114,8 +115,10 @@ def test_named_generator_projector_uses_name_not_type():
     blob = _flatten(ov)
     assert "Sarah" in blob
     assert "Benjamin" not in blob
-    assert ov["how_you_love"] == TYPE_LOVE_BANK["Generator"]
     assert ov["how_you_love"].startswith("You love")
+    assert "The person next to you" not in ov["how_you_love"]
+    assert "Sarah feels that love" in ov["how_you_love"]
+    assert "a Generator with a Projector" not in ov["hook"]
     expected_they = how_they_love_for_type("Projector", "Sarah")
     assert expected_they is not None
     assert ov["how_they_love"] == expected_they
@@ -141,7 +144,8 @@ def test_same_type_pair_stays_unambiguous_you_vs_name():
     ov = out["partner_overview"]
     assert ov is not None
     blob = _flatten(ov)
-    assert ov["how_you_love"] == TYPE_LOVE_BANK["Generator"]
+    assert ov["how_you_love"].startswith("You love")
+    assert "Sarah feels that love" in ov["how_you_love"]
     assert ov["how_they_love"].startswith("Sarah loves")
     assert "You love" not in ov["how_they_love"]
     # Do not naively turn every Generator mention into Sarah
@@ -160,7 +164,9 @@ def test_mg_generator_replaces_longer_type_first_you_are_mg():
     ov = out["partner_overview"]
     assert ov is not None
     blob = _flatten(ov)
-    assert ov["how_you_love"] == TYPE_LOVE_BANK["Manifesting Generator"]
+    assert ov["how_you_love"].startswith("You love")
+    assert "Sarah feels that love" in ov["how_you_love"]
+    assert "more than one lane" in ov["how_you_love"]
     assert ov["how_they_love"].startswith("Sarah loves")
     assert "the Manifesting Generator" not in blob
     assert "The Manifesting Generator" not in blob
@@ -183,7 +189,8 @@ def test_mg_generator_replaces_longer_type_first_they_are_mg():
     ov = out["partner_overview"]
     assert ov is not None
     blob = _flatten(ov)
-    assert ov["how_you_love"] == TYPE_LOVE_BANK["Generator"]
+    assert ov["how_you_love"].startswith("You love")
+    assert "Sarah feels that love" in ov["how_you_love"]
     assert ov["how_they_love"].startswith("Sarah loves")
     assert "in more than one lane" in ov["how_they_love"]
     assert "the Manifesting Generator" not in blob
@@ -239,3 +246,58 @@ def test_named_playbook_sacral_and_profile_lines():
     profile2 = next(p for p in (somatic2.get("protocols") or []) if p["id"] == "profile_resonance")
     assert "the Projector waits" in profile2["body"]
     assert "the Generator / MG answers" in profile2["body"]
+
+
+def test_personalize_agrees_possessives_and_objects():
+    out = personalize_type_prose(
+        "The Generator can feel invisible if their work and yes-energy are simply expected.",
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Sarah",
+    )
+    assert out == "You can feel invisible if your work and yes-energy are simply expected."
+
+    out = personalize_type_prose(
+        "The Generator loves by engaging what lights them up.",
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Sarah",
+    )
+    assert out == "You love by engaging what lights you up."
+
+
+def test_hook_type_pair_closers_personalize_when_named():
+    out = personalize_type_prose(
+        "That is the heat — and the care — in a Generator with a Projector.",
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Sarah",
+    )
+    assert "a Generator with a Projector" not in out
+    assert "you and Sarah" in out
+
+    out = personalize_type_prose(
+        "The heat in a Projector with a Generator.",
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Sarah",
+    )
+    assert "a Projector with a Generator" not in out
+    assert "you and Sarah" in out
+
+
+def test_partner_they_pronoun_may_stay_when_pointing_at_them():
+    # how_they_love already uses they/them for the partner; do not flip those to you.
+    named = how_they_love_for_type("Projector", "Sarah")
+    assert named is not None
+    assert named.startswith("Sarah loves")
+    assert "they are asked" in named or "they see" in named
+    # Personalizing a sentence about Sarah should keep partner they/them.
+    out = personalize_type_prose(
+        "Sarah loves by seeing someone clearly. You feel that love when they get a real invitation.",
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Sarah",
+    )
+    assert "when they get" in out
+    assert "when you get" not in out

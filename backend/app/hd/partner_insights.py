@@ -8,6 +8,7 @@ from typing import Any
 
 from .channels import CHANNELS
 from .partner_names import (
+    apply_how_you_love_name,
     first_name_from_label,
     how_they_love_for_type,
     personalize_structure,
@@ -81,26 +82,22 @@ def partner_nuance_for_channel_name(name: str | None) -> PartnerNuance | None:
 # Exact handoff copy — Type love-language bank (ASCII apostrophes).
 TYPE_LOVE_BANK: dict[str, str] = {
     "Generator": (
-        "You love by putting real energy where a yes lives — showing up, building, "
-        "staying with what lights you. The person next to you feels that love when "
-        "you wait for your gut (body yes/no) before you promise them the world, and when your yes "
-        "is allowed to be as honest as your no."
+        "You love by putting real energy where a yes lives — showing up and staying "
+        "with what lights you. The person next to you feels that love when your yes "
+        "and your no are equally honest."
     ),
     "Manifesting Generator": (
-        "You love in more than one lane at once — bursts of yes, quick course-corrections, "
-        "a life that will not sit still. The person next to you feels that love when you "
-        "tell them as you pivot, so they are riding with you instead of holding half-begun plans."
+        "You love in more than one lane at once — bursts of yes and quick course-corrections. "
+        "The person next to you feels that love when you tell them as you pivot, so they are riding with you."
     ),
     "Manifestor": (
         "You love by starting things and clearing a path no one else would have opened. "
-        "The person next to you feels that love when you inform them (tell them first) before you leap, "
-        "so your initiation lands as devotion instead of surprise."
+        "The person next to you feels that love when you tell them first, so a new move lands as care instead of surprise."
     ),
     "Projector": (
-        "You love by seeing someone clearly — guiding, noticing, inviting the right use "
-        "of their energy. The person next to you feels that love when you get a real "
-        "invitation (asked to share your sight), not asked to match a stamina you were "
-        "never built to run."
+        "You love by seeing someone clearly — guiding and inviting the right use "
+        "of their energy. The person next to you feels that love when you are asked "
+        "to share what you see, not asked to match a stamina you do not have."
     ),
     "Reflector": (
         "You love by sampling the life you share and reflecting it back with surprising "
@@ -137,24 +134,16 @@ def _nu(gift: str, tender: str) -> PartnerNuance:
 
 # Exact handoff gold sample — Generator + Projector.
 _GEN_PROJ_OVERVIEW: PartnerPairChapters = _ov(
-    "One of you is the steady yes. The other is the one who sees what that yes is for. "
-    "That is the heat — and the care — in a Generator with a Projector.",
-    "Life together can feel like a warm engine meeting a clear eye. The Generator's yes "
-    "has a pulse you can trust; the Projector's gift is noticing what that pulse is "
-    "actually for. When it is good, the Generator feels used well — not used up — and "
-    "the Projector feels seen without having to perform a stamina they do not have.",
-    "This bond asks the Generator to wait for a real gut yes before pouring energy "
-    "into shared plans, and the Projector to invite and recognize that energy instead "
-    "of managing it. Rest and recognition are part of how you love each other, not a "
-    "prize you earn after overgiving.",
-    "The usual ache is pace and proof. The Generator can feel invisible if their work "
-    "and yes-energy are simply expected. The Projector can feel exhausted or bitter if "
-    "they are asked to keep up, initiate everything, or prove their value by producing. "
-    "Rushing to match the other person's tempo — without an invitation or a gut response "
-    "— creates a distance that is not really about whether you care.",
-    "Sometime this week, try one stretch of time where the Generator only offers energy "
-    "that has a gut yes, and the Projector only offers guidance after they have been "
-    "invited. Afterward, say out loud what felt easing. Do not fix it. Just name it.",
+    "One of you is the steady yes. The other sees what that yes is for.",
+    "Life together can feel like a warm engine meeting a clear eye. When it is good, "
+    "one of you feels used well — not used up — and the other feels seen without having "
+    "to perform a stamina they do not have.",
+    "This bond asks for rest and recognition as part of how you love, not a prize after "
+    "overgiving. Protect energy that is offered freely, and sight that is actually wanted.",
+    "The usual ache is feeling invisible, or exhausted from trying to keep up. Rushing to "
+    "match each other's tempo creates a distance that is not really about whether you care.",
+    "Generator: offer only a real yes. Projector: offer guidance only when asked. "
+    "Afterward, name what felt easing.",
 )
 
 # Exact handoff gold sample — Intimacy 59-6 / 6-59.
@@ -175,242 +164,159 @@ _INTIMACY_NUANCE: PartnerNuance = _nu(
 PARTNER_OVERVIEW_BY_TYPES: dict[str, PartnerPairChapters] = {
     "Generator|Projector": _GEN_PROJ_OVERVIEW,
     "Generator|Generator": _ov(
-        "Two steady yeses in one home. The heat is abundance — and the care is making "
-        "sure neither gut gets steamrolled by the joint calendar.",
-        "Life together can feel like two warm engines humming in the same room. Each of "
-        "you has a gut that knows, and when both are honored the days fill with real "
-        "energy instead of polite overcommitment. When it is good, you build side by "
-        "side without competing for who carried more.",
-        "This bond asks each of you to check your own gut before agreeing to shared "
-        "plans, and to treat rest as part of how you love each other. Growth lives in "
-        "designing days around two honest responses instead of one fused agenda.",
-        "The usual ache is burnout theater: both saying yes to keep the peace, then "
-        "resenting the pile-up. Or one gut goes quiet and the other fills the gap until "
-        "bitterness shows up. Slow the joint calendar when either gut goes flat — that "
-        "is information, not a failure of love.",
-        "Sometime this week, before you lock a shared plan, each of you answers only "
-        "from the gut — out loud, without persuading the other. Keep only what both "
-        "bodies still say yes to. Notice how the room feels afterward.",
+        "Two steady yeses in one home. The care is making sure neither of you gets steamrolled.",
+        "Life together can feel like two warm engines in the same room. When both of you are "
+        "honest about capacity, the days fill with real energy instead of polite overcommitment.",
+        "This bond asks you to treat rest as part of how you love each other. Design days around "
+        "two honest responses instead of one fused agenda.",
+        "The usual ache is both saying yes to keep the peace, then resenting the pile-up. Slow "
+        "the shared calendar when either of you goes flat — that is information, not a failure of love.",
+        "Before you lock a shared plan, both of you answer out loud without persuading the other. "
+        "Keep only what both still say yes to.",
     ),
     "Generator|Manifesting Generator": _ov(
-        "One of you is the steady burn. The other is the multi-lane spark. Together you "
-        "can feel like fuel meeting ignition — if pace stays honest.",
-        "Life together can feel like reliable life force meeting agile course-corrections. "
-        "The Generator's yes wants a clean answer; the Manifesting Generator's yes wants "
-        "room to pivot. When it is good, the MG informs before leaping and the Generator "
-        "is allowed a real gut answer without being rushed into the next lane.",
-        "This bond asks the MG to finish or consciously park threads so the Generator is "
-        "not left holding half-started plans, and the Generator to trust bursts of "
-        "initiation when the gut is still a yes. Name which projects are shared versus "
-        "solo.",
-        "The usual ache is pace. The MG can feel slowed; the Generator can feel scattered "
-        "or overrun. Skipping the gut check to match the other's tempo creates quiet "
-        "resentment that shows up as nagging, withdrawal, or busywork instead of clear "
-        "nos.",
-        "Sometime this week, pick one shared thread. The MG informs the next pivot out "
-        "loud before moving; the Generator answers only from the gut. Afterward, say what "
-        "felt easing — without fixing the whole calendar.",
+        "One of you is the steady burn. The other is the multi-lane spark.",
+        "Life together can feel like reliable life force meeting quick course-corrections. When "
+        "it is good, pivots are named and a real answer is allowed without a rush into the next lane.",
+        "This bond asks you to finish or park threads so neither of you is left holding half-started "
+        "plans. Name which projects are shared versus solo.",
+        "The usual ache is pace — one of you feels slowed, the other scattered or overrun. Matching "
+        "the other person's tempo without an honest check creates quiet resentment.",
+        "Pick one shared thread. Name the next pivot out loud before moving, and answer only when "
+        "you mean it. Then say what felt easing.",
     ),
     "Generator|Manifestor": _ov(
-        "One of you carries the steady yes. The other clears paths no one else would "
-        "open. The heat is initiation meeting life force — when informing is care.",
-        "Life together can feel like steady life-force meeting a spark that starts things. "
-        "The Manifestor needs to move; the Generator needs a real response. When it is "
-        "good, the Manifestor informs early enough for a gut answer, and the Generator "
-        "does not treat every initiation as a personal override.",
-        "This bond asks the Manifestor to inform before acting, and the Generator to "
-        "treat initiation as design rather than disrespect. Shared rituals of inform → "
-        "respond → adjust are how you love each other in motion.",
-        "The usual ache clusters around surprise and control. The Generator can feel "
-        "steamrolled by unannounced moves; the Manifestor can feel managed or slowed. "
-        "Turning every initiation into a committee — or every gut no into a silent "
-        "veto — drains trust that is not really about whether you care.",
-        "Sometime this week, try one Manifestor move with a clear inform first, and one "
-        "Generator response that is only a gut yes or no — spoken kindly. Afterward, "
-        "name what felt like devotion instead of surprise.",
+        "One of you carries the steady yes. The other clears paths no one else would open.",
+        "Life together can feel like steady life-force meeting a spark that starts things. When "
+        "it is good, a new move is named early enough for a real answer, and initiation is not treated as a personal override.",
+        "This bond asks you to treat a heads-up as care, and initiation as design rather than "
+        "disrespect. A short update, then an honest response, is how you move together.",
+        "The usual ache clusters around surprise and control. One of you feels steamrolled; the "
+        "other feels managed or slowed. That drain is not really about whether you care.",
+        "Try one new move with a clear heads-up first, and one honest yes or no — spoken kindly. "
+        "Afterward, name what felt like care instead of surprise.",
     ),
     "Generator|Reflector": _ov(
-        "One of you answers from the gut in the moment. The other needs a cycle and a "
-        "healthy place to know. That timing gap is the care, not the problem.",
-        "Life together can feel like consistent life-force warmth meeting a lunar sampler. "
-        "The Generator wants clarity; the Reflector needs environment and time. When it "
-        "is good, the Generator protects calm space and the Reflector is not asked to "
-        "match Generator output or decide on Generator time.",
-        "This bond asks the Generator to protect clear rooms for honest sampling, and "
-        "the Reflector to name environmental needs early. Treat the lunar wait as "
-        "wisdom you share, not delay you argue about.",
-        "The usual ache: the Generator wants a gut answer now; the Reflector needs a "
-        "cycle. Pushing for certainty before the sample lands — or reading Reflector "
-        "openness as flakiness — creates pressure that is about timing, not care.",
-        "Sometime this week, pick one decision and give it a named waiting window. The "
-        "Generator holds the space without demanding a gut-speed answer; the Reflector "
-        "names what the environment is showing. Then say what felt easing.",
+        "One of you gets an answer in the moment. The other needs a cycle and a healthy place to know.",
+        "Life together can feel like consistent warmth meeting a slower, place-sensitive knowing. "
+        "When it is good, calm space is protected and neither of you is asked to decide on the other's clock.",
+        "This bond asks you to treat waiting as wisdom you share, not delay you argue about. Name "
+        "what the environment needs early.",
+        "The usual ache is one of you wanting an answer now while the other still needs time. "
+        "Pushing for certainty before the sample lands creates pressure about timing, not care.",
+        "Pick one decision and give it a named waiting window. Hold the space without demanding "
+        "a same-day answer, then say what felt easing.",
     ),
     "Manifesting Generator|Manifesting Generator": _ov(
-        "Two multi-lane yeses under one roof. The heat is voltage — and the care is "
-        "informing each other before the next leap.",
-        "Life together can feel electric and productive: fast gut response, many "
-        "passions, a shared temptation to skip the update. When it is good, you both "
-        "inform before lane-changes and let courses correct without shame.",
-        "This bond asks for shorter feedback loops — inform, gut-check, adjust — "
-        "and for recovery on the calendar so dual engines do not run until empty. "
-        "Celebrate efficient pivots instead of unfinished guilt.",
-        "The usual ache is parallel spinning: both mid-leap, neither fully landing — or "
-        "competitive initiation. Unspoken expectations about who finishes what turn into "
-        "scorekeeping. Name the open threads so speed does not become chaos.",
-        "Sometime this week, sit for ten minutes and each name your open threads out "
-        "loud. Park or finish one together. Notice how much quieter the bond feels when "
-        "nothing is half-hidden.",
+        "Two multi-lane yeses under one roof. The care is telling each other before the next leap.",
+        "Life together can feel electric and productive — and tempting to skip the update. When "
+        "it is good, you both name a lane-change and let a course correct without shame.",
+        "This bond asks for shorter feedback loops and recovery on the calendar, so two engines "
+        "do not run until empty. Celebrate a clean pivot instead of unfinished guilt.",
+        "The usual ache is parallel spinning: both mid-leap, neither fully landing. Name the open "
+        "threads so speed does not become chaos.",
+        "Sit for ten minutes and each name your open threads out loud. Park or finish one together.",
     ),
     "Manifesting Generator|Manifestor": _ov(
-        "One of you pivots across lanes. The other initiates clean and informs. Together "
-        "you can feel like ignition meeting ignition — if who moves first stays kind.",
-        "Life together can feel fast: gut agility meeting pure initiate-and-inform. "
-        "When it is good, the Manifestor informs before the leap and the MG does not "
-        "treat every Manifestor move as a joint project needing a mid-flight gut stamp.",
-        "This bond asks the Manifestor to leave clear space for the MG to respond without "
-        "absorbing the initiation, and the MG to finish shared threads before starting "
-        "three more. Separate solo initiations from couple decisions out loud.",
-        "The usual ache is who got to move first, and who cleaned up. The MG can feel "
-        "outpaced or under-informed; the Manifestor can feel managed. Skipping inform or "
-        "gut checks to keep the thrill creates repair debt that is not about love.",
-        "Sometime this week, try one leap with a full inform first and one shared thread "
-        "finished before any new lane opens. Afterward, say what felt like teamwork "
-        "instead of cleanup.",
+        "One of you pivots across lanes. The other starts clean and tells you first.",
+        "Life together can feel fast: agility meeting a clear start. When it is good, a leap is "
+        "named early, and not every move becomes a joint project mid-flight.",
+        "This bond asks you to leave room to respond without absorbing every start, and to finish "
+        "shared threads before opening three more. Separate solo moves from couple decisions out loud.",
+        "The usual ache is who got to move first, and who cleaned up. Skipping a heads-up to keep "
+        "the thrill creates repair debt that is not about love.",
+        "Try one leap with a full heads-up first, and finish one shared thread before any new lane "
+        "opens. Then say what felt like teamwork.",
     ),
     "Manifesting Generator|Projector": _ov(
-        "One of you runs multi-track yeses. The other sees what those tracks are for. "
-        "That is the heat — and the care — when recognition stays in the room.",
-        "Life together can feel like agile gut response meeting a clear eye. When it "
-        "is good, the Projector is invited into what they see, and the MG informs before "
-        "dumping half-finished lanes into the shared field. The MG feels guided without "
-        "being managed; the Projector feels used well without matching Generator stamina.",
-        "This bond asks the MG to invite recognition before asking for guidance, and the "
-        "Projector not to manage the MG's many threads. Rest and recognition are part of "
-        "how you love — scheduled, not earned after burnout.",
-        "The usual ache: the Projector feels scattered by MG pivots; the MG feels slowed "
-        "or critiqued. Forcing the Projector to keep Generator pace — or the MG to freeze "
-        "until fully recognized — creates bitterness that is about design, not devotion.",
-        "Sometime this week, the MG invites the Projector into one thread only, after a "
-        "clear ask for recognition. The Projector guides that one. Afterward, name what "
-        "felt easing — without fixing the whole week.",
+        "One of you runs multi-track yeses. The other sees what those tracks are for.",
+        "Life together can feel like agile response meeting a clear eye. When it is good, one of "
+        "you feels guided without being managed, and the other feels used well without matching a stamina they do not have.",
+        "This bond asks for recognition before guidance, and for rest as part of how you love — "
+        "scheduled, not earned after burnout.",
+        "The usual ache is one of you feeling scattered by pivots, and the other feeling slowed "
+        "or critiqued. That bitterness is about design, not devotion.",
+        "Invite sight into one thread only, after a clear ask. Guide that one. Afterward, name "
+        "what felt easing.",
     ),
     "Manifesting Generator|Reflector": _ov(
-        "One of you wants to move on a gut spark. The other needs time and a clean "
-        "field to know. Love here is shared pacing, not speed as proof.",
-        "Life together can feel like fast multi-response meeting lunar sampling. When it "
-        "is good, speed is not treated as proof of love and the Reflector's wait is not "
-        "treated as rejection. You make room for both rhythms in the same home.",
-        "This bond asks the MG to park non-urgent leaps until the Reflector has sampled, "
-        "and the Reflector to name which environments help them feel the relationship "
-        "clearly. Revisit pacing agreements like care, not like rules.",
-        "The usual ache clusters around urgency. The MG wants to move; the Reflector "
-        "needs time and space. Pushing for gut-speed clarity — or reading sampling as "
-        "disinterest — invents a love problem out of timing.",
-        "Sometime this week, choose one non-urgent leap and give it a named sample "
-        "window. The MG waits without sulking; the Reflector reports what the field "
-        "showed. Say what felt like respect afterward.",
+        "One of you is ready to move on a spark. The other needs time and a clean field to know.",
+        "Life together can feel like fast multi-response meeting a slower sample. When it is good, "
+        "speed is not treated as proof of love, and a wait is not treated as rejection.",
+        "This bond asks you to park non-urgent leaps until the sample has landed, and to name "
+        "which environments help the relationship feel clear.",
+        "The usual ache clusters around urgency. Pushing for instant clarity — or reading sampling "
+        "as disinterest — invents a love problem out of timing.",
+        "Choose one non-urgent leap and give it a named sample window. Wait without sulking, then "
+        "report what the field showed.",
     ),
     "Manifestor|Manifestor": _ov(
-        "Two initiators. The heat is independence meeting independence — and the care "
-        "is informing each other before either of you leaps.",
-        "Life together can feel like dual engines that hate being managed. When it is "
-        "good, informing is mutual and frequent, and neither of you becomes the other's "
-        "boss. Parallel freedom and deliberate together-time keep independence from "
-        "turning into distance.",
-        "This bond asks you both to treat inform-as-care: short updates before leaps. "
-        "Protect solo space and choose together-time on purpose. Treat anger as a signal "
-        "to inform earlier, not as proof you cannot love each other.",
-        "The usual ache is surprise collisions, competing initiations, or silent "
-        "scoreboards about who disrupted whom. Skipping the inform to avoid a conversation "
-        "creates exactly the anger you hoped to dodge.",
-        "Sometime this week, each of you informs one leap before it happens — even a "
-        "small one. Afterward, say what felt like freedom shared instead of collision.",
+        "Two people who start things. The care is telling each other before either of you leaps.",
+        "Life together can feel like dual engines that hate being managed. When it is good, short "
+        "updates are mutual, and neither of you becomes the other's boss.",
+        "This bond asks for short updates before leaps, plus solo space and together-time chosen "
+        "on purpose. Treat anger as a signal to speak earlier, not as proof you cannot love each other.",
+        "The usual ache is surprise collisions or silent scoreboards about who disrupted whom. "
+        "Skipping the update to avoid a conversation creates exactly the anger you hoped to dodge.",
+        "Both of you name one leap before it happens — even a small one. Afterward, say what felt "
+        "like freedom shared instead of collision.",
     ),
     "Manifestor|Projector": _ov(
-        "One of you starts the path. The other sees the path clearly. The heat is impact "
-        "meeting recognition — when invitation stays soft.",
-        "Life together can feel like initiation meeting sight. When it is good, the "
-        "Manifestor informs early and invites the Projector's seeing, and the Projector "
-        "does not try to initiate or manage the Manifestor's moves. Impact lands as "
-        "devotion; guidance lands as care.",
-        "This bond asks the Manifestor to practice recognition as part of informing, and "
-        "the Projector to wait for invitation before guiding. Name impact without turning "
-        "it into control.",
-        "The usual ache: the Projector feels blindsided or unrecognized; the Manifestor "
-        "feels slowed or corrected. Guidance without invitation, or initiation without "
-        "inform, creates bitterness that is about strategy, not affection.",
-        "Sometime this week, try one initiation with an early inform plus a clear invite "
-        "for the Projector's sight. The Projector waits for that invite before guiding. "
-        "Afterward, name what felt mutual.",
+        "One of you starts the path. The other sees the path clearly.",
+        "Life together can feel like impact meeting sight. When it is good, a new move is named "
+        "early and sight is invited, and guidance does not try to manage the move.",
+        "This bond asks for recognition as part of a heads-up, and for waiting to be asked before "
+        "guiding. Name impact without turning it into control.",
+        "The usual ache is feeling blindsided or unrecognized on one side, and slowed or corrected "
+        "on the other. That bitterness is about how you start and how you guide, not about affection.",
+        "Try one start with an early heads-up and a clear invite for what the other sees. Wait for "
+        "that invite before guiding.",
     ),
     "Manifestor|Reflector": _ov(
-        "One of you leaps. The other samples. Love here is lead time and a healthy place "
-        "— not matching each other's speed.",
-        "Life together can feel like initiate-and-inform meeting lunar sensitivity. When "
-        "it is good, the Manifestor informs with enough lead time for the Reflector to "
-        "sample, and the Reflector is not pressured to match Manifestor speed. Quiet and "
-        "pace become how you care.",
-        "This bond asks the Manifestor to treat informing as creating a safe sample "
-        "window, and the Reflector to name environments that make the bond feel clear. "
-        "Paced initiations and protected quiet are the practice.",
-        "The usual ache: Manifestor leaps feel like shocks; Reflector waits feel like "
-        "stalls. Neither is a character flaw — rushing the lunar sample or withholding "
-        "inform turns timing into a fake fight about care.",
-        "Sometime this week, the Manifestor informs one move with a real sample window "
-        "attached. The Reflector names the environment they need. Afterward, say what "
-        "felt like care instead of shock.",
+        "One of you leaps. The other samples. Love here is lead time and a healthy place.",
+        "Life together can feel like a clear start meeting a slower, place-sensitive knowing. When "
+        "it is good, a move is named with enough lead time, and neither of you is pressured to match the other's speed.",
+        "This bond asks you to treat a heads-up as a safe sample window, and to name environments "
+        "that make the bond feel clear.",
+        "The usual ache is that a leap feels like a shock, or a wait feels like a stall. Neither "
+        "is a character flaw — rushing the sample turns timing into a fake fight about care.",
+        "Name one move with a real sample window attached. Name the environment you need. Then say "
+        "what felt like care instead of shock.",
     ),
     "Projector|Projector": _ov(
-        "Two people who see. The heat is mutual recognition — and the care is refusing "
-        "to compete for who sees more.",
-        "Life together can feel like guidance meeting guidance. When it is good, you "
-        "invite each other explicitly, take turns receiving, and protect rest as a couple "
-        "practice. Recognition spoken often enough leaves bitterness less room to grow.",
-        "This bond asks you to take turns: one guides, one receives, then swap. Rest is "
-        "part of how you love, not a private secret. Speak recognition before either of "
-        "you has to earn it through overgiving.",
-        "The usual ache is unrecognized guidance, advice competitions, or both overgiving "
-        "until empty. Expecting the other Projector to supply Generator stamina they do not "
-        "have creates exhaustion that gets mislabeled as relationship failure.",
-        "Sometime this week, take a timed turn: one of you only receives recognition and "
-        "guidance; then swap. Afterward, say what felt easing — without fixing each "
-        "other's whole life.",
+        "Two people who see. The care is refusing to compete for who sees more.",
+        "Life together can feel like guidance meeting guidance. When it is good, you invite each "
+        "other explicitly, take turns receiving, and protect rest as a couple practice.",
+        "This bond asks you to take turns: one guides, one receives, then swap. Speak recognition "
+        "before either of you has to earn it through overgiving.",
+        "The usual ache is unrecognized guidance, or both overgiving until empty. Expecting the "
+        "other person to supply a stamina they do not have creates exhaustion mislabeled as failure.",
+        "Take a timed turn: one of you only receives recognition and guidance; then swap. Afterward, "
+        "say what felt easing.",
     ),
     "Projector|Reflector": _ov(
-        "One of you sees in focus. The other mirrors the whole field. Love here is "
-        "invitation and lunar timing held together.",
-        "Life together can feel like focused seeing meeting whole-environment sampling. "
-        "When it is good, the Projector invites rather than diagnoses, and the Reflector "
-        "is recognized for reflecting the relationship's health without being turned into "
-        "a permanent judge.",
-        "This bond asks the Projector to practice curiosity over correction, and the "
-        "Reflector to name what the field is showing without claiming final authority. "
-        "Invitation and lunar timing are the shared practice.",
-        "The usual ache: the Projector pushes for clarity the Reflector has not sampled "
-        "yet; the Reflector mirrors Projector bitterness back amplified. Slow the feedback "
-        "loop and check the environment before treating the mirror as a verdict on love.",
-        "Sometime this week, before any big feedback, check the room together. The "
-        "Projector asks one curious question; the Reflector answers what the field shows. "
-        "Name what felt kind afterward.",
+        "One of you sees in focus. The other mirrors the whole field.",
+        "Life together can feel like focused seeing meeting whole-environment sampling. When it is "
+        "good, curiosity leads, and reflecting the relationship's health is not turned into a permanent verdict.",
+        "This bond asks for curiosity over correction, and for naming what the field is showing "
+        "without claiming final authority.",
+        "The usual ache is pushing for clarity that has not been sampled yet, or mirroring urgency "
+        "back louder. Check the environment before treating the mirror as a verdict on love.",
+        "Before any big feedback, check the room together. Ask one curious question, and answer what "
+        "the field shows.",
     ),
     "Reflector|Reflector": _ov(
-        "Two samplers under one moon. The heat is clarity when the place is healthy — "
-        "and the care is refusing Generator-speed answers.",
-        "Life together can feel like dual lunar sampling and high environmental "
-        "sensitivity. When it is good, you co-design calm clear spaces and allow "
-        "decisions the time of a cycle. Waiting becomes care, not avoidance.",
-        "This bond asks you to name which rooms, people, and routines help you both feel "
-        "the bond clearly. Protect solitude and shared sampling time. Treat waiting as "
-        "how you love each other.",
-        "The usual ache is mutual delay without communication, or absorbing each other's "
-        "indecision until the field feels foggy. If the environment is chaotic, the "
-        "relationship will feel chaotic — tend the space before diagnosing the love.",
-        "Sometime this week, redesign one shared space together for calm, then give one "
-        "decision a named cycle. Afterward, say what the clearer field reflected back.",
+        "Two samplers under one moon. The care is refusing rushed answers.",
+        "Life together can feel like dual sampling and high sensitivity to place. When it is good, "
+        "you co-design calm spaces and allow decisions the time of a cycle.",
+        "This bond asks you to name which rooms, people, and routines help you both feel the bond "
+        "clearly. Treat waiting as how you love each other.",
+        "The usual ache is mutual delay without communication, or a chaotic place making the bond "
+        "feel chaotic. Tend the space before diagnosing the love.",
+        "Redesign one shared space together for calm, then give one decision a named cycle. Afterward, "
+        "say what the clearer field reflected back.",
     ),
 }
-
 
 # Channel nuances keyed by sorted gate pair "lo-hi".
 PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
@@ -688,7 +594,7 @@ def partner_overview_for_types(
     a = _norm_type(type_a)
     b = _norm_type(type_b)
     how_you = TYPE_LOVE_BANK.get(a or "")
-    how_they = TYPE_LOVE_BANK.get(b or "")
+    how_they = how_they_love_for_type(b)
     if not how_you or not how_they:
         return None
     the_current = pair["the_current"]
@@ -777,6 +683,10 @@ def apply_partner_layer(
             they = how_they_love_for_type(type_b, name_b)
             if they:
                 overview["how_they_love"] = they
+            if overview.get("how_you_love"):
+                overview["how_you_love"] = apply_how_you_love_name(
+                    overview["how_you_love"], name_b
+                )
             overview = personalize_structure(
                 overview, type_a=type_a, type_b=type_b, name_b=name_b
             )

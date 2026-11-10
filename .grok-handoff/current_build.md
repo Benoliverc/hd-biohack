@@ -1,23 +1,36 @@
-# current_build — Soul names and partner-mode pass
+# current_build — Love guidance readability pass
 
 - **Date:** 2026-11-10 (Asia/Hong_Kong)
-- **Branch:** `feat/soul-names-partner-mode`
-- **Worktree:** `/workspace/hd-biohack-wt-soul-names-partner-mode`
-- **Base:** `2e823b7a4ed5fe39ee1e0947dc0d4978631f2f1b` (main after #95 merge)
-- **PR:** #96 — https://github.com/Benoliverc/hd-biohack/pull/96
-- **Feature commit:** `ca28ca350a26ad620e51f92a4cecbbbb0677f44e`
+- **Branch:** `feat/love-guidance-readability`
+- **Worktree:** `/workspace/hd-biohack-wt-love-guidance-readability`
+- **Base:** `163ea6fdb66dff3f9da0a9fc64d740a462b82280` (main after #96 merge)
 - **Tip SHA:** this handoff stamp cannot contain its own SHA — lock on GitHub `headRefOid` after push
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
-- **Brief:** `.grok-handoff/soul-names-partner-mode-build-brief-2026-11-10.md`
+- **Later ship:** Vercel AND Railway together (not this step).
+- **Brief:** `/workspace/reports/love-guidance-readability-build-brief-2026-11-10.md`
 
 ## Intent
-Soul should talk about people by first name, not by Type, when a real first name is on the chart. You should be able to remove a Partner tag from Soul itself. Love guidance should be unmistakably partner-mode — title “Partner mode · Love guidance” and a deeper copper-amber wash, still not pink or red.
+Partner-mode Love guidance should be much easier to read and understand. Keep the chapter identity from #96 (title “Partner mode · Love guidance,” deepened copper-amber wash, first names when available, Remove as Partner). Fix hierarchy, contrast, length, restatement, and broken name agreement.
 
-## Approach (FE + BE)
-1. **Names at apply time.** Source banks stay type-keyed. `partner_names.py` personalizes built Love guidance / dynamics / in-scope Playbook lines when the person chart has a usable first name (same rule as `partnerFirstNameFromLabel`: first token; ignore Friend / Partner / Person / Me). Me stays “you.” Longer Type names (Manifesting Generator / MG) are replaced before Generator. Same-Type pairs are not globally rewritten — only unambiguous “the other {Type}” plus `how_they_love`. Nameless / role-label charts keep today’s gold Type wording exactly.
-2. **`how_they_love`** is rewritten about the partner (“Sarah loves by…”) when a name exists. `how_you_love` stays second person from `TYPE_LOVE_BANK`. Try-line prefixes become “You:” / “Sarah:”.
-3. **Remove as Partner** on Soul when the selected person is already Partner. Calls existing `api.renameChart(id, label, "person")` only — clears the tag, does not delete them or change the label. Same person stays selected; last-selected storage is unchanged. Inline error + control re-enabled, matching Mark as Partner. Love guidance hides and the Mark prompt returns once role is `person`.
-4. **Partner-mode chapter.** Title (closed shell + open card heading) is “Partner mode · Love guidance.” Deeper copper-amber wash on this chapter only: `.soul-love-guidance-chapter` on the energy-accented shell and a deeper `.soul-love-guidance-wash` on the open card. Friend-mode chapters and the rest of Soul are not re-washed. Not pink or red.
+## Approach (FE + BE, same PR)
+1. **[FE] One title, one lead, no third accordion.** When the Love chapter is open, the chapter row is the only “Partner mode · Love guidance” title (sr-only remains for a11y). Lead is “You & {name}” / “You two,” then a short hook in `type-section` at `text-fg`. Dropped “The current between you.” Flattened “Decide & talk” (no inner AccordionPanel). Four one-open subchapters remain. Inner card sits transparent on the chapter wash (no second wash). Closed tease uses `truncateLoveTease`: first sentence if it fits, otherwise a mid-word-safe cut.
+2. **[FE] Primary ink; contrast on the copper wash.** All primary reading in this chapter uses `type-body` + `text-fg` (hook uses `type-section` + `text-fg`). Type line and “not a score” caption sit on solid `bg-elevated` insets in `text-fg`. Try-lines have a visible semibold “Try” label and caption-size primary ink. Love chapter / subchapter chevrons use `text-energy-ink`, not `fg-muted`. Deepened `.soul-love-guidance-wash` / `.soul-love-guidance-chapter` mixes from #96 are unchanged. Reading text sits on solid `bg-elevated` insets.
+3. **[BE] Shortened Love banks.** Hooks are one or two short sentences, all ≤96 characters (no mid-word tease cut). Lead paragraphs prefer two short sentences / ~40 words, meaning-first. “How you talk” is two beats (`body` + `voice`), not one fused paragraph. Try-lines are one concrete action, shorter, and still use `Generator:` / `Projector:` prefixes where both people are addressed so named copy becomes `You:` / `Sarah:`.
+4. **[FE+BE] How-you / how-they lead “The current.”** A short current paragraph, then the two columns. Love-bank lines are two short sentences without stacked mid-sentence glosses. When a name exists, `how_you_love` says “Sarah feels that love when…” instead of “The person next to you.” Nameless `how_they_love` is now third person (“They love by…”) so the heading and body agree. Harmony / friction subchapter is labeled “Harmony and friction” (no middot splice), with shorter meaning-first cards. “When it's hard” no longer nests “When things get hard.” Hook, current, columns, asks, tender, and clash no longer each retell pace / invitation / gut.
+5. **[BE] Personalization agreement.** After “the Type” becomes “you,” leftover their/them/they in that sentence (until the partner is named) become your/you. Hook Type-pair closers such as “in a Generator with a Projector” become “for you and Sarah.” Locked with tests. They/them as the partner pronoun may stay. Same-Type rules, MG-before-Generator replacement, and the nameless Type path are unchanged.
+
+## AC coverage
+- Item 1: yes (title/lead/accordion/tease).
+- Item 2: yes (primary ink, Try label, chevrons, wash kept, solid elevated insets).
+- Item 3: yes (shortened banks, talk split, try length).
+- Item 4: yes (columns as lead, less restatement, plainer harmony label, no nested hard heading).
+- Item 5: yes (agreement + pair-closer tests).
+
+## Keep (not regressed)
+First names when available; Me = you; Types as secondary labels; nameless Type path (shorter wording, same meaning); Partner gate; chapter title “Partner mode · Love guidance”; copper-amber identity and deepened wash from #96; Mark / Remove as Partner as shipped in #96 (`renameChart(id, label, "person")` only).
+
+## Out of scope (untouched)
+Friend-mode chapters, picker/aside, Chart, Signature, Playbook outside Love, last-selected, Dual prompt, post-unmark Love linger, channel nuance asides, new features, re-washing the rest of Soul, Inter / body-first role scale, Partner gate.
 
 ## Deploy target
 - **FE + BE** → Vercel + Railway on a later ship (not this step).
@@ -25,55 +38,50 @@ Soul should talk about people by first name, not by Type, when a real first name
 
 ## Files
 ### BE
-- `backend/app/hd/partner_names.py` (new)
+- `backend/app/hd/partner_names.py`
 - `backend/app/hd/partner_insights.py`
-- `backend/app/hd/soul_sync.py`
-- `backend/tests/test_partner_names.py` (new)
-- `backend/tests/test_soul_sync.py` (gold-path friend labels that asserted type wording now use a reserved “Partner” label)
+- `backend/app/hd/partner_love_dynamics.py`
+- `backend/tests/test_partner_names.py`
+- `backend/tests/test_soul_sync.py`
 
 ### FE
 - `frontend/src/app/soul/page.tsx`
-- `frontend/src/components/soul/SoulChapterCard.tsx`
 - `frontend/src/components/soul/PartnerOverviewCard.tsx`
-- `frontend/src/app/globals.css`
-- `frontend/scripts/assert-soul-names-partner-mode.mjs` (new)
-- `frontend/package.json` (script)
+- `frontend/src/components/soul/SoulChapterCard.tsx`
+- `frontend/src/lib/api.ts` (`voice` optional on `SoulLoveGuidanceSection`)
+- `frontend/scripts/assert-love-guidance-readability.mjs` (new)
+- `frontend/scripts/assert-soul-names-partner-mode.mjs` (retargeted title/wash asserts)
+- `frontend/package.json` (assert script)
 
 ### Handoff
-- `.grok-handoff/soul-names-partner-mode-build-brief-2026-11-10.md`
 - `.grok-handoff/current_build.md`
 
 ## Tests
-- `cd backend && PYTHONPATH=. pytest tests/test_partner_names.py tests/test_soul_sync.py -q` — 39 passed
+- `cd backend && PYTHONPATH=. python -m pytest tests/test_partner_names.py tests/test_soul_sync.py -q` — 42 passed
 - `./node_modules/.bin/tsc --noEmit` (frontend) — exit 0
-- `./node_modules/.bin/next lint --file` on `soul/page.tsx`, `SoulChapterCard.tsx`, `PartnerOverviewCard.tsx` — exit 0, no warnings or errors
+- `./node_modules/.bin/next lint --file` on `soul/page.tsx`, `SoulChapterCard.tsx`, `PartnerOverviewCard.tsx`, `lib/api.ts` — exit 0, no warnings or errors
+- `npx tsx scripts/assert-love-guidance-readability.mjs` — ok
 - `npx tsx scripts/assert-soul-names-partner-mode.mjs` — ok
-- `npx tsx scripts/assert-soul-last-selected.mjs` — ok
-- `npx tsx scripts/assert-soul-dual-prompt.mjs` — ok
 - `npx tsx scripts/assert-soul-chapter-map.mjs` — ok
+- `npx tsx scripts/assert-soul-dual-prompt.mjs` — ok
+- `npx tsx scripts/assert-soul-last-selected.mjs` — ok
+
+Known pre-existing (not regressions; not touched): `react-hooks/exhaustive-deps` in `biohack/page.tsx`; `assert-today-protocols-ia.mjs` quieter Conditioning notes already on main.
 
 ## Preview
 - Not started. No preview URL/port.
 
 ## Verify
-1. With a usable first name on the person chart, Love guidance (and in-scope Playbook / nuance lines) refer to them by name, not “the Manifestor” / “the Generator” / etc. “You” still reads as “you.”
-2. “How {name} loves” is about them, not leftover “You love…”.
-3. Same-Type pairs stay unambiguous (you vs their name).
-4. With no usable name (Friend / Partner / Person / Me / empty), Type wording matches today.
-5. Types still appear as secondary labels (existing type line).
-6. Remove as Partner appears when the selected person is Partner; it only clears the tag; Love hides; Mark as Partner returns; the person stays selected and is not deleted.
-7. The Love guidance chapter is titled “Partner mode · Love guidance” and uses a deeper copper-amber wash than today, clearly distinct from friend-mode chapters, and not pink or red.
-8. Love guidance still appears only when the person is marked Partner.
+1. Open Love chapter: title “Partner mode · Love guidance” appears once (the chapter row). Lead is “You & {name}” or “You two” plus a short hook in primary ink.
+2. “The current between you” is gone. “Decide & talk” shows both blocks with no inner accordion.
+3. Closed tease does not cut mid-word.
+4. Reading text is primary ink on solid elevated insets and meets contrast on the copper wash in Linen and Basalt. Try-lines have a visible “Try” label. Chevrons are not muted.
+5. The deepened copper-amber wash from #96 remains (not pink/red, not friend-mode elevated).
+6. Named copy agrees (your/you, not leftover their/them pointing at you). Hook Type-pair closers personalize or drop. Nameless path still uses Type-as-person wording (shorter; “They love by…”).
+7. Love still appears only when the selected person is marked Partner. Mark / Remove as Partner unchanged.
 
 ## Out of scope
-- Aura Signature titles and hooks
-- Dual prompt empty-state copy
-- Dropdown order / last-selected persistence
-- Scoring or soulmate language
-- Chart’s Person / Partner save control
-- A new unmark API
-- Re-washing the whole Soul page
-- Valentine pink / red
+Friend-mode chapters, picker / aside chrome, Chart, Signature, Playbook lines outside this Love chapter, Dual prompt, last-selected person, dropdown order. Mark as Partner / Remove as Partner (keep as shipped in #96). Love lingering for one re-sync after unmark. Partner nuance asides on Channels / gates. New product features. Valentine pink / red. Re-washing the rest of Soul. Changing Inter, the body-first role scale, the Partner gate, or the copper-amber partner-mode identity.
 
 ## Open questions
 - None for this build ticket.
