@@ -65,14 +65,22 @@ assert.ok(
   "Remove is not in the Mark as Partner prompt",
 );
 
-// 2) Chapter title lives on the chapter row (open card no longer repeats it)
+// 2) Chapter title lives on the closed chapter row only (not in the open card)
 assert.ok(
   page.includes('title="Partner mode · Love guidance"'),
   "chapter title",
 );
 assert.ok(
-  overview.includes("Partner mode · Love guidance"),
-  "sr-only / a11y title remains in the open card source",
+  page.includes("hideTitleWhenOpen"),
+  "Love chapter hides the row title when open",
+);
+assert.ok(
+  chapterCard.includes("hideTitleWhenOpen"),
+  "chapter card can hide the title while open",
+);
+assert.ok(
+  !overview.includes("Partner mode · Love guidance"),
+  "open card does not repeat or sr-only the chapter title",
 );
 
 // 3) Deeper copper-amber wash on Love guidance only — not a whole-page re-wash

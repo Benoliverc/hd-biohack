@@ -817,15 +817,18 @@ def test_love_dynamics_solar_plexus_gold_and_authorities():
     assert sp["try"] == gold_open["try"]
     decide = ov["how_you_decide"]
     assert decide["title"] == gold_decide["title"]
-    assert decide["body"] == gold_decide["body"]
+    assert "You decide at different speeds" in decide["body"]
+    assert "A feeling has to rise and fall before your yes is real." in decide["body"]
+    assert "They get a clear yes or no in the body now" in decide["body"]
+    assert "one of you" not in decide["body"].lower()
     assert decide["try"] == gold_decide["try"]
     clash = ov["when_you_clash"]
     assert clash["title"] == gold_clash["title"]
     assert clash["body"].startswith(gold_clash["body"])
-    assert "Don't try to settle the fight on the faster person's clock." in clash["body"]
+    assert "Do not try to settle the fight on the faster person's clock." in clash["body"]
     assert clash["try"] == gold_clash["try"]
-    # Throat mismatch try on communicate; talk body is not fused with throat
-    assert "signing a voice that isn't yours" in ov["how_you_communicate"]["try"]
+    # Type-pair try is the section action; throat is a second paragraph, not fused
+    assert "ask one clear question" in ov["how_you_communicate"]["try"]
     assert "waiting to be asked" in ov["how_you_communicate"]["body"]
     assert ov["how_you_communicate"].get("voice")
     assert "Their words can land like a decision" in ov["how_you_communicate"]["voice"]
@@ -847,7 +850,9 @@ def test_love_dynamics_solar_plexus_gold_and_authorities():
     assert sp2["body"] == gold_def["body"]
     assert sp2["try"] == gold_def["try"]
     assert ov2["how_you_decide"]["title"] == gold_decide["title"]
-    assert ov2["how_you_decide"]["body"] == gold_decide["body"]
+    assert "You get a clear yes or no in the body now" in ov2["how_you_decide"]["body"]
+    assert "before their yes is real" in ov2["how_you_decide"]["body"]
+    assert ov2["how_you_decide"]["body"] != ov["how_you_decide"]["body"]
     print("PASS: Solar Plexus + Emotional/Sacral + Gen/Proj clash gold")
 
 

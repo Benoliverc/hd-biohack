@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
 import type {
   SoulLoveGuidanceItem,
+  SoulLoveGuidanceSection,
   SoulPartnerOverview,
 } from "@/lib/api";
-
-type LoveSubId = "current" | "harmony" | "decide" | "hard";
 
 type Props = {
   overview: SoulPartnerOverview;
@@ -18,8 +16,8 @@ type Props = {
   /** One-line reason + Chart link (optional — usually shown with pickers). */
   reasonLine?: ReactNode;
   /**
-   * When true (Love chapter open on the map), prefer the first available
-   * sub-chapter open so the hook/current is immediately readable.
+   * Kept for call-site compatibility. The chapter is now one open surface
+   * with no inner subchapters, so this flag is unused.
    */
   chapterActive?: boolean;
 };
@@ -31,10 +29,20 @@ function hasText(value?: string | null): boolean {
 function TryLine({ text, testId }: { text?: string | null; testId?: string }) {
   if (!hasText(text)) return null;
   return (
-    <p className="mt-2 type-caption text-fg" data-testid={testId}>
+    <p className="mt-2 type-body text-fg max-w-prose" data-testid={testId}>
       <span className="font-semibold text-fg">Try</span> {text}
     </p>
   );
+}
+
+function foldTitleIntoBody(section: SoulLoveGuidanceSection): string {
+  const title = section.title?.trim() ?? "";
+  const body = section.body?.trim() ?? "";
+  if (!title) return body;
+  if (!body) return title.endsWith(".") ? title : `${title}.`;
+  if (body.startsWith(title) || body.includes(title)) return body;
+  const lead = title.endsWith(".") ? title : `${title}.`;
+  return `${lead} ${body}`;
 }
 
 function GuidanceBlock({
@@ -69,82 +77,10 @@ function GuidanceBlock({
   );
 }
 
-function CareInset({
-  testId,
-  heading,
-  body,
-  tryLine,
-}: {
-  testId: string;
-  heading?: string | null;
-  body: string;
-  tryLine?: string | null;
-}) {
-  return (
-    <section
-      className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-      data-testid={testId}
-    >
-      {hasText(heading) ? (
-        <h3 className="text-sm font-semibold text-energy-ink">{heading}</h3>
-      ) : null}
-      <p
-        className={`type-body text-fg max-w-prose ${hasText(heading) ? "mt-1.5" : ""}`}
-      >
-        {body}
-      </p>
-      <TryLine text={tryLine} />
-    </section>
-  );
-}
-
-function LoveSubChapter({
-  testId,
-  title,
-  open,
-  onToggle,
-  children,
-}: {
-  testId: string;
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      data-testid={testId}
-      className="overflow-hidden rounded-xl border border-border/80 bg-elevated"
-    >
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={onToggle}
-        className="flex min-h-11 w-full cursor-pointer items-center gap-3 px-3.5 py-2.5 text-left outline-none transition-colors hover:bg-elevated focus-visible:ring-2 focus-visible:ring-focus"
-      >
-        <span className="min-w-0 flex-1 text-sm font-semibold text-fg">
-          {title}
-        </span>
-        <ChevronDown
-          aria-hidden
-          className={`h-4 w-4 shrink-0 text-energy-ink transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      {open ? (
-        <div className="space-y-4 border-t border-border/70 px-3.5 py-3.5">
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 /**
  * Partner-only Love guidance. Mount only when friend.role === "partner"
- * and partner_overview is present. Magazine IA chunked into one-open
- * sub-chapters for the Soul Chapter Map.
+ * and partner_overview is present. One open chapter: hook, decide, talk,
+ * how you / they love, where you click / scrape, when it's hard.
  */
 export default function PartnerOverviewCard({
   overview,
@@ -152,7 +88,6 @@ export default function PartnerOverviewCard({
   yourType,
   theirType,
   reasonLine,
-  chapterActive = true,
 }: Props) {
   const title = partnerFirstName?.trim()
     ? `You & ${partnerFirstName.trim()}`
@@ -171,40 +106,15 @@ export default function PartnerOverviewCard({
   const hasHarmonyFriction = harmonies.length > 0 || frictions.length > 0;
   const hasDecide = Boolean(overview.how_you_decide);
   const hasCommunicate = Boolean(overview.how_you_communicate);
-  const hasDecideTalk = hasDecide || hasCommunicate;
-  const hasAsks = hasText(overview.what_this_asks);
-  const hasTender = hasText(overview.tender_spots);
-  const hasClash = Boolean(overview.when_you_clash);
-  const hasTry = hasText(overview.try_this);
-  const hasWhenItsHard = hasAsks || hasTender || hasClash || hasTry;
-
-  const availableSubs = useMemo(() => {
-    const ids: LoveSubId[] = [];
-    if (hasCurrent || hasHowYouLove) ids.push("current");
-    if (hasHarmonyFriction) ids.push("harmony");
-    if (hasDecideTalk) ids.push("decide");
-    if (hasWhenItsHard) ids.push("hard");
-    return ids;
-  }, [
-    hasCurrent,
-    hasHowYouLove,
-    hasHarmonyFriction,
-    hasDecideTalk,
-    hasWhenItsHard,
-  ]);
-
-  const [openSub, setOpenSub] = useState<LoveSubId | null>(
-    () => availableSubs[0] ?? null,
-  );
-
-  useEffect(() => {
-    if (!chapterActive) return;
-    setOpenSub(availableSubs[0] ?? null);
-  }, [chapterActive, availableSubs]);
-
-  const toggleSub = (id: LoveSubId) => {
-    setOpenSub((prev) => (prev === id ? null : id));
-  };
+  const clashWhy = overview.when_you_clash?.body;
+  const clashTry = overview.when_you_clash?.try;
+  const hardWhy = hasText(clashWhy)
+    ? clashWhy
+    : hasText(overview.what_this_asks)
+      ? overview.what_this_asks
+      : overview.tender_spots;
+  const hardTry = hasText(clashTry) ? clashTry : overview.try_this;
+  const hasWhenItsHard = hasText(hardWhy) || hasText(hardTry);
 
   return (
     <div
@@ -212,9 +122,6 @@ export default function PartnerOverviewCard({
       data-testid="soul-partner-overview"
       data-love-guidance="true"
     >
-      <span className="sr-only" data-testid="soul-love-guidance">
-        Partner mode · Love guidance
-      </span>
       <h2 className="text-2xl font-semibold text-fg" data-testid="soul-partner-pair-title">
         {title}
       </h2>
@@ -230,185 +137,113 @@ export default function PartnerOverviewCard({
       >
         {overview.hook}
       </p>
-      <p className="mt-2 inline-block rounded-md bg-elevated px-2 py-1 type-caption text-fg">
-        How your designs meet in love — not a score, not a verdict.
-      </p>
+      {hasCurrent ? (
+        <p
+          className="mt-2 type-body text-fg max-w-prose"
+          data-testid="soul-partner-the-current"
+        >
+          {overview.the_current}
+        </p>
+      ) : null}
 
-      <div className="mt-5 space-y-3">
-        {hasCurrent || hasHowYouLove ? (
-          <LoveSubChapter
-            testId="soul-love-sub-current"
-            title="The current"
-            open={openSub === "current"}
-            onToggle={() => toggleSub("current")}
+      <div className="mt-5 space-y-4">
+        {hasDecide && overview.how_you_decide ? (
+          <section
+            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+            data-testid="soul-love-decide"
           >
-            {hasCurrent ? (
-              <section className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                <p
-                  className="type-body text-fg max-w-prose"
-                  data-testid="soul-partner-the-current"
-                >
-                  {overview.the_current}
-                </p>
-              </section>
-            ) : null}
+            <h3 className="text-sm font-semibold text-fg">How you decide</h3>
+            <p className="mt-1.5 type-body text-fg max-w-prose">
+              {foldTitleIntoBody(overview.how_you_decide)}
+            </p>
+            <TryLine text={overview.how_you_decide.try} />
+          </section>
+        ) : null}
 
-            {hasHowYouLove ? (
-              <section className="grid gap-4 sm:grid-cols-2">
-                {hasText(overview.how_you_love) ? (
-                  <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                    <h3 className="text-sm font-semibold text-fg">
-                      How you love
-                    </h3>
-                    <p
-                      className="mt-1.5 type-body text-fg max-w-prose"
-                      data-testid="soul-partner-how-you-love"
-                    >
-                      {overview.how_you_love}
-                    </p>
-                  </div>
-                ) : null}
-                {hasText(overview.how_they_love) ? (
-                  <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                    <h3 className="text-sm font-semibold text-fg">
-                      {theyHeading}
-                    </h3>
-                    <p
-                      className="mt-1.5 type-body text-fg max-w-prose"
-                      data-testid="soul-partner-how-they-love"
-                    >
-                      {overview.how_they_love}
-                    </p>
-                  </div>
-                ) : null}
-              </section>
+        {hasCommunicate && overview.how_you_communicate ? (
+          <section
+            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+            data-testid="soul-love-communicate"
+          >
+            <h3 className="text-sm font-semibold text-fg">How you talk</h3>
+            <p className="mt-1.5 type-body text-fg max-w-prose">
+              {overview.how_you_communicate.body}
+            </p>
+            {hasText(overview.how_you_communicate.voice) ? (
+              <p
+                className="mt-1.5 type-body text-fg max-w-prose"
+                data-testid="soul-love-communicate-voice"
+              >
+                {overview.how_you_communicate.voice}
+              </p>
             ) : null}
-          </LoveSubChapter>
+            <TryLine text={overview.how_you_communicate.try} />
+          </section>
+        ) : null}
+
+        {hasHowYouLove ? (
+          <section className="grid gap-4 sm:grid-cols-2">
+            {hasText(overview.how_you_love) ? (
+              <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
+                <h3 className="text-sm font-semibold text-fg">How you love</h3>
+                <p
+                  className="mt-1.5 type-body text-fg max-w-prose"
+                  data-testid="soul-partner-how-you-love"
+                >
+                  {overview.how_you_love}
+                </p>
+              </div>
+            ) : null}
+            {hasText(overview.how_they_love) ? (
+              <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
+                <h3 className="text-sm font-semibold text-fg">{theyHeading}</h3>
+                <p
+                  className="mt-1.5 type-body text-fg max-w-prose"
+                  data-testid="soul-partner-how-they-love"
+                >
+                  {overview.how_they_love}
+                </p>
+              </div>
+            ) : null}
+          </section>
         ) : null}
 
         {hasHarmonyFriction ? (
-          <LoveSubChapter
-            testId="soul-love-sub-harmony"
-            title="Harmony and friction"
-            open={openSub === "harmony"}
-            onToggle={() => toggleSub("harmony")}
-          >
-            <div className="space-y-5">
-              <GuidanceBlock
-                testId="soul-love-harmonies"
-                itemTestIdPrefix="soul-love-harmony"
-                heading="Where you harmonize"
-                items={harmonies}
-              />
-              <GuidanceBlock
-                testId="soul-love-frictions"
-                itemTestIdPrefix="soul-love-friction"
-                heading="Where friction shows up"
-                items={frictions}
-              />
-            </div>
-          </LoveSubChapter>
-        ) : null}
-
-        {hasDecideTalk ? (
-          <LoveSubChapter
-            testId="soul-love-sub-decide"
-            title="Decide & talk"
-            open={openSub === "decide"}
-            onToggle={() => toggleSub("decide")}
-          >
-            <section className="space-y-4" aria-label="Decide and talk">
-              {hasDecide && overview.how_you_decide ? (
-                <div
-                  className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-                  data-testid="soul-love-decide"
-                >
-                  <h3 className="text-sm font-semibold text-fg">
-                    How you decide together
-                  </h3>
-                  <p className="mt-1.5 type-body font-medium text-fg">
-                    {overview.how_you_decide.title}
-                  </p>
-                  <p className="mt-1.5 type-body text-fg max-w-prose">
-                    {overview.how_you_decide.body}
-                  </p>
-                  <TryLine text={overview.how_you_decide.try} />
-                </div>
-              ) : null}
-              {hasCommunicate && overview.how_you_communicate ? (
-                <div
-                  className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-                  data-testid="soul-love-communicate"
-                >
-                  <h3 className="text-sm font-semibold text-fg">How you talk</h3>
-                  <p className="mt-1.5 type-body text-fg max-w-prose">
-                    {overview.how_you_communicate.body}
-                  </p>
-                  {hasText(overview.how_you_communicate.voice) ? (
-                    <p
-                      className="mt-1.5 type-body text-fg max-w-prose"
-                      data-testid="soul-love-communicate-voice"
-                    >
-                      {overview.how_you_communicate.voice}
-                    </p>
-                  ) : null}
-                  <TryLine text={overview.how_you_communicate.try} />
-                </div>
-              ) : null}
-            </section>
-          </LoveSubChapter>
+          <div className="space-y-5" data-testid="soul-love-click-scrape">
+            <GuidanceBlock
+              testId="soul-love-harmonies"
+              itemTestIdPrefix="soul-love-harmony"
+              heading="Where you click"
+              items={harmonies}
+            />
+            <GuidanceBlock
+              testId="soul-love-frictions"
+              itemTestIdPrefix="soul-love-friction"
+              heading="Where it scrapes"
+              items={frictions}
+            />
+          </div>
         ) : null}
 
         {hasWhenItsHard ? (
-          <LoveSubChapter
-            testId="soul-love-sub-hard"
-            title="When it's hard"
-            open={openSub === "hard"}
-            onToggle={() => toggleSub("hard")}
+          <section
+            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+            data-testid="soul-love-hard"
           >
-            <section className="space-y-4">
-              {hasAsks ? (
-                <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                  <h4 className="text-sm font-medium text-fg">
-                    What this bond asks
-                  </h4>
-                  <p
-                    className="mt-1.5 type-body text-fg max-w-prose"
-                    data-testid="soul-partner-what-this-asks"
-                  >
-                    {overview.what_this_asks}
-                  </p>
-                </div>
-              ) : null}
-              {hasTender ? (
-                <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                  <h4 className="text-sm font-medium text-fg">
-                    The tender spots
-                  </h4>
-                  <p
-                    className="mt-1.5 type-body text-fg max-w-prose"
-                    data-testid="soul-partner-tender-spots"
-                  >
-                    {overview.tender_spots}
-                  </p>
-                </div>
-              ) : null}
-              {hasClash && overview.when_you_clash ? (
-                <CareInset
-                  testId="soul-love-clash"
-                  body={overview.when_you_clash.body}
-                  tryLine={overview.when_you_clash.try}
-                />
-              ) : null}
-              {hasTry ? (
-                <CareInset
-                  testId="soul-partner-try-this"
-                  heading="Try this together"
-                  body={overview.try_this}
-                />
-              ) : null}
-            </section>
-          </LoveSubChapter>
+            <h3 className="text-sm font-semibold text-fg">When it&apos;s hard</h3>
+            {hasText(hardWhy) ? (
+              <p
+                className="mt-1.5 type-body text-fg max-w-prose"
+                data-testid="soul-love-clash"
+              >
+                {hardWhy}
+              </p>
+            ) : null}
+            <TryLine
+              text={hardTry}
+              testId={hasText(clashTry) ? undefined : "soul-partner-try-this"}
+            />
+          </section>
         ) : null}
       </div>
     </div>

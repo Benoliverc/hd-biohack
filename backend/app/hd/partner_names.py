@@ -57,6 +57,14 @@ _YOU_AGREEMENT = {
     "recognizes": "recognize",
     "withdraws": "withdraw",
     "corrects": "correct",
+    "works": "work",
+    "follows": "follow",
+    "gets": "get",
+    "joins": "join",
+    "speaks": "speak",
+    "changes": "change",
+    "runs": "run",
+    "leaps": "leap",
 }
 
 _BARE_SUBJECT_VERBS = (
@@ -95,6 +103,14 @@ _BARE_SUBJECT_VERBS = (
     "recognizes",
     "withdraws",
     "corrects",
+    "works",
+    "follows",
+    "gets",
+    "joins",
+    "speaks",
+    "changes",
+    "runs",
+    "leaps",
     "may",
     "can",
     "often",
@@ -163,16 +179,16 @@ _HOW_THEY_LOVE: dict[str, str] = {
         "with what lights them. You feel that love when their yes and their no are equally honest."
     ),
     "Manifesting Generator": (
-        "{name} love in more than one lane at once — bursts of yes and quick course-corrections. "
-        "You feel that love when they tell you as they pivot, so you are riding with them."
+        "{name} love by following more than one yes at a time, and by changing course quickly. "
+        "You feel that love when they tell you as they turn, so you are in on the change."
     ),
     "Manifestor": (
-        "{name} love by starting things and clearing a path no one else would have opened. "
-        "You feel that love when they tell you first, so a new move lands as care instead of surprise."
+        "{name} love by starting things that would not have started without them, and by telling you first. "
+        "You feel that love when a new move lands as care instead of surprise."
     ),
     "Projector": (
-        "{name} love by seeing someone clearly — guiding and inviting the right use of your energy. "
-        "You feel that love when they are asked to share what they see, not asked to match a stamina they do not have."
+        "{name} love by seeing you clearly, and by pointing your energy at the right thing — when you have asked. "
+        "You feel that love when they are invited to share what they see, not asked to keep up a pace that is not theirs."
     ),
     "Reflector": (
         "{name} love by sampling the life you share and reflecting it back with surprising clarity. "
@@ -187,7 +203,10 @@ def apply_how_you_love_name(text: str, name: str) -> str:
     """When a first name exists, say '{name} feels that love' instead of 'The person next to you'."""
     if not text or not name:
         return text
-    return text.replace(_PERSON_NEXT_TO_YOU, name)
+    out = text.replace(_PERSON_NEXT_TO_YOU, name).replace(_PERSON_NEXT_TO_YOU.lower(), name)
+    # Locked Projector wording: "seeing someone clearly" → "seeing {name} clearly".
+    out = out.replace("seeing someone clearly", f"seeing {name} clearly")
+    return out
 
 
 def how_they_love_for_type(hd_type: str | None, name: str | None = None) -> str | None:

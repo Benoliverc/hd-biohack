@@ -56,7 +56,7 @@ TEMPO_GAP_NORMS = {
 }
 
 CLASH_TEMPO_SENTENCE = (
-    "Don't try to settle the fight on the faster person's clock."
+    "Do not try to settle the fight on the faster person's clock."
 )
 
 
@@ -127,10 +127,10 @@ def _center_state(center: str, defined_a: set[str], defined_b: set[str]) -> str:
 CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
     "Solar_Plexus": {
         "you_open_they_defined": {
-            "title": "Their emotional weather",
+            "title": "Their moods can become yours",
             "body": (
-                "Their moods run on a steadier track than yours. A mood that is passing "
-                "weather for them can start to feel like your day, or a verdict on the relationship."
+                "Their moods run on a steadier pattern than yours. A mood that is passing "
+                "for them can start to feel like your day, or a verdict on the relationship."
             ),
             "try": (
                 "When a strong mood arrives, wait before you decide anything about \"us.\" "
@@ -138,10 +138,10 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
         },
         "you_defined_they_open": {
-            "title": "You set the emotional weather",
+            "title": "Your feelings can fill the room",
             "body": (
                 "Your feelings move in a wave that is yours — it has a truth at both ends. "
-                "If you ask them how they feel about \"us\" mid-wave, they may be reporting your weather, not their own."
+                "If you ask them how they feel about \"us\" mid-wave, they may be reporting your mood, not their own."
             ),
             "try": (
                 "Say where you are on the wave (\"I'm not clear yet\") so they don't have to "
@@ -160,10 +160,10 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
         },
         "both_open": {
-            "title": "A shared emotional field",
+            "title": "Moods in the room can color you both",
             "body": (
-                "Neither of you has a fixed emotional weather. Moods in the room can color "
-                "both of you — the stretch is not turning every shared mood into a story about the relationship."
+                "Neither of you has a fixed emotional pattern. Moods in the room can color "
+                "both of you. The stretch is not turning every shared mood into a story about the relationship."
             ),
             "try": (
                 "After an intense evening, check the room before you check the relationship. "
@@ -173,7 +173,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
     },
     "Sacral": {
         "you_open_they_defined": {
-            "title": "Their life-force pace",
+            "title": "Their energy can set the pace",
             "body": (
                 "They get a clear body yes or no, and that signal can feel louder than your "
                 "own energy. The stretch is not treating their pace as the law of the house."
@@ -195,20 +195,20 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
         },
         "both_defined": {
-            "title": "Two gut engines",
+            "title": "You both have a body yes and no",
             "body": (
-                "You both have a real body yes and no, so a lot of life force lives in one home. "
+                "You both have a real body yes and no, so a lot of energy lives in one home. "
                 "The harmony is honest response meeting honest response when both are allowed to speak."
             ),
             "try": (
-                "Before locking a shared plan, both of you answer out loud — no persuading. "
-                "Keep only what both bodies still say yes to."
+                "Before you lock a plan, both of you answer out loud, with no sales pitch. "
+                "If either yes goes flat, change the plan."
             ),
         },
         "both_open": {
-            "title": "A shared energy field",
+            "title": "Energy in the room can pull you both",
             "body": (
-                "Neither of you has a fixed life-force motor. The energy in the room can pull "
+                "Neither of you has a fixed energy motor. The energy in the room can pull "
                 "both of you into overdoing. The stretch is not outsourcing your rest to whoever looks busier."
             ),
             "try": (
@@ -253,7 +253,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "both_open": {
             "title": "A shared quiet voice",
             "body": (
-                "Words may come slowly, through writing, or only when the field feels safe. "
+                "Words may come slowly, through writing, or only when the room feels safe. "
                 "The stretch is assuming silence means agreement."
             ),
             "try": (
@@ -387,7 +387,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
         },
         "both_open": {
-            "title": "A shared pressure field",
+            "title": "Outside pressure can climb into you both",
             "body": (
                 "Outside deadlines and other people's stress can climb into both of you. The stretch "
                 "is making every borrowed urgency a story about the relationship."
@@ -432,7 +432,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
             ),
         },
         "both_open": {
-            "title": "A shared instinct field",
+            "title": "Fear stories can color you both",
             "body": (
                 "Health trends, fear stories, and other people's alarms can color both of you. The "
                 "stretch is collecting anxieties until the home feels unsafe for no clear reason."
@@ -479,7 +479,7 @@ CENTER_BANK: dict[str, dict[str, dict[str, str]]] = {
         "both_open": {
             "title": "A shared open mind",
             "body": (
-                "Ideas in the field — podcasts, friends, headlines — can swing both of you. The stretch "
+                "Ideas around you — podcasts, friends, headlines — can swing both of you. The stretch "
                 "is outsourcing every decision to the loudest theory of the week."
             ),
             "try": (
@@ -591,7 +591,7 @@ THROAT_COMMUNICATE: dict[str, dict[str, str]] = {
 TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     "Generator|Projector": {
         "body": (
-            "One of you often processes out loud. The other may be waiting to be asked "
+            "The Generator often processes out loud. The Projector may be waiting to be asked "
             "— or offering a take that was not invited."
         ),
         "try": (
@@ -611,38 +611,37 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Generator|Manifesting Generator": {
         "body": (
-            "One of you is after a clean answer; the other may already be mid-pivot while "
-            "still talking. Conversation works when pivots are named and no one is rushed into a yes."
+            "The Generator is after a clean answer. The Manifesting Generator may already be mid-turn while still talking. "
+            "Conversation works when turns are named and no one is rushed into a yes."
         ),
         "try": (
-            "MG: say \"I'm exploring, not locking\" when you pivot mid-talk. "
+            "Manifesting Generator: say \"I'm exploring, not locking\" when you change course mid-talk. "
             "Generator: answer only when you actually mean it."
         ),
     },
     "Generator|Manifestor": {
         "body": (
-            "One of you often speaks to clear a path; the other needs a real response "
-            "beat. Talks go sideways when a heads-up sounds like a done deal."
+            "The Manifestor often speaks in order to start. The Generator needs a beat to give a real yes or no. "
+            "Talks go sideways when a heads-up sounds like a decision already made."
         ),
         "try": (
-            "Manifestor: tell them first, then ask for a real response. Generator: give "
-            "a clean yes/no without a long defense."
+            "Manifestor: tell the Generator first, then ask for a real yes or no. "
+            "Generator: give a clean yes or no, without a long defense."
         ),
     },
     "Generator|Reflector": {
         "body": (
-            "One of you may want clarity in the talk itself; the other often needs time "
-            "and a calmer field before words settle."
+            "The Generator may want clarity in the talk itself. The Reflector often needs time "
+            "and a calmer room before words settle."
         ),
         "try": (
-            "Agree on a sample window before big talks. Hold the space; name what the "
-            "environment is showing when ready."
+            "Agree on a set time to wait before big talks. Hold the space, then name what became clear."
         ),
     },
     "Manifesting Generator|Manifesting Generator": {
         "body": (
             "Two of you can finish each other's leaps mid-sentence. Voltage is high — "
-            "updates get skipped unless you slow the mouth to match the lane changes."
+            "updates get skipped unless you slow the mouth to match the change of course."
         ),
         "try": (
             "Start hard talks with a two-minute open-thread dump each, then pick one "
@@ -651,7 +650,7 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Manifesting Generator|Manifestor": {
         "body": (
-            "A clean start meets a multi-track response. Talks work when a heads-up is "
+            "A clean start meets someone already working through several yeses. Talks work when a heads-up is "
             "not treated as a joint project needing an instant stamp."
         ),
         "try": (
@@ -661,21 +660,21 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Manifesting Generator|Projector": {
         "body": (
-            "One of you is processing across lanes out loud; the other tracks what those "
-            "lanes are for. Guidance that was not asked for feels like management."
+            "The Manifesting Generator works through several things out loud. The Projector tracks what those "
+            "threads are for. Advice that was not asked for can feel like being managed."
         ),
         "try": (
-            "MG: invite recognition on one thread before asking for guidance. "
-            "Projector: guide that one thread only."
+            "Manifesting Generator: ask to be seen on one thread before you ask for advice. "
+            "Projector: advise on that one thread only."
         ),
     },
     "Manifesting Generator|Reflector": {
         "body": (
-            "Speed-talking meets a slower sample. One of you may want to resolve in the "
-            "conversation; the other may need the field to settle first."
+            "Speed-talking meets a slower sample. The Manifesting Generator may want to resolve in the "
+            "conversation. The Reflector may need the room to settle first."
         ),
         "try": (
-            "Park non-urgent leaps until after a named sample window. Revisit once "
+            "Park non-urgent leaps until after a set time to wait. Revisit once "
             "— not five times the same night."
         ),
     },
@@ -691,7 +690,7 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Manifestor|Projector": {
         "body": (
-            "Impact meets sight. A heads-up without recognition can feel cold; guidance "
+            "Impact meets sight. A heads-up without recognition can feel cold. Guidance "
             "without being asked can feel controlling."
         ),
         "try": (
@@ -701,12 +700,12 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Manifestor|Reflector": {
         "body": (
-            "Leaps meet sampling. Informing with lead time is care; rushing for a "
+            "Leaps meet sampling. Informing with lead time is care. Rushing for a "
             "same-hour answer is how talks turn into shocks."
         ),
         "try": (
-            "Attach a sample window to every non-trivial heads-up. Report what the field "
-            "showed when ready."
+            "Attach a set time to wait to every non-trivial heads-up. Report what became "
+            "clear when you are ready."
         ),
     },
     "Projector|Projector": {
@@ -721,18 +720,17 @@ TYPE_PAIR_COMMUNICATE: dict[str, dict[str, str]] = {
     },
     "Projector|Reflector": {
         "body": (
-            "Focused seeing meets whole-field mirroring. Curiosity beats diagnosis — "
+            "Focused seeing meets a mirror of the whole room. Curiosity beats diagnosis — "
             "the room itself may be coloring the talk."
         ),
         "try": (
-            "Check the room before feedback. Ask one curious question; answer what the "
-            "field shows."
+            "Check the room before feedback. Ask one curious question, then answer what became clear."
         ),
     },
     "Reflector|Reflector": {
         "body": (
             "Two samplers need healthy conditions more than clever arguments. Words "
-            "said in a chaotic field will not feel true the next day."
+            "said in a chaotic room will not feel true the next day."
         ),
         "try": (
             "Redesign the talk setting first — light, noise, timing — then speak. "
@@ -746,8 +744,8 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Generator|Projector": {
         "title": "In a clash",
         "body": (
-            "In a clash, one of you often wants to stay in it until the energy moves. "
-            "The other can feel unseen, then withdraw or start managing — which lands as pressure, not love."
+            "In a fight, the Generator often wants to stay in it until the energy moves. "
+            "The Projector can feel unseen, then withdraw or start managing — which lands as pressure, not love."
         ),
         "try": (
             "Generator: answer what was actually said, in one question or one sentence. "
@@ -758,7 +756,7 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
         "title": "In a clash",
         "body": (
             "Two of you can overwork a conflict — staying in it past honesty because "
-            "the energy is still \"on.\" Or both go quiet and call it peace."
+            "the energy is still on. Or both go quiet and call it peace."
         ),
         "try": (
             "Stop the pile-on. Both of you name one honest yes and one honest no about "
@@ -768,19 +766,19 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Generator|Manifesting Generator": {
         "title": "In a clash",
         "body": (
-            "One of you may pivot mid-fight to a new angle; the other may feel the "
+            "The Manifesting Generator may change course mid-fight. The Generator may feel the "
             "original hurt was never answered. Speed looks like avoidance to one and like problem-solving to the other."
         ),
         "try": (
-            "Finish the feeling on the table before you change lanes. Say what still "
+            "Finish the feeling on the table before you change course. Say what still "
             "needs a response in one sentence."
         ),
     },
     "Generator|Manifestor": {
         "title": "In a clash",
         "body": (
-            "A named decision can feel like a slam to one of you; an honest no can feel "
-            "like a cage to the other. A heads-up and a real response are the repair path — not control."
+            "A named decision can feel like a slam to the Generator. An honest no can feel "
+            "like a cage to the Manifestor. A heads-up and a real response are the repair path — not control."
         ),
         "try": (
             "Re-state what you need with room for a real answer. Give that answer without "
@@ -790,11 +788,11 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Generator|Reflector": {
         "title": "In a clash",
         "body": (
-            "One of you is after movement through the clash; the other needs a calmer "
-            "environment and time before the mirror clears. Pushing for closure tonight often muddies both."
+            "The Generator is after movement through the clash. The Reflector needs a calmer "
+            "room and time before the mirror clears. Pushing for closure tonight often muddies both."
         ),
         "try": (
-            "Change the room or take a pause. Return with what the field showed — not a "
+            "Change the room or take a pause. Return with what became clear — not a "
             "forced verdict."
         ),
     },
@@ -812,8 +810,8 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Manifesting Generator|Manifestor": {
         "title": "In a clash",
         "body": (
-            "Who moved first becomes the fight. One of you feels managed; the other "
-            "feels blindsided or left cleaning up."
+            "Who moved first becomes the fight. The Manifesting Generator can feel managed. "
+            "The Manifestor can feel blindsided or left cleaning up."
         ),
         "try": (
             "Re-do the last leap as a clean heads-up. Then finish one shared cleanup "
@@ -823,23 +821,23 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Manifesting Generator|Projector": {
         "title": "In a clash",
         "body": (
-            "One of you may try to organize the many threads; the other feels slowed or "
-            "judged. Unrecognized guidance and unfinished lanes feed each other."
+            "In a fight, the Projector may try to sort the many threads. The Manifesting Generator can feel slowed or judged. "
+            "Advice that was not asked for, and yeses that never get finished, feed each other."
         ),
         "try": (
-            "Invite recognition on the one thread that hurts. Guide only that thread, "
-            "and only after the invite."
+            "Manifesting Generator: ask to be seen on the one thread that hurts. "
+            "Projector: advise on that thread only, and only after they ask."
         ),
     },
     "Manifesting Generator|Reflector": {
         "title": "In a clash",
         "body": (
-            "Urgency meets sampling. One of you is trying to get the conflict resolved so life can "
-            "move; the other needs time and a healthier field."
+            "Urgency meets sampling. The Manifesting Generator is trying to get the conflict resolved so life can "
+            "move. The Reflector needs time and a healthier room."
         ),
         "try": (
-            "Set a sample window for the repair talk. Wait without sulking; return with "
-            "a clearer mirror."
+            "Set a time to wait before the repair talk. Wait without sulking, then return with "
+            "a clearer picture."
         ),
     },
     "Manifestor|Manifestor": {
@@ -856,8 +854,8 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Manifestor|Projector": {
         "title": "In a clash",
         "body": (
-            "One of you is already in motion; the other feels unrecognized or blindsided, then corrects. "
-            "Correction without being asked feels like a leash; a move without a heads-up feels like abandonment."
+            "The Manifestor is already in motion. The Projector feels unrecognized or blindsided, then corrects. "
+            "Correction without being asked feels like a leash. A move without a heads-up feels like abandonment."
         ),
         "try": (
             "Name the next step and invite sight. Offer one sentence of what you see, "
@@ -867,11 +865,11 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Manifestor|Reflector": {
         "title": "In a clash",
         "body": (
-            "A leap mid-conflict can shock a sensitive system; a pause can feel like a "
-            "stall. Lead time and a calmer environment are the repair, not matching speeds."
+            "A leap mid-conflict can shock a sensitive system. A pause can feel like a "
+            "stall. Lead time and a calmer room are the repair, not matching speeds."
         ),
         "try": (
-            "Name the next step with a real window. Name the environment you need before "
+            "Name the next step with a real window. Name the place you need before "
             "continuing."
         ),
     },
@@ -889,18 +887,18 @@ TYPE_PAIR_CLASH: dict[str, dict[str, str]] = {
     "Projector|Reflector": {
         "title": "In a clash",
         "body": (
-            "One of you may push for clarity the other has not sampled; urgency gets "
+            "The Projector may push for clarity the Reflector has not sampled. Urgency gets "
             "mirrored back louder. Slow the feedback and check the room before diagnosing love."
         ),
         "try": (
-            "Change the setting. Ask one curious question. Answer the field — not a "
+            "Change the setting. Ask one curious question. Answer what the room showed — not a "
             "character verdict."
         ),
     },
     "Reflector|Reflector": {
         "title": "In a clash",
         "body": (
-            "Two of you in a chaotic field will feel the bond as chaotic. More talk "
+            "Two of you in a chaotic room will feel the bond as chaotic. More talk "
             "without tending the space usually deepens the fog."
         ),
         "try": (
@@ -923,12 +921,12 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|sacral": _auth(
         "You decide at different speeds",
         (
-            "For one of you, the emotional weather has to rise and fall before a real yes "
-            "exists. The other gets a body yes or no now that goes stale if you table it too long."
+            "A feeling has to rise and fall before one of you has a real yes. "
+            "The other gets a clear yes or no in the body now, and it goes stale if you wait too long."
         ),
         (
-            "Don't force a shared deadline. Speak the body read now, and sleep on the "
-            "feeling. Revisit once after it has settled."
+            "Say the body yes or no now. Sleep on the feeling. Come back once, after it has settled. "
+            "Do not force one deadline."
         ),
     ),
     "emotional|emotional": _auth(
@@ -945,34 +943,34 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|splenic": _auth(
         "You decide at different speeds",
         (
-            "For one of you, the emotional weather has to rise and fall before a real yes "
-            "exists. The other gets a now-knowing about health, timing, or safety that fades if you put it on trial."
+            "A feeling has to rise and fall before one of you has a real yes. "
+            "The other gets a now-knowing about health, timing, or safety that fades if you put it on trial."
         ),
         (
             "Let the instant read be spoken as a first alert without forcing the other "
-            "person to match it. Revisit once the wave has moved."
+            "person to match it. Come back once the feeling has settled."
         ),
     ),
     "sacral|splenic": _auth(
         "Two instant body clocks",
         (
             "You both decide in the body now. The harmony is speed with honesty when you "
-            "trust the first signal; the stretch is overruling each other's body with logic after the fact."
+            "trust the first signal. The stretch is overruling each other's body with logic after the fact."
         ),
         (
             "Honor the first body signal from either of you as data. If you need a second "
-            "pass, take a short break — don't argue the body into a different answer."
+            "pass, take a short break — do not argue the body into a different answer."
         ),
     ),
     "sacral|sacral": _auth(
         "You share a gut clock",
         (
-            "You both get a body yes or no that wants to be trusted in the moment. The "
-            "stretch is persuading each other until both yeses are polite instead of true."
+            "You both get a yes or no in the body that wants to be trusted now. "
+            "The stretch is talking each other into a polite yes."
         ),
         (
-            "Before a shared commitment, both of you answer out loud with no sales pitch. "
-            "If either yes goes flat, redesign — don't pep-talk it back."
+            "Before you lock a plan, both of you answer out loud, with no sales pitch. "
+            "If either yes goes flat, change the plan."
         ),
     ),
     "splenic|splenic": _auth(
@@ -989,7 +987,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "ego|emotional": _auth(
         "Feeling meets will",
         (
-            "For one of you, the emotional weather has to settle before a real yes exists. The other "
+            "A feeling has to settle before one of you has a real yes. The other "
             "decides through will — what they will stand behind. A pressured promise mid-wave can become a pride fight later."
         ),
         (
@@ -1011,11 +1009,11 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "emotional|lunar": _auth(
         "Feeling meets a longer cycle",
         (
-            "One of you rides emotional weather; the other needs a cycle and a healthy "
-            "environment before certainty. Both are slow compared with a snap yes — and that is a gift when waiting is not treated as avoidance."
+            "One of you needs a feeling to settle. The other needs a cycle and a healthy "
+            "place before certainty. Both are slow compared with a snap yes — and that is a gift when waiting is not treated as avoidance."
         ),
         (
-            "Name a shared waiting window that honors both. Protect the environment during "
+            "Name a shared waiting time that honors both. Protect the place during "
             "that window instead of probing for early answers."
         ),
     ),
@@ -1026,15 +1024,15 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
             "out in the right setting with the right people. A closed-door pressure talk mid-wave helps neither of you."
         ),
         (
-            "Choose a calm sounding-board setting after the emotional weather has moved. "
-            "Don't use friends as a court while feelings are still spiked."
+            "Choose a calm sounding-board setting after the feeling has moved. "
+            "Do not use friends as a court while feelings are still spiked."
         ),
     ),
     "ego|sacral": _auth(
         "A body yes meets will",
         (
-            "One of you gets a body yes or no now. The other commits through will and heart. "
-            "A no can feel like disrespect to pride; a willful yes can override a flat body."
+            "One of you gets a yes or no in the body now. The other commits through will and heart. "
+            "A no can feel like disrespect to pride. A willful yes can override a flat body."
         ),
         (
             "Let the body speak first as a read. Commit only to what that yes can sustain "
@@ -1044,11 +1042,11 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "sacral|self-projected": _auth(
         "A body yes meets spoken identity",
         (
-            "One of you gets a body yes or no now. The other finds direction by talking it "
-            "through. A no mid-monologue can feel like a shut door; a long talk can stale a yes."
+            "One of you gets a yes or no in the body now. The other finds direction by talking it "
+            "through. A no mid-monologue can feel like a shut door. A long talk can stale a yes."
         ),
         (
-            "Let them finish hearing themselves, then ask for a fresh body read — not a "
+            "Let them finish hearing themselves, then ask for a fresh body yes or no — not a "
             "leftover one from twenty minutes ago."
         ),
     ),
@@ -1059,18 +1057,18 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
             "needs a cycle and a healthy place. This is not impulsiveness versus flakiness."
         ),
         (
-            "Capture the first body read out loud, then give a named sample window. Revisit "
-            "once — don't keep the yes on indefinite hold."
+            "Say the first body yes or no out loud, then give a set time to wait. Come back "
+            "once — do not keep the yes on indefinite hold."
         ),
     ),
     "mental|sacral": _auth(
         "A body yes meets a sounding board",
         (
             "One of you knows from the body now. The other needs to talk it out in the "
-            "right environment. Over-processing a yes can kill it; skipping the sounding board can leave the other unmoored."
+            "right place. Over-processing a yes can kill it. Skipping the sounding board can leave the other unmoored."
         ),
         (
-            "Speak the body read first, then take it to one trusted sounding-board setting "
+            "Say the body yes or no first, then take it to one trusted sounding-board setting "
             "— not a group debate that overrides the body."
         ),
     ),
@@ -1099,11 +1097,11 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "lunar|splenic": _auth(
         "Instinct meets a longer cycle",
         (
-            "One of you gets a now-alert; the other needs a slower sample. Instant knowing "
+            "One of you gets a now-alert. The other needs a slower sample. Instant knowing "
             "and slow knowing can respect each other when neither pretends to be the only honest clock."
         ),
         (
-            "Record the alert, then protect a sample window. Don't put the alert on trial "
+            "Record the alert, then protect a set time to wait. Do not put the alert on trial "
             "every day of the wait."
         ),
     ),
@@ -1111,10 +1109,10 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
         "Instinct meets a sounding board",
         (
             "One of you knows spontaneously. The other needs outer conversation in the "
-            "right environment. Explaining instinct until it dies — or skipping the sounding board — both miss the design."
+            "right place. Explaining instinct until it dies — or skipping the sounding board — both miss the design."
         ),
         (
-            "Honor the alert as data, then choose one calm sounding-board talk. Don't "
+            "Honor the alert as data, then choose one calm sounding-board talk. Do not "
             "crowd-source a body no."
         ),
     ),
@@ -1122,7 +1120,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
         "You share a will clock",
         (
             "You both decide through will and heart commitments. The harmony is two people "
-            "who can stand behind a deal; the stretch is pride making soft renegotiation feel like losing."
+            "who can stand behind a deal. The stretch is pride making soft renegotiation feel like losing."
         ),
         (
             "Rewrite bargains before bitterness. Treat a fair renegotiation as strength "
@@ -1132,7 +1130,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "ego|self-projected": _auth(
         "Will meets spoken direction",
         (
-            "One of you commits through will; the other finds direction by hearing themselves "
+            "One of you commits through will. The other finds direction by hearing themselves "
             "speak. A locked promise mid-monologue can trap both of you."
         ),
         (
@@ -1143,7 +1141,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "ego|lunar": _auth(
         "Will meets a longer cycle",
         (
-            "One of you is ready for a commitment now through will; the other needs a cycle. "
+            "One of you is ready for a commitment now through will. The other needs a cycle. "
             "Pressuring a promise before the sample lands usually creates a proud regret later."
         ),
         (
@@ -1154,7 +1152,7 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "ego|mental": _auth(
         "Will meets a sounding board",
         (
-            "One of you commits through will; the other needs environmental talk to know. "
+            "One of you commits through will. The other needs to talk it out in the right place to know. "
             "A lonely proud decision — or an endless committee — both miss the blend."
         ),
         (
@@ -1165,8 +1163,8 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "self-projected|self-projected": _auth(
         "You share a spoken-direction clock",
         (
-            "You both find truth by hearing yourselves speak. The harmony is mutual airtime; "
-            "the stretch is two monologues that never land into a shared decision."
+            "You both find truth by hearing yourselves speak. The harmony is mutual airtime. "
+            "The stretch is two monologues that never land into a shared decision."
         ),
         (
             "Take timed turns to talk until each of you hears a clear sentence. Then write "
@@ -1176,17 +1174,17 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "lunar|self-projected": _auth(
         "Spoken direction meets a longer cycle",
         (
-            "One of you knows by talking it through; the other needs a cycle and a healthy "
-            "field. Finishing the speech is not the same as finishing the sample."
+            "One of you knows by talking it through. The other needs a cycle and a healthy "
+            "place. Finishing the speech is not the same as finishing the sample."
         ),
         (
-            "Let them speak fully, then protect a waiting window before you lock anything."
+            "Let them speak fully, then protect a waiting time before you lock anything."
         ),
     ),
     "mental|self-projected": _auth(
         "Spoken direction meets a sounding board",
         (
-            "One of you hears truth in your own voice; the other needs outer conversation. "
+            "One of you hears truth in your own voice. The other needs outer conversation. "
             "Both are talk-based — and can drown each other without a container."
         ),
         (
@@ -1197,29 +1195,29 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
     "lunar|lunar": _auth(
         "You share a longer cycle",
         (
-            "You both need a cycle and a healthy environment before certainty. The stretch "
-            "is mutual delay without communication until the field feels foggy."
+            "You both need a cycle and a healthy place before certainty. The stretch "
+            "is mutual delay without communication until the room feels foggy."
         ),
         (
-            "Name the cycle and tend the environment together. Waiting becomes care when "
+            "Name the cycle and tend the place together. Waiting becomes care when "
             "it is spoken, not when it is silent drift."
         ),
     ),
     "lunar|mental": _auth(
         "A longer cycle meets a sounding board",
         (
-            "One of you takes a sample over time; the other needs the right people and place "
-            "to talk it out. Both depend on environment — rush neither."
+            "One of you takes a sample over time. The other needs the right people and place "
+            "to talk it out. Both depend on place — rush neither."
         ),
         (
-            "Choose a calm setting for one sounding-board talk inside a named waiting window. "
-            "Don't crowd the cycle with daily interrogations."
+            "Choose a calm setting for one sounding-board talk inside a named waiting time. "
+            "Do not crowd the cycle with daily interrogations."
         ),
     ),
     "mental|mental": _auth(
         "You share an outer sounding board",
         (
-            "You both decide by talking it out in the right environment. The stretch is "
+            "You both decide by talking it out in the right place. The stretch is "
             "outsourcing the relationship to every friend until neither of you can hear the bond."
         ),
         (
@@ -1228,6 +1226,75 @@ AUTHORITY_DECIDE_BANK: dict[str, dict[str, str]] = {
         ),
     ),
 }
+
+
+# Per-authority lines used when auth_a and auth_b are known and different.
+# Do not infer sides from Type.
+AUTHORITY_SIDE: dict[str, dict[str, str]] = {
+    "emotional": {
+        "you": "A feeling has to rise and fall before your yes is real.",
+        "they": "A feeling has to rise and fall before their yes is real.",
+        "named": "A feeling has to rise and fall before {name}'s yes is real.",
+    },
+    "sacral": {
+        "you": "You get a clear yes or no in the body now, and it goes stale if you wait too long.",
+        "they": "They get a clear yes or no in the body now, and it goes stale if you wait too long.",
+        "named": "{name} gets a clear yes or no in the body now, and it goes stale if you wait too long.",
+    },
+    "splenic": {
+        "you": "You get a quick sense of what is healthy or timely, and it can fade if you put it on trial.",
+        "they": "They get a quick sense of what is healthy or timely, and it can fade if you put it on trial.",
+        "named": "{name} gets a quick sense of what is healthy or timely, and it can fade if you put it on trial.",
+    },
+    "ego": {
+        "you": "You decide through will — what you will stand behind.",
+        "they": "They decide through will — what they will stand behind.",
+        "named": "{name} decides through will — what they will stand behind.",
+    },
+    "self-projected": {
+        "you": "You find the truth by hearing yourself speak.",
+        "they": "They find the truth by hearing themselves speak.",
+        "named": "{name} finds the truth by hearing themselves speak.",
+    },
+    "lunar": {
+        "you": "You need a cycle and a healthy place before a yes is real.",
+        "they": "They need a cycle and a healthy place before a yes is real.",
+        "named": "{name} needs a cycle and a healthy place before a yes is real.",
+    },
+    "mental": {
+        "you": "You find the answer by talking it out with the right people, in the right place.",
+        "they": "They find the answer by talking it out with the right people, in the right place.",
+        "named": "{name} finds the answer by talking it out with the right people, in the right place.",
+    },
+}
+
+# Extra sentence appended after the two assigned side lines, when it adds meaning.
+AUTHORITY_ASSIGN_TAIL: dict[str, str] = {
+    "ego|emotional": "A pressured promise mid-wave can become a pride fight later.",
+    "emotional|self-projected": "Interrupting that talk to force a vote misses both designs.",
+    "emotional|lunar": "Both are slow compared with a snap yes, and that is a gift when waiting is not treated as avoidance.",
+    "emotional|mental": "A closed-door pressure talk mid-wave helps neither of you.",
+    "ego|sacral": "A no can feel like disrespect to pride. A willful yes can override a flat body.",
+    "sacral|self-projected": "A no mid-monologue can feel like a shut door. A long talk can stale a yes.",
+    "lunar|sacral": "This is not impulsiveness versus flakiness.",
+    "mental|sacral": "Over-processing a yes can kill it. Skipping the sounding board can leave the other unmoored.",
+    "ego|splenic": "Pride can override a quiet \"this feels off,\" and an alert can feel like an attack on a promise.",
+    "self-projected|splenic": "Talking past a body alert — or cutting off talk with an unexplained no — both create distance.",
+    "lunar|splenic": "Instant knowing and slow knowing can respect each other when neither pretends to be the only honest clock.",
+    "mental|splenic": "Explaining instinct until it dies — or skipping the sounding board — both miss the design.",
+    "ego|self-projected": "A locked promise mid-monologue can trap both of you.",
+    "ego|lunar": "Pressuring a promise before the sample lands usually creates a proud regret later.",
+    "ego|mental": "A lonely proud decision — or an endless committee — both miss the blend.",
+    "lunar|self-projected": "Finishing the speech is not the same as finishing the sample.",
+    "mental|self-projected": "Both are talk-based — and can drown each other without a container.",
+    "lunar|mental": "Both depend on place — rush neither.",
+}
+
+EVERYDAY_DECIDE_LEADS = frozenset(
+    {
+        "You decide at different speeds",
+    }
+)
 
 
 SHARED_AUTHORITY_HARMONY = _item(
@@ -1335,14 +1402,54 @@ def _select_harmonies(
     return out[:4]
 
 
-def _how_you_decide(auth_a: str | None, auth_b: str | None) -> dict[str, str] | None:
+def _assign_decide_body(
+    auth_a: str | None,
+    auth_b: str | None,
+    entry: dict[str, str],
+    name_b: str | None,
+) -> str:
+    """Assign decide sides from auth_a / auth_b when known and different.
+
+    Does not guess from Type. Same or unknown authorities keep the bank body.
+    """
+    a = normalize_authority(auth_a)
+    b = normalize_authority(auth_b)
+    if not a or not b or a == b:
+        body = entry["body"]
+        title = entry["title"].strip()
+        if title in EVERYDAY_DECIDE_LEADS and title not in body:
+            lead = title if title.endswith(".") else f"{title}."
+            return f"{lead} {body}"
+        return body
+    you = AUTHORITY_SIDE.get(a)
+    they = AUTHORITY_SIDE.get(b)
+    if not you or not they:
+        return entry["body"]
+    they_line = they["named"].format(name=name_b) if name_b else they["they"]
+    parts = [you["you"], they_line]
+    title = entry["title"].strip()
+    if title in EVERYDAY_DECIDE_LEADS:
+        lead = title if title.endswith(".") else f"{title}."
+        parts.insert(0, lead)
+    tail = AUTHORITY_ASSIGN_TAIL.get(authority_pair_key(auth_a, auth_b) or "")
+    if tail:
+        parts.append(tail)
+    return " ".join(parts)
+
+
+def _how_you_decide(
+    auth_a: str | None,
+    auth_b: str | None,
+    name_b: str | None = None,
+) -> dict[str, str] | None:
     key = authority_pair_key(auth_a, auth_b)
     if not key:
         return None
     entry = AUTHORITY_DECIDE_BANK.get(key)
     if not entry:
         return None
-    return _section(entry["title"], entry["body"], entry["try"])
+    body = _assign_decide_body(auth_a, auth_b, entry, name_b)
+    return _section(entry["title"], body, entry["try"])
 
 
 def _how_you_communicate(
@@ -1359,9 +1466,9 @@ def _how_you_communicate(
         return None
     throat_state = _center_state("Throat", defined_a, defined_b)
     throat = THROAT_COMMUNICATE[throat_state]
-    mismatch = throat_state in ("you_open_they_defined", "you_defined_they_open")
-    try_ = throat["try"] if mismatch else pair["try"]
-    return _section("How you talk", pair["body"], try_, voice=throat["body"])
+    # Type-pair Try stays the section action. A throat beat, if it adds a new
+    # idea, is a second paragraph under the same heading — not a second Try.
+    return _section("How you talk", pair["body"], pair["try"], voice=throat["body"])
 
 
 def _when_you_clash(
@@ -1392,6 +1499,7 @@ def build_partner_dynamics(
     auth_a: str | None,
     auth_b: str | None,
     channel_roles: dict[str, Any] | None = None,
+    name_b: str | None = None,
 ) -> dict[str, Any]:
     """Return dynamics fields to merge onto partner_overview (partner role only)."""
     da = set(defined_a or [])
@@ -1401,7 +1509,7 @@ def build_partner_dynamics(
         "harmonies": _select_harmonies(da, db, auth_a, auth_b, roles),
         "frictions": _select_frictions(da, db),
     }
-    decide = _how_you_decide(auth_a, auth_b)
+    decide = _how_you_decide(auth_a, auth_b, name_b)
     if decide:
         out["how_you_decide"] = decide
     communicate = _how_you_communicate(type_a, type_b, da, db)
@@ -1427,6 +1535,9 @@ def all_dynamics_copy_blobs() -> list[str]:
         blobs.extend(block.values())
     for block in AUTHORITY_DECIDE_BANK.values():
         blobs.extend(block.values())
+    for side in AUTHORITY_SIDE.values():
+        blobs.extend(side.values())
+    blobs.extend(AUTHORITY_ASSIGN_TAIL.values())
     blobs.extend(SHARED_AUTHORITY_HARMONY.values())
     blobs.append(CLASH_TEMPO_SENTENCE)
     return blobs

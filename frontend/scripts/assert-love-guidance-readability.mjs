@@ -58,32 +58,43 @@ assert.ok(
   "hook is not a second 24px headline",
 );
 assert.ok(
-  !overview.includes("The current between you"),
-  "no redundant The current between you heading",
+  !overview.includes("Partner mode · Love guidance"),
+  "open card has no chapter title and no sr-only duplicate",
 );
 assert.ok(
-  !overview.includes("AccordionPanel") && !overview.includes("<details"),
-  "Decide & talk has no inner accordion",
+  !overview.includes("The current between you") &&
+    !overview.includes('title="The current"') &&
+    !overview.includes("Decide & talk"),
+  "no The current / Decide & talk wrappers",
+);
+assert.ok(
+  !overview.includes("AccordionPanel") &&
+    !overview.includes("<details") &&
+    !overview.includes("LoveSubChapter") &&
+    !overview.includes("aria-expanded"),
+  "open Love chapter has no inner accordion or subchapters",
 );
 assert.ok(
   overview.includes('data-testid="soul-love-decide"') &&
     overview.includes('data-testid="soul-love-communicate"'),
-  "both decide and talk blocks remain in the open subchapter",
+  "both decide and talk blocks remain in the open chapter",
 );
 assert.ok(
-  overview.includes('title="The current"') &&
-    overview.includes('title="Harmony and friction"') &&
-    overview.includes('title="Decide & talk"') &&
-    overview.includes("When it's hard"),
-  "four one-open subchapters remain, with a plain harmony/friction label",
+  overview.includes("Where you click") &&
+    overview.includes("Where it scrapes") &&
+    (overview.includes("When it&apos;s hard") || overview.includes("When it's hard")),
+  "click / scrape / when it's hard headings remain",
 );
 assert.ok(
-  !overview.includes("Where you harmonize · friction"),
-  "harmony subchapter is not a middot splice",
+  !overview.includes("Where you harmonize · friction") &&
+    !overview.includes("Where you harmonize"),
+  "harmony group is not a stacked wrapper heading",
 );
 assert.ok(
-  !overview.includes("When things get hard"),
-  "When it's hard does not nest a repeating heading",
+  !overview.includes("When things get hard") &&
+    !overview.includes("What this bond asks") &&
+    !overview.includes("The tender spots"),
+  "When it's hard does not nest literary subheads",
 );
 
 // Mid-word-safe Love tease (do not use the playbook mid-word slice for Love)
@@ -106,7 +117,6 @@ assert.ok(/\[\^.!\?\]\+\[.!\?\]/.test(loveFn) || loveFn.includes("[^.!?]"), "Lov
 const readingSnippets = [
   "type-body text-fg",
   "type-section text-fg",
-  "type-caption text-fg",
 ];
 for (const snip of readingSnippets) {
   assert.ok(overview.includes(snip), `reading ink present: ${snip}`);
@@ -123,11 +133,11 @@ assert.ok(
 assert.ok(overview.includes('font-semibold text-fg">Try'), "visible Try label");
 assert.ok(
   !overview.includes("text-fg-muted"),
-  "Love subchapter chevrons are not fg-muted",
+  "open card reading text is not fg-muted",
 );
 assert.ok(
-  overview.includes("text-energy-ink"),
-  "Love subchapter chevrons use energy-ink or equivalent primary ink",
+  chapterCard.includes("text-energy-ink"),
+  "Love chapter chevron uses energy-ink or equivalent primary ink",
 );
 
 // Solid elevated insets (not wash-on-wash, not energy/5 tinted cards)

@@ -12,6 +12,8 @@ type Props = {
   children?: ReactNode;
   /** Optional accent for Partner Love chapter shell. */
   accent?: "default" | "energy";
+  /** Hide the row title while the chapter is open (Love: closed-row title only). */
+  hideTitleWhenOpen?: boolean;
 };
 
 /**
@@ -26,6 +28,7 @@ export default function SoulChapterCard({
   onToggle,
   children,
   accent = "default",
+  hideTitleWhenOpen = false,
 }: Props) {
   const border =
     accent === "energy" ? "border-energy/55" : "border-border";
@@ -48,10 +51,13 @@ export default function SoulChapterCard({
         type="button"
         aria-expanded={open}
         onClick={onToggle}
+        aria-label={open && hideTitleWhenOpen ? title : undefined}
         className={`flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${headerBg}`}
       >
         <span className="min-w-0 flex-1">
-          <span className="block type-meta font-semibold text-fg">{title}</span>
+          {open && hideTitleWhenOpen ? null : (
+            <span className="block type-meta font-semibold text-fg">{title}</span>
+          )}
           {!open && tease ? (
             <span
               className={`mt-0.5 block type-caption line-clamp-2 ${

@@ -74,7 +74,7 @@ for (const id of [
   assert.ok(hdCopy.includes(id), `literacy ${id}`);
 }
 
-// Love sub-chapters + retained testids
+// Love chapter retained testids (flattened open chapter; no inner subchapters)
 for (const id of [
   "soul-partner-overview",
   "soul-partner-hook",
@@ -83,20 +83,23 @@ for (const id of [
   "soul-love-frictions",
   "soul-love-decide",
   "soul-love-communicate",
-  "soul-love-sub-current",
-  "soul-love-sub-harmony",
-  "soul-love-sub-decide",
-  "soul-love-sub-hard",
+  "soul-love-click-scrape",
+  "soul-love-hard",
 ]) {
   assert.ok(overview.includes(id), `overview ${id}`);
 }
-
-// Gold G+P hook must remain verbatim somewhere in repo FE (not rewritten here —
-// content comes from API). Ensure disclaimer string still present.
 assert.ok(
-  overview.includes(
+  !overview.includes("soul-love-sub-current") &&
+    !overview.includes("soul-love-sub-harmony") &&
+    !overview.includes("soul-love-sub-decide") &&
+    !overview.includes("soul-love-sub-hard"),
+  "inner Love subchapters are gone",
+);
+assert.ok(
+  !overview.includes(
     "How your designs meet in love — not a score, not a verdict.",
   ),
+  "open-chapter not-a-score disclaimer is gone",
 );
 
 // Chapter card hit-target signifiers
