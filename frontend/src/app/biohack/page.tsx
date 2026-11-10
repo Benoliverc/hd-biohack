@@ -658,22 +658,8 @@ export default function BiohackPage() {
     [user, youChart, dayKey, checkItems, refreshWeek, syncCompletionToServer]
   );
 
-  const refreshDisabled =
-    loading || adding || !user || resolvingYou || !youChart || !biohackingUnlocked;
-
   const unlockedBody = (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <button
-          type="button"
-          data-testid="refresh-protocol"
-          disabled={refreshDisabled}
-          onClick={() => void loadProtocol({ rebuild: true })}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:border-growth disabled:opacity-50 sm:w-auto"
-        >
-          {loading ? t("page.protocols.building") : t("page.protocols.refresh")}
-        </button>
-      </div>
       {kitStatus && (
         <div
           className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-growth/40 bg-growth-soft px-3 py-2.5 text-sm text-growth-ink"

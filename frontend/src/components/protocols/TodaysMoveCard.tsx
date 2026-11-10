@@ -59,7 +59,9 @@ export function TodaysMoveCard({
 
   return (
     <section
-      className="space-y-4 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
+      className={`space-y-4 rounded-2xl border border-border p-5 shadow-soft ${
+        moveComplete && items.length > 0 ? "today-move-achieved" : "bg-elevated"
+      }`}
       data-testid="todays-move"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
