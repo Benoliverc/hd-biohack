@@ -4,9 +4,9 @@
 - **Branch:** `feat/soul-names-partner-mode`
 - **Worktree:** `/workspace/hd-biohack-wt-soul-names-partner-mode`
 - **Base:** `2e823b7a4ed5fe39ee1e0947dc0d4978631f2f1b` (main after #95 merge)
-- **PR:** pending open against `main`
-- **Feature commit:** pending
-- **Tip SHA:** pending — lock on GitHub `headRefOid` after push (a commit cannot contain its own SHA)
+- **PR:** #96 — https://github.com/Benoliverc/hd-biohack/pull/96
+- **Feature commit:** `ca28ca350a26ad620e51f92a4cecbbbb0677f44e`
+- **Tip SHA:** this handoff stamp cannot contain its own SHA — lock on GitHub `headRefOid` after push
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Brief:** `.grok-handoff/soul-names-partner-mode-build-brief-2026-11-10.md`
 
