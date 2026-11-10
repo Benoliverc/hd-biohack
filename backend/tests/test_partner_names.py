@@ -22,7 +22,8 @@ _TYPE_COLON_RE = re.compile(
 _YOU_AGREEMENT_SLIPS = re.compile(
     r"\byou (loves|wants|needs|waits|answers|informs|holds|protects|"
     r"invites|asks|treats|mirrors|pushes|processes|tracks|moves|returns|"
-    r"reports|names|guides|offers|practices)\b",
+    r"reports|names|guides|offers|practices|works|follows|gets|joins|"
+    r"speaks|changes|runs|leaps)\b",
     re.IGNORECASE,
 )
 
@@ -166,7 +167,7 @@ def test_mg_generator_replaces_longer_type_first_you_are_mg():
     blob = _flatten(ov)
     assert ov["how_you_love"].startswith("You love")
     assert "Sarah feels that love" in ov["how_you_love"]
-    assert "more than one lane" in ov["how_you_love"]
+    assert "more than one yes" in ov["how_you_love"]
     assert ov["how_they_love"].startswith("Sarah loves")
     assert "the Manifesting Generator" not in blob
     assert "The Manifesting Generator" not in blob
@@ -192,7 +193,7 @@ def test_mg_generator_replaces_longer_type_first_they_are_mg():
     assert ov["how_you_love"].startswith("You love")
     assert "Sarah feels that love" in ov["how_you_love"]
     assert ov["how_they_love"].startswith("Sarah loves")
-    assert "in more than one lane" in ov["how_they_love"]
+    assert "more than one yes" in ov["how_they_love"]
     assert "the Manifesting Generator" not in blob
     assert "The Manifesting Generator" not in blob
     assert "the MG" not in blob
@@ -301,3 +302,232 @@ def test_partner_they_pronoun_may_stay_when_pointing_at_them():
     )
     assert "when they get" in out
     assert "when you get" not in out
+
+
+def _partner_sync(
+    type_a: str,
+    type_b: str,
+    *,
+    auth_a: str,
+    auth_b: str,
+    label_b: str,
+    label_a: str = "Me",
+):
+    a = _chart([5, 15], type=type_a, authority=auth_a, profile="3/5")
+    b = _chart([1, 8], type=type_b, authority=auth_b, profile="5/1")
+    return compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": label_a, "role": "self", "type": type_a},
+        friend_meta={"id": 2, "label": label_b, "role": "partner", "type": type_b},
+    )
+
+
+def test_achi_projector_mg_emotional_sacral_locked_meanings():
+    """You = Projector, Achi = MG, emotional|sacral — signed-off meanings."""
+    out = _partner_sync(
+        "Projector",
+        "Manifesting Generator",
+        auth_a="Emotional",
+        auth_b="Sacral",
+        label_b="Achi",
+    )
+    ov = out["partner_overview"]
+    assert ov is not None
+    assert ov["hook"] == (
+        "Achi moves on several yeses at once. You see what those yeses are for."
+    )
+    decide = ov["how_you_decide"]
+    assert decide["body"] == (
+        "You decide at different speeds. "
+        "A feeling has to rise and fall before your yes is real. "
+        "Achi gets a clear yes or no in the body now, and it goes stale if you wait too long."
+    )
+    assert decide["try"] == (
+        "Say the body yes or no now. Sleep on the feeling. Come back once, after it has settled. "
+        "Do not force one deadline."
+    )
+    talk = ov["how_you_communicate"]
+    assert talk["body"] == (
+        "Achi works through several things out loud. You track what those "
+        "threads are for. Advice that was not asked for can feel like being managed."
+    )
+    assert talk["try"] == (
+        "Achi: ask to be seen on one thread before you ask for advice. "
+        "You: advise on that one thread only."
+    )
+    assert "seeing Achi clearly" in ov["how_you_love"]
+    assert "pointing their energy at the right thing" in ov["how_you_love"]
+    assert "when they have asked" in ov["how_you_love"]
+    assert "Achi feels that love when you are invited to share what you see" in ov["how_you_love"]
+    assert "pace that is not yours" in ov["how_you_love"]
+    assert ov["how_they_love"].startswith("Achi loves by following more than one yes at a time")
+    assert "changing course quickly" in ov["how_they_love"]
+    assert "tell you as they turn, so you are in on the change" in ov["how_they_love"]
+    clash = ov["when_you_clash"]
+    assert "In a fight, you may try to sort the many threads." in clash["body"]
+    assert "Achi can feel slowed or judged." in clash["body"]
+    assert "Advice that was not asked for, and yeses that never get finished, feed each other." in clash["body"]
+    assert clash["try"] == (
+        "Achi: ask to be seen on the one thread that hurts. "
+        "You: advise on that thread only, and only after they ask."
+    )
+    blob = _flatten(ov)
+    assert "Benjamin" not in blob
+    assert "One of you" not in ov["hook"]
+    assert "One of you" not in talk["body"]
+    assert "one of you" not in decide["body"].lower()
+    assert not _YOU_AGREEMENT_SLIPS.search(blob)
+    # Nameless path keeps Type-as-person on the same meanings
+    nameless = partner_overview_for_types("Projector", "Manifesting Generator")
+    assert nameless is not None
+    assert nameless["hook"] == (
+        "The Manifesting Generator moves on several yeses at once. The Projector sees what those yeses are for."
+    )
+
+
+def test_alex_generator_manifestor_locked_talk_and_hook():
+    """You = Generator, Alex = Manifestor — signed-off hook and talk."""
+    out = _partner_sync(
+        "Generator",
+        "Manifestor",
+        auth_a="Sacral",
+        auth_b="Emotional",
+        label_b="Alex",
+    )
+    ov = out["partner_overview"]
+    assert ov is not None
+    assert ov["hook"] == (
+        "Alex starts things that would not have started without them. "
+        "You need an honest yes or no before you join."
+    )
+    talk = ov["how_you_communicate"]
+    assert talk["body"] == (
+        "Alex often speaks in order to start. You need a beat to give a real yes or no. "
+        "Talks go sideways when a heads-up sounds like a decision already made."
+    )
+    assert talk["try"] == (
+        "Alex: tell you first, then ask for a real yes or no. "
+        "You: give a clean yes or no, without a long defense."
+    )
+    assert "tell You first" not in talk["try"]
+    # Mixed authority still assigns from auth fields, not Type
+    decide = ov["how_you_decide"]
+    assert "You get a clear yes or no in the body now" in decide["body"]
+    assert "before Alex's yes is real" in decide["body"] or "before Alex's yes" in decide["body"]
+    assert "one of you" not in decide["body"].lower()
+
+
+def test_decide_sides_come_from_authorities_not_type():
+    """A Projector can be sacral; do not guess sides from Type."""
+    # Same types as Achi pair, authorities swapped
+    out = _partner_sync(
+        "Projector",
+        "Manifesting Generator",
+        auth_a="Sacral",
+        auth_b="Emotional",
+        label_b="Achi",
+    )
+    body = out["partner_overview"]["how_you_decide"]["body"]
+    assert "You get a clear yes or no in the body now" in body
+    assert "before Achi's yes is real" in body
+    assert "A feeling has to rise and fall before your yes is real." not in body
+    # Same authority: shared wording, no forced names
+    same = _partner_sync(
+        "Projector",
+        "Manifesting Generator",
+        auth_a="Sacral",
+        auth_b="Sacral",
+        label_b="Achi",
+    )
+    shared = same["partner_overview"]["how_you_decide"]
+    assert "You both get a yes or no in the body that wants to be trusted now." in shared["body"]
+    assert "talking each other into a polite yes" in shared["body"]
+    assert shared["try"] == (
+        "Before you lock a plan, both of you answer out loud, with no sales pitch. "
+        "If either yes goes flat, change the plan."
+    )
+    assert "Achi gets" not in shared["body"]
+
+
+def test_sacral_sacral_shared_wording_without_forced_names():
+    out = _partner_sync(
+        "Generator",
+        "Generator",
+        auth_a="Sacral",
+        auth_b="Sacral",
+        label_b="Sam",
+    )
+    decide = out["partner_overview"]["how_you_decide"]
+    assert "You both get a yes or no in the body that wants to be trusted now." in decide["body"]
+    assert "The stretch is talking each other into a polite yes." in decide["body"]
+    assert decide["try"].startswith("Before you lock a plan, both of you answer out loud, with no sales pitch.")
+    assert "Sam gets" not in decide["body"]
+
+
+def test_mixed_type_love_copy_is_not_one_of_you():
+    """When types differ, hooks / talk / clash are Type-as-person, not 'One of you'."""
+    from app.hd.partner_insights import HD_TYPES, partner_overview_for_types
+    from app.hd.partner_love_dynamics import TYPE_PAIR_CLASH, TYPE_PAIR_COMMUNICATE, type_pair_key
+
+    for a in HD_TYPES:
+        for b in HD_TYPES:
+            if a == b:
+                continue
+            ov = partner_overview_for_types(a, b)
+            assert ov is not None, f"{a}|{b}"
+            for field in ("hook", "the_current", "what_this_asks", "tender_spots", "try_this"):
+                assert "One of you" not in ov[field], f"{a}|{b} {field}: {ov[field]}"
+            key = type_pair_key(a, b)
+            assert "One of you" not in TYPE_PAIR_COMMUNICATE[key]["body"], key
+            assert "One of you" not in TYPE_PAIR_CLASH[key]["body"], key
+
+
+def test_love_chapter_banks_have_no_banned_atmosphere_terms():
+    from app.hd.partner_insights import PARTNER_OVERVIEW_BY_TYPES, TYPE_LOVE_BANK
+    from app.hd.partner_love_dynamics import all_dynamics_copy_blobs
+    from app.hd.partner_names import _HOW_THEY_LOVE
+
+    blobs = list(TYPE_LOVE_BANK.values())
+    blobs.extend(_HOW_THEY_LOVE.values())
+    for ov in PARTNER_OVERVIEW_BY_TYPES.values():
+        blobs.extend(ov.values())
+    blobs.extend(all_dynamics_copy_blobs())
+    joined = "\n".join(blobs).lower()
+    for phrase in (
+        "lanes",
+        "multi-track",
+        "multi-lane",
+        "life-force",
+        "gut engines",
+        "the current",
+        "emotional weather",
+        "body read",
+        "sample window",
+    ):
+        assert phrase not in joined, f"banned phrase in Love banks: {phrase}"
+    # Noun "tracks" (not the verb "track / tracks what")
+    assert "those tracks" not in joined
+    assert "across tracks" not in joined
+    assert "the tracks" not in joined
+
+
+def test_when_its_hard_is_one_clash_why_and_try():
+    out = _partner_sync(
+        "Projector",
+        "Manifesting Generator",
+        auth_a="Emotional",
+        auth_b="Sacral",
+        label_b="Achi",
+    )
+    ov = out["partner_overview"]
+    clash = ov["when_you_clash"]
+    assert clash["body"].strip()
+    assert clash["try"].strip()
+    # API may still carry overview asks / tender / try_this, but clash is the
+    # preferred single why + try and is not a four-way retelling of the same ache
+    # with literary subheads required at the data layer.
+    assert "What this bond asks" not in clash["body"]
+    assert "The tender spots" not in clash["body"]
+    assert clash["try"]

@@ -26,6 +26,7 @@
     "assert:soul-last-selected": "npx tsx scripts/assert-soul-last-selected.mjs",
     "assert:soul-names-partner-mode": "npx tsx scripts/assert-soul-names-partner-mode.mjs",
     "assert:love-guidance-readability": "npx tsx scripts/assert-love-guidance-readability.mjs",
+    "assert:love-guidance-language": "npx tsx scripts/assert-love-guidance-language.mjs",
     "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs"
   },
   "dependencies": {

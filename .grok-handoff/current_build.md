@@ -1,36 +1,47 @@
-# current_build — Love guidance readability pass
+# current_build — Love guidance language pass
 
 - **Date:** 2026-11-10 (Asia/Hong_Kong)
-- **Branch:** `feat/love-guidance-readability`
-- **Worktree:** `/workspace/hd-biohack-wt-love-guidance-readability`
-- **Base:** `163ea6fdb66dff3f9da0a9fc64d740a462b82280` (main after #96 merge)
+- **Branch:** `feat/love-guidance-language`
+- **Worktree:** `/workspace/hd-biohack-wt-love-guidance-language`
+- **Base:** `5621ee0740b4f392ea9a36fc5174a167e76f751f` (main after #97 merge)
 - **Tip SHA:** this handoff stamp cannot contain its own SHA — lock on GitHub `headRefOid` after push
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Later ship:** Vercel AND Railway together (not this step).
-- **Brief:** `/workspace/reports/love-guidance-readability-build-brief-2026-11-10.md`
+- **Brief:** `/workspace/reports/love-guidance-language-build-brief-2026-11-10.md`
+- **Proposal evidence (read-only):** `/workspace/reports/love-guidance-language-proposal-2026-11-10.md`
 
 ## Intent
-Partner-mode Love guidance should be much easier to read and understand. Keep the chapter identity from #96 (title “Partner mode · Love guidance,” deepened copper-amber wash, first names when available, Remove as Partner). Fix hierarchy, contrast, length, restatement, and broken name agreement.
+When Love is open, the first screen answers “what does this mean for us, and what should we try?” in words the reader could say out loud tonight. Translate the meaning; do not thin it out or add therapy-speak. This is the next language-and-structure pass after #97, not a redo of contrast / tease / insets / ink.
 
 ## Approach (FE + BE, same PR)
-1. **[FE] One title, one lead, no third accordion.** When the Love chapter is open, the chapter row is the only “Partner mode · Love guidance” title (sr-only remains for a11y). Lead is “You & {name}” / “You two,” then a short hook in `type-section` at `text-fg`. Dropped “The current between you.” Flattened “Decide & talk” (no inner AccordionPanel). Four one-open subchapters remain. Inner card sits transparent on the chapter wash (no second wash). Closed tease uses `truncateLoveTease`: first sentence if it fits, otherwise a mid-word-safe cut.
-2. **[FE] Primary ink; contrast on the copper wash.** All primary reading in this chapter uses `type-body` + `text-fg` (hook uses `type-section` + `text-fg`). Type line and “not a score” caption sit on solid `bg-elevated` insets in `text-fg`. Try-lines have a visible semibold “Try” label and caption-size primary ink. Love chapter / subchapter chevrons use `text-energy-ink`, not `fg-muted`. Deepened `.soul-love-guidance-wash` / `.soul-love-guidance-chapter` mixes from #96 are unchanged. Reading text sits on solid `bg-elevated` insets.
-3. **[BE] Shortened Love banks.** Hooks are one or two short sentences, all ≤96 characters (no mid-word tease cut). Lead paragraphs prefer two short sentences / ~40 words, meaning-first. “How you talk” is two beats (`body` + `voice`), not one fused paragraph. Try-lines are one concrete action, shorter, and still use `Generator:` / `Projector:` prefixes where both people are addressed so named copy becomes `You:` / `Sarah:`.
-4. **[FE+BE] How-you / how-they lead “The current.”** A short current paragraph, then the two columns. Love-bank lines are two short sentences without stacked mid-sentence glosses. When a name exists, `how_you_love` says “Sarah feels that love when…” instead of “The person next to you.” Nameless `how_they_love` is now third person (“They love by…”) so the heading and body agree. Harmony / friction subchapter is labeled “Harmony and friction” (no middot splice), with shorter meaning-first cards. “When it's hard” no longer nests “When things get hard.” Hook, current, columns, asks, tender, and clash no longer each retell pace / invitation / gut.
-5. **[BE] Personalization agreement.** After “the Type” becomes “you,” leftover their/them/they in that sentence (until the partner is named) become your/you. Hook Type-pair closers such as “in a Generator with a Projector” become “for you and Sarah.” Locked with tests. They/them as the partner pronoun may stay. Same-Type rules, MG-before-Generator replacement, and the nameless Type path are unchanged.
+1. **[FE] One open heading; closed-row title only.** When Love is open, the only display heading is “You & {name}” / “You two.” `SoulChapterCard` hides the row title via `hideTitleWhenOpen`. “Partner mode · Love guidance” stays on the closed row only. Dropped the `sr-only` duplicate and the “not a score, not a verdict” line.
+2. **[FE] No inner fold-outs; locked section order; one heading each.** Flattened to one open chapter: hook (no heading; optional `the_current` fold-in under it, no heading), How you decide, How you talk, How you love / How {name} loves, Where you click / Where it scrapes, When it’s hard. Dropped “The current,” “Decide & talk,” stacked decide titles, “Harmony and friction” / “Where you harmonize,” and literary hard subheads. A leftover decide title is folded into the body if it is not already there.
+3. **[FE] Body-size Try.** Shared `TryLine` uses `type-body` + `text-fg` (visible semibold “Try” label), not `type-caption`. Reading text stays on solid `bg-elevated` insets. #97 copper wash, primary ink, and mid-word-safe tease are unchanged.
+4. **[BE] Everyday rewrite of the Love banks.** Rewrote in-scope copy in `partner_insights.py`, `partner_love_dynamics.py`, and `partner_names.py`. Meaning first; Type-as-person subjects when types differ; no reader-facing “lanes,” “tracks” (as atmosphere), “multi-track,” “life-force,” “gut engines,” or “the current.” Channel nuance asides were left alone (out of scope).
+5. **[BE] Names when the chart can tell who is who.** Type-pair hooks, talk, and clash use Type-as-person subjects so personalization becomes “Achi…” / “You….” Decide sides are assigned at apply time from `auth_a` / `auth_b` when known and different — not guessed from Type. Same or unknown authority stays two-sided (“one of you” / “you both”). Same-Type, MG-before-Generator, nameless Type path, and Me = you are unchanged. Mid-sentence “tell you first” is natural (not “tell You first”).
+6. **[BE] When it’s hard is one why + one Try.** FE renders only the clash why + clash Try (falling back to `try_this` if needed). Literary subheads are gone. Type-pair clash copy was rewritten so the same ache is not told four times.
+
+## Locked Achi / Alex meanings
+- **Achi** (You = Projector, Achi = Manifesting Generator, emotional|sacral): hook, decide (assigned from authorities), talk, how-you / how-Achi-love, and when-it’s-hard why + Try are locked with exact-string tests in `test_partner_names.py`.
+- **Alex** (You = Generator, Alex = Manifestor): hook and talk (including “tell you first”) are locked with exact-string tests. Mixed authority in that fixture still assigns from `auth_a` / `auth_b`.
+- **sacral|sacral** stays two-sided and shared, with the signed-off wording and Try; names are not forced.
+- A swapped-authority control (Projector sacral, MG emotional) proves sides follow `auth_a` / `auth_b`, not Type.
+- Nameless path keeps Type-as-person wording on the same meanings.
 
 ## AC coverage
-- Item 1: yes (title/lead/accordion/tease).
-- Item 2: yes (primary ink, Try label, chevrons, wash kept, solid elevated insets).
-- Item 3: yes (shortened banks, talk split, try length).
-- Item 4: yes (columns as lead, less restatement, plainer harmony label, no nested hard heading).
-- Item 5: yes (agreement + pair-closer tests).
+- Item 1: yes (open heading, closed-row title only, no sr-only duplicate, no “not a score” line).
+- Item 2: yes (no inner fold-outs, locked order, one heading per section, click/scrape groups).
+- Item 3: yes (body-size Tries in primary ink; #97 wash / insets / tease kept).
+- Item 4: yes (everyday bank rewrite; banned atmosphere terms tested on Love banks).
+- Item 5: yes (Type-as-person hooks/bodies; authority assignment; same-Type / nameless / agreement kept).
+- Item 6: yes (one why + one Try on When it’s hard).
+- Achi / Alex locked meanings: yes (tests).
 
 ## Keep (not regressed)
-First names when available; Me = you; Types as secondary labels; nameless Type path (shorter wording, same meaning); Partner gate; chapter title “Partner mode · Love guidance”; copper-amber identity and deepened wash from #96; Mark / Remove as Partner as shipped in #96 (`renameChart(id, label, "person")` only).
+Copper-amber partner-mode wash from #96/#97; first names when available; Me stays “you”; Types as secondary labels on the type line; nameless Type path; Partner gate; Remove as Partner as shipped in #96; same-Type disambiguation; MG-before-Generator replacement; mid-word-safe closed tease; #97 primary ink and solid elevated insets; Inter and body-first roles except Love Tries raised to body size; no scores / verdicts / soulmate language as a product rule; personalization agreement from #97.
 
 ## Out of scope (untouched)
-Friend-mode chapters, picker/aside, Chart, Signature, Playbook outside Love, last-selected, Dual prompt, post-unmark Love linger, channel nuance asides, new features, re-washing the rest of Soul, Inter / body-first role scale, Partner gate.
+Friend-mode chapters, picker/aside, Chart, Signature, Playbook outside Love, Dual prompt, last-selected, dropdown order, Mark/Remove as Partner (kept as shipped), post-unmark Love linger, channel nuance asides, new features, Valentine pink/red, re-washing the rest of Soul, changing Inter, the body-first role scale (except Love Tries), the Partner gate, or the copper-amber identity.
 
 ## Deploy target
 - **FE + BE** → Vercel + Railway on a later ship (not this step).
@@ -38,9 +49,9 @@ Friend-mode chapters, picker/aside, Chart, Signature, Playbook outside Love, las
 
 ## Files
 ### BE
-- `backend/app/hd/partner_names.py`
 - `backend/app/hd/partner_insights.py`
 - `backend/app/hd/partner_love_dynamics.py`
+- `backend/app/hd/partner_names.py`
 - `backend/tests/test_partner_names.py`
 - `backend/tests/test_soul_sync.py`
 
@@ -48,18 +59,20 @@ Friend-mode chapters, picker/aside, Chart, Signature, Playbook outside Love, las
 - `frontend/src/app/soul/page.tsx`
 - `frontend/src/components/soul/PartnerOverviewCard.tsx`
 - `frontend/src/components/soul/SoulChapterCard.tsx`
-- `frontend/src/lib/api.ts` (`voice` optional on `SoulLoveGuidanceSection`)
-- `frontend/scripts/assert-love-guidance-readability.mjs` (new)
-- `frontend/scripts/assert-soul-names-partner-mode.mjs` (retargeted title/wash asserts)
-- `frontend/package.json` (assert script)
+- `frontend/scripts/assert-love-guidance-language.mjs` (new)
+- `frontend/scripts/assert-love-guidance-readability.mjs` (retargeted; #97 ink/wash/tease kept)
+- `frontend/scripts/assert-soul-chapter-map.mjs` (retargeted off inner subchapters / disclaimer)
+- `frontend/scripts/assert-soul-names-partner-mode.mjs` (closed-row title only)
+- `frontend/package.json` (language assert script)
 
 ### Handoff
 - `.grok-handoff/current_build.md`
 
 ## Tests
-- `cd backend && PYTHONPATH=. python -m pytest tests/test_partner_names.py tests/test_soul_sync.py -q` — 42 passed
+- `cd backend && PYTHONPATH=. python -m pytest tests/test_partner_names.py tests/test_soul_sync.py -q` — 49 passed
 - `./node_modules/.bin/tsc --noEmit` (frontend) — exit 0
-- `./node_modules/.bin/next lint --file` on `soul/page.tsx`, `SoulChapterCard.tsx`, `PartnerOverviewCard.tsx`, `lib/api.ts` — exit 0, no warnings or errors
+- `./node_modules/.bin/eslint` on `soul/page.tsx`, `SoulChapterCard.tsx`, `PartnerOverviewCard.tsx` — exit 0, no warnings or errors
+- `npx tsx scripts/assert-love-guidance-language.mjs` — ok
 - `npx tsx scripts/assert-love-guidance-readability.mjs` — ok
 - `npx tsx scripts/assert-soul-names-partner-mode.mjs` — ok
 - `npx tsx scripts/assert-soul-chapter-map.mjs` — ok
@@ -71,17 +84,13 @@ Known pre-existing (not regressions; not touched): `react-hooks/exhaustive-deps`
 ## Preview
 - Not started. No preview URL/port.
 
-## Verify
-1. Open Love chapter: title “Partner mode · Love guidance” appears once (the chapter row). Lead is “You & {name}” or “You two” plus a short hook in primary ink.
-2. “The current between you” is gone. “Decide & talk” shows both blocks with no inner accordion.
-3. Closed tease does not cut mid-word.
-4. Reading text is primary ink on solid elevated insets and meets contrast on the copper wash in Linen and Basalt. Try-lines have a visible “Try” label. Chevrons are not muted.
-5. The deepened copper-amber wash from #96 remains (not pink/red, not friend-mode elevated).
-6. Named copy agrees (your/you, not leftover their/them pointing at you). Hook Type-pair closers personalize or drop. Nameless path still uses Type-as-person wording (shorter; “They love by…”).
-7. Love still appears only when the selected person is marked Partner. Mark / Remove as Partner unchanged.
-
-## Out of scope
-Friend-mode chapters, picker / aside chrome, Chart, Signature, Playbook lines outside this Love chapter, Dual prompt, last-selected person, dropdown order. Mark as Partner / Remove as Partner (keep as shipped in #96). Love lingering for one re-sync after unmark. Partner nuance asides on Channels / gates. New product features. Valentine pink / red. Re-washing the rest of Soul. Changing Inter, the body-first role scale, the Partner gate, or the copper-amber partner-mode identity.
-
 ## Open questions
-- None for this build ticket.
+- None. No deviations from the locked brief.
+
+## Verify
+1. Open Love: the only display heading is “You & {name}” / “You two.” “Partner mode · Love guidance” is on the closed row only. No sr-only duplicate, no “not a score” line.
+2. No inner fold-outs. Order is hook, How you decide, How you talk, How you love / How {name} loves, Where you click / Where it scrapes, When it’s hard.
+3. Each section is a short why plus a body-size Try in primary ink on elevated insets. Contrast and copper wash from #97 remain.
+4. Achi (Projector + MG, emotional|sacral) and Alex (Generator + Manifestor) match the locked meanings. Nameless path still uses Type-as-person wording. Me stays “you.”
+5. Decide sides follow `auth_a` / `auth_b` when known and different, not Type. sacral|sacral stays shared and two-sided.
+6. When it’s hard is one why + one Try.

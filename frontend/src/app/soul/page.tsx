@@ -1030,6 +1030,7 @@ function SoulUnlockedContent() {
                         open={openChapter === "love"}
                         onToggle={() => toggleChapter("love")}
                         accent="energy"
+                        hideTitleWhenOpen
                       >
                         <PartnerOverviewCard
                           overview={result.partner_overview}
