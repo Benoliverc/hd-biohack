@@ -4,8 +4,9 @@
 - **Branch:** `feat/soul-last-selected-person`
 - **Worktree:** `/workspace/hd-biohack-wt-soul-last-selected`
 - **Base:** `a8849913029cbbea7d5dcc5d392a0499b794a6a6` (main after #93 merge)
-- **PR:** pending (do not merge until Benjamin yes after UX → Ship Gate)
-- **Tip SHA:** pending push
+- **PR:** #94 — https://github.com/Benoliverc/hd-biohack/pull/94
+- **Tip SHA:** 
+- **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Brief:** `.grok-handoff/soul-last-selected-person-build-brief-2026-11-10.md`
 
 ## Intent
