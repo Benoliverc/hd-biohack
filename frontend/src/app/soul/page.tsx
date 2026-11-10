@@ -318,6 +318,21 @@ function truncateTease(text: string | null | undefined, max = 96): string | null
   return `${raw.slice(0, max - 1).trimEnd()}…`;
 }
 
+/** Love closed tease: first sentence if it fits, otherwise a mid-word-safe cut. */
+function truncateLoveTease(text: string | null | undefined, max = 96): string | null {
+  const raw = (text || "").trim();
+  if (!raw) return null;
+  const sentence = raw.match(/^[^.!?]+[.!?]/);
+  if (sentence && sentence[0].trim().length <= max) {
+    return sentence[0].trim();
+  }
+  if (raw.length <= max) return raw;
+  const slice = raw.slice(0, max - 1);
+  const sp = slice.lastIndexOf(" ");
+  const cut = (sp >= 16 ? slice.slice(0, sp) : slice).trimEnd();
+  return `${cut}…`;
+}
+
 function SoulUnlockedContent() {
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
@@ -990,7 +1005,7 @@ function SoulUnlockedContent() {
                   result.friend?.role === "partner" &&
                   Boolean(result.partner_overview);
                 const loveTease =
-                  truncateTease(result.partner_overview?.hook) ||
+                  truncateLoveTease(result.partner_overview?.hook) ||
                   "How you love · where you harmonize · when it’s hard";
                 const playbookTease =
                   truncateTease(result.playbook?.lede) ||

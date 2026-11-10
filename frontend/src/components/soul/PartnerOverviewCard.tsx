@@ -28,6 +28,15 @@ function hasText(value?: string | null): boolean {
   return Boolean(value && value.trim());
 }
 
+function TryLine({ text, testId }: { text?: string | null; testId?: string }) {
+  if (!hasText(text)) return null;
+  return (
+    <p className="mt-2 type-caption text-fg" data-testid={testId}>
+      <span className="font-semibold text-fg">Try</span> {text}
+    </p>
+  );
+}
+
 function GuidanceBlock({
   testId,
   itemTestIdPrefix,
@@ -47,12 +56,12 @@ function GuidanceBlock({
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-xl border border-border bg-energy/5 px-3.5 py-3"
+            className="rounded-xl border border-border bg-elevated px-3.5 py-3"
             data-testid={`${itemTestIdPrefix}-${item.id}`}
           >
             <p className="text-sm font-semibold text-fg">{item.title}</p>
-            <p className="mt-1.5 type-body text-fg-secondary max-w-prose">{item.body}</p>
-            <p className="mt-2 type-caption text-fg-secondary">{item.try}</p>
+            <p className="mt-1.5 type-body text-fg max-w-prose">{item.body}</p>
+            <TryLine text={item.try} />
           </li>
         ))}
       </ul>
@@ -67,60 +76,25 @@ function CareInset({
   tryLine,
 }: {
   testId: string;
-  heading: string;
+  heading?: string | null;
   body: string;
   tryLine?: string | null;
 }) {
   return (
     <section
-      className="rounded-xl border border-energy/25 bg-energy-soft/40 px-4 py-3.5"
+      className="rounded-xl border border-border bg-elevated px-4 py-3.5"
       data-testid={testId}
     >
-      <h3 className="text-sm font-semibold text-energy-ink">{heading}</h3>
-      <p className="mt-1.5 type-body text-fg-secondary max-w-prose">{body}</p>
-      {hasText(tryLine) ? (
-        <p className="mt-2 type-caption text-fg-secondary">{tryLine}</p>
+      {hasText(heading) ? (
+        <h3 className="text-sm font-semibold text-energy-ink">{heading}</h3>
       ) : null}
+      <p
+        className={`type-body text-fg max-w-prose ${hasText(heading) ? "mt-1.5" : ""}`}
+      >
+        {body}
+      </p>
+      <TryLine text={tryLine} />
     </section>
-  );
-}
-
-function AccordionPanel({
-  testId,
-  summary,
-  open,
-  onOpenChange,
-  children,
-}: {
-  testId: string;
-  summary: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  children: ReactNode;
-}) {
-  return (
-    <details
-      className="group rounded-xl border border-border bg-elevated/80 open:bg-elevated"
-      data-testid={testId}
-      open={open}
-      onToggle={(e) => {
-        const next = (e.currentTarget as HTMLDetailsElement).open;
-        if (next !== open) onOpenChange(next);
-      }}
-    >
-      <summary className="cursor-pointer list-none px-3.5 py-3 text-sm font-semibold text-fg outline-none marker:content-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
-        <span className="flex items-center justify-between gap-2">
-          {summary}
-          <span
-            aria-hidden
-            className="text-fg-muted transition group-open:rotate-180"
-          >
-            ▾
-          </span>
-        </span>
-      </summary>
-      <div className="border-t border-border/80 px-3.5 pb-3.5 pt-3">{children}</div>
-    </details>
   );
 }
 
@@ -140,7 +114,7 @@ function LoveSubChapter({
   return (
     <div
       data-testid={testId}
-      className="overflow-hidden rounded-xl border border-border/80 bg-elevated/60"
+      className="overflow-hidden rounded-xl border border-border/80 bg-elevated"
     >
       <button
         type="button"
@@ -153,7 +127,7 @@ function LoveSubChapter({
         </span>
         <ChevronDown
           aria-hidden
-          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
+          className={`h-4 w-4 shrink-0 text-energy-ink transition-transform ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -222,10 +196,6 @@ export default function PartnerOverviewCard({
   const [openSub, setOpenSub] = useState<LoveSubId | null>(
     () => availableSubs[0] ?? null,
   );
-  const [decideOpen, setDecideOpen] = useState(hasDecide);
-  const [communicateOpen, setCommunicateOpen] = useState(
-    !hasDecide && hasCommunicate,
-  );
 
   useEffect(() => {
     if (!chapterActive) return;
@@ -238,36 +208,29 @@ export default function PartnerOverviewCard({
 
   return (
     <div
-      className="soul-love-guidance-wash rounded-2xl border border-energy/40 p-5 sm:p-6"
+      className="rounded-2xl bg-transparent p-5 sm:p-6"
       data-testid="soul-partner-overview"
       data-love-guidance="true"
     >
       <span className="sr-only" data-testid="soul-love-guidance">
         Partner mode · Love guidance
       </span>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="type-chip inline-flex items-center rounded-full border border-energy/40 bg-energy/10 px-2.5 py-0.5 tracking-wide text-energy-ink">
-          Partner mode · Love guidance
-        </span>
-      </div>
-      <h2
-        className="mt-2 text-lg font-semibold text-energy-ink sm:text-xl"
-        data-testid="soul-love-guidance-heading"
-      >
-        Partner mode · Love guidance
+      <h2 className="text-2xl font-semibold text-fg" data-testid="soul-partner-pair-title">
+        {title}
       </h2>
-      <p className="mt-3 text-2xl font-semibold text-fg">{title}</p>
       {typeLine ? (
-        <p className="mt-1 type-meta">{typeLine}</p>
+        <p className="mt-2 inline-block rounded-md bg-elevated px-2 py-0.5 text-sm font-medium text-fg">
+          {typeLine}
+        </p>
       ) : null}
       {reasonLine ? <div className="mt-2">{reasonLine}</div> : null}
       <p
-        className="mt-4 text-xl font-semibold leading-snug text-fg sm:text-2xl"
+        className="mt-4 type-section text-fg"
         data-testid="soul-partner-hook"
       >
         {overview.hook}
       </p>
-      <p className="mt-2 type-caption text-fg-secondary">
+      <p className="mt-2 inline-block rounded-md bg-elevated px-2 py-1 type-caption text-fg">
         How your designs meet in love — not a score, not a verdict.
       </p>
 
@@ -280,12 +243,9 @@ export default function PartnerOverviewCard({
             onToggle={() => toggleSub("current")}
           >
             {hasCurrent ? (
-              <section className="rounded-xl border border-border bg-elevated/70 px-4 py-3.5">
-                <h3 className="text-sm font-semibold text-fg">
-                  The current between you
-                </h3>
+              <section className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                 <p
-                  className="mt-1.5 type-body text-fg-secondary max-w-prose"
+                  className="type-body text-fg max-w-prose"
                   data-testid="soul-partner-the-current"
                 >
                   {overview.the_current}
@@ -296,12 +256,12 @@ export default function PartnerOverviewCard({
             {hasHowYouLove ? (
               <section className="grid gap-4 sm:grid-cols-2">
                 {hasText(overview.how_you_love) ? (
-                  <div className="rounded-xl border border-border bg-elevated/70 px-4 py-3.5">
+                  <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                     <h3 className="text-sm font-semibold text-fg">
                       How you love
                     </h3>
                     <p
-                      className="mt-1.5 type-body text-fg-secondary max-w-prose"
+                      className="mt-1.5 type-body text-fg max-w-prose"
                       data-testid="soul-partner-how-you-love"
                     >
                       {overview.how_you_love}
@@ -309,12 +269,12 @@ export default function PartnerOverviewCard({
                   </div>
                 ) : null}
                 {hasText(overview.how_they_love) ? (
-                  <div className="rounded-xl border border-border bg-elevated/70 px-4 py-3.5">
+                  <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                     <h3 className="text-sm font-semibold text-fg">
                       {theyHeading}
                     </h3>
                     <p
-                      className="mt-1.5 type-body text-fg-secondary max-w-prose"
+                      className="mt-1.5 type-body text-fg max-w-prose"
                       data-testid="soul-partner-how-they-love"
                     >
                       {overview.how_they_love}
@@ -329,7 +289,7 @@ export default function PartnerOverviewCard({
         {hasHarmonyFriction ? (
           <LoveSubChapter
             testId="soul-love-sub-harmony"
-            title="Where you harmonize · friction"
+            title="Harmony and friction"
             open={openSub === "harmony"}
             onToggle={() => toggleSub("harmony")}
           >
@@ -357,42 +317,43 @@ export default function PartnerOverviewCard({
             open={openSub === "decide"}
             onToggle={() => toggleSub("decide")}
           >
-            <section className="space-y-2" aria-label="Decide and talk">
+            <section className="space-y-4" aria-label="Decide and talk">
               {hasDecide && overview.how_you_decide ? (
-                <AccordionPanel
-                  testId="soul-love-decide"
-                  summary="How you decide together"
-                  open={decideOpen}
-                  onOpenChange={setDecideOpen}
+                <div
+                  className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+                  data-testid="soul-love-decide"
                 >
-                  <p className="type-body font-medium text-fg">
+                  <h3 className="text-sm font-semibold text-fg">
+                    How you decide together
+                  </h3>
+                  <p className="mt-1.5 type-body font-medium text-fg">
                     {overview.how_you_decide.title}
                   </p>
-                  <p className="mt-1.5 type-body text-fg-secondary max-w-prose">
+                  <p className="mt-1.5 type-body text-fg max-w-prose">
                     {overview.how_you_decide.body}
                   </p>
-                  <p className="mt-2 type-caption text-fg-secondary">
-                    {overview.how_you_decide.try}
-                  </p>
-                </AccordionPanel>
+                  <TryLine text={overview.how_you_decide.try} />
+                </div>
               ) : null}
               {hasCommunicate && overview.how_you_communicate ? (
-                <AccordionPanel
-                  testId="soul-love-communicate"
-                  summary="How you talk"
-                  open={communicateOpen}
-                  onOpenChange={setCommunicateOpen}
+                <div
+                  className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+                  data-testid="soul-love-communicate"
                 >
-                  <p className="type-body font-medium text-fg">
-                    {overview.how_you_communicate.title}
-                  </p>
-                  <p className="mt-1.5 type-body text-fg-secondary max-w-prose">
+                  <h3 className="text-sm font-semibold text-fg">How you talk</h3>
+                  <p className="mt-1.5 type-body text-fg max-w-prose">
                     {overview.how_you_communicate.body}
                   </p>
-                  <p className="mt-2 type-caption text-fg-secondary">
-                    {overview.how_you_communicate.try}
-                  </p>
-                </AccordionPanel>
+                  {hasText(overview.how_you_communicate.voice) ? (
+                    <p
+                      className="mt-1.5 type-body text-fg max-w-prose"
+                      data-testid="soul-love-communicate-voice"
+                    >
+                      {overview.how_you_communicate.voice}
+                    </p>
+                  ) : null}
+                  <TryLine text={overview.how_you_communicate.try} />
+                </div>
               ) : null}
             </section>
           </LoveSubChapter>
@@ -407,12 +368,12 @@ export default function PartnerOverviewCard({
           >
             <section className="space-y-4">
               {hasAsks ? (
-                <div>
+                <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                   <h4 className="text-sm font-medium text-fg">
                     What this bond asks
                   </h4>
                   <p
-                    className="mt-1.5 type-body text-fg-secondary max-w-prose"
+                    className="mt-1.5 type-body text-fg max-w-prose"
                     data-testid="soul-partner-what-this-asks"
                   >
                     {overview.what_this_asks}
@@ -420,16 +381,12 @@ export default function PartnerOverviewCard({
                 </div>
               ) : null}
               {hasTender ? (
-                <div
-                  className={
-                    hasAsks ? "border-t border-border/70 pt-4" : undefined
-                  }
-                >
+                <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                   <h4 className="text-sm font-medium text-fg">
                     The tender spots
                   </h4>
                   <p
-                    className="mt-1.5 type-body text-fg-secondary max-w-prose"
+                    className="mt-1.5 type-body text-fg max-w-prose"
                     data-testid="soul-partner-tender-spots"
                   >
                     {overview.tender_spots}
@@ -439,7 +396,6 @@ export default function PartnerOverviewCard({
               {hasClash && overview.when_you_clash ? (
                 <CareInset
                   testId="soul-love-clash"
-                  heading="When things get hard"
                   body={overview.when_you_clash.body}
                   tryLine={overview.when_you_clash.try}
                 />

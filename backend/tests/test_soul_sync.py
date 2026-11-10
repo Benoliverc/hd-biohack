@@ -606,7 +606,9 @@ def test_partner_overview_generator_projector_exact_copy():
     assert overview["hook"] == expected["hook"]
     assert overview["the_current"] == expected["the_current"]
     assert overview["how_you_love"] == TYPE_LOVE_BANK["Generator"]
-    assert overview["how_they_love"] == TYPE_LOVE_BANK["Projector"]
+    from app.hd.partner_names import how_they_love_for_type
+    assert overview["how_they_love"] == how_they_love_for_type("Projector")
+    assert overview["how_they_love"].startswith("They love")
     assert overview["what_this_asks"] == expected["what_this_asks"]
     assert overview["tender_spots"] == expected["tender_spots"]
     assert overview["try_this"] == expected["try_this"]
@@ -618,7 +620,7 @@ def test_partner_overview_generator_projector_exact_copy():
     flipped = partner_overview_for_types("Projector", "Generator")
     assert flipped is not None
     assert flipped["how_you_love"] == TYPE_LOVE_BANK["Projector"]
-    assert flipped["how_they_love"] == TYPE_LOVE_BANK["Generator"]
+    assert flipped["how_they_love"] == how_they_love_for_type("Generator")
     assert flipped["hook"] == expected["hook"]  # pair chapters stay unordered
     # Mechanics unchanged — Intimacy EM still Magnetic Alchemy
     assert out["signature"]["id"] == "magnetic_alchemy"
@@ -820,14 +822,14 @@ def test_love_dynamics_solar_plexus_gold_and_authorities():
     clash = ov["when_you_clash"]
     assert clash["title"] == gold_clash["title"]
     assert clash["body"].startswith(gold_clash["body"])
-    assert (
-        "Also remember your decision clocks are different — don't try to settle "
-        "the fight on the faster clock."
-    ) in clash["body"]
+    assert "Don't try to settle the fight on the faster person's clock." in clash["body"]
     assert clash["try"] == gold_clash["try"]
-    # Throat mismatch try on communicate
+    # Throat mismatch try on communicate; talk body is not fused with throat
     assert "signing a voice that isn't yours" in ov["how_you_communicate"]["try"]
-    assert "The Generator loves by engaging what lights them up" in ov["how_you_communicate"]["body"]
+    assert "waiting to be asked" in ov["how_you_communicate"]["body"]
+    assert ov["how_you_communicate"].get("voice")
+    assert "Their words can land like a decision" in ov["how_you_communicate"]["voice"]
+    assert ov["how_you_communicate"]["body"] != ov["how_you_communicate"]["voice"]
 
     # Reverse centers + authorities (still Emotional|Sacral unordered)
     a2 = _chart([19, 49], type="Generator", authority="Sacral", profile="3/5")

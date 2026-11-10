@@ -155,43 +155,53 @@ def _norm_official_type(raw: str | None) -> str | None:
     return lower.get(t.lower())
 
 
-def how_they_love_for_type(hd_type: str | None, name: str) -> str | None:
-    """Third-person 'how they love' for a named partner. Banks stay second person."""
+# Second-person "how you love" lines live in partner_insights.TYPE_LOVE_BANK.
+# These third-person lines are the partner column (nameless "They" or a first name).
+_HOW_THEY_LOVE: dict[str, str] = {
+    "Generator": (
+        "{name} love by putting real energy where a yes lives — showing up and staying "
+        "with what lights them. You feel that love when their yes and their no are equally honest."
+    ),
+    "Manifesting Generator": (
+        "{name} love in more than one lane at once — bursts of yes and quick course-corrections. "
+        "You feel that love when they tell you as they pivot, so you are riding with them."
+    ),
+    "Manifestor": (
+        "{name} love by starting things and clearing a path no one else would have opened. "
+        "You feel that love when they tell you first, so a new move lands as care instead of surprise."
+    ),
+    "Projector": (
+        "{name} love by seeing someone clearly — guiding and inviting the right use of your energy. "
+        "You feel that love when they are asked to share what they see, not asked to match a stamina they do not have."
+    ),
+    "Reflector": (
+        "{name} love by sampling the life you share and reflecting it back with surprising clarity. "
+        "You feel that love when you give them time and a healthy place, instead of demanding instant certainty."
+    ),
+}
+
+_PERSON_NEXT_TO_YOU = "The person next to you"
+
+
+def apply_how_you_love_name(text: str, name: str) -> str:
+    """When a first name exists, say '{name} feels that love' instead of 'The person next to you'."""
+    if not text or not name:
+        return text
+    return text.replace(_PERSON_NEXT_TO_YOU, name)
+
+
+def how_they_love_for_type(hd_type: str | None, name: str | None = None) -> str | None:
+    """Third-person 'how they love'. Nameless uses 'They love'; a name uses '{name} loves'."""
     official = _norm_official_type(hd_type)
-    if not official or not name:
+    if not official:
         return None
-    templates = {
-        "Generator": (
-            "{name} loves by putting real energy where a yes lives — showing up, building, "
-            "staying with what lights them. You feel that love when they wait for their "
-            "gut (body yes/no) before they promise you the world, and when their yes "
-            "is allowed to be as honest as their no."
-        ),
-        "Manifesting Generator": (
-            "{name} loves in more than one lane at once — bursts of yes, quick course-corrections, "
-            "a life that will not sit still. You feel that love when they tell you as they "
-            "pivot, so you are riding with them instead of holding half-begun plans."
-        ),
-        "Manifestor": (
-            "{name} loves by starting things and clearing a path no one else would have opened. "
-            "You feel that love when they inform you (tell you first) before they leap, "
-            "so their initiation lands as devotion instead of surprise."
-        ),
-        "Projector": (
-            "{name} loves by seeing someone clearly — guiding, noticing, inviting the right use "
-            "of your energy. You feel that love when they get a real invitation (asked to share "
-            "their sight), not asked to match a stamina they were never built to run."
-        ),
-        "Reflector": (
-            "{name} loves by sampling the life you share and reflecting it back with surprising "
-            "clarity. You feel that love when you give them time and a healthy place, "
-            "instead of demanding instant certainty."
-        ),
-    }
-    tmpl = templates.get(official)
+    tmpl = _HOW_THEY_LOVE.get(official)
     if not tmpl:
         return None
-    return tmpl.format(name=name)
+    if name:
+        # "{name} love by" → "Sarah loves by"
+        return tmpl.format(name=name).replace(f"{name} love ", f"{name} loves ", 1)
+    return tmpl.format(name="They")
 
 
 def _subject_for_match(article_or_start: str, subject: str) -> str:
@@ -209,7 +219,87 @@ def _agree_if_you(subject: str, verb: str) -> str:
     return _YOU_AGREEMENT.get(verb.lower(), verb)
 
 
-def _replace_forms(text: str, forms: tuple[str, ...], subject: str) -> str:
+def _rewrite_pronouns_for_you(fragment: str) -> str:
+    """Rewrite they/them/their in a fragment so they agree with a 'you' subject."""
+    out = fragment
+    for pat, repl in (
+        (r"\bthey're\b", "you're"),
+        (r"\bThey're\b", "You're"),
+        (r"\bthey've\b", "you've"),
+        (r"\bThey've\b", "You've"),
+        (r"\bthey'll\b", "you'll"),
+        (r"\bThey'll\b", "You'll"),
+        (r"\bthey'd\b", "you'd"),
+        (r"\bThey'd\b", "You'd"),
+        (r"\bthemselves\b", "yourself"),
+        (r"\bThemselves\b", "Yourself"),
+        (r"\btheirs\b", "yours"),
+        (r"\bTheirs\b", "Yours"),
+        (r"\btheir\b", "your"),
+        (r"\bTheir\b", "Your"),
+        (r"\bthem\b", "you"),
+        (r"\bThem\b", "You"),
+        (r"\bthey\b", "you"),
+        (r"\bThey\b", "You"),
+    ):
+        out = re.sub(pat, repl, out)
+    return out
+
+
+def _sentence_end(text: str, start: int) -> int:
+    i = start
+    n = len(text)
+    while i < n:
+        if text[i] in ".!?":
+            return i + 1
+        i += 1
+    return n
+
+
+def _stop_re_for_other(name_b: str | None, other_forms: tuple[str, ...] | None) -> re.Pattern[str] | None:
+    parts: list[str] = []
+    if name_b:
+        parts.append(re.escape(name_b))
+    for form in other_forms or ():
+        esc = re.escape(form)
+        parts.append(rf"(?:The|the) {esc}\b")
+    if not parts:
+        return None
+    return re.compile("|".join(parts))
+
+
+def _personalize_pair_closers(text: str, type_a: str, type_b: str, name_b: str) -> str:
+    """Turn 'in a Generator with a Projector' into 'for you and Sarah' (or drop the Type pair)."""
+    form_map = {official: forms for official, forms in _TYPE_FORMS_LONGEST_FIRST}
+    a_forms = form_map.get(type_a, (type_a,))
+    b_forms = form_map.get(type_b, (type_b,))
+    # Longer phrases first ("in a X with a Y") so the shorter "a X with a Y" does not leave "in ".
+    pairs: list[tuple[str, str]] = []
+    for fa in a_forms:
+        for fb in b_forms:
+            pairs.append((fa, fb))
+            if fa != fb:
+                pairs.append((fb, fa))
+    for fa, fb in pairs:
+        left = re.escape(fa)
+        right = re.escape(fb)
+        text = re.sub(
+            rf"\bin an? {left} with an? {right}\b",
+            f"for you and {name_b}",
+            text,
+        )
+        text = re.sub(
+            rf"\ban? {left} with an? {right}\b",
+            f"you and {name_b}",
+            text,
+        )
+    return text
+
+
+def _replace_forms(text: str, forms: tuple[str, ...], subject: str, *,
+    fix_you_pronouns: bool = False,
+    stop_re: re.Pattern[str] | None = None,
+) -> str:
     """Replace type-as-person mentions of one official type with you / a name."""
     for form in forms:
         esc = re.escape(form)
@@ -223,19 +313,38 @@ def _replace_forms(text: str, forms: tuple[str, ...], subject: str) -> str:
         text = re.sub(rf"\b(The|the) {esc}'s\b", poss_sub, text)
 
         # Articled person + optional mid-words + verb: the Generator often wants
-        def art_sub(m: re.Match[str], subject=subject) -> str:
-            label = _subject_for_match(m.group(1), subject)
-            mid = m.group(2) or ""
-            verb = m.group(3)
-            if verb:
-                return f"{label}{mid} {_agree_if_you(subject, verb)}"
-            return f"{label}{mid}"
-
-        text = re.sub(
-            rf"\b(The|the) {esc}({_AFTER_TYPE})(?:\s+({_YOU_VERB_RE}))?",
-            art_sub,
-            text,
+        art_re = re.compile(
+            rf"\b(The|the) {esc}({_AFTER_TYPE})(?:\s+({_YOU_VERB_RE}))?"
         )
+        if fix_you_pronouns and subject.lower() == "you":
+            matches = list(art_re.finditer(text))
+            for m in reversed(matches):
+                label = _subject_for_match(m.group(1), subject)
+                mid = m.group(2) or ""
+                verb = m.group(3)
+                replaced = (
+                    f"{label}{mid} {_agree_if_you(subject, verb)}"
+                    if verb
+                    else f"{label}{mid}"
+                )
+                tail_start = m.end()
+                end = _sentence_end(text, tail_start)
+                if stop_re:
+                    stop_m = stop_re.search(text, tail_start, end)
+                    if stop_m:
+                        end = stop_m.start()
+                tail = _rewrite_pronouns_for_you(text[tail_start:end])
+                text = text[: m.start()] + replaced + tail + text[end:]
+        else:
+            def art_sub(m: re.Match[str], subject=subject) -> str:
+                label = _subject_for_match(m.group(1), subject)
+                mid = m.group(2) or ""
+                verb = m.group(3)
+                if verb:
+                    return f"{label}{mid} {_agree_if_you(subject, verb)}"
+                return f"{label}{mid}"
+
+            text = art_re.sub(art_sub, text)
 
         # Try-line prefix: "Generator:" / "MG:"
         def colon_sub(m: re.Match[str], subject=subject) -> str:
@@ -302,6 +411,8 @@ def personalize_type_prose(
     if not a or not b:
         return text
 
+    text = _personalize_pair_closers(text, a, b, name_b)
+
     # Same-Type: never globally rewrite "the Generator". Only the unambiguous
     # "the other {Type}" points at the partner.
     if a == b:
@@ -319,9 +430,22 @@ def personalize_type_prose(
 
     text = _replace_generator_mg_compound(text, a, b, name_b)
 
+    b_forms: tuple[str, ...] = ()
+    for official, forms in _TYPE_FORMS_LONGEST_FIRST:
+        if official == b:
+            b_forms = forms
+            break
+    stop_re = _stop_re_for_other(name_b, b_forms)
+
     for official, forms in _TYPE_FORMS_LONGEST_FIRST:
         if official == a:
-            text = _replace_forms(text, forms, "you")
+            text = _replace_forms(
+                text,
+                forms,
+                "you",
+                fix_you_pronouns=True,
+                stop_re=stop_re,
+            )
         elif official == b:
             text = _replace_forms(text, forms, name_b)
     return text

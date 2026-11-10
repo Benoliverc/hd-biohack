@@ -53,16 +53,20 @@ export default function SoulChapterCard({
         <span className="min-w-0 flex-1">
           <span className="block type-meta font-semibold text-fg">{title}</span>
           {!open && tease ? (
-            <span className="mt-0.5 block type-caption text-fg-secondary line-clamp-2">
+            <span
+              className={`mt-0.5 block type-caption line-clamp-2 ${
+                accent === "energy" ? "text-fg" : "text-fg-secondary"
+              }`}
+            >
               {tease}
             </span>
           ) : null}
         </span>
         <ChevronDown
           aria-hidden
-          className={`h-4 w-4 shrink-0 text-fg-muted transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 shrink-0 transition-transform ${
+            accent === "energy" ? "text-energy-ink" : "text-fg-muted"
+          } ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open ? (
