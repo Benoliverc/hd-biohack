@@ -6,7 +6,7 @@
 - **Base:** `4b7946d112ace84d7c64c91e1b5bc5dd8d4ee9ad` (main after #94 merge)
 - **PR:** #95 — https://github.com/Benoliverc/hd-biohack/pull/95
 - **Feature commit:** `19a7e30c184704154d49014fc37f87b983488540`
-- **Tip SHA:** `8019185b1e2339b79f946efee6d073c994016a17`
+- **Tip SHA:** `58787aaac569ada2d1c93e791fe705066452f905`
 - **Do not merge** until Benjamin yes after UX → Ship Gate.
 - **Brief:** `.grok-handoff/protocols-complete-state-build-brief-2026-11-10.md`
 
