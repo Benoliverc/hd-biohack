@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..biohack import build_protocol, maybe_synthesize
 from ..checkin import derive_today_indication
-from ..checkin.novelty import hkt_bucket_instant, hkt_today
+from ..checkin.novelty import compute_upcoming_horizon, hkt_bucket_instant, hkt_today
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
@@ -71,6 +71,7 @@ from ..schemas import (
     ProtocolRequest,
     TelemetryIn,
     TransitResponse,
+    UpcomingSkyResponse,
     PageViewIn,
     UsageEventsPage,
     UsageStatsDay,
@@ -872,6 +873,40 @@ def transits_today(
             db.commit()
 
     return TransitResponse(transit=transit, overlay=overlay, indication=indication)
+
+
+
+@router.get("/transits/upcoming", response_model=UpcomingSkyResponse)
+def transits_upcoming(
+    natal_chart_id: int | None = None,
+    user_id: int | None = Query(
+        None,
+        description="Session user; used to confirm the account exists (same as /transits/today).",
+    ),
+    db: Session = Depends(get_db),
+):
+    """Next 7 novelty days (tomorrow through day+7) at the same bucket as /transits/today."""
+    # Same novelty day + bucket helper as GET /transits/today — not midnight completions,
+    # and not a hardcoded timezone call of its own. Item 12 rebase follows automatically.
+    day = hkt_today()
+    natal = None
+    if user_id is not None:
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(404, "User not found")
+    if natal_chart_id:
+        row = db.get(NatalChart, natal_chart_id)
+        if not row:
+            raise HTTPException(404, "Natal chart not found")
+        natal = row.chart_json
+
+    payload = compute_upcoming_horizon(
+        natal=natal,
+        day=day,
+        calc_transit=calculate_transits,
+        calc_overlay=overlay_transits if natal else None,
+    )
+    return UpcomingSkyResponse(**payload)
 
 
 @router.post("/inventory")
