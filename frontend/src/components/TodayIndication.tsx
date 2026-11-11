@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
-import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
+import { api, type TodayIndicationPayload, type UpcomingSkyPayload, type VsYesterdayDelta } from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import { STARTER_SUPPLEMENTS, starterSlug } from "@/components/protocols/constants";
 import {
@@ -33,6 +33,7 @@ import {
   parseEveningCloseLabel,
   type EveningAnswerKey,
 } from "@/lib/eveningSignatureClose";
+import { buildUpcomingRows, weekdayOf, type UpcomingChangeKind } from "@/lib/upcomingSky";
 import {
   useI18n,
   localizeEnergyLabel,
@@ -52,6 +53,13 @@ function vsPillLabel(d: VsYesterdayDelta, t: TFn): string {
   if (d.field === "energy") return t("vs.energy", vars);
   if (d.field === "space") return t("vs.space", vars);
   return `${d.from} → ${d.to}`;
+}
+
+function upcomingLeadSentence(kind: UpcomingChangeKind, weekday: string, t: TFn): string {
+  if (kind === "sun_theme_turns") return t("today.upcoming.sunThemeTurns", { weekday });
+  if (kind === "bridge_on") return t("today.upcoming.bridgeOn", { weekday });
+  if (kind === "bridge_clears") return t("today.upcoming.bridgeClears", { weekday });
+  return t("today.upcoming.moonLeaves", { weekday });
 }
 
 type Props = {
@@ -98,7 +106,7 @@ export default function TodayIndication({
   onAddToKit,
   onRetryInventory,
 }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
   const [completions, setCompletions] = useState<DayCompletions>({});
 
@@ -111,6 +119,10 @@ export default function TodayIndication({
   const [kitAdding, setKitAdding] = useState(false);
   const [kitFeedback, setKitFeedback] = useState<string | null>(null);
   const [kitAddError, setKitAddError] = useState(false);
+  const [upcomingOpen, setUpcomingOpen] = useState(false);
+  const [upcomingStatus, setUpcomingStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
+  const [upcomingPayload, setUpcomingPayload] = useState<UpcomingSkyPayload | null>(null);
+  const upcomingReq = useRef(0);
 
   useEffect(() => {
     if (userId == null) {
@@ -148,6 +160,44 @@ export default function TodayIndication({
     if (userId != null) writeKitSetupDismissed(userId);
     setKitSetupDismissed(true);
   }, [userId]);
+
+  const loadUpcoming = useCallback(async () => {
+    const req = ++upcomingReq.current;
+    setUpcomingStatus("loading");
+    try {
+      const res = await api.transitsUpcoming(chartId ?? undefined, {
+        userId: userId ?? undefined,
+      });
+      if (req !== upcomingReq.current) return;
+      setUpcomingPayload(res);
+      setUpcomingStatus("ready");
+    } catch {
+      if (req !== upcomingReq.current) return;
+      setUpcomingStatus("error");
+    }
+  }, [chartId, userId]);
+
+  const toggleUpcoming = useCallback(() => {
+    setUpcomingOpen((open) => !open);
+  }, []);
+
+  useEffect(() => {
+    if (upcomingOpen && upcomingStatus === "idle") {
+      void loadUpcoming();
+    }
+  }, [upcomingOpen, upcomingStatus, loadUpcoming]);
+
+  useEffect(() => {
+    upcomingReq.current += 1;
+    setUpcomingPayload(null);
+    setUpcomingStatus("idle");
+    setUpcomingOpen(false);
+  }, [chartId, userId]);
+
+  const upcomingRows = useMemo(() => {
+    if (!upcomingPayload?.days?.length) return [];
+    return buildUpcomingRows(upcomingPayload.days, (iso) => weekdayOf(iso, locale));
+  }, [upcomingPayload, locale]);
 
   useEffect(() => {
     if (!userId || !chartId) {
@@ -960,7 +1010,7 @@ export default function TodayIndication({
             </details>
           ) : null}
 
-          {indication.sky_story?.tomorrow?.text ? (
+          {indication.sky_story?.tomorrow?.text && !upcomingOpen ? (
             <p
               className="mt-3 text-xs text-fg-muted"
               data-testid="sky-story-tomorrow"
@@ -968,6 +1018,76 @@ export default function TodayIndication({
               {indication.sky_story.tomorrow.text}
             </p>
           ) : null}
+
+          <div className={indication.sky_story?.tomorrow?.text && !upcomingOpen ? "mt-1" : "mt-3"}>
+            <button
+              type="button"
+              aria-expanded={upcomingOpen}
+              onClick={toggleUpcoming}
+              className="inline-flex min-h-9 items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg"
+              data-testid="today-upcoming-toggle"
+            >
+              <span
+                aria-hidden
+                className={`inline-block text-fg-muted transition-transform ${upcomingOpen ? "rotate-90" : ""}`}
+              >
+                ▸
+              </span>
+              <span>{t("today.upcoming.toggle")}</span>
+            </button>
+            {upcomingOpen ? (
+              <div className="mt-2 space-y-1.5" data-testid="today-upcoming">
+                {upcomingStatus === "loading" || upcomingStatus === "idle" ? (
+                  <p className="text-xs text-fg-muted" data-testid="today-upcoming-loading">
+                    {t("today.upcoming.loading")}
+                  </p>
+                ) : upcomingStatus === "error" ? (
+                  <div data-testid="today-upcoming-error">
+                    <p className="text-xs text-fg-muted">{t("today.upcoming.error")}</p>
+                    <button
+                      type="button"
+                      onClick={() => void loadUpcoming()}
+                      className="mt-1 inline-flex min-h-9 items-center text-xs text-fg underline-offset-2 hover:underline"
+                      data-testid="today-upcoming-retry"
+                    >
+                      {t("today.upcoming.retry")}
+                    </button>
+                  </div>
+                ) : upcomingRows.length === 0 ? (
+                  <p className="text-xs text-fg-muted">{t("today.upcoming.empty")}</p>
+                ) : (
+                  upcomingRows.map((row) =>
+                    row.type === "hold" ? (
+                      <p
+                        key={`hold-${row.throughDay}`}
+                        className="text-sm leading-relaxed text-fg-secondary"
+                        data-testid="today-upcoming-row"
+                      >
+                        {t("today.upcoming.sunThemeHoldsThrough", { weekday: row.weekday })}
+                      </p>
+                    ) : (
+                      <div
+                        key={row.day}
+                        className="space-y-0.5"
+                        data-testid="today-upcoming-row"
+                      >
+                        {row.leads.map((lead, i) => (
+                          <div key={`${row.day}-${lead.kind}-${i}`}>
+                            <p className="text-sm leading-relaxed text-fg-secondary">
+                              {upcomingLeadSentence(lead.kind, lead.weekday, t)}
+                            </p>
+                            {lead.label ? (
+                              <p className="text-xs text-fg-muted">{lead.label}</p>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : vs.length > 0 ? (
         <details className="mb-3 group" data-testid="vs-yesterday">

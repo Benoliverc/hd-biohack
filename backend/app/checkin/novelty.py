@@ -629,3 +629,143 @@ def sky_notice_sun_moon(transit: dict[str, Any] | None) -> str | None:
     if not parts:
         return None
     return "Notice " + " / ".join(parts)
+
+
+UPCOMING_HORIZON_DAYS = 7
+
+UpcomingChangeKind = Literal[
+    "sun_theme_turns",
+    "bridge_on",
+    "bridge_clears",
+    "moon_leaves",
+]
+
+
+def _channel_rows(overlay: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Structured bridge rows (name + gates) for official secondary labels."""
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+    for b in (overlay or {}).get("bridged_channels") or []:
+        if not isinstance(b, dict):
+            continue
+        gates: list[int] = []
+        for g in b.get("gates") or []:
+            try:
+                gates.append(int(g))
+            except (TypeError, ValueError):
+                continue
+        gates = sorted(gates)
+        key: tuple[Any, ...] = tuple(gates) if gates else (str(b.get("name") or ""),)
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append({"name": str(b.get("name") or ""), "gates": gates})
+    rows.sort(key=lambda r: (r["gates"], r["name"]))
+    return rows
+
+
+def _bridge_id(row: dict[str, Any]) -> tuple[Any, ...]:
+    gates = row.get("gates") or []
+    return tuple(gates) if gates else (str(row.get("name") or ""),)
+
+
+def compute_upcoming_horizon(
+    *,
+    natal: dict[str, Any] | None,
+    day: date,
+    calc_transit,
+    calc_overlay=None,
+    days: int = UPCOMING_HORIZON_DAYS,
+) -> dict[str, Any]:
+    """
+    Next `days` novelty days after `day` (tomorrow through day+N).
+
+    Uses the same bucket helper as GET /transits/today (`hkt_bucket_instant`).
+    Compares consecutive days only — no 44-day backward continuity walks.
+    Does not invent lifestyle Moves or kit leads.
+    """
+    horizon = max(0, int(days))
+    overlay_fn = calc_overlay if (natal and calc_overlay) else None
+
+    def _pack(d: date) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any], list[dict[str, Any]]]:
+        transit = calc_transit(hkt_bucket_instant(d))
+        overlay = overlay_fn(natal, transit) if overlay_fn else None
+        sig = sky_signature(natal, transit, overlay)
+        return transit, overlay, sig, _channel_rows(overlay)
+
+    # Baseline is the current novelty day so day+1 can diff against it.
+    _t0, _o0, prev_sig, _prev_bridges = _pack(day)
+    prev_bridge_rows = _prev_bridges
+    out_days: list[dict[str, Any]] = []
+
+    for i in range(1, horizon + 1):
+        d = day + timedelta(days=i)
+        _t, _o, sig, bridge_rows = _pack(d)
+        changes: list[dict[str, Any]] = []
+
+        if sig["sun_gate"] != prev_sig["sun_gate"]:
+            changes.append(
+                {
+                    "kind": "sun_theme_turns",
+                    "text": "Sun theme turns.",
+                    "sun_gate": sig["sun_gate"],
+                    "sun_line": sig["sun_line"],
+                    "from_sun_gate": prev_sig["sun_gate"],
+                    "from_sun_line": prev_sig["sun_line"],
+                }
+            )
+
+        prev_ids = {_bridge_id(r): r for r in prev_bridge_rows}
+        next_ids = {_bridge_id(r): r for r in bridge_rows}
+        for key, row in next_ids.items():
+            if key not in prev_ids:
+                changes.append(
+                    {
+                        "kind": "bridge_on",
+                        "text": "A bridge comes on.",
+                        "channel": row.get("name") or None,
+                        "gates": list(row.get("gates") or []),
+                    }
+                )
+        for key, row in prev_ids.items():
+            if key not in next_ids:
+                changes.append(
+                    {
+                        "kind": "bridge_clears",
+                        "text": "A bridge clears.",
+                        "channel": row.get("name") or None,
+                        "gates": list(row.get("gates") or []),
+                    }
+                )
+
+        if sig["moon_gate"] != prev_sig["moon_gate"]:
+            changes.append(
+                {
+                    "kind": "moon_leaves",
+                    "text": "Moon leaves this gate.",
+                    "moon_gate": sig["moon_gate"],
+                    "moon_line": sig["moon_line"],
+                    "from_moon_gate": prev_sig["moon_gate"],
+                    "from_moon_line": prev_sig["moon_line"],
+                }
+            )
+
+        out_days.append(
+            {
+                "day": d.isoformat(),
+                "sun_gate": sig["sun_gate"],
+                "sun_line": sig["sun_line"],
+                "moon_gate": sig["moon_gate"],
+                "moon_line": sig["moon_line"],
+                "bridges": bridge_rows,
+                "changes": changes,
+            }
+        )
+        prev_sig = sig
+        prev_bridge_rows = bridge_rows
+
+    return {
+        "today": day.isoformat(),
+        "horizon_days": horizon,
+        "days": out_days,
+    }

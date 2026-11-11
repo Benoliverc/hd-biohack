@@ -184,6 +184,48 @@ export type SkyStory = {
   bridge_day?: number;
 };
 
+export type UpcomingChangeKind =
+  | "sun_theme_turns"
+  | "bridge_on"
+  | "bridge_clears"
+  | "moon_leaves";
+
+export type UpcomingBridge = {
+  name?: string;
+  gates?: number[];
+};
+
+export type UpcomingChange = {
+  kind: UpcomingChangeKind;
+  text?: string;
+  sun_gate?: number | null;
+  sun_line?: number | null;
+  from_sun_gate?: number | null;
+  from_sun_line?: number | null;
+  moon_gate?: number | null;
+  moon_line?: number | null;
+  from_moon_gate?: number | null;
+  from_moon_line?: number | null;
+  channel?: string | null;
+  gates?: number[];
+};
+
+export type UpcomingDay = {
+  day: string;
+  sun_gate?: number | null;
+  sun_line?: number | null;
+  moon_gate?: number | null;
+  moon_line?: number | null;
+  bridges?: UpcomingBridge[];
+  changes?: UpcomingChange[];
+};
+
+export type UpcomingSkyPayload = {
+  today: string;
+  horizon_days?: number;
+  days: UpcomingDay[];
+};
+
 export type TodayKitItem = {
   name: string;
   dose?: string;
@@ -611,6 +653,16 @@ export const api = {
       overlay: Record<string, unknown> | null;
       indication: TodayIndicationPayload | null;
     }>(`/transits/today${qs ? `?${qs}` : ""}`);
+  },
+  transitsUpcoming: (
+    natalChartId?: number,
+    opts?: { userId?: number }
+  ) => {
+    const q = new URLSearchParams();
+    if (natalChartId) q.set("natal_chart_id", String(natalChartId));
+    if (opts?.userId != null) q.set("user_id", String(opts.userId));
+    const qs = q.toString();
+    return req<UpcomingSkyPayload>(`/transits/upcoming${qs ? `?${qs}` : ""}`);
   },
   protocol: (
     userId: number,

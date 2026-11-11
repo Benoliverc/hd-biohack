@@ -131,6 +131,46 @@ class TransitResponse(BaseModel):
     indication: TodayIndication | None = None
 
 
+class UpcomingBridge(BaseModel):
+    name: str = ""
+    gates: list[int] = Field(default_factory=list)
+
+
+class UpcomingChange(BaseModel):
+    kind: Literal["sun_theme_turns", "bridge_on", "bridge_clears", "moon_leaves"]
+    text: str = ""
+    sun_gate: int | None = None
+    sun_line: int | None = None
+    from_sun_gate: int | None = None
+    from_sun_line: int | None = None
+    moon_gate: int | None = None
+    moon_line: int | None = None
+    from_moon_gate: int | None = None
+    from_moon_line: int | None = None
+    channel: str | None = None
+    gates: list[int] = Field(default_factory=list)
+
+
+class UpcomingDay(BaseModel):
+    """One novelty-bucket day in the upcoming horizon (structured, not prose-only)."""
+
+    day: str
+    sun_gate: int | None = None
+    sun_line: int | None = None
+    moon_gate: int | None = None
+    moon_line: int | None = None
+    bridges: list[UpcomingBridge] = Field(default_factory=list)
+    changes: list[UpcomingChange] = Field(default_factory=list)
+
+
+class UpcomingSkyResponse(BaseModel):
+    """GET /transits/upcoming — next 7 novelty days after the /transits/today bucket."""
+
+    today: str
+    horizon_days: int = 7
+    days: list[UpcomingDay] = Field(default_factory=list)
+
+
 class UserCreate(BaseModel):
     email: str
     display_name: str = ""
