@@ -76,6 +76,9 @@ class NatalChart(Base):
     role: Mapped[str] = mapped_column(String(32), default="person")
     birth_date: Mapped[str] = mapped_column(String(32))
     birth_time: Mapped[str] = mapped_column(String(32))
+    # True when the user chose "I don't know the time"; birth_time is then noon.
+    # Nullable so existing databases can add the column without a rewrite.
+    time_unknown: Mapped[bool | None] = mapped_column(Boolean, default=False, nullable=True)
     birth_city: Mapped[str] = mapped_column(String(255))
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)

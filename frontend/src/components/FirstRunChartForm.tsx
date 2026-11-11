@@ -11,6 +11,7 @@ export type FirstRunBirth = {
   lat: number | null;
   lon: number | null;
   timezone: string | null;
+  timeUnknown: boolean;
 };
 
 type FieldErrors = {
@@ -53,7 +54,7 @@ export function FirstRunChartForm({
   const validate = (): boolean => {
     const next: FieldErrors = {};
     if (!birth.birthDate) next.date = t("chart.firstRun.errorDate");
-    if (!birth.birthTime) next.time = t("chart.firstRun.errorTime");
+    if (!birth.timeUnknown && !birth.birthTime) next.time = t("chart.firstRun.errorTime");
     if (!cityPinned) next.city = t("chart.firstRun.errorCity");
     setFieldErrors(next);
     return Object.keys(next).length === 0;
@@ -103,29 +104,53 @@ export function FirstRunChartForm({
               </p>
             )}
           </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-fg">{t("chart.firstRun.timeLabel")}</span>
-            <input
-              type="time"
-              step={60}
-              data-testid="first-run-birth-time"
-              className="min-h-11 w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
-              value={birth.birthTime}
-              onChange={(e) => {
-                onChange({ birthTime: e.target.value });
-                if (fieldErrors.time) setFieldErrors((prev) => ({ ...prev, time: undefined }));
-              }}
-              disabled={!ready || busy}
-            />
+          <div className="text-sm">
+            <label className="block">
+              <span className="mb-1 block text-fg">{t("chart.firstRun.timeLabel")}</span>
+              <input
+                type="time"
+                step={60}
+                data-testid="first-run-birth-time"
+                className="min-h-11 w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
+                value={birth.birthTime}
+                onChange={(e) => {
+                  onChange({ birthTime: e.target.value });
+                  if (fieldErrors.time) setFieldErrors((prev) => ({ ...prev, time: undefined }));
+                }}
+                disabled={!ready || busy || birth.timeUnknown}
+              />
+            </label>
             {fieldErrors.time && (
               <p className="mt-1 type-caption text-danger" data-testid="first-run-time-error">
                 {fieldErrors.time}
               </p>
             )}
+            <label className="mt-2 flex min-h-11 items-start gap-2 text-fg">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 shrink-0 rounded border-border"
+                data-testid="first-run-time-unknown"
+                checked={birth.timeUnknown}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  onChange({ timeUnknown: on });
+                  if (on && fieldErrors.time) {
+                    setFieldErrors((prev) => ({ ...prev, time: undefined }));
+                  }
+                }}
+                disabled={!ready || busy}
+              />
+              <span className="type-body">{t("chart.timeUnknown")}</span>
+            </label>
+            {birth.timeUnknown ? (
+              <p className="mt-1 type-caption text-fg-secondary" data-testid="first-run-time-unknown-disclosure">
+                {t("chart.timeUnknownDisclosure")}
+              </p>
+            ) : null}
             <span className="mt-1 block type-caption text-fg">
               {t("chart.firstRun.timeCaption")}
             </span>
-          </label>
+          </div>
           <div className="sm:col-span-2">
             <CityPicker
               variant="first-run"

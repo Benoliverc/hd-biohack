@@ -30,6 +30,7 @@ function summaryFromSelf(row: SavedChartRow): NatalChartSummary {
     birth_city: row.birth_city || "",
     birth_date: row.birth_date,
     birth_time: row.birth_time,
+    time_unknown: row.time_unknown === true,
     timezone: row.timezone ?? null,
     slot_kind: row.slot_kind ?? "self",
   };
@@ -289,6 +290,7 @@ export default function TransitsPage() {
           chartId={youChart?.id ?? null}
           preferredTimezone={user?.preferred_timezone ?? null}
           natalType={typeFromChart(youChartPayload)}
+          timeUnknown={youChart.time_unknown === true}
           protocolsUnlocked={biohackingUnlocked}
           inventoryStatus={inventoryStatus}
           inventoryCount={inventoryCount}

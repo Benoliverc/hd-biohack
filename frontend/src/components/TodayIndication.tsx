@@ -65,6 +65,8 @@ type Props = {
   preferredTimezone?: string | null;
   /** Natal Type of Me only (People never drive Today). */
   natalType?: string | null;
+  /** True when the loaded You natal was saved with an unknown birth time. */
+  timeUnknown?: boolean;
   /** Protocols unlocked (Pro or beta full access). Omit the stack handoff when locked. */
   protocolsUnlocked?: boolean;
   /** GET /inventory status — unknown while the first fetch is in flight. */
@@ -92,6 +94,7 @@ export default function TodayIndication({
   chartId = null,
   preferredTimezone = null,
   natalType = null,
+  timeUnknown = false,
   protocolsUnlocked = false,
   inventoryStatus = "unknown",
   inventoryCount = 0,
@@ -740,6 +743,20 @@ export default function TodayIndication({
                   </div>
                 ) : null}
               </details>
+            ) : null}
+            {timeUnknown ? (
+              <p
+                className="mt-3 type-body text-fg-secondary"
+                data-testid="today-time-unknown-caveat"
+              >
+                {t("chart.timeUnknownCaveat")}{" "}
+                <Link
+                  href="/profile"
+                  className="type-body text-fg-secondary underline-offset-2 hover:underline"
+                >
+                  {t("chart.timeUnknownEdit")}
+                </Link>
+              </p>
             ) : null}
             {indication.save_chart_cta ? (
               <Link

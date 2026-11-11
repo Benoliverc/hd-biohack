@@ -42,7 +42,7 @@ def init_db() -> None:
 
 
 def _ensure_natal_chart_columns() -> None:
-    """SQLite-friendly ALTER for label/slot_kind when upgrading an existing DB."""
+    """SQLite-friendly ALTER for label/slot_kind/time_unknown when upgrading an existing DB."""
     from sqlalchemy import inspect, text
 
     insp = inspect(engine)
@@ -57,6 +57,10 @@ def _ensure_natal_chart_columns() -> None:
         if "role" not in cols:
             conn.execute(
                 text("ALTER TABLE natal_charts ADD COLUMN role VARCHAR(32) DEFAULT 'person'")
+            )
+        if "time_unknown" not in cols:
+            conn.execute(
+                text("ALTER TABLE natal_charts ADD COLUMN time_unknown BOOLEAN DEFAULT 0")
             )
 
 

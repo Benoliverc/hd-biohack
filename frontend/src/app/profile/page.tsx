@@ -36,7 +36,15 @@ type FormSnapshot = {
   birthCity: string;
   lat: number | null;
   lon: number | null;
+  timeUnknown: boolean;
 };
+
+const UNKNOWN_BIRTH_TIME = "12:00:00";
+
+function effectiveBirthTime(birthTime: string, timeUnknown: boolean): string {
+  if (timeUnknown) return UNKNOWN_BIRTH_TIME;
+  return birthTime.length === 5 ? `${birthTime}:00` : birthTime;
+}
 
 function near(a: number | null, b: number | null, eps = 0.0001): boolean {
   if (a == null && b == null) return true;
@@ -50,7 +58,8 @@ function snapshotsEqual(a: FormSnapshot, b: FormSnapshot): boolean {
     toTimeInputValue(a.birthTime) === toTimeInputValue(b.birthTime) &&
     a.birthCity.trim() === b.birthCity.trim() &&
     near(a.lat, b.lat) &&
-    near(a.lon, b.lon)
+    near(a.lon, b.lon) &&
+    a.timeUnknown === b.timeUnknown
   );
 }
 
@@ -253,6 +262,8 @@ export default function ProfilePage() {
   } = useApp();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [timeUnknown, setTimeUnknown] = useState(false);
+  const [savedTimeUnknown, setSavedTimeUnknown] = useState(false);
   const [birthCity, setBirthCity] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lon, setLon] = useState<number | null>(null);
@@ -294,6 +305,8 @@ export default function ProfilePage() {
   const applyDemoBirth = useCallback(() => {
     setBirthDate(DEMO_BIRTH.birthDate);
     setBirthTime(DEMO_BIRTH.birthTime);
+    setTimeUnknown(false);
+    setSavedTimeUnknown(false);
     setBirthCity(DEMO_BIRTH.birthCity);
     setLat(DEMO_BIRTH.lat);
     setLon(DEMO_BIRTH.lon);
@@ -311,6 +324,8 @@ export default function ProfilePage() {
   const clearDemoBirth = useCallback(() => {
     setBirthDate("");
     setBirthTime("");
+    setTimeUnknown(false);
+    setSavedTimeUnknown(false);
     setBirthCity("");
     setLat(null);
     setLon(null);
@@ -350,8 +365,11 @@ export default function ProfilePage() {
       const bindStore = opts?.bindStore ?? true;
       setDemoBirthActive(false);
 
+      const nextUnknown = latest.time_unknown === true;
       setBirthDate(nextDate);
       setBirthTime(nextTime);
+      setTimeUnknown(nextUnknown);
+      setSavedTimeUnknown(nextUnknown);
       setBirthCity(nextCity);
       setLat(nextLat);
       setLon(nextLon);
@@ -367,6 +385,7 @@ export default function ProfilePage() {
           birth_city: nextCity,
           birth_date: nextDate,
           birth_time: latest.birth_time,
+          time_unknown: nextUnknown,
           timezone: nextTz,
           slot_kind: latest.slot_kind,
         });
@@ -378,6 +397,7 @@ export default function ProfilePage() {
         birthCity: nextCity,
         lat: nextLat,
         lon: nextLon,
+        timeUnknown: nextUnknown,
       });
       setSaveAs(kind);
       // You: leave name empty so "Save as new friend" cannot reuse "Me".
@@ -420,6 +440,8 @@ export default function ProfilePage() {
       const gen = ++peopleFetchGen.current;
       setBirthDate("");
       setBirthTime("");
+      setTimeUnknown(false);
+      setSavedTimeUnknown(false);
       setBirthCity("");
       setLat(null);
       setLon(null);
@@ -550,6 +572,7 @@ export default function ProfilePage() {
     birthCity,
     lat,
     lon,
+    timeUnknown,
   };
 
   const formDirtyVsSaved = Boolean(savedForm && !snapshotsEqual(formNow, savedForm));
@@ -629,6 +652,8 @@ export default function ProfilePage() {
     viewModeRef.current = null;
     setBirthDate("");
     setBirthTime("");
+    setTimeUnknown(false);
+    setSavedTimeUnknown(false);
     setBirthCity("");
     setLat(null);
     setLon(null);
@@ -662,7 +687,7 @@ export default function ProfilePage() {
     setError(null);
     try {
       if (!birthDate) throw new Error("Enter a birth date.");
-      if (!birthTime) throw new Error("Enter a birth time.");
+      if (!timeUnknown && !birthTime) throw new Error("Enter a birth time.");
       let city = birthCity.trim();
       if (!city) throw new Error("Enter a birth city or lat/lon.");
 
@@ -742,9 +767,10 @@ export default function ProfilePage() {
           ? friendName.trim()
           : friendName.trim() || "Me";
 
+      const birthTimeFull = effectiveBirthTime(birthTime, timeUnknown);
       const res = await api.calculateChart({
         birth_date: birthDate,
-        birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
+        birth_time: birthTimeFull,
         birth_city: city,
         user_id: activeUser.id,
         save,
@@ -761,11 +787,12 @@ export default function ProfilePage() {
         // create never sends natal_chart_id even if a stale id exists
         natal_chart_id:
           saveIntent === "update" ? editingChartId ?? undefined : undefined,
+        time_unknown: timeUnknown,
       });
       const chartTz =
         typeof res.chart?.timezone === "string" ? (res.chart.timezone as string) : null;
       if (chartTz) setTimezone(chartTz);
-      const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
+      if (timeUnknown) setBirthTime("12:00");
 
       if (save) {
         if (!res.natal_chart_id) {
@@ -789,6 +816,7 @@ export default function ProfilePage() {
             slot_kind: kind,
             birth_date: birthDate,
             birth_time: birthTimeFull,
+            time_unknown: timeUnknown,
             birth_city: city,
             lat: useLat ?? undefined,
             lon: useLon ?? undefined,
@@ -807,11 +835,13 @@ export default function ProfilePage() {
           setViewMode("saved");
           setSavedForm({
             birthDate,
-            birthTime: toTimeInputValue(birthTime),
+            birthTime: toTimeInputValue(birthTimeFull),
             birthCity: city,
             lat: useLat,
             lon: useLon,
+            timeUnknown,
           });
+          setSavedTimeUnknown(timeUnknown);
           setSaveAs(kind);
           setFriendName(label);
           if (natalChartId != null && newId === natalChartId) {
@@ -821,6 +851,7 @@ export default function ProfilePage() {
               birth_city: city,
               birth_date: birthDate,
               birth_time: birthTimeFull,
+              time_unknown: timeUnknown,
               timezone: chartTz || timezone,
             });
           }
@@ -845,7 +876,7 @@ export default function ProfilePage() {
     setBusyMode("save");
     setError(null);
     try {
-      if (!birthDate || !birthTime || lat == null || lon == null) {
+      if (!birthDate || (!timeUnknown && !birthTime) || lat == null || lon == null) {
         return;
       }
       const activeUser = user ?? (await ensureUser());
@@ -854,9 +885,10 @@ export default function ProfilePage() {
         return;
       }
       const city = birthCity.trim();
+      const birthTimeFull = effectiveBirthTime(birthTime, timeUnknown);
       const res = await api.calculateChart({
         birth_date: birthDate,
-        birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
+        birth_time: birthTimeFull,
         birth_city: city,
         user_id: activeUser.id,
         save: true,
@@ -865,6 +897,7 @@ export default function ProfilePage() {
         label: "Me",
         slot_kind: "self",
         role: "self",
+        time_unknown: timeUnknown,
       });
       if (!res.natal_chart_id) {
         setError(t("chart.firstRun.saveFailed"));
@@ -875,10 +908,10 @@ export default function ProfilePage() {
       editingChartIdRef.current = newId;
       viewModeRef.current = "saved";
       const rows = await refreshPeople(activeUser.id);
-      const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
       const chartTz =
         typeof res.chart?.timezone === "string" ? (res.chart.timezone as string) : null;
       if (chartTz) setTimezone(chartTz);
+      if (timeUnknown) setBirthTime("12:00");
       const created =
         rows.find((r) => Number(r.id) === newId) ??
         ({
@@ -888,6 +921,7 @@ export default function ProfilePage() {
           role: "self",
           birth_date: birthDate,
           birth_time: birthTimeFull,
+          time_unknown: timeUnknown,
           birth_city: city,
           lat: lat ?? undefined,
           lon: lon ?? undefined,
@@ -912,6 +946,7 @@ export default function ProfilePage() {
     if (patch.lat !== undefined) setLat(patch.lat);
     if (patch.lon !== undefined) setLon(patch.lon);
     if (patch.timezone !== undefined) setTimezone(patch.timezone);
+    if (patch.timeUnknown !== undefined) setTimeUnknown(patch.timeUnknown);
   };
 
   const selectPerson = (row: SavedChartRow) => {
@@ -1334,26 +1369,44 @@ export default function ProfilePage() {
             required
           />
         </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-fg-muted">
-            Birth time{tzBesideTime ? " (local)" : ""}
-          </span>
-          <input
-            type="time"
-            step={60}
-            className="w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
-            value={birthTime}
-            onChange={(e) => setBirthTime(e.target.value)}
-            disabled={!formReady || busy}
-            required
-          />
+        <div className="text-sm">
+          <label className="block">
+            <span className="mb-1 block text-fg-muted">
+              Birth time{tzBesideTime ? " (local)" : ""}
+            </span>
+            <input
+              type="time"
+              step={60}
+              className="w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
+              value={birthTime}
+              onChange={(e) => setBirthTime(e.target.value)}
+              disabled={!formReady || busy || timeUnknown}
+              required={!timeUnknown}
+            />
+          </label>
           {tzBesideTime && (
             <span className="mt-1 block type-caption text-fg-secondary">{tzBesideTime}</span>
           )}
+          <label className="mt-2 flex min-h-10 items-start gap-2 text-fg">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 shrink-0 rounded border-border"
+              data-testid="chart-time-unknown"
+              checked={timeUnknown}
+              onChange={(e) => setTimeUnknown(e.target.checked)}
+              disabled={!formReady || busy}
+            />
+            <span className="type-body">{t("chart.timeUnknown")}</span>
+          </label>
+          {timeUnknown ? (
+            <p className="mt-1 type-caption text-fg-secondary" data-testid="chart-time-unknown-disclosure">
+              {t("chart.timeUnknownDisclosure")}
+            </p>
+          ) : null}
           <span className="mt-1 block type-caption text-fg-secondary">
             Approximate is OK if exact time unknown — chart authority may be less precise.
           </span>
-        </label>
+        </div>
         <CityPicker
           value={birthCity}
           lat={lat}
@@ -1655,6 +1708,7 @@ export default function ProfilePage() {
             lat,
             lon,
             timezone,
+            timeUnknown,
           }}
           onChange={patchFirstRunBirth}
           busy={busyMode === "save"}
@@ -1817,6 +1871,14 @@ export default function ProfilePage() {
                       AUTHORITY_COPY[authorityStr]?.summary ||
                       authorityStr}
                   </p>
+                  {viewMode === "saved" && savedTimeUnknown ? (
+                    <p
+                      className="mt-3 type-body text-fg-secondary"
+                      data-testid="chart-time-unknown-caveat"
+                    >
+                      {t("chart.timeUnknownCaveat")}
+                    </p>
+                  ) : null}
                 </div>
               </div>
 
