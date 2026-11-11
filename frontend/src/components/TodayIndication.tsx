@@ -34,6 +34,7 @@ import {
   type EveningAnswerKey,
 } from "@/lib/eveningSignatureClose";
 import { buildUpcomingRows, weekdayOf, type UpcomingChangeKind } from "@/lib/upcomingSky";
+import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
 import {
   useI18n,
   localizeEnergyLabel,
@@ -123,6 +124,8 @@ export default function TodayIndication({
   const [upcomingStatus, setUpcomingStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
   const [upcomingPayload, setUpcomingPayload] = useState<UpcomingSkyPayload | null>(null);
   const upcomingReq = useRef(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const historyRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
     if (userId == null) {
@@ -571,6 +574,19 @@ export default function TodayIndication({
                       {t("today.showUpStill")}
                     </p>
                   ) : null}
+                  <button
+                    type="button"
+                    data-testid="today-history-link"
+                    className="mt-2 type-caption text-fg-secondary underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setHistoryOpen(true);
+                      requestAnimationFrame(() => {
+                        historyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      });
+                    }}
+                  >
+                    {t("history.earlierWeeks")}
+                  </button>
                 </div>
               );
             })()}
@@ -933,6 +949,22 @@ export default function TodayIndication({
           </div>
         );
       })()}
+
+      {userId && chartId ? (
+        <div className="mb-4">
+          <EarlierWeeksHistory
+            ref={historyRef}
+            testId="today-history"
+            userId={userId}
+            chartId={chartId}
+            timeZone={protocolsTz}
+            scope="today"
+            includeEveningClose={Boolean(normalizeHdType(natalType))}
+            open={historyOpen}
+            onOpenChange={setHistoryOpen}
+          />
+        </div>
+      ) : null}
 
       {/* 2. Sky under the Move: new signal + Sky Story chapter + collapsed vs yesterday */}
       {daily || indication.sky_story ? (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, ChevronDown, Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
+import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
@@ -869,6 +870,9 @@ export default function BiohackPage() {
           skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
           weekRows={weekRows}
           weekLabel={weekRangeLabel(protocolsTz)}
+          userId={user?.id ?? null}
+          chartId={youChart?.id ?? null}
+          timeZone={protocolsTz}
         />
       )}
 
@@ -1095,11 +1099,17 @@ function WeekSkyCard({
   skyNote,
   weekRows,
   weekLabel,
+  userId,
+  chartId,
+  timeZone,
 }: {
   theme: string;
   skyNote: string;
   weekRows: WeekCompletedRow[];
   weekLabel: string;
+  userId?: number | null;
+  chartId?: number | null;
+  timeZone?: string | null;
 }) {
   const { t } = useI18n();
   const moveRows = weekRows.filter((r) => r.kind === "move");
@@ -1176,6 +1186,18 @@ function WeekSkyCard({
             {moveRows.length} move · {baselineRows.length} baseline · synced to your account
           </p>
         )}
+        {userId && chartId ? (
+          <div className="mt-3">
+            <EarlierWeeksHistory
+              testId="week-history"
+              userId={userId}
+              chartId={chartId}
+              timeZone={timeZone}
+              scope="protocols"
+              includeEveningClose
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   );
