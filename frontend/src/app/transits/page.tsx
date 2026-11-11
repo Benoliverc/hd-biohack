@@ -49,7 +49,7 @@ function resolveYouChart(
 
 export default function TransitsPage() {
   const { t } = useI18n();
-  const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree } = useApp();
+  const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree, biohackingUnlocked } = useApp();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   /** Full natal chart_json for share card BodyGraph (no PII on the image). */
   const [youChartPayload, setYouChartPayload] = useState<Record<string, unknown> | null>(null);
@@ -234,6 +234,7 @@ export default function TransitsPage() {
           chartId={youChart?.id ?? null}
           preferredTimezone={user?.preferred_timezone ?? null}
           natalType={typeFromChart(youChartPayload)}
+          protocolsUnlocked={biohackingUnlocked}
         />
       ) : null}
 

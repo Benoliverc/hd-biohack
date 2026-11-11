@@ -60,6 +60,8 @@ type Props = {
   preferredTimezone?: string | null;
   /** Natal Type of Me only (People never drive Today). */
   natalType?: string | null;
+  /** Protocols unlocked (Pro or beta full access). Omit the stack handoff when locked. */
+  protocolsUnlocked?: boolean;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -85,6 +87,7 @@ export default function TodayIndication({
   chartId = null,
   preferredTimezone = null,
   natalType = null,
+  protocolsUnlocked = false,
 }: Props) {
   const { t } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -589,15 +592,7 @@ export default function TodayIndication({
               >
                 {t("today.saveNatal")}
               </Link>
-            ) : (
-              <Link
-                href="/biohack"
-                className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep"
-                data-testid="open-protocols-secondary"
-              >
-                {t("protocols.openProtocols")}
-              </Link>
-            )}
+            ) : null}
           </div>
           <aside
             className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-44 sm:flex-col"
@@ -626,6 +621,17 @@ export default function TodayIndication({
         </div>
       </div>
 
+      {protocolsUnlocked ? (
+        <p className="mb-4">
+          <Link
+            href="/biohack"
+            data-testid="open-protocols-secondary"
+            className="inline-flex min-h-10 items-center type-body text-fg underline-offset-2 hover:underline"
+          >
+            {t("today.tickStack")}
+          </Link>
+        </p>
+      ) : null}
 
       {/* Evening Close — own block under Move hero, above sky */}
       {(() => {

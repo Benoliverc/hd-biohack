@@ -28,7 +28,8 @@
     "assert:love-guidance-readability": "npx tsx scripts/assert-love-guidance-readability.mjs",
     "assert:love-guidance-language": "npx tsx scripts/assert-love-guidance-language.mjs",
     "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs",
-    "assert:first-run-chart-path": "npx tsx scripts/assert-first-run-chart-path.mjs"
+    "assert:first-run-chart-path": "npx tsx scripts/assert-first-run-chart-path.mjs",
+    "assert:today-protocols-home": "npx tsx scripts/assert-today-protocols-home.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

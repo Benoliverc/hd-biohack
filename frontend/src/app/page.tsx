@@ -100,13 +100,16 @@ export default function HomePage() {
                   : t("home.blurb.free")
                 : t("home.blurb.noChart")}
             </p>
-            <p className="mt-2 text-xs font-medium tracking-wide text-fg-secondary">
-              {t("home.path")}
-            </p>
+            <div className="mt-3 space-y-1 type-body text-fg" data-testid="home-path">
+              <p>{t("home.path.today")}</p>
+              <p>{t("home.path.protocols")}</p>
+              <p>{t("home.path.chart")}</p>
+              <p>{t("home.path.soul")}</p>
+            </div>
           </>
         )}
 
-        {/* One filled growth primary per state — returners: Protocols (Pro) or Today’s sky (Free); Chart ghost. */}
+        {/* One filled growth primary per state — returners go to Today; no Protocols-first flash while loading. */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           {natalBindingLoading ? (
             <div
@@ -125,6 +128,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/transits"
+                data-testid="home-secondary-sky"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-energy sm:w-auto"
               >
                 {t("home.cta.seeSky")}
@@ -133,22 +137,22 @@ export default function HomePage() {
           ) : biohackingUnlocked ? (
             <>
               <Link
-                href="/biohack"
-                data-testid="home-primary-protocols"
+                href="/transits"
+                data-testid="home-primary-today"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep sm:w-auto"
+              >
+                {t("home.cta.seeTodaysMove")}
+              </Link>
+              <Link
+                href="/biohack"
+                data-testid="home-secondary-protocols"
+                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-energy sm:w-auto"
               >
                 {t("home.cta.openProtocols")}
               </Link>
               <Link
-                href="/transits"
-                data-testid="home-secondary-today"
-                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-fg hover:border-energy sm:w-auto"
-              >
-                {t("home.cta.todaysSky")}
-              </Link>
-              <Link
                 href="/profile"
-                data-testid="home-calculate-chart"
+                data-testid="home-open-chart"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium text-fg-secondary underline-offset-2 hover:underline sm:w-auto"
               >
                 {t("home.cta.openChart")}
@@ -204,123 +208,101 @@ export default function HomePage() {
         ) : null}
       </section>
 
-      {/* Outcome cards — Protocols · Today · Chart · Soul */}
+      {/* Outcome cards — Today · Protocols · Chart · Soul, one shared structure */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link
-          href="/biohack"
-          data-testid="home-view-protocols"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
-        >
-          <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
-            <FlaskConical className="h-5 w-5" aria-hidden />
-          </span>
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="type-section text-fg group-hover:text-growth-deep">
-              {t("home.outcome.protocols.title")}
-            </h2>
-            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
-              {!ready
-                ? "…"
-                : !hasChart
-                  ? t("home.status.needsChart")
-                  : biohackingUnlocked
-                    ? t("home.status.ready")
-                    : t("home.status.proUnlock")}
-            </span>
-          </div>
-          <div className="type-body text-fg-secondary">
-            <p>{t("home.outcome.protocols.body")}</p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>{t("home.outcome.protocols.b1")}</li>
-              <li>{t("home.outcome.protocols.b2")}</li>
-            </ul>
-          </div>
-        </Link>
-
-        <Link
-          href="/transits"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-energy"
-          data-testid="home-card-today"
-        >
-          <p className="mb-2 type-chip uppercase tracking-wider text-energy-ink">
-            {t("home.card.today")}
-          </p>
-          <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-energy/15 text-energy-ink">
-            <Activity className="h-5 w-5" aria-hidden />
-          </span>
-          <h2 className="mb-1 font-semibold text-fg group-hover:text-growth-deep">
-            {t("home.outcome.today.title")}
-          </h2>
-          <div className="type-body text-fg-secondary">
-            <p>{t("home.outcome.today.body")}</p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>{t("home.outcome.today.b1")}</li>
-              <li>{t("home.outcome.today.b2")}</li>
-            </ul>
-          </div>
-        </Link>
-
-        <Link
-          href="/profile"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
-          data-testid="home-card-chart"
-        >
-          <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
-            <UserRound className="h-5 w-5" aria-hidden />
-          </span>
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="type-section text-fg group-hover:text-growth-deep">
-              {t("home.outcome.chart.title")}
-            </h2>
-            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
-              {!ready
-                ? "…"
-                : hasChart
-                  ? natalChart?.label?.trim()
-                    ? chartLabel
-                    : t("home.status.saved")
-                  : t("home.status.notSaved")}
-            </span>
-          </div>
-          <div className="type-body text-fg-secondary">
-            <p>{t("home.outcome.chart.body")}</p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>{t("home.outcome.chart.b1")}</li>
-              <li>{t("home.outcome.chart.b2")}</li>
-            </ul>
-          </div>
-        </Link>
-
-        <Link
-          href="/soul"
-          className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
-          data-testid="home-card-soul"
-        >
-          <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
-            <Sparkles className="h-5 w-5" aria-hidden />
-          </span>
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h2 className="type-section text-fg group-hover:text-growth-deep">
-              {t("home.outcome.soul.title")}
-            </h2>
-            <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
-              {!ready
-                ? "…"
-                : !hasChart
-                  ? t("home.status.needsChart")
-                  : biohackingUnlocked
-                    ? t("home.status.ready")
-                    : t("home.status.proUnlock")}
-            </span>
-          </div>
-          <div className="type-body text-fg-secondary">
-            <p>{t("home.outcome.soul.body")}</p>
-            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-              <li>{t("home.outcome.soul.b1")}</li>
-              <li>{t("home.outcome.soul.b2")}</li>
-            </ul>
-          </div>
-        </Link>
+        {[
+          {
+            href: "/transits",
+            testId: "home-card-today",
+            icon: Activity,
+            title: t("home.outcome.today.title"),
+            body: t("home.outcome.today.body"),
+            b1: t("home.outcome.today.b1"),
+            b2: t("home.outcome.today.b2"),
+            status: !ready
+              ? "…"
+              : hasChart
+                ? t("home.status.ready")
+                : t("home.status.needsChart"),
+          },
+          {
+            href: "/biohack",
+            testId: "home-view-protocols",
+            icon: FlaskConical,
+            title: t("home.outcome.protocols.title"),
+            body: t("home.outcome.protocols.body"),
+            b1: t("home.outcome.protocols.b1"),
+            b2: t("home.outcome.protocols.b2"),
+            status: !ready
+              ? "…"
+              : !hasChart
+                ? t("home.status.needsChart")
+                : biohackingUnlocked
+                  ? t("home.status.ready")
+                  : t("home.status.proUnlock"),
+          },
+          {
+            href: "/profile",
+            testId: "home-card-chart",
+            icon: UserRound,
+            title: t("home.outcome.chart.title"),
+            body: t("home.outcome.chart.body"),
+            b1: t("home.outcome.chart.b1"),
+            b2: t("home.outcome.chart.b2"),
+            status: !ready
+              ? "…"
+              : hasChart
+                ? natalChart?.label?.trim()
+                  ? chartLabel
+                  : t("home.status.saved")
+                : t("home.status.notSaved"),
+          },
+          {
+            href: "/soul",
+            testId: "home-card-soul",
+            icon: Sparkles,
+            title: t("home.outcome.soul.title"),
+            body: t("home.outcome.soul.body"),
+            b1: t("home.outcome.soul.b1"),
+            b2: t("home.outcome.soul.b2"),
+            status: !ready
+              ? "…"
+              : !hasChart
+                ? t("home.status.needsChart")
+                : biohackingUnlocked
+                  ? t("home.status.ready")
+                  : t("home.status.proUnlock"),
+          },
+        ].map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link
+              key={card.href}
+              href={card.href}
+              data-testid={card.testId}
+              className="group flex flex-col rounded-2xl border border-border bg-elevated p-5 shadow-soft transition hover:border-growth/50"
+            >
+              <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-growth">
+                <Icon className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h2 className="type-section text-fg group-hover:text-growth-deep">
+                  {card.title}
+                </h2>
+                <span className="type-chip inline-flex items-center rounded-full border border-border bg-sunken px-2 py-0.5 font-medium text-fg-secondary">
+                  {card.status}
+                </span>
+              </div>
+              <div className="type-body text-fg-secondary">
+                <p>{card.body}</p>
+                <ul className="mt-2 list-disc space-y-0.5 pl-4">
+                  <li>{card.b1}</li>
+                  <li>{card.b2}</li>
+                </ul>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Thin trust line */}
