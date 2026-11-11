@@ -199,6 +199,13 @@ function announceKitChange(
 }
 
 
+function shelfDeepLinkRequested(): boolean {
+  if (typeof window === "undefined") return false;
+  const hash = window.location.hash.replace(/^#/, "");
+  const qs = new URLSearchParams(window.location.search);
+  return hash === "shelf" || qs.get("shelf") === "1";
+}
+
 export default function BiohackPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, biohackingUnlocked, setNatalChart } = useApp();
@@ -226,6 +233,9 @@ export default function BiohackPage() {
   const [intention, setIntention] = useState("");
   const [intentionSaving, setIntentionSaving] = useState(false);
   const inventoryRef = useRef<HTMLDivElement | null>(null);
+  const shelfRef = useRef<HTMLDetailsElement | null>(null);
+  const [shelfOpen, setShelfOpen] = useState(false);
+  const shelfDefaultApplied = useRef(false);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const protocolsTz = resolveProtocolsTz(user?.preferred_timezone);
   const dayKey = dayKeyInZone(protocolsTz);
@@ -314,6 +324,41 @@ export default function BiohackPage() {
       cancelled = true;
     };
   }, [user]);
+
+  // Empty loaded Shelf starts open; a filled shelf stays collapsed.
+  // Do not persist "I collapsed an empty shelf" — re-apply on remount / user change.
+  useEffect(() => {
+    shelfDefaultApplied.current = false;
+    setShelfOpen(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (inventoryLoading) return;
+    const deep = shelfDeepLinkRequested();
+    if (!shelfDefaultApplied.current) {
+      shelfDefaultApplied.current = true;
+      setShelfOpen(deep || inventory.length === 0);
+    } else if (deep) {
+      setShelfOpen(true);
+    }
+    if (deep) {
+      requestAnimationFrame(() => {
+        shelfRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [inventoryLoading, inventory.length]);
+
+  useEffect(() => {
+    const onHash = () => {
+      if (!shelfDeepLinkRequested()) return;
+      setShelfOpen(true);
+      requestAnimationFrame(() => {
+        shelfRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   useEffect(() => {
     // Collapse natal when a new protocol arrives — never yank kit panel shut mid-edit.
@@ -750,7 +795,11 @@ export default function BiohackPage() {
 
       {(protocol || youChart) && (
         <details
-          className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
+          id="shelf"
+          ref={shelfRef}
+          open={shelfOpen}
+          onToggle={(e) => setShelfOpen((e.target as HTMLDetailsElement).open)}
+          className="group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
           data-testid="shelf-disclosure"
         >
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">

@@ -5,6 +5,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type VsYesterdayDelta } from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
+import { STARTER_SUPPLEMENTS, starterSlug } from "@/components/protocols/constants";
+import {
+  readKitSetupDismissed,
+  writeKitSetupDismissed,
+} from "@/lib/kitSetupDismiss";
 import {
   computeMoveShowUpWeek,
   dayKeyInZone,
@@ -62,6 +67,13 @@ type Props = {
   natalType?: string | null;
   /** Protocols unlocked (Pro or beta full access). Omit the stack handoff when locked. */
   protocolsUnlocked?: boolean;
+  /** GET /inventory status — unknown while the first fetch is in flight. */
+  inventoryStatus?: "unknown" | "ready" | "error";
+  /** Active inventory length from GET /inventory (not kit_placeholder). */
+  inventoryCount?: number;
+  /** Add a starter or typed name, then refetch inventory + GET /transits/today. */
+  onAddToKit?: (name: string) => Promise<{ name: string; duplicate?: boolean }>;
+  onRetryInventory?: () => void;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -69,13 +81,6 @@ function whenLabel(slot: string | null | undefined, t: TFn): string {
   if (slot === "midday") return t("today.when.midday");
   if (slot === "evening") return t("today.when.evening");
   return t("today.when.morning");
-}
-
-function nounLabel(noun: string | null | undefined, t: TFn): string {
-  if (noun === "calm") return t("today.kitNoun.calm");
-  if (noun === "focus") return t("today.kitNoun.focus");
-  if (noun === "recovery") return t("today.kitNoun.recovery");
-  return t("today.kitNoun.focus");
 }
 
 export default function TodayIndication({
@@ -88,6 +93,10 @@ export default function TodayIndication({
   preferredTimezone = null,
   natalType = null,
   protocolsUnlocked = false,
+  inventoryStatus = "unknown",
+  inventoryCount = 0,
+  onAddToKit,
+  onRetryInventory,
 }: Props) {
   const { t } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -97,6 +106,48 @@ export default function TodayIndication({
   const weekKeys = weekDayKeysInZone(protocolsTz);
   const weekKeysSig = weekKeys.join("|");
   const [showUpRevision, setShowUpRevision] = useState(0);
+  const [kitSetupDismissed, setKitSetupDismissed] = useState(false);
+  const [kitName, setKitName] = useState("");
+  const [kitAdding, setKitAdding] = useState(false);
+  const [kitFeedback, setKitFeedback] = useState<string | null>(null);
+  const [kitAddError, setKitAddError] = useState(false);
+
+  useEffect(() => {
+    if (userId == null) {
+      setKitSetupDismissed(false);
+      return;
+    }
+    setKitSetupDismissed(readKitSetupDismissed(userId));
+  }, [userId]);
+
+  const addKitItem = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed || !onAddToKit || kitAdding) return;
+      setKitAdding(true);
+      setKitAddError(false);
+      setKitFeedback(null);
+      try {
+        const res = await onAddToKit(trimmed);
+        setKitName("");
+        setKitFeedback(
+          res.duplicate
+            ? t("today.kitSetupAlready", { name: res.name })
+            : t("today.kitSetupAdded", { name: res.name })
+        );
+      } catch {
+        setKitAddError(true);
+      } finally {
+        setKitAdding(false);
+      }
+    },
+    [onAddToKit, kitAdding, t]
+  );
+
+  const skipKitSetup = useCallback(() => {
+    if (userId != null) writeKitSetupDismissed(userId);
+    setKitSetupDismissed(true);
+  }, [userId]);
 
   useEffect(() => {
     if (!userId || !chartId) {
@@ -475,21 +526,8 @@ export default function TodayIndication({
             })()}
 
 
-            {/* From your kit — live Pro item or muted placeholder (never hidden) */}
-            {indication.kit_placeholder || !indication.kit_item ? (
-              <Link
-                href="/biohack"
-                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg-muted transition hover:border-growth/30 hover:text-fg-secondary"
-                data-testid="today-kit-placeholder"
-              >
-                <span className="font-medium text-fg-secondary">{t("today.fromKit")}:</span>
-                <span>
-                  {t("today.kitPlaceholder", {
-                    noun: nounLabel(indication.moment_noun, t),
-                  })}
-                </span>
-              </Link>
-            ) : (
+            {/* From your kit — setup, filled lead, or dashed leftover (never hidden) */}
+            {indication.kit_item && !indication.kit_placeholder ? (
               (() => {
                 const kit = indication.kit_item;
                 const kitId = kit.item_id || `today-kit:${kit.kit_supplement_id || kit.name}`;
@@ -527,10 +565,129 @@ export default function TodayIndication({
                           <span className="ml-1.5 font-normal text-fg-secondary">· {kit.dose}</span>
                         ) : null}
                       </p>
+                      {kitFeedback ? (
+                        <p className="mt-1 type-caption text-fg" role="status">
+                          {kitFeedback}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 );
               })()
+            ) : !protocolsUnlocked ? (
+              <Link
+                href="/biohack"
+                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
+                data-testid="today-kit-placeholder"
+              >
+                <span className="font-medium text-fg">{t("today.fromKit")}:</span>
+                <span className="type-body text-fg">{t("today.kitSetupEmpty")}</span>
+              </Link>
+            ) : inventoryStatus === "unknown" ? (
+              <div
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                data-testid="today-kit-setup-wait"
+              >
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="mt-1 type-body text-fg">{t("today.kitSetupWait")}</p>
+              </div>
+            ) : inventoryStatus === "error" ? (
+              <div
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                data-testid="today-kit-setup-error"
+              >
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="mt-1 type-body text-fg">{t("today.kitSetupLoadError")}</p>
+                {onRetryInventory ? (
+                  <button
+                    type="button"
+                    onClick={onRetryInventory}
+                    className="mt-2 inline-flex min-h-9 items-center type-body text-fg underline-offset-2 hover:underline"
+                    data-testid="today-kit-setup-retry"
+                  >
+                    {t("today.kitSetupRetry")}
+                  </button>
+                ) : null}
+              </div>
+            ) : inventoryCount === 0 && userId && !kitSetupDismissed && onAddToKit ? (
+              <div
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                data-testid="today-kit-setup"
+              >
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="mt-1 type-body text-fg">{t("today.kitSetupLead")}</p>
+                <p className="mt-2 type-body text-fg">{t("today.kitSetupHint")}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {STARTER_SUPPLEMENTS.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      disabled={kitAdding}
+                      onClick={() => void addKitItem(name)}
+                      className="type-chip rounded-full border border-border bg-sunken px-2.5 py-1 text-fg hover:border-fg-muted disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                      data-testid={`today-kit-starter-${starterSlug(name)}`}
+                    >
+                      + {name}
+                    </button>
+                  ))}
+                </div>
+                <form
+                  className="mt-2 flex flex-wrap items-center gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!kitName.trim()) return;
+                    void addKitItem(kitName);
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={kitName}
+                    onChange={(e) => setKitName(e.target.value)}
+                    placeholder={t("today.kitSetupInputPlaceholder")}
+                    disabled={kitAdding}
+                    autoComplete="off"
+                    data-testid="today-kit-setup-input"
+                    className="min-h-9 min-w-[12rem] flex-1 rounded-lg border border-border bg-sunken px-2.5 py-1.5 type-body text-fg placeholder:text-fg-muted disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                  />
+                  <button
+                    type="submit"
+                    disabled={kitAdding || !kitName.trim()}
+                    data-testid="today-kit-setup-add"
+                    className="inline-flex min-h-9 items-center rounded-lg border border-border bg-sunken px-3 py-1.5 type-body text-fg hover:border-fg-muted disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                  >
+                    {kitAdding ? t("today.kitSetupAdding") : t("today.kitSetupAdd")}
+                  </button>
+                </form>
+                {kitFeedback ? (
+                  <p className="mt-2 type-caption text-fg" role="status">
+                    {kitFeedback}
+                  </p>
+                ) : null}
+                {kitAddError ? (
+                  <p className="mt-2 type-body text-fg" role="alert">
+                    {t("today.kitSetupAddError")}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={skipKitSetup}
+                  data-testid="today-kit-setup-skip"
+                  className="mt-2 inline-flex min-h-9 items-center type-body text-fg underline-offset-2 hover:underline"
+                >
+                  {t("today.kitSetupSkip")}
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/biohack#shelf"
+                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
+                data-testid="today-kit-placeholder"
+              >
+                <span className="font-medium text-fg">{t("today.fromKit")}:</span>
+                <span className="type-body text-fg">
+                  {inventoryCount > 0 ? t("today.kitSetupNoMatch") : t("today.kitSetupEmpty")}
+                </span>
+              </Link>
             )}
 
             {indication.when_slot ? (

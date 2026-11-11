@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { Hexagon } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type SavedChartRow } from "@/lib/api";
 import {
   useApp,
@@ -61,6 +61,11 @@ export default function TransitsPage() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [inventoryCount, setInventoryCount] = useState(0);
+  const [inventoryStatus, setInventoryStatus] = useState<"unknown" | "ready" | "error">("unknown");
+  const todayReq = useRef(0);
+  const inventoryStatusRef = useRef(inventoryStatus);
+  inventoryStatusRef.current = inventoryStatus;
 
   // Resolve You natal independently of friend sticky; never pass a friend id to the API.
   useEffect(() => {
@@ -109,10 +114,53 @@ export default function TransitsPage() {
     };
   }, [user?.id, natalBindingLoading, natalChartId, setNatalChart]);
 
+  const fetchToday = useCallback(
+    async (opts?: { quiet?: boolean }) => {
+      if (!youChart) return;
+      const req = ++todayReq.current;
+      const quiet = Boolean(opts?.quiet);
+      if (!quiet) {
+        setLoading(true);
+        setError(null);
+        setData(null);
+        setInventoryStatus("unknown");
+      }
+      const todayPromise = api.transitsToday(youChart.id, {
+        userId: user?.id,
+        previewAsFree,
+      });
+      const invPromise =
+        user?.id != null ? api.inventory(user.id) : Promise.resolve([]);
+      const [todayResult, invResult] = await Promise.allSettled([
+        todayPromise,
+        invPromise,
+      ]);
+      if (req !== todayReq.current) return;
+      if (todayResult.status === "fulfilled") {
+        setData(todayResult.value);
+        setError(null);
+      } else {
+        const reason = todayResult.reason;
+        setError(reason instanceof Error ? reason.message : String(reason));
+        if (!quiet) setData(null);
+      }
+      if (invResult.status === "fulfilled") {
+        setInventoryCount(invResult.value.length);
+        setInventoryStatus("ready");
+      } else if (!quiet || inventoryStatusRef.current !== "ready") {
+        // Quiet refetch must not wipe a known shelf; initial load stays unknown/error.
+        setInventoryStatus("error");
+      }
+      if (!quiet) setLoading(false);
+    },
+    [youChart, user?.id, previewAsFree]
+  );
+
   useEffect(() => {
     if (natalBindingLoading || !youReady) {
       setLoading(true);
       setData(null);
+      setInventoryStatus("unknown");
       return;
     }
     // No Me natal → empty Today. Do not call sky/Move API (avoids painting a fake filled day).
@@ -120,30 +168,37 @@ export default function TransitsPage() {
       setLoading(false);
       setData(null);
       setError(null);
+      setInventoryCount(0);
+      setInventoryStatus("ready");
       return;
     }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setData(null);
-    api
-      .transitsToday(youChart.id, {
-        userId: user?.id,
-        previewAsFree,
-      })
-      .then((res) => {
-        if (!cancelled) setData(res);
-      })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    void fetchToday();
     return () => {
-      cancelled = true;
+      todayReq.current += 1;
     };
-  }, [youChart?.id, youReady, natalBindingLoading, user?.id, previewAsFree]);
+  }, [youChart, youReady, natalBindingLoading, fetchToday]);
+
+  const addToKit = useCallback(
+    async (name: string) => {
+      if (!user) {
+        throw new Error("not signed in");
+      }
+      const res = await api.addInventory(user.id, name);
+      await fetchToday({ quiet: true });
+      if (!res.duplicate) {
+        setInventoryCount((n) => Math.max(n, 1));
+        setInventoryStatus("ready");
+      }
+      return { name: res.name, duplicate: Boolean(res.duplicate) };
+    },
+    [user, fetchToday]
+  );
+
+  const retryInventory = useCallback(() => {
+    if (!youChart) return;
+    setInventoryStatus("unknown");
+    void fetchToday({ quiet: true });
+  }, [youChart, fetchToday]);
 
   const activations =
     ((data?.transit?.activations as Array<Record<string, unknown>>) || []);
@@ -235,6 +290,10 @@ export default function TransitsPage() {
           preferredTimezone={user?.preferred_timezone ?? null}
           natalType={typeFromChart(youChartPayload)}
           protocolsUnlocked={biohackingUnlocked}
+          inventoryStatus={inventoryStatus}
+          inventoryCount={inventoryCount}
+          onAddToKit={addToKit}
+          onRetryInventory={retryInventory}
         />
       ) : null}
 
