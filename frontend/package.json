@@ -30,7 +30,8 @@
     "assert:love-guidance-language": "npx tsx scripts/assert-love-guidance-language.mjs",
     "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs",
     "assert:first-run-chart-path": "npx tsx scripts/assert-first-run-chart-path.mjs",
-    "assert:today-protocols-home": "npx tsx scripts/assert-today-protocols-home.mjs"
+    "assert:today-protocols-home": "npx tsx scripts/assert-today-protocols-home.mjs",
+    "assert:first-week-kit-setup": "npx tsx scripts/assert-first-week-kit-setup.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

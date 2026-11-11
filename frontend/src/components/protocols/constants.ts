@@ -5,3 +5,12 @@ export const STARTER_SUPPLEMENTS = [
   "Creatine",
   "Ashwagandha",
 ] as const;
+
+/** Slug for Today starter testids, e.g. magnesium-glycinate. */
+export function starterSlug(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
