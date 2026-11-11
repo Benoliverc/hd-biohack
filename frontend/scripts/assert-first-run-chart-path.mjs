@@ -44,8 +44,8 @@ assert.ok(
 assert.ok(gate.includes("natalBindingLoading"), "AuthGate waits until You-chart bind is known");
 assert.ok(gate.includes("natalChart"), "AuthGate uses store You natal");
 assert.ok(
-  gate.includes('router.replace(natalChart ? "/" : "/profile")'),
-  "signed-in /login visit goes Home only when a You natal is confirmed",
+  gate.includes('router.replace(natalChart ? "/transits" : "/profile")'),
+  "signed-in /login visit goes Today only when a You natal is confirmed",
 );
 assert.ok(
   /if \(natalBindingLoading\) return;/.test(gate),
@@ -53,8 +53,8 @@ assert.ok(
 );
 assert.ok(youChart.includes("slot_kind !== \"friend\""), "You-chart check ignores person/friend rows");
 assert.ok(
-  youChart.includes('return "/profile"') && youChart.includes('? "/" : "/profile"'),
-  "unknown or no-You sign-in lands on /profile; You natal goes Home",
+  youChart.includes('return "/profile"') && youChart.includes('? "/transits" : "/profile"'),
+  "unknown or no-You sign-in lands on /profile; You natal goes Today",
 );
 assert.ok(youChart.includes("api.charts(userId)"), "sign-in uses existing /charts API, no new endpoint");
 

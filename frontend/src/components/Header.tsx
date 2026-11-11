@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, FlaskConical, LogOut, Orbit, Settings, Shield, Sparkles, UserRound } from "lucide-react";
+import { Activity, FlaskConical, LogOut, Settings, Shield, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
 import { useI18n } from "@/lib/i18n";
 
 const nav = [
-  { href: "/", labelKey: "nav.home" as const, icon: Orbit, testId: "nav-home" },
-  { href: "/biohack", labelKey: "nav.protocols" as const, icon: FlaskConical, testId: "nav-protocols" },
   { href: "/transits", labelKey: "nav.today" as const, icon: Activity, testId: "nav-today" },
+  { href: "/biohack", labelKey: "nav.protocols" as const, icon: FlaskConical, testId: "nav-protocols" },
   { href: "/profile", labelKey: "nav.chart" as const, icon: UserRound, testId: "nav-chart" },
   { href: "/soul", labelKey: "nav.soul" as const, icon: Sparkles, testId: "nav-soul" },
 ];
@@ -120,7 +119,10 @@ export function Header() {
           <Link
             href="/"
             title={t("nav.home")}
-            className="min-w-0 shrink truncate text-base font-semibold tracking-tight text-growth sm:text-lg"
+            aria-label={t("nav.home")}
+            aria-current={pathname === "/" ? "page" : undefined}
+            data-testid="nav-wordmark"
+            className="inline-flex min-h-10 min-w-0 shrink items-center truncate text-base font-semibold tracking-tight text-growth sm:text-lg"
           >
             {t("brand.name")}
           </Link>

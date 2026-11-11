@@ -62,9 +62,9 @@ const whyBlock = todayInd.slice(
 );
 if (!/main-action-micro/.test(whyBlock)) fail("main-action-micro should live inside Why disclosure");
 
-// Home: returners get one growth primary (Protocols), Chart ghost
-if (!/home-primary-protocols/.test(home)) fail("Home missing Pro returner primary Open Protocols");
-if (!/home-secondary-today/.test(home)) fail("Home missing Today’s sky secondary");
+// Home: returners get one growth primary (Today); Pro secondary is Open Protocols
+if (!/home-primary-today/.test(home)) fail("Home missing returner primary to Today");
+if (!/home-secondary-protocols/.test(home)) fail("Home missing Pro returner Open Protocols secondary");
 // Must not have two bg-growth fills in the hasChart+Pro branch for Chart+Protocols
 const continueStripGrowth =
   /bg-growth-soft\/40[\s\S]{0,400}bg-growth/.test(home) &&

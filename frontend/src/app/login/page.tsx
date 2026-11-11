@@ -40,7 +40,7 @@ export default function LoginPage() {
     writeSessionToken(accessToken);
     setSessionUser(user);
     // Create-account always lands on Chart. Sign-in checks /charts for a You natal;
-    // if that check is unknown, land on /profile (returners with a You chart go Home).
+    // if that check is unknown, land on /profile (returners with a You chart go to Today).
     if (intent === "create") {
       router.replace("/profile");
       return;
