@@ -334,6 +334,7 @@ function truncateLoveTease(text: string | null | undefined, max = 96): string | 
 }
 
 function SoulUnlockedContent() {
+  const { t } = useI18n();
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
@@ -448,6 +449,7 @@ function SoulUnlockedContent() {
     [personOptions, friendId]
   );
   const isPartnerSelected = selectedFriend?.role === "partner";
+  const selectedPartnerFirstName = partnerFirstNameFromLabel(selectedFriend?.label);
 
   const handleMarkAsPartner = useCallback(async () => {
     if (!selectedFriend || markingPartner) return;
@@ -629,6 +631,7 @@ function SoulUnlockedContent() {
                 ? "flex flex-col gap-3 rounded-2xl border border-energy/25 bg-energy-soft/30 p-4 sm:flex-row sm:items-end sm:gap-4"
                 : "flex flex-col gap-3 rounded-2xl border border-border bg-elevated p-4 sm:flex-row sm:items-end sm:gap-4"
             }
+            id="soul-pickers"
             data-testid="soul-pickers"
           >
             <div className="flex min-w-0 flex-1 flex-col gap-1 type-caption text-fg-secondary">
@@ -725,27 +728,23 @@ function SoulUnlockedContent() {
               ) : null}
             </div>
           ) : (
-            <div
-              className="rounded-2xl border border-border bg-elevated p-4"
-              data-testid="soul-mark-partner-prompt"
-            >
+            <div data-testid="soul-mark-partner-row">
               <p
-                className="mb-3 type-caption text-fg-secondary"
+                className="type-caption text-fg-secondary"
                 data-testid="soul-mark-partner-reason"
               >
-                Want Love guidance with{" "}
-                <span className="font-medium text-fg-secondary">
-                  {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
-                </span>
-                ? Mark them as Partner — it opens a quieter love chapter.{" "}
-                It doesn&apos;t score the bond.
+                {selectedPartnerFirstName
+                  ? t("page.soul.markPartnerReasonNamed", {
+                      name: selectedPartnerFirstName,
+                    })
+                  : t("page.soul.markPartnerReason")}
               </p>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   disabled={markingPartner || !selectedFriend}
                   onClick={() => void handleMarkAsPartner()}
-                  className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
                   data-testid="soul-mark-as-partner"
                 >
                   {markingPartner ? "Marking…" : "Mark as Partner"}

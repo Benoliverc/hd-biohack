@@ -475,15 +475,23 @@ export const CHART_LITERACY_STEPS: LiteracyStep[] = [
 ];
 
 
-/** Order matches Soul DOM after Signature: Spectrums → Somatic → Power → Wire → Spark. */
+/** Order: Signature first, then Partner-gated Love, then Spectrums → Somatic → Power → Spark. */
 export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
   {
     id: "signature-not-score",
     title: "Aura Signature first",
     body:
-      "The big label at the top describes how your two charts tend to lock together — the architecture of the bond across work, life, and play. It is not a grade, not a dating score, and not 'how good' you are for each other. Secondary badges only appear when something rare lights up; start with the Signature as the shape of the relationship, not a rating.",
+      "The big label at the top describes how your two charts tend to lock together — the shape of the bond. It is not a grade, not a dating score, and not 'how good' you are for each other. Secondary badges only appear when something rare lights up; start with the Signature as the shape of the relationship, not a rating.",
     jumpLabel: "Signature",
     targetId: "soul-hero",
+  },
+  {
+    id: "love-is-partner-only",
+    title: "Love guidance is Partner-only",
+    body:
+      "Signature, the playbook, and the chapters below are how your two charts meet, for any person you saved. Love guidance is a separate chapter. It only appears when you mark this person as Partner, and it doesn’t score the bond.",
+    jumpLabel: "Partner",
+    targetId: "soul-pickers",
   },
   {
     id: "spectrums-not-fit",
@@ -497,7 +505,7 @@ export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
     id: "wire-somatic",
     title: "Body-first playbook + how you wire",
     body:
-      "The playbook is body-first: simple co-regulation moves for this pair in the context you picked (work, life, or play). How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label.",
+      "The playbook is body-first: simple co-regulation moves for this pair. How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label. There is one playbook — not a work, life, or play switch.",
     jumpLabel: "Body-first playbook",
     targetId: "soul-card-somatic_playbook",
   },

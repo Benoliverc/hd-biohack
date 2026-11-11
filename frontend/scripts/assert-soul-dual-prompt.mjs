@@ -44,14 +44,13 @@ assert.ok(page.includes("Open Chart to save Me"));
 assert.ok(page.includes('data-testid="soul-mark-as-partner"'));
 assert.ok(page.includes('data-testid="soul-mark-partner-reason"'));
 assert.ok(page.includes("Mark as Partner"));
-assert.ok(page.includes("Want Love guidance with"));
-assert.ok(page.includes("It doesn"), "doesn't score the bond");
+assert.ok(page.includes('t("page.soul.markPartnerReasonNamed"') || page.includes("page.soul.markPartnerReason"), "mark reason copy remains");
 assert.ok(page.includes("api.renameChart"));
 assert.ok(page.includes('"partner"'));
 
-// Mark prompt must not itself mount Love chrome
-const markStart = page.indexOf('data-testid="soul-mark-partner-prompt"');
-assert.ok(markStart > 0, "mark prompt present");
+// Mark row must not itself mount Love chrome
+const markStart = page.indexOf('data-testid="soul-mark-partner-row"');
+assert.ok(markStart > 0, "mark row present");
 const markEnd = page.indexOf(")}", markStart + 50);
 const markBlock = page.slice(markStart, markEnd > markStart ? markEnd : markStart + 1200);
 assert.ok(
