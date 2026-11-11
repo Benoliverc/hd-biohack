@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { writeSessionToken } from "@/lib/session";
+import { postSignInPath } from "@/lib/youChart";
 import Link from "next/link";
 
 type Mode = "signin" | "create" | "forgot";
@@ -31,10 +32,21 @@ export default function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function applySession(accessToken: string, user: Parameters<typeof setSessionUser>[0]) {
+  async function applySession(
+    accessToken: string,
+    user: Parameters<typeof setSessionUser>[0],
+    intent: "create" | "signin"
+  ) {
     writeSessionToken(accessToken);
     setSessionUser(user);
-    router.replace("/");
+    // Create-account always lands on Chart. Sign-in checks /charts for a You natal;
+    // if that check is unknown, land on /profile (returners with a You chart go Home).
+    if (intent === "create") {
+      router.replace("/profile");
+      return;
+    }
+    const path = await postSignInPath(user.id);
+    router.replace(path);
   }
 
   async function onSignIn(e: FormEvent) {
@@ -49,7 +61,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const session = await api.login(u, password);
-      await applySession(session.access_token, session.user);
+      await applySession(session.access_token, session.user, "signin");
     } catch {
       setError(t("login.genericAuthError"));
     } finally {
@@ -77,7 +89,7 @@ export default function LoginPage() {
         password,
         first_name: firstName.trim() || undefined,
       });
-      await applySession(session.access_token, session.user);
+      await applySession(session.access_token, session.user, "create");
     } catch {
       setError(t("login.genericAuthError"));
     } finally {

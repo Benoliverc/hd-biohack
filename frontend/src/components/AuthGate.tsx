@@ -11,13 +11,17 @@ const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
 /**
  * Soft client gate: no session → /login.
  * /login is always allowed. Waits for sessionReady so we don't bounce while hydrating.
+ * A signed-in visit to /login goes to /profile until a You natal is confirmed, then Home.
  */
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { sessionReady, user } = useApp();
+  const { sessionReady, user, natalChart, natalBindingLoading } = useApp();
   const { t } = useI18n();
   const isPublic = PUBLIC_PATHS.has(pathname);
+  const signedInOnLogin = Boolean(
+    sessionReady && user && pathname === "/login" && readSessionUserId() && readSessionToken()
+  );
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -27,11 +31,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-    // Already signed in visiting /login → home (reset-password stays reachable)
+    // Already signed in visiting /login → Chart if no You natal, Home if there is one.
+    // Wait until the You-chart bind is known so returners do not flash Chart, and
+    // first-run accounts never flash Home. Password-reset stays reachable.
     if (sessionId && user && pathname === "/login") {
-      router.replace("/");
+      if (natalBindingLoading) return;
+      router.replace(natalChart ? "/" : "/profile");
     }
-  }, [sessionReady, user, pathname, isPublic, router]);
+  }, [sessionReady, user, pathname, isPublic, router, natalChart, natalBindingLoading]);
 
   // Avoid flashing protected UI before we know session state
   if (!sessionReady && !isPublic) {
@@ -46,6 +53,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
         {t("auth.redirecting")}
+      </div>
+    );
+  }
+
+  if (signedInOnLogin) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
+        {t("auth.loading")}
       </div>
     );
   }

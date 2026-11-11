@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { api, SavedChartRow } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
+import { FirstRunChartForm, type FirstRunBirth } from "@/components/FirstRunChartForm";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
@@ -270,6 +272,8 @@ export default function ProfilePage() {
   const [personRole, setPersonRole] = useState<"person" | "partner">("person");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [personEditorOpen, setPersonEditorOpen] = useState(true);
+  /** True after a You natal is first saved in this session — drives the first-run reveal. */
+  const [firstRunYouReveal, setFirstRunYouReveal] = useState(false);
   /** True while DEMO_BIRTH is loaded into the form (never implied as "your" chart). */
   const [demoBirthActive, setDemoBirthActive] = useState(false);
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
@@ -439,7 +443,8 @@ export default function ProfilePage() {
           return;
         }
         const preferred = pickPreferredRow(rows, natalChartId);
-        if (preferred) applyRow(preferred);
+        // No You yet: leave fields empty for first-run. Do not auto-apply a person chart.
+        if (preferred && isSelfRow(preferred)) applyRow(preferred);
         setHydratedUserId(user.id);
       } catch {
         if (!cancelled && peopleFetchGen.current === gen) {
@@ -836,6 +841,79 @@ export default function ProfilePage() {
     }
   };
 
+  const submitFirstRun = async () => {
+    setBusyMode("save");
+    setError(null);
+    try {
+      if (!birthDate || !birthTime || lat == null || lon == null) {
+        return;
+      }
+      const activeUser = user ?? (await ensureUser());
+      if (!activeUser?.id) {
+        setError(t("chart.firstRun.saveFailed"));
+        return;
+      }
+      const city = birthCity.trim();
+      const res = await api.calculateChart({
+        birth_date: birthDate,
+        birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
+        birth_city: city,
+        user_id: activeUser.id,
+        save: true,
+        lat,
+        lon,
+        label: "Me",
+        slot_kind: "self",
+        role: "self",
+      });
+      if (!res.natal_chart_id) {
+        setError(t("chart.firstRun.saveFailed"));
+        return;
+      }
+      setDemoBirthActive(false);
+      const newId = Number(res.natal_chart_id);
+      editingChartIdRef.current = newId;
+      viewModeRef.current = "saved";
+      const rows = await refreshPeople(activeUser.id);
+      const birthTimeFull = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
+      const chartTz =
+        typeof res.chart?.timezone === "string" ? (res.chart.timezone as string) : null;
+      if (chartTz) setTimezone(chartTz);
+      const created =
+        rows.find((r) => Number(r.id) === newId) ??
+        ({
+          id: newId,
+          label: "Me",
+          slot_kind: "self",
+          role: "self",
+          birth_date: birthDate,
+          birth_time: birthTimeFull,
+          birth_city: city,
+          lat: lat ?? undefined,
+          lon: lon ?? undefined,
+          timezone: chartTz || timezone,
+          type: String((res.chart as Chart)?.type ?? ""),
+          profile: String((res.chart as Chart)?.profile ?? ""),
+          chart: res.chart as Record<string, unknown>,
+        } satisfies SavedChartRow);
+      applyRow(created, { bindStore: true });
+      setFirstRunYouReveal(true);
+    } catch {
+      setError(t("chart.firstRun.saveFailed"));
+    } finally {
+      setBusyMode(null);
+    }
+  };
+
+  const patchFirstRunBirth = (patch: Partial<FirstRunBirth>) => {
+    if (patch.birthDate !== undefined) setBirthDate(patch.birthDate);
+    if (patch.birthTime !== undefined) setBirthTime(patch.birthTime);
+    if (patch.birthCity !== undefined) setBirthCity(patch.birthCity);
+    if (patch.lat !== undefined) setLat(patch.lat);
+    if (patch.lon !== undefined) setLon(patch.lon);
+    if (patch.timezone !== undefined) setTimezone(patch.timezone);
+  };
+
   const selectPerson = (row: SavedChartRow) => {
     // Chart edit target is local; keep Today’s Me unless selecting self or nothing bound yet.
     const bindStore = row.slot_kind !== "friend" || natalChartId == null;
@@ -929,6 +1007,10 @@ export default function ProfilePage() {
     return savedPeople.find((r) => isSelfRow(r)) ?? null;
   })();
   const friendRows = savedPeople.filter((r) => r.slot_kind === "friend");
+  const storeHasYou = natalChartId != null;
+  const isFirstRun = !storeHasYou && formReady && !hasSelfSaved && Boolean(user);
+  const showFirstRunWait = !storeHasYou && (natalBindingLoading || !formReady || !user) && !usersError;
+  const showFirstRunAccountError = !storeHasYou && !user && Boolean(usersError) && !natalBindingLoading;
   const extraSelfRows =
     youRow != null
       ? savedPeople.filter((r) => isSelfRow(r) && r.id !== youRow.id)
@@ -1509,6 +1591,81 @@ export default function ProfilePage() {
   // Natal poster is for You only — never present a friend's chart as "my Baseline".
   const canShareNatal = Boolean(chart) && Boolean(shareGraph) && frozenSlot === "self";
 
+  if (showFirstRunWait) {
+    return (
+      <div
+        className="flex min-h-[40vh] items-center justify-center"
+        data-testid="first-run-wait"
+      >
+        <p className="type-body text-fg-muted">{t("chart.firstRun.waiting")}</p>
+      </div>
+    );
+  }
+
+  if (showFirstRunAccountError) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4">
+        <p className="type-body text-fg">{t("chart.firstRun.accountFailed")}</p>
+        <button
+          type="button"
+          className="min-h-10 rounded-lg border border-border bg-elevated px-3 py-2.5 type-body text-fg hover:border-growth"
+          onClick={() => void refreshUsers()}
+        >
+          {t("chart.firstRun.retry")}
+        </button>
+      </div>
+    );
+  }
+
+  if (isFirstRun) {
+    return (
+      <div className="space-y-6">
+        {friendRows.length > 0 && (
+          <div
+            className="mx-auto max-w-xl rounded-2xl border border-border bg-elevated p-4"
+            data-testid="first-run-saved-people"
+          >
+            <h2 className="text-sm font-semibold text-fg">Saved people</h2>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {friendRows.map((row) => {
+                const name = friendChipLabel(row);
+                return (
+                  <li
+                    key={row.id}
+                    className="rounded-full border border-border bg-sunken px-3 py-2 text-xs text-fg"
+                  >
+                    <span className="font-medium">{name}</span>
+                    <span className="text-fg-muted">
+                      {" "}
+                      · {row.type || "—"} · {row.profile || "—"}
+                      {row.role === "partner" ? " · Partner" : ""}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        <FirstRunChartForm
+          firstName={(user?.first_name || "").trim() || null}
+          birth={{
+            birthDate,
+            birthTime,
+            birthCity,
+            lat,
+            lon,
+            timezone,
+          }}
+          onChange={patchFirstRunBirth}
+          busy={busyMode === "save"}
+          ready={formReady}
+          saveError={error}
+          onSave={() => void submitFirstRun()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
@@ -1562,7 +1719,11 @@ export default function ProfilePage() {
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-fg">Edit / switch person</div>
+                <div className="text-sm font-semibold text-fg">
+                  {firstRunYouReveal
+                    ? t("chart.firstRun.editDetails")
+                    : "Edit / switch person"}
+                </div>
                 <div className="mt-0.5 truncate text-xs text-fg-muted">
                   {activePersonLabel}
                   {typeKey ? ` · ${typeKey}` : ""}
@@ -1617,6 +1778,13 @@ export default function ProfilePage() {
             </div>
 
             <div id="snapshot" className="space-y-4">
+              {firstRunYouReveal && (
+                <div className="space-y-2" data-testid="first-run-natal-reveal">
+                  <p className="type-body text-fg" data-testid="first-run-natal-line">
+                    {t("chart.firstRun.natalLine")}
+                  </p>
+                </div>
+              )}
               <div className="rounded-2xl border border-growth/30 bg-growth-soft px-5 py-4">
                 <p className="text-lg font-semibold text-growth-ink">
                   You&apos;re a {typeKey}
@@ -1651,6 +1819,18 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
+
+              {firstRunYouReveal && (
+                <p>
+                  <Link
+                    href="/transits"
+                    data-testid="first-run-see-todays-move"
+                    className="type-body text-growth underline-offset-2 hover:underline"
+                  >
+                    {t("chart.firstRun.seeTodaysMove")}
+                  </Link>
+                </p>
+              )}
 
               {watch.length > 0 && (
                 <div
