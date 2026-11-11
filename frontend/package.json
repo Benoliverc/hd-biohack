@@ -27,7 +27,8 @@
     "assert:soul-names-partner-mode": "npx tsx scripts/assert-soul-names-partner-mode.mjs",
     "assert:love-guidance-readability": "npx tsx scripts/assert-love-guidance-readability.mjs",
     "assert:love-guidance-language": "npx tsx scripts/assert-love-guidance-language.mjs",
-    "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs"
+    "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs",
+    "assert:first-run-chart-path": "npx tsx scripts/assert-first-run-chart-path.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

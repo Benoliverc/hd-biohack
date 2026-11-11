@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, GeoPlace } from "@/lib/api";
 import { formatTimezoneLabel } from "@/lib/timezone";
+import { useI18n } from "@/lib/i18n";
 
 type Props = {
   value: string;
@@ -18,7 +19,44 @@ type Props = {
     lon: number | null,
     timezone?: string | null
   ) => void;
+  /** First-run Chart surface: quieter typeahead, no Resolve / default lat-lon chrome. */
+  variant?: "default" | "first-run";
+  fieldError?: string | null;
 };
+
+function looksLikeCoordinates(value: string): boolean {
+  return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(value.trim());
+}
+
+function shortPlaceLabel(value: string): string | null {
+  const raw = value.trim();
+  if (!raw || looksLikeCoordinates(raw)) return null;
+  return raw.split(",")[0]?.trim() || raw;
+}
+
+function shortTimezoneLabel(
+  timeZone: string | null | undefined,
+  birthDate?: string,
+  birthTime?: string
+): string | null {
+  if (!timeZone) return null;
+  try {
+    const t = (birthTime || "00:00").slice(0, 8);
+    const hhmmss = t.length === 5 ? `${t}:00` : t;
+    const at =
+      birthDate && !Number.isNaN(new Date(`${birthDate}T${hhmmss}Z`).getTime())
+        ? new Date(`${birthDate}T${hhmmss}Z`)
+        : new Date();
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "short",
+    }).formatToParts(at);
+    const name = parts.find((p) => p.type === "timeZoneName")?.value;
+    return name || timeZone;
+  } catch {
+    return timeZone;
+  }
+}
 
 export function CityPicker({
   value,
@@ -29,7 +67,11 @@ export function CityPicker({
   birthTime,
   disabled = false,
   onChange,
+  variant = "default",
+  fieldError = null,
 }: Props) {
+  const { t } = useI18n();
+  const firstRun = variant === "first-run";
   const [q, setQ] = useState(value);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -90,7 +132,11 @@ export function CityPicker({
       } catch {
         setResults([]);
         setOpen(true);
-        setGeoError("Couldn't reach the geocoder. Check that the API is up, then try again.");
+        setGeoError(
+          firstRun
+            ? t("chart.firstRun.cityNetwork")
+            : "Couldn't reach the geocoder. Check that the API is up, then try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -116,7 +162,13 @@ export function CityPicker({
       setGeoError(null);
       try {
         const place = await api.geocode(`${la}, ${lo}`);
-        onChange(label, la, lo, place.timezone ?? null);
+        const nextLabel =
+          firstRun && place.display_name && !looksLikeCoordinates(place.display_name)
+            ? place.display_name
+            : label;
+        resolvedLabel.current = nextLabel;
+        setQ(nextLabel);
+        onChange(nextLabel, la, lo, place.timezone ?? null);
       } catch {
         onChange(label, la, lo, null);
       }
@@ -149,25 +201,42 @@ export function CityPicker({
   };
 
   const tzLabel = formatTimezoneLabel(timezone, birthDate, birthTime);
+  const firstRunTz = shortTimezoneLabel(timezone, birthDate, birthTime);
+  const firstRunPlace = shortPlaceLabel(q);
+  const firstRunConfirm =
+    firstRunPlace && firstRunTz
+      ? `${firstRunPlace} · ${firstRunTz}`
+      : firstRunPlace || firstRunTz || "";
 
   return (
-    <div className="relative z-20 space-y-2 md:col-span-2" ref={boxRef}>
+    <div className={firstRun ? "relative z-20 space-y-2" : "relative z-20 space-y-2 md:col-span-2"} ref={boxRef}>
       <label className="block text-sm">
-        <span className="mb-1 block text-fg-muted">Birth city / place</span>
+        <span className={`mb-1 block ${firstRun ? "text-fg" : "text-fg-muted"}`}>
+          {firstRun ? t("chart.firstRun.cityLabel") : "Birth city / place"}
+        </span>
         <div className="relative flex gap-2">
           <input
-            className="w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
+            className={`w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60 ${
+              firstRun ? "min-h-11" : ""
+            }`}
             value={q}
             onChange={(e) => search(e.target.value)}
             onFocus={() => {
               if (results.length) setOpen(true);
             }}
-            placeholder={disabled ? "Loading…" : "Type a city or place name"}
+            placeholder={
+              firstRun
+                ? t("chart.firstRun.cityPlaceholder")
+                : disabled
+                  ? "Loading…"
+                  : "Type a city or place name"
+            }
             autoComplete="off"
             disabled={disabled}
+            aria-invalid={firstRun && Boolean(fieldError) ? true : undefined}
           />
-          {/* Resolve only when unresolved and typing (not lat/lon mode) */}
-          {!isResolved && !manual && (
+          {/* Resolve only when unresolved and typing (not lat/lon mode) — hidden on first-run */}
+          {!firstRun && !isResolved && !manual && (
             <button
               type="button"
               onClick={resolveNow}
@@ -181,6 +250,12 @@ export function CityPicker({
         </div>
       </label>
 
+      {firstRun && fieldError && (
+        <p className="type-caption text-danger" data-testid="first-run-city-error">
+          {fieldError}
+        </p>
+      )}
+
       {geoError && (
         <p className="text-xs text-danger">{geoError}</p>
       )}
@@ -189,9 +264,13 @@ export function CityPicker({
         <ul className="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto rounded-xl border border-border bg-sunken text-sm shadow-xl">
           {results.length === 0 && (
             <li className="px-3 py-2 text-fg-muted">
-              {geoError
-                ? "Geocoder unavailable — try again or enter lat/lon."
-                : "No matches yet — try a fuller name or enter lat/lon."}
+              {firstRun
+                ? geoError
+                  ? t("chart.firstRun.cityNetwork")
+                  : t("chart.firstRun.cityUnresolved")
+                : geoError
+                  ? "Geocoder unavailable — try again or enter lat/lon."
+                  : "No matches yet — try a fuller name or enter lat/lon."}
             </li>
           )}
           {results.map((r) => (
@@ -203,9 +282,11 @@ export function CityPicker({
                 onClick={() => pick(r)}
               >
                 <span>{r.display_name}</span>
-                <span className="shrink-0 text-[10px] uppercase text-fg-muted">
-                  {r.source || (r.cached ? "cache" : "live")}
-                </span>
+                {!firstRun && (
+                  <span className="shrink-0 text-[10px] uppercase text-fg-muted">
+                    {r.source || (r.cached ? "cache" : "live")}
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -217,10 +298,20 @@ export function CityPicker({
           <button
             type="button"
             disabled={disabled}
-            className="min-h-10 rounded-full border border-dashed border-border px-3 py-2 text-xs text-fg-muted hover:text-fg-secondary disabled:cursor-wait disabled:opacity-50"
+            className={
+              firstRun
+                ? "min-h-10 rounded-full px-1 py-2 type-caption text-fg-secondary underline-offset-2 hover:text-fg hover:underline disabled:cursor-wait disabled:opacity-50"
+                : "min-h-10 rounded-full border border-dashed border-border px-3 py-2 text-xs text-fg-muted hover:text-fg-secondary disabled:cursor-wait disabled:opacity-50"
+            }
             onClick={() => setManual((v) => !v)}
           >
-            {manual ? "Hide lat/lon" : "Enter lat/lon"}
+            {firstRun
+              ? manual
+                ? t("chart.firstRun.coordsHide")
+                : t("chart.firstRun.coordsToggle")
+              : manual
+                ? "Hide lat/lon"
+                : "Enter lat/lon"}
           </button>
         </div>
       )}
@@ -258,7 +349,17 @@ export function CityPicker({
         </div>
       )}
 
-      {disabled ? (
+      {firstRun ? (
+        disabled ? null : isResolved && firstRunConfirm ? (
+          <p className="type-caption text-fg" data-testid="first-run-city-confirm">
+            {firstRunConfirm}
+          </p>
+        ) : q.trim() && !isResolved && !fieldError ? (
+          <p className="type-caption text-fg" data-testid="first-run-city-unresolved">
+            {t("chart.firstRun.cityUnresolved")}
+          </p>
+        ) : null
+      ) : disabled ? (
         <p className="text-xs text-fg-muted">Waiting for saved chart…</p>
       ) : isResolved ? (
         <p className="text-xs text-growth">
