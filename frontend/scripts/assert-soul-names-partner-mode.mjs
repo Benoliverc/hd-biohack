@@ -52,8 +52,8 @@ assert.ok(removeHandler.includes("setRemovingPartner(false)"), "control re-enabl
 // Shown only in the already-Partner branch (alongside the reason line),
 // not in the Mark as Partner discovery prompt.
 const reasonStart = page.indexOf('data-testid="soul-love-guidance-reason"');
-const markStart = page.indexOf('data-testid="soul-mark-partner-prompt"');
-assert.ok(reasonStart > 0 && markStart > reasonStart, "reason before mark prompt");
+const markStart = page.indexOf('data-testid="soul-mark-partner-row"');
+assert.ok(reasonStart > 0 && markStart > reasonStart, "reason before mark row");
 const partnerBranch = page.slice(reasonStart, markStart);
 assert.ok(
   partnerBranch.includes('data-testid="soul-remove-as-partner"'),
@@ -129,7 +129,7 @@ assert.ok(
 assert.ok(page.includes("writeSoulLastPersonId"), "last-selected write remains");
 assert.ok(page.includes("writeSoulLastPersonId(user.id, next)"), "write keyed by user.id");
 assert.ok(page.includes('data-testid="soul-mark-as-partner"'), "Mark as Partner remains");
-assert.ok(page.includes("Want Love guidance with"), "mark reason remains");
+assert.ok(page.includes('data-testid="soul-mark-partner-reason"'), "mark reason testid remains");
 assert.ok(
   page.includes('renameChart(selectedFriend.id, selectedFriend.label || "", "partner")'),
   "Mark still uses renameChart partner",

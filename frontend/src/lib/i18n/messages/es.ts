@@ -190,6 +190,8 @@ export const messages = {
   'page.chart.h1': 'Chart — tu mapa de energía',
   'page.soul.h1': 'Soul',
   'page.soul.subtitle': 'Aura entre tú y alguien que has cartografiado. · Pro',
+  'page.soul.markPartnerReasonNamed': 'Partner is for a romantic bond with {name}. It opens Love guidance, and it doesn’t score the bond.',
+  'page.soul.markPartnerReason': 'Partner is for a romantic bond. It opens Love guidance, and it doesn’t score the bond.',
   'today.hdFactLabel': 'Dato de Human Design del día',
   'today.howToReadJump': 'Cómo leerlo',
   'today.skyStory': 'Historia del cielo',
