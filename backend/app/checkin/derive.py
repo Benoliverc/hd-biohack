@@ -205,8 +205,9 @@ def _attach_novelty(
     day: date | None,
     calc_transit: Callable[..., dict[str, Any]] | None = None,
     calc_overlay: Callable[..., dict[str, Any] | None] | None = None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
-    bucket_day = day or hkt_today()
+    bucket_day = day or hkt_today(tz_name)
     daily = compute_daily_signal(
         natal=natal,
         transit=transit,
@@ -216,6 +217,7 @@ def _attach_novelty(
         day=bucket_day,
         calc_transit=calc_transit,
         calc_overlay=calc_overlay,
+        tz_name=tz_name,
     )
     vs = compute_vs_yesterday(
         natal=natal,
@@ -243,6 +245,7 @@ def _attach_novelty(
         daily_signal=daily,
         calc_transit=calc_transit,
         calc_overlay=calc_overlay,
+        tz_name=tz_name,
     )
     return payload
 
@@ -260,11 +263,12 @@ def _with_prescription(
     biohacking_unlocked: bool = False,
     history: list[dict[str, Any]] | None = None,
     avoid_supplement_ids: set[str] | None = None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     """Attach Move/kit/When. Free path always shows kit placeholder."""
     from .novelty import hkt_today
 
-    day_key = (day or hkt_today()).isoformat()
+    day_key = (day or hkt_today(tz_name)).isoformat()
     return attach_prescription(
         payload,
         natal=natal,
@@ -286,6 +290,7 @@ def _no_natal_indication(
     prev_transit: dict[str, Any] | None = None,
     day: date | None = None,
     calc_transit: Callable[..., dict[str, Any]] | None = None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     """Transit-safe Steady/Charged only — never claim personal bridges."""
     transit = transit or {}
@@ -335,6 +340,7 @@ def _no_natal_indication(
         day=day,
         calc_transit=calc_transit,
         calc_overlay=None,
+        tz_name=tz_name,
     )
     return _with_prescription(
         payload,
@@ -342,6 +348,7 @@ def _no_natal_indication(
         transit=transit,
         overlay=None,
         day=day,
+        tz_name=tz_name,
     )
 
 
@@ -354,6 +361,7 @@ def derive_today_indication(
     prev_overlay: dict[str, Any] | None = None,
     prev_indication: dict[str, Any] | None = None,
     day: date | None = None,
+    tz_name: str | None = None,
     calc_transit: Callable[..., dict[str, Any]] | None = None,
     calc_overlay: Callable[..., dict[str, Any] | None] | None = None,
     owned_names: list[str] | None = None,
@@ -374,6 +382,7 @@ def derive_today_indication(
             prev_transit=prev_transit,
             day=day,
             calc_transit=calc_transit,
+            tz_name=tz_name,
         )
 
     natal_defined = _as_set(natal.get("defined_centers"))
@@ -434,6 +443,7 @@ def derive_today_indication(
         day=day,
         calc_transit=calc_transit,
         calc_overlay=calc_overlay,
+        tz_name=tz_name,
     )
     return _with_prescription(
         payload,
@@ -446,4 +456,5 @@ def derive_today_indication(
         biohacking_unlocked=biohacking_unlocked,
         history=history,
         avoid_supplement_ids=avoid_supplement_ids,
+        tz_name=tz_name,
     )

@@ -1,4 +1,4 @@
-"""Daily Novelty Contract — HKT-bucketed daily_signal waterfall (HD × transits only)."""
+"""Daily Novelty Contract — 07:00-bucketed daily_signal waterfall (account TZ, HD × transits only)."""
 
 from __future__ import annotations
 
@@ -8,8 +8,35 @@ from zoneinfo import ZoneInfo
 
 from ..hd.channels import GATE_TO_CENTER
 
-HKT = ZoneInfo("Asia/Hong_Kong")
-BUCKET_HOUR = 7  # fixed 07:00 Asia/Hong_Kong — stick to this
+DEFAULT_TZ_NAME = "Asia/Hong_Kong"
+HKT = ZoneInfo(DEFAULT_TZ_NAME)
+BUCKET_HOUR = 7  # 07:00 in the account timezone (fallback Asia/Hong_Kong)
+
+
+def resolve_zone(tz_name: str | None = None) -> ZoneInfo:
+    """Preferred IANA zone, or Asia/Hong_Kong when null/invalid."""
+    name = (tz_name or "").strip() or DEFAULT_TZ_NAME
+    try:
+        return ZoneInfo(name)
+    except Exception:
+        return HKT
+
+
+def novelty_today(tz_name: str | None = None) -> date:
+    """Current novelty calendar day, flipping at 07:00 in the account timezone."""
+    zone = resolve_zone(tz_name)
+    now = datetime.now(zone)
+    if now.hour < BUCKET_HOUR:
+        return now.date() - timedelta(days=1)
+    return now.date()
+
+
+def novelty_bucket_instant(day: date | None = None, tz_name: str | None = None) -> datetime:
+    """Ephemeris bucket at 07:00 in the account timezone for novelty day D."""
+    zone = resolve_zone(tz_name)
+    if day is None:
+        day = novelty_today(tz_name)
+    return datetime(day.year, day.month, day.day, BUCKET_HOUR, 0, 0, tzinfo=zone)
 
 CONDITIONING_CAPTION = (
     "These update when bridges or temporary centers shift — often every few days."
@@ -30,15 +57,14 @@ GATE_CUE: dict[int, str] = {
 }
 
 
-def hkt_bucket_instant(day: date | None = None) -> datetime:
-    """Ephemeris bucket at 07:00 Asia/Hong_Kong for calendar day D."""
-    if day is None:
-        day = datetime.now(HKT).date()
-    return datetime(day.year, day.month, day.day, BUCKET_HOUR, 0, 0, tzinfo=HKT)
+def hkt_bucket_instant(day: date | None = None, tz_name: str | None = None) -> datetime:
+    """Ephemeris bucket at 07:00 in tz_name (fallback Asia/Hong_Kong) for novelty day D."""
+    return novelty_bucket_instant(day, tz_name)
 
 
-def hkt_today() -> date:
-    return datetime.now(HKT).date()
+def hkt_today(tz_name: str | None = None) -> date:
+    """Current novelty day in tz_name (fallback Asia/Hong_Kong), flipping at 07:00."""
+    return novelty_today(tz_name)
 
 
 def _act(transit: dict[str, Any] | None, planet: str) -> dict[str, Any] | None:
@@ -175,12 +201,13 @@ def _continuity_day_index(
     today_sig: dict[str, Any],
     calc_transit,
     calc_overlay,
+    tz_name: str | None = None,
 ) -> int:
-    """Count consecutive HKT days (including today) with the same novelty-relevant sky."""
+    """Count consecutive novelty days (including today) with the same novelty-relevant sky."""
     n = 1
     for i in range(1, 45):
         prev_d = day - timedelta(days=i)
-        when = hkt_bucket_instant(prev_d)
+        when = hkt_bucket_instant(prev_d, tz_name)
         t = calc_transit(when)
         o = calc_overlay(natal, t) if natal else None
         sig = sky_signature(natal, t, o)
@@ -209,6 +236,7 @@ def compute_daily_signal(
     day: date,
     calc_transit=None,
     calc_overlay=None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     """
     Waterfall §2: Moon gate → Moon line → Sun line → Sun gate → hanging →
@@ -294,6 +322,7 @@ def compute_daily_signal(
                 today_sig=today,
                 calc_transit=calc_transit,
                 calc_overlay=calc_overlay or (lambda _n, _t: None),
+                tz_name=tz_name,
             )
         else:
             # Fallback when walker not supplied: use day-of-year so keys still differ
@@ -408,12 +437,13 @@ def _field_continuity_day_index(
     calc_transit,
     calc_overlay,
     fields: tuple[str, ...],
+    tz_name: str | None = None,
 ) -> int:
-    """Count consecutive HKT days (including today) matching selected sky_signature fields."""
+    """Count consecutive novelty days (including today) matching selected sky_signature fields."""
     n = 1
     for i in range(1, 45):
         prev_d = day - timedelta(days=i)
-        when = hkt_bucket_instant(prev_d)
+        when = hkt_bucket_instant(prev_d, tz_name)
         t = calc_transit(when)
         o = calc_overlay(natal, t) if natal else None
         sig = sky_signature(natal, t, o)
@@ -429,9 +459,10 @@ def compute_tomorrow_tease(
     day: date,
     transit: dict[str, Any] | None,
     calc_transit=None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     """
-    Structured tomorrow tease from next HKT novelty-day Moon/Sun gates.
+    Structured tomorrow tease from next novelty-day Moon/Sun gates.
     Mechanics only — never invents a lifestyle Move.
     """
     mg_t, _ml_t = gate_line(transit, "Moon")
@@ -439,7 +470,7 @@ def compute_tomorrow_tease(
     mg_n: int | None = None
     sg_n: int | None = None
     if calc_transit is not None:
-        next_t = calc_transit(hkt_bucket_instant(day + timedelta(days=1)))
+        next_t = calc_transit(hkt_bucket_instant(day + timedelta(days=1), tz_name))
         mg_n, _ = gate_line(next_t, "Moon")
         sg_n, _ = gate_line(next_t, "Sun")
 
@@ -480,6 +511,7 @@ def compute_sky_story(
     daily_signal: dict[str, Any] | None = None,
     calc_transit=None,
     calc_overlay=None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     """
     Free sky chapter: 2-4 observational lines + one muted tomorrow tease.
@@ -503,6 +535,7 @@ def compute_sky_story(
             calc_transit=calc_transit,
             calc_overlay=overlay_fn,
             fields=("sun_gate",),
+            tz_name=tz_name,
         )
     if calc_transit is not None and today["bridges"]:
         bridge_day = _field_continuity_day_index(
@@ -512,6 +545,7 @@ def compute_sky_story(
             calc_transit=calc_transit,
             calc_overlay=overlay_fn,
             fields=("bridges",),
+            tz_name=tz_name,
         )
 
     lines: list[str] = []
@@ -603,6 +637,7 @@ def compute_sky_story(
         day=day,
         transit=transit,
         calc_transit=calc_transit,
+        tz_name=tz_name,
     )
 
     return {

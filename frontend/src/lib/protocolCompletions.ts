@@ -2,7 +2,7 @@
  * Protocols completion store — local cache + server sync.
  *
  * Day/week boundaries use the account preferred timezone (fallback Asia/Hong_Kong).
- * Daily Novelty buckets stay HKT — see timezone.ts; do not retarget novelty here.
+ * Daily Novelty buckets use the same account timezone at 07:00 — see timezone.ts.
  *
  * Day key (v2): hd-biohack:protocol-done:v2:{userId}:{chartId}:{YYYY-MM-DD}
  * Migrates boolean maps from v1 keys on first read.
@@ -61,7 +61,7 @@ export function dayKeyInZone(timeZone: string, d = new Date()): string {
   }
 }
 
-/** @deprecated Prefer dayKeyInZone — kept for Daily Novelty / lead-fingerprint HKT keys. */
+/** @deprecated Prefer dayKeyInZone (completions, midnight) or noveltyDayKey (07:00 bucket). */
 export function hkDayKey(d = new Date()): string {
   return dayKeyInZone(DEFAULT_PROTOCOLS_TZ, d);
 }

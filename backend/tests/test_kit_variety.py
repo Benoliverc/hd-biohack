@@ -111,7 +111,7 @@ def test_empty_kit_null_fact_and_cta():
     print("PASS: empty kit → null fact + CTA")
 
 
-def test_fact_rotates_across_hkt_days():
+def test_fact_rotates_across_novelty_days():
     kit = ["Magnesium Glycinate", "Omega-3", "Vitamin D3", "Creatine", "Ashwagandha", "B-Complex"]
     bodies = []
     for i in range(14):
@@ -220,7 +220,7 @@ def test_fact_library_trust_grep_gate():
     print("PASS: fact library trust grep gate clean")
 
 
-def test_same_hkt_day_kit_lead_stable():
+def test_same_novelty_day_kit_lead_stable():
     """Anti-whiplash: Refresh same HKT day must not thrash owned lead."""
     kit = ["B-Complex", "Omega-3", "Magnesium Glycinate", "Zinc", "Creatine"]
     day = "2026-10-24"
@@ -531,13 +531,13 @@ if __name__ == "__main__":
     test_library_size()
     test_fact_only_for_kit_members()
     test_empty_kit_null_fact_and_cta()
-    test_fact_rotates_across_hkt_days()
+    test_fact_rotates_across_novelty_days()
     test_kit_lead_rotates_across_days()
     test_build_protocol_kit_variety_not_always_b()
     test_plain_english_action_lines()
     test_match_aliases()
     test_fact_library_trust_grep_gate()
-    test_same_hkt_day_kit_lead_stable()
+    test_same_novelty_day_kit_lead_stable()
     test_multi_item_not_stuck_on_b_or_mag()
     test_fact_has_foot_and_owned_only()
     test_no_duplicate_supplement_across_morning_midday_evening()

@@ -1207,6 +1207,7 @@ def build_protocol(
     indication: dict[str, Any] | None = None,
     transit: dict[str, Any] | None = None,
     yesterday_lead_fingerprint: str | None = None,
+    tz_name: str | None = None,
 ) -> dict[str, Any]:
     from ..checkin import derive_today_indication
     from .sky_rotation import apply_sky_rotation, lead_fingerprint
@@ -1267,12 +1268,12 @@ def build_protocol(
     focus = priority[:4]
 
     if indication is None:
-        indication = derive_today_indication(natal, transit or {}, overlay)
+        indication = derive_today_indication(natal, transit or {}, overlay, tz_name=tz_name)
 
     from ..checkin.novelty import hkt_today
     from .kit_variety import empty_kit_fact_cta, pick_kit_fact
 
-    day_key = str((indication or {}).get("day") or hkt_today().isoformat())
+    day_key = str((indication or {}).get("day") or hkt_today(tz_name).isoformat())
     summary, daily_plan, weekly_plan = _build_actionable_plans(
         natal,
         overlay,

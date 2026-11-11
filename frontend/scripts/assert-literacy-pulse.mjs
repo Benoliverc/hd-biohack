@@ -18,7 +18,7 @@ const {
   LITERACY_JUMP_BY_FIELD,
 } = mod;
 
-const fixed = new Date("2026-11-06T04:00:00.000Z"); // HKT novelty day 2026-11-06
+const fixed = new Date("2026-11-06T04:00:00.000Z"); // 12:00 Asia/Hong_Kong novelty day 2026-11-06
 
 // Sky-keyed when vs_yesterday has a moon/sun/bridge/newly/hanging change
 const moonPulse = contextualHdFact({
@@ -148,4 +148,11 @@ for (const fact of Object.values(SKY_LITERACY_FACTS)) {
   assert.ok(!/universe wants|destiny|soulmate|aligned score/i.test(fact));
 }
 
+// Account-TZ novelty day: same UTC instant is still 5 Nov in America/New_York
+const nyLate = contextualHdFact({ now: fixed, timeZone: "America/New_York" });
+assert.equal(nyLate.dayKey, "2026-11-05");
+const hktNoon = contextualHdFact({ now: fixed, timeZone: "Asia/Hong_Kong" });
+assert.equal(hktNoon.dayKey, "2026-11-06");
+
 console.log("assert-literacy-pulse PASS");
+

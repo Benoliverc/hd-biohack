@@ -1027,6 +1027,7 @@ export default function TodayIndication({
         const pulse = contextualHdFact({
           vsYesterday: vs,
           dailySignal: daily,
+          timeZone: preferredTimezone,
         });
         return (
           <aside

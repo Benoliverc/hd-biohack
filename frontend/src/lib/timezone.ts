@@ -1,3 +1,5 @@
+import type { MessageKey } from "@/lib/i18n";
+
 /** Format IANA timezone + UTC offset for a given local birth moment. */
 export function formatTimezoneLabel(
   timeZone: string | null | undefined,
@@ -75,66 +77,203 @@ export function formatAsOfInZone(
   }
 }
 
-/** Novelty day bucket hour in Asia/Hong_Kong (matches backend BUCKET_HOUR). */
-export const NOVELTY_BUCKET_HOUR_HKT = 7;
+/** Novelty day bucket hour in the account timezone (matches backend BUCKET_HOUR). */
+export const NOVELTY_BUCKET_HOUR = 7;
+/** @deprecated Use NOVELTY_BUCKET_HOUR — kept so older tests can migrate in this pass. */
+export const NOVELTY_BUCKET_HOUR_HKT = NOVELTY_BUCKET_HOUR;
 
-/** Asia/Hong_Kong is fixed UTC+8 (no DST). */
-const HKT_OFFSET_MS = 8 * 60 * 60 * 1000;
+export const DEFAULT_NOVELTY_TZ = "Asia/Hong_Kong";
 
-/** Novelty calendar day (YYYY-MM-DD) in HKT, flipping at 07:00 Asia/Hong_Kong. */
+/** Resolve a preferred IANA zone; invalid or empty falls back to Asia/Hong_Kong. */
+export function resolveAccountTz(timeZone?: string | null): string {
+  const cleaned = (timeZone || "").trim();
+  if (!cleaned) return DEFAULT_NOVELTY_TZ;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: cleaned }).format(new Date());
+    return cleaned;
+  } catch {
+    return DEFAULT_NOVELTY_TZ;
+  }
+}
+
+type ZoneParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
+
+function partsInZone(timeZone: string, now: Date): ZoneParts {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const map: Record<string, string> = {};
+  for (const part of fmt.formatToParts(now)) {
+    if (part.type !== "literal") map[part.type] = part.value;
+  }
+  return {
+    year: Number(map.year),
+    month: Number(map.month),
+    day: Number(map.day),
+    hour: Number(map.hour),
+    minute: Number(map.minute),
+    second: Number(map.second),
+  };
+}
+
+/** Instant for a wall-clock time in a zone (DST-safe; no fixed UTC offset). */
+export function zonedWallTime(
+  timeZone: string,
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute = 0,
+  second = 0
+): Date {
+  const zone = resolveAccountTz(timeZone);
+  let utc = Date.UTC(year, month - 1, day, hour, minute, second);
+  for (let i = 0; i < 4; i++) {
+    const p = partsInZone(zone, new Date(utc));
+    const got = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+    const wanted = Date.UTC(year, month - 1, day, hour, minute, second);
+    const delta = wanted - got;
+    if (delta === 0) break;
+    utc += delta;
+  }
+  return new Date(utc);
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function formatYmd(year: number, month: number, day: number): string {
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+/**
+ * Novelty calendar day (YYYY-MM-DD) in the account timezone, flipping at 07:00.
+ * Before 07:00, this is the previous calendar date in that zone.
+ */
+export function noveltyDayKey(timeZone?: string | null, now: Date = new Date()): string {
+  const zone = resolveAccountTz(timeZone);
+  const p = partsInZone(zone, now);
+  if (p.hour >= NOVELTY_BUCKET_HOUR) {
+    return formatYmd(p.year, p.month, p.day);
+  }
+  const todayNoon = zonedWallTime(zone, p.year, p.month, p.day, 12);
+  const prev = new Date(todayNoon.getTime() - 24 * 60 * 60 * 1000);
+  const q = partsInZone(zone, prev);
+  return formatYmd(q.year, q.month, q.day);
+}
+
+/** @deprecated Use noveltyDayKey(undefined, now) — HKT fallback. */
 export function noveltyDayKeyHkt(now: Date = new Date()): string {
-  const shifted = new Date(now.getTime() - NOVELTY_BUCKET_HOUR_HKT * 60 * 60 * 1000);
-  const hktWall = new Date(shifted.getTime() + HKT_OFFSET_MS);
-  const y = hktWall.getUTCFullYear();
-  const m = String(hktWall.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(hktWall.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return noveltyDayKey(DEFAULT_NOVELTY_TZ, now);
+}
+
+/** Previous novelty day key (the 07:00 bucket before the current one). */
+export function prevNoveltyDayKey(timeZone?: string | null, now: Date = new Date()): string {
+  const zone = resolveAccountTz(timeZone);
+  const key = noveltyDayKey(zone, now);
+  const [y, mo, d] = key.split("-").map(Number);
+  const noon = zonedWallTime(zone, y, mo, d, 12);
+  const prev = new Date(noon.getTime() - 24 * 60 * 60 * 1000);
+  const q = partsInZone(zone, prev);
+  return formatYmd(q.year, q.month, q.day);
 }
 
 /**
- * Next Daily Novelty reset instant: next 07:00 Asia/Hong_Kong.
- * If `now` is at or after today's 07:00 HKT, returns tomorrow's 07:00 HKT.
+ * Next Daily Novelty reset instant: next 07:00 in the account timezone.
+ * If `now` is at or after today's 07:00, returns tomorrow's 07:00 in that zone.
  */
+export function nextNoveltyReset(timeZone?: string | null, now: Date = new Date()): Date {
+  const zone = resolveAccountTz(timeZone);
+  const p = partsInZone(zone, now);
+  let reset = zonedWallTime(zone, p.year, p.month, p.day, NOVELTY_BUCKET_HOUR);
+  if (now.getTime() >= reset.getTime()) {
+    const todayNoon = zonedWallTime(zone, p.year, p.month, p.day, 12);
+    const next = new Date(todayNoon.getTime() + 24 * 60 * 60 * 1000);
+    const q = partsInZone(zone, next);
+    reset = zonedWallTime(zone, q.year, q.month, q.day, NOVELTY_BUCKET_HOUR);
+  }
+  return reset;
+}
+
+/** @deprecated Use nextNoveltyReset. */
 export function nextNoveltyResetHkt(now: Date = new Date()): Date {
-  const hktWall = new Date(now.getTime() + HKT_OFFSET_MS);
-  const y = hktWall.getUTCFullYear();
-  const m = hktWall.getUTCMonth();
-  const d = hktWall.getUTCDate();
+  return nextNoveltyReset(DEFAULT_NOVELTY_TZ, now);
+}
 
-  let resetUtcMs =
-    Date.UTC(y, m, d, NOVELTY_BUCKET_HOUR_HKT, 0, 0) - HKT_OFFSET_MS;
+export type ResetsInParts =
+  | { kind: "soon" }
+  | { kind: "minutes"; n: number }
+  | { kind: "aboutAnHour" }
+  | { kind: "hours"; n: number };
 
-  if (now.getTime() >= resetUtcMs) {
-    const nextDay = new Date(Date.UTC(y, m, d + 1));
-    resetUtcMs =
-      Date.UTC(
-        nextDay.getUTCFullYear(),
-        nextDay.getUTCMonth(),
-        nextDay.getUTCDate(),
-        NOVELTY_BUCKET_HOUR_HKT,
-        0,
-        0
-      ) - HKT_OFFSET_MS;
+export function resetsInParts(
+  now: Date = new Date(),
+  timeZone?: string | null
+): ResetsInParts {
+  const ms = nextNoveltyReset(timeZone, now).getTime() - now.getTime();
+  if (ms < 60_000) return { kind: "soon" };
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) return { kind: "minutes", n: minutes };
+  if (minutes < 120) return { kind: "aboutAnHour" };
+  const hours = Math.round(ms / 3_600_000);
+  return { kind: "hours", n: hours };
+}
+
+const RESETS_KEYS = {
+  soon: "today.resetsSoon",
+  oneMinute: "today.resetsInOneMinute",
+  minutes: "today.resetsInMinutes",
+  aboutAnHour: "today.resetsInAboutAnHour",
+  oneHour: "today.resetsInOneHour",
+  hours: "today.resetsInHours",
+} as const;
+
+type ResetsTFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
+
+function resetsInEnglish(parts: ResetsInParts): string {
+  if (parts.kind === "soon") return "Resets soon";
+  if (parts.kind === "minutes") {
+    return parts.n === 1 ? "Resets in ~1 minute" : `Resets in ~${parts.n} minutes`;
   }
-  return new Date(resetUtcMs);
+  if (parts.kind === "aboutAnHour") return "Resets in about an hour";
+  return parts.n === 1 ? "Resets in ~1 hour" : `Resets in ~${parts.n} hours`;
 }
 
 /**
- * Warm relative countdown to the next Daily Novelty reset (07:00 HKT).
- * Approximate on purpose — no natal/Brussels absolute stamp.
+ * Warm relative countdown to the next Daily Novelty reset (07:00 in the account timezone).
+ * Approximate on purpose. When `t` is provided, uses keyed copy; otherwise English.
  */
-export function formatResetsInHkt(now: Date = new Date()): string {
-  const ms = nextNoveltyResetHkt(now).getTime() - now.getTime();
-  if (ms < 60_000) return "Resets soon";
-
-  const minutes = Math.round(ms / 60_000);
-  if (minutes < 60) {
-    return minutes === 1
-      ? "Resets in ~1 minute"
-      : `Resets in ~${minutes} minutes`;
+export function formatResetsIn(
+  now: Date = new Date(),
+  timeZone?: string | null,
+  t?: ResetsTFn
+): string {
+  const parts = resetsInParts(now, timeZone);
+  if (!t) return resetsInEnglish(parts);
+  if (parts.kind === "soon") return t(RESETS_KEYS.soon);
+  if (parts.kind === "minutes") {
+    return parts.n === 1 ? t(RESETS_KEYS.oneMinute) : t(RESETS_KEYS.minutes, { n: parts.n });
   }
-  if (minutes < 120) return "Resets in about an hour";
+  if (parts.kind === "aboutAnHour") return t(RESETS_KEYS.aboutAnHour);
+  return parts.n === 1 ? t(RESETS_KEYS.oneHour) : t(RESETS_KEYS.hours, { n: parts.n });
+}
 
-  const hours = Math.round(ms / 3_600_000);
-  return hours === 1 ? "Resets in ~1 hour" : `Resets in ~${hours} hours`;
+/** @deprecated Use formatResetsIn(now, timeZone). */
+export function formatResetsInHkt(now: Date = new Date()): string {
+  return formatResetsIn(now, DEFAULT_NOVELTY_TZ);
 }

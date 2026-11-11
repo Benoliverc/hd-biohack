@@ -332,16 +332,21 @@ def _validate_iana_timezone(tz: str | None) -> str | None:
 
 
 
-def _account_today(user: User | None) -> date:
-    """Calendar day for Protocols / I-did-it completions — preferred TZ, else HKT."""
-    from datetime import datetime as _dt
-
+def _account_tz_name(user: User | None) -> str:
+    """Preferred IANA timezone, falling back to Asia/Hong_Kong when null or invalid."""
     tz_name = (getattr(user, "preferred_timezone", None) or "").strip() or "Asia/Hong_Kong"
     try:
-        zone = ZoneInfo(tz_name)
+        ZoneInfo(tz_name)
+        return tz_name
     except Exception:
-        zone = ZoneInfo("Asia/Hong_Kong")
-    return _dt.now(zone).date()
+        return "Asia/Hong_Kong"
+
+
+def _account_today(user: User | None) -> date:
+    """Calendar day for Protocols / I-did-it completions — preferred TZ, else HKT (midnight, not 07:00)."""
+    from datetime import datetime as _dt
+
+    return _dt.now(ZoneInfo(_account_tz_name(user))).date()
 
 def _validate_first_name(name: str | None) -> str | None:
     """Trim optional first name; empty clears to None. Max 64 (schema-enforced)."""
@@ -770,11 +775,17 @@ def transits_today(
     ),
     db: Session = Depends(get_db),
 ):
-    # Bucket ephemeris at fixed 07:00 Asia/Hong_Kong for calendar day D and D-1
+    # Bucket ephemeris at 07:00 in the account timezone for novelty day D and D-1
     # so refreshes are stable within the day (Daily Novelty Contract).
-    day = hkt_today()
-    when_today = hkt_bucket_instant(day)
-    when_yest = hkt_bucket_instant(day - timedelta(days=1))
+    user = None
+    if user_id is not None:
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(404, "User not found")
+    tz_name = _account_tz_name(user)
+    day = hkt_today(tz_name)
+    when_today = hkt_bucket_instant(day, tz_name)
+    when_yest = hkt_bucket_instant(day - timedelta(days=1), tz_name)
 
     transit = calculate_transits(when_today)
     prev_transit = calculate_transits(when_yest)
@@ -793,12 +804,9 @@ def transits_today(
     inventory_notes: dict[str, str] = {}
     bio_unlocked = False
     history: list[dict] = []
-    # Completions share Protocols' account-TZ day key (fallback HKT). Ephemeris `day` stays HKT.
+    # Completions stay on the account-TZ calendar day (midnight). Novelty `day` is the 07:00 bucket.
     completion_day = day
-    if user_id is not None:
-        user = db.get(User, user_id)
-        if not user:
-            raise HTTPException(404, "User not found")
+    if user is not None:
         bio_unlocked = _user_has_biohacking(user) and not preview_as_free
         completion_day = _account_today(user)
         inv_rows = (
@@ -838,7 +846,9 @@ def transits_today(
     prev_indication = None
     if natal is not None:
         # Chip baseline for vs_yesterday energy/space deltas (no novelty recurse)
-        prev_indication = derive_today_indication(natal, prev_transit, prev_overlay)
+        prev_indication = derive_today_indication(
+            natal, prev_transit, prev_overlay, day=day - timedelta(days=1), tz_name=tz_name
+        )
 
     indication = derive_today_indication(
         natal,
@@ -848,6 +858,7 @@ def transits_today(
         prev_overlay=prev_overlay,
         prev_indication=prev_indication,
         day=day,
+        tz_name=tz_name,
         calc_transit=calculate_transits,
         calc_overlay=overlay_transits if natal else None,
         owned_names=owned_names,
@@ -1002,10 +1013,11 @@ def protocol(
     if not natal_row:
         raise HTTPException(404, "No natal chart for user — calculate & save one first")
 
-    # Same HKT 07:00 novelty buckets as /transits/today
-    day = hkt_today()
-    when_today = hkt_bucket_instant(day)
-    when_yest = hkt_bucket_instant(day - timedelta(days=1))
+    # Same 07:00 novelty buckets as /transits/today, in the account timezone
+    tz_name = _account_tz_name(user)
+    day = hkt_today(tz_name)
+    when_today = hkt_bucket_instant(day, tz_name)
+    when_yest = hkt_bucket_instant(day - timedelta(days=1), tz_name)
     natal = natal_row.chart_json
     transit = calculate_transits(when_today)
     prev_transit = calculate_transits(when_yest)
@@ -1024,7 +1036,13 @@ def protocol(
         r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
     }
     bio_unlocked = _user_has_biohacking(user)
-    prev_indication = derive_today_indication(natal, prev_transit, prev_overlay)
+    prev_indication = derive_today_indication(
+        natal,
+        prev_transit,
+        prev_overlay,
+        day=day - timedelta(days=1),
+        tz_name=tz_name,
+    )
     indication = derive_today_indication(
         natal,
         transit,
@@ -1033,6 +1051,7 @@ def protocol(
         prev_overlay=prev_overlay,
         prev_indication=prev_indication,
         day=day,
+        tz_name=tz_name,
         calc_transit=calculate_transits,
         calc_overlay=overlay_transits,
         owned_names=inv,
@@ -1049,6 +1068,7 @@ def protocol(
             indication=prev_indication,
             transit=prev_transit,
             yesterday_lead_fingerprint=None,
+            tz_name=tz_name,
         )
         y_fp = yest_proto.get("lead_fingerprint") or yest_proto.get("natural_lead_fingerprint")
     proto = build_protocol(
@@ -1058,6 +1078,7 @@ def protocol(
         indication=indication,
         transit=transit,
         yesterday_lead_fingerprint=y_fp,
+        tz_name=tz_name,
     )
     proto = maybe_synthesize(proto)
 
