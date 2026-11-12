@@ -251,7 +251,7 @@ export default function TodayIndication({
   }, [userId, chartId, dayKey, weekKeysSig]);
 
   const persistToggle = useCallback(
-    (itemId: string, label: string, kind: "move" | "baseline" | "evening" = "move") => {
+    (itemId: string, label: string, kind: "move" | "baseline" | "evening" | "kit" = "move") => {
       if (!userId || !chartId || !itemId) return;
       setCompletions((prev) => {
         const next = toggleCompletion(prev, itemId, { label, kind });
@@ -405,6 +405,13 @@ export default function TodayIndication({
   const moveId = indication.move_item_id || "today-move";
   const moveDone = Boolean(completions[moveId]?.done);
   const moveNote = completions[moveId]?.note || "";
+  const hasFilledKitTease = Boolean(indication.kit_item && !indication.kit_placeholder);
+  const hasKitStackHandoff =
+    hasFilledKitTease ||
+    (protocolsUnlocked &&
+      !hasFilledKitTease &&
+      inventoryStatus === "ready" &&
+      inventoryCount > 0);
 
   return (
     <div
@@ -598,77 +605,59 @@ export default function TodayIndication({
             })()}
 
 
-            {/* From your kit — setup, filled lead, or dashed leftover (never hidden) */}
+            {/* Today's kit pick — setup, compact tease, or leftover (never hidden) */}
             {indication.kit_item && !indication.kit_placeholder ? (
               (() => {
                 const kit = indication.kit_item;
-                const kitId = kit.item_id || `today-kit:${kit.kit_supplement_id || kit.name}`;
-                const kitDone = Boolean(completions[kitId]?.done);
-                const canTap = Boolean(userId && chartId);
                 return (
-                  <div
-                    className="mt-3 flex items-start gap-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                  <Link
+                    href="/biohack#stack"
+                    className="mt-3 flex min-h-11 items-start rounded-lg border border-border bg-elevated/80 px-3 py-2 text-fg transition hover:border-growth/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
                     data-testid="today-kit-line"
                   >
-                    <button
-                      type="button"
-                      disabled={!canTap}
-                      aria-pressed={kitDone}
-                      aria-label={t("today.iDidIt")}
-                      data-testid="today-kit-done"
-                      onClick={() => persistToggle(kitId, kit.name)}
-                      className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
-                        kitDone
-                          ? "border-growth bg-growth text-fg-inverse"
-                          : "border-border bg-canvas text-fg-muted hover:border-growth/50"
-                      } ${!canTap ? "opacity-50" : ""}`}
-                    >
-                      <Check className="h-3.5 w-3.5" aria-hidden />
-                    </button>
                     <div className="min-w-0 flex-1">
-                      <p className="type-chip uppercase tracking-wide text-fg-secondary">
-                        {t("today.fromKit")}
+                      <p className="type-chip uppercase tracking-wide text-fg">
+                        {t("today.kitPick")}
                       </p>
-                      <p
-                        className={`type-body font-medium text-fg ${kitDone ? "line-through opacity-80" : ""}`}
-                      >
+                      <p className="type-body font-medium text-fg">
                         {kit.name}
                         {kit.dose ? (
-                          <span className="ml-1.5 font-normal text-fg-secondary">· {kit.dose}</span>
+                          <span className="ml-1.5 font-normal text-fg">· {kit.dose}</span>
                         ) : null}
                       </p>
+                      <p className="mt-0.5 type-body text-fg">{t("today.kitPickCta")}</p>
                       {kitFeedback ? (
                         <p className="mt-1 type-caption text-fg" role="status">
                           {kitFeedback}
                         </p>
                       ) : null}
                     </div>
-                  </div>
+                  </Link>
                 );
               })()
             ) : !protocolsUnlocked ? (
               <Link
                 href="/biohack"
-                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
+                className="mt-3 flex min-h-11 items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
                 data-testid="today-kit-placeholder"
               >
-                <span className="font-medium text-fg">{t("today.fromKit")}:</span>
+                <span className="font-medium text-fg">{t("today.kitPick")}:</span>
                 <span className="type-body text-fg">{t("today.kitSetupEmpty")}</span>
               </Link>
             ) : inventoryStatus === "unknown" ? (
               <div
-                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2"
                 data-testid="today-kit-setup-wait"
               >
-                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.kitPick")}</p>
                 <p className="mt-1 type-body text-fg">{t("today.kitSetupWait")}</p>
               </div>
             ) : inventoryStatus === "error" ? (
               <div
-                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2"
                 data-testid="today-kit-setup-error"
               >
-                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.kitPick")}</p>
                 <p className="mt-1 type-body text-fg">{t("today.kitSetupLoadError")}</p>
                 {onRetryInventory ? (
                   <button
@@ -683,13 +672,13 @@ export default function TodayIndication({
               </div>
             ) : inventoryCount === 0 && userId && !kitSetupDismissed && onAddToKit ? (
               <div
-                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2.5"
+                className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2"
                 data-testid="today-kit-setup"
               >
-                <p className="type-chip uppercase tracking-wide text-fg">{t("today.fromKit")}</p>
+                <p className="type-chip uppercase tracking-wide text-fg">{t("today.kitPick")}</p>
                 <p className="mt-1 type-body text-fg">{t("today.kitSetupLead")}</p>
-                <p className="mt-2 type-body text-fg">{t("today.kitSetupHint")}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <p className="mt-1.5 type-body text-fg">{t("today.kitSetupHint")}</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {STARTER_SUPPLEMENTS.map((name) => (
                     <button
                       key={name}
@@ -704,7 +693,7 @@ export default function TodayIndication({
                   ))}
                 </div>
                 <form
-                  className="mt-2 flex flex-wrap items-center gap-2"
+                  className="mt-1.5 flex flex-wrap items-center gap-2"
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (!kitName.trim()) return;
@@ -731,12 +720,12 @@ export default function TodayIndication({
                   </button>
                 </form>
                 {kitFeedback ? (
-                  <p className="mt-2 type-caption text-fg" role="status">
+                  <p className="mt-1.5 type-caption text-fg" role="status">
                     {kitFeedback}
                   </p>
                 ) : null}
                 {kitAddError ? (
-                  <p className="mt-2 type-body text-fg" role="alert">
+                  <p className="mt-1.5 type-body text-fg" role="alert">
                     {t("today.kitSetupAddError")}
                   </p>
                 ) : null}
@@ -744,18 +733,18 @@ export default function TodayIndication({
                   type="button"
                   onClick={skipKitSetup}
                   data-testid="today-kit-setup-skip"
-                  className="mt-2 inline-flex min-h-9 items-center type-body text-fg underline-offset-2 hover:underline"
+                  className="mt-1.5 inline-flex min-h-9 items-center type-body text-fg underline-offset-2 hover:underline"
                 >
                   {t("today.kitSetupSkip")}
                 </button>
               </div>
             ) : (
               <Link
-                href="/biohack#shelf"
-                className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2.5 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
+                href={inventoryCount > 0 ? "/biohack#stack" : "/biohack#shelf"}
+                className="mt-3 flex min-h-11 items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
                 data-testid="today-kit-placeholder"
               >
-                <span className="font-medium text-fg">{t("today.fromKit")}:</span>
+                <span className="font-medium text-fg">{t("today.kitPick")}:</span>
                 <span className="type-body text-fg">
                   {inventoryCount > 0 ? t("today.kitSetupNoMatch") : t("today.kitSetupEmpty")}
                 </span>
@@ -864,7 +853,7 @@ export default function TodayIndication({
         </div>
       </div>
 
-      {protocolsUnlocked ? (
+      {protocolsUnlocked && !hasKitStackHandoff ? (
         <p className="mb-4">
           <Link
             href="/biohack"

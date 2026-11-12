@@ -448,6 +448,10 @@ def build_prescription(
             "dose": kit_item.get("dose") or "",
             "kit_supplement_id": kit_item.get("kit_supplement_id") or "",
             "item_id": f"today-kit:{kit_item.get('kit_supplement_id') or kit_item['name']}",
+            "why": kit_item.get("why") or "",
+            "when": kit_item["when"]
+            if kit_item.get("when") in ("morning", "midday", "evening")
+            else None,
         },
     }
 

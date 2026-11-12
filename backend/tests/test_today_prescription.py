@@ -10,9 +10,11 @@ from app.checkin.derive import derive_today_indication
 from app.checkin.prescription import (
     HISTORY_WINDOW_DAYS,
     MOMENT_MOVES,
+    MOMENT_WHEN,
     _word_count,
     build_prescription,
     pick_dominant_moment,
+    pick_kit_for_moment,
 )
 from app.checkin.rules import MAIN_ACTION_MAX_WORDS
 
@@ -422,3 +424,59 @@ if __name__ == "__main__":
     test_protocols_avoids_today_kit_id()
     test_offered_move_item_id_stable()
     print("ALL PR1 prescription tests passed")
+
+
+def test_live_kit_item_exposes_why_and_when():
+    """kit_item carries why/when from pick_kit_for_moment; matcher is unchanged."""
+    natal = _natal(
+        type="Projector",
+        defined_centers=["Ajna"],
+        undefined_centers=["Sacral", "Root", "Head", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    overlay = {"newly_defined_centers": ["Head", "Ajna"], "bridged_channels": []}
+    owned = ["Magnesium Glycinate", "L-Theanine", "Lion's Mane", "Omega-3"]
+    notes = {"Magnesium Glycinate": "200 mg evening"}
+    kwargs = dict(
+        natal=natal,
+        transit={},
+        overlay=overlay,
+        energy_level=2,
+        energy_label="Low",
+        preferred_space="focus",
+        day_key="2026-11-06",
+        owned_names=owned,
+        inventory_notes=notes,
+        biohacking_unlocked=True,
+    )
+    rx = build_prescription(**kwargs)
+    assert rx["kit_placeholder"] is False
+    item = rx["kit_item"]
+    assert item is not None
+    assert "why" in item
+    assert isinstance(item["why"], str)
+    assert "when" in item
+    assert item["when"] in ("morning", "midday", "evening", None)
+
+    # Same values pick_kit_for_moment already computed — not a second why, no invented dose.
+    newly = overlay.get("newly_defined_centers") or []
+    natal_defined = natal.get("defined_centers") or []
+    raw = pick_kit_for_moment(
+        moment=rx["moment"],
+        when=MOMENT_WHEN[rx["moment"]],
+        owned_names=owned,
+        inventory_notes=notes,
+        energy_label="Low",
+        preferred_space="focus",
+        focus_centers=list(newly) or list(natal_defined)[:2],
+        day_key="2026-11-06",
+    )
+    # when on the prescription may have been overwritten from the kit slot; compare name + why + dose.
+    assert raw is not None
+    assert item["name"] == raw["name"]
+    assert item["why"] == (raw.get("why") or "")
+    assert item["dose"] == (raw.get("dose") or "")
+    if raw.get("when") in ("morning", "midday", "evening"):
+        assert item["when"] == raw["when"]
+    else:
+        assert item["when"] is None
+    print("PASS: live kit_item exposes why/when from pick_kit_for_moment")

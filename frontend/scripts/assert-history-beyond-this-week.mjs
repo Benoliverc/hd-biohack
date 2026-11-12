@@ -106,6 +106,7 @@ const sample = [
   { item_id: "today-move:calm", day: "2026-11-03", kind: "move", label: "Walk", done: true, note: "easy" },
   { item_id: "today-move:focus", day: "2026-11-04", kind: "move", label: "Offered", done: false },
   { item_id: "today-kit:mag", day: "2026-11-03", kind: "move", label: "Magnesium", done: true },
+  { item_id: "today-kit:theanine", day: "2026-11-03", kind: "kit", label: "L-Theanine", done: true },
   { item_id: "today-evening-close", day: "2026-11-03", kind: "evening", label: "Generator|yes", done: true, note: "good" },
   { item_id: "morning", day: "2026-11-03", kind: "move", label: "Morning lead", done: true },
   { item_id: "baseline:0", day: "2026-11-03", kind: "baseline", label: "Vitamin D", done: true },
@@ -120,8 +121,10 @@ const todayRows = filterHistoryRows(sample, {
 });
 assert.deepEqual(
   todayRows.map((r) => r.id).sort(),
-  ["today-evening-close", "today-kit:mag", "today-move:calm"],
+  ["today-evening-close", "today-move:calm"],
 );
+assert.ok(!todayRows.some((r) => r.id.startsWith("today-kit:")), "Today history excludes today-kit rows");
+assert.ok(!todayRows.some((r) => r.kind === "kit"), "Today history excludes kind kit");
 assert.ok(!todayRows.some((r) => r.id === "morning" || r.id === "baseline:0"));
 assert.ok(!todayRows.some((r) => r.id === "today-move:focus"), "drops auto-seeded done=false");
 assert.ok(!todayRows.some((r) => r.day === "2026-10-10"), "drops rows outside from/to");
@@ -143,6 +146,14 @@ assert.ok(protocolRows.some((r) => r.id === "morning"));
 assert.ok(protocolRows.some((r) => r.id === "baseline:0"));
 assert.ok(protocolRows.some((r) => r.id === "today-move:calm"));
 assert.ok(!protocolRows.some((r) => r.done === false || r.id === "today-move:focus"));
+assert.ok(protocolRows.some((r) => r.id === "today-kit:mag"), "Protocols history may include legacy today-kit rows");
+assert.ok(protocolRows.some((r) => r.id === "today-kit:theanine" && r.kind === "kit"), "Protocols history may include kind kit");
+assert.ok(
+  protocolRows.filter((r) => r.id.startsWith("today-kit:")).every((r) => r.kind === "kit"),
+  "today-kit rows are kind kit, not lifestyle Moves",
+);
+assert.equal(isLifestyleMoveItemId("today-kit:mag"), false);
+assert.equal(isLifestyleMoveItemId("today-kit:theanine"), false);
 
 // Past Moves must accept any today-move:* — not only today's moment id
 assert.ok(todayRows.some((r) => r.id === "today-move:calm"));

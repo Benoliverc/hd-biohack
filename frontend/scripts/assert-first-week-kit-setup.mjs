@@ -25,7 +25,7 @@ const locales = ["en", "nl", "de", "fr", "es"].map((id) => ({
   src: read(`src/lib/i18n/messages/${id}.ts`),
 }));
 
-const LEAD = "Add what you already own. Today can prefer it.";
+const LEAD = "Add what you already own. Protocols will use it.";
 const HINT = "Tap a starter, or type a name.";
 const INPUT_PH = "Or type a name you own";
 const ADD = "Add to kit";
@@ -111,7 +111,8 @@ assert.ok(
 
 // --- Locked copy + craft ---
 const setup = extractSetup(todayInd);
-assert.ok(setup.includes('t("today.fromKit")'), "setup label is From your kit");
+assert.ok(setup.includes('t("today.kitPick")'), "setup label is the Today-only kit pick heading");
+assert.ok(!setup.includes('t("today.fromKit")'), "setup no longer uses today.fromKit");
 assert.ok(setup.includes('t("today.kitSetupLead")'), "setup lead is keyed");
 assert.ok(setup.includes('t("today.kitSetupHint")'), "starters hint is keyed");
 assert.ok(setup.includes('t("today.kitSetupInputPlaceholder")'), "free-text placeholder is keyed");
@@ -216,8 +217,15 @@ assert.ok(
   "no server dismiss flag is wired on Today or Protocols",
 );
 
-// Dismissed leftover: empty copy + #shelf
-assert.ok(todayInd.includes('href="/biohack#shelf"'), "leftover / no-match link to /biohack#shelf");
+// Dismissed leftover: empty copy + #shelf; no-match lands on #stack
+assert.ok(todayInd.includes('"/biohack#shelf"'), "empty leftover still links to /biohack#shelf");
+assert.ok(todayInd.includes('"/biohack#stack"'), "no-match leftover can land on #stack");
+assert.ok(
+  /inventoryCount > 0 \? "\/biohack#stack" : "\/biohack#shelf"/.test(todayInd) ||
+    /inventoryCount > 0 \? '\/biohack#stack' : '\/biohack#shelf'/.test(todayInd) ||
+    todayInd.includes('inventoryCount > 0 ? "/biohack#stack" : "/biohack#shelf"'),
+  "no-match leftover is /biohack#stack; empty leftover is /biohack#shelf",
+);
 assert.ok(todayInd.includes('t("today.kitSetupEmpty")'), "dismissed empty leftover uses Add what you already own");
 assert.ok(todayInd.includes('t("today.kitSetupNoMatch")'), "no-match line is keyed");
 assert.ok(
@@ -229,8 +237,9 @@ assert.ok(
 assert.ok(biohack.includes('data-testid="shelf-disclosure"'), "shelf-disclosure kept");
 assert.ok(biohack.includes("open={shelfOpen}"), "Shelf open state is rendered");
 assert.ok(
-  /setShelfOpen\(deep \|\| inventory\.length === 0\)/.test(biohack),
-  "empty loaded shelf starts open",
+  /setShelfOpen\(deep \|\| inventory\.length === 0\)/.test(biohack) ||
+    /setShelfOpen\(!stackDeep && \(deep \|\| inventory\.length === 0\)\)/.test(biohack),
+  "empty loaded shelf starts open (unless arriving on #stack)",
 );
 assert.ok(
   /shelfDefaultApplied/.test(biohack) && /setShelfOpen\(false\)/.test(biohack),

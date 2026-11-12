@@ -304,6 +304,10 @@ for (const loc of locales) {
       // Surface names may reuse translated nav labels. noChart title was already
       // locked before this pass and may stay translated.
       assert.ok(value.length > 0, `${loc} ${key} must be present`);
+    } else if (key === "today.tickStack") {
+      // Still visible on setup / empty leftover / wait / error; translated in this pass.
+      assert.ok(value.length > 0, `${loc} ${key} must be present`);
+      if (loc === "en.ts") assert.equal(value, en);
     } else {
       assert.equal(value, en, `${loc} ${key} must match EN source until translated`);
     }

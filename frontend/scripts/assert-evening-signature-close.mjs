@@ -152,7 +152,7 @@ const schemas = read("../backend/app/schemas.py");
 assert.match(schemas, /"evening"/);
 
 const routes = read("../backend/app/api/routes.py");
-assert.match(routes, /\("move", "baseline", "evening"\)/);
+assert.match(routes, /\("move", "baseline", "evening", "kit"\)/);
 
 const en = read("src/lib/i18n/messages/en.ts");
 assert.match(en, /Did anything satisfy\?/);

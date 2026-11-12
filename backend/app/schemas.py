@@ -102,6 +102,8 @@ class TodayKitItem(BaseModel):
     dose: str = ""
     kit_supplement_id: str = ""
     item_id: str = ""
+    why: str = ""
+    when: Literal["morning", "midday", "evening"] | None = None
 
 
 class TodayIndication(BaseModel):
@@ -262,7 +264,7 @@ class ProtocolCompletionIn(BaseModel):
     chart_id: int
     day: date
     item_id: str = Field(..., min_length=1, max_length=128)
-    kind: Literal["move", "baseline", "evening"] = "move"
+    kind: Literal["move", "baseline", "evening", "kit"] = "move"
     label: str = Field("", max_length=255)
     done: bool = False
     note: str | None = Field(None, max_length=120)
