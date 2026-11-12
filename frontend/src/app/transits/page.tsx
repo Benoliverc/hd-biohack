@@ -14,6 +14,7 @@ import { displayCenter, formatGateLine } from "@/lib/hdCopy";
 import { formatResetsInHkt } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import LiteracyCoach from "@/components/LiteracyCoach";
+import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadContext";
 import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
@@ -50,6 +51,7 @@ function resolveYouChart(
 export default function TransitsPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree, biohackingUnlocked } = useApp();
+  const howToRead = useLiteracyHowToReadOptional();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   /** Full natal chart_json for share card BodyGraph (no PII on the image). */
   const [youChartPayload, setYouChartPayload] = useState<Record<string, unknown> | null>(null);
@@ -294,6 +296,9 @@ export default function TransitsPage() {
           inventoryCount={inventoryCount}
           onAddToKit={addToKit}
           onRetryInventory={retryInventory}
+          onHowToRead={(stepId, returnFocus) =>
+            howToRead?.open({ stepId, returnFocus })
+          }
         />
       ) : null}
 

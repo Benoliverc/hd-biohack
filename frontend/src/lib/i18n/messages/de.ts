@@ -10,6 +10,7 @@ export const messages = {
   'nav.primary': 'Primär',
   'nav.signIn': 'Anmelden',
   'nav.signOut': 'Abmelden',
+  'nav.howToRead': 'So liest du das',
   'brand.name': 'Baseline',
   'tier.free': 'Free',
   'tier.pro': 'Pro',

@@ -83,6 +83,8 @@ type Props = {
   /** Add a starter or typed name, then refetch inventory + GET /transits/today. */
   onAddToKit?: (name: string) => Promise<{ name: string; duplicate?: boolean }>;
   onRetryInventory?: () => void;
+  /** Open How to read Today at this literacy step id (pulse). */
+  onHowToRead?: (stepId: string, returnFocus?: HTMLElement | null) => void;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -106,6 +108,7 @@ export default function TodayIndication({
   inventoryCount = 0,
   onAddToKit,
   onRetryInventory,
+  onHowToRead,
 }: Props) {
   const { t, locale } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -1178,13 +1181,16 @@ export default function TodayIndication({
               {pulse.fact}
             </p>
             {pulse.howToReadTargetId ? (
-              <a
-                href={`#${pulse.howToReadTargetId}`}
-                className="mt-2 inline-flex text-xs font-medium text-growth underline-offset-2 hover:underline"
+              <button
+                type="button"
+                onClick={(e) =>
+                  onHowToRead?.(pulse.howToReadTargetId as string, e.currentTarget)
+                }
+                className="mt-2 inline-flex text-xs font-medium text-growth-ink underline-offset-2 hover:underline"
                 data-testid="hd-fact-how-to-read"
               >
                 {t("today.howToReadJump")}
-              </a>
+              </button>
             ) : null}
           </aside>
         );

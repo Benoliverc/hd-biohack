@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/lib/store";
 import { Header } from "@/components/Header";
+import { LiteracyHowToReadProvider } from "@/components/LiteracyHowToReadContext";
 import { AppShell } from "@/components/AppShell";
 import { PageViewTracker } from "@/components/PageViewTracker";
 
@@ -19,9 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.className} min-h-screen bg-canvas text-fg antialiased`}>
         <AppProvider>
-          <Header />
-          <PageViewTracker />
-          <AppShell>{children}</AppShell>
+          <LiteracyHowToReadProvider>
+            <Header />
+            <PageViewTracker />
+            <AppShell>{children}</AppShell>
+          </LiteracyHowToReadProvider>
         </AppProvider>
       </body>
     </html>

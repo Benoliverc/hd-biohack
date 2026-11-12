@@ -7,6 +7,7 @@ import { Activity, FlaskConical, LogOut, Settings, Shield, Sparkles, UserRound }
 import { useApp } from "@/lib/store";
 import { isAdminUser } from "@/lib/admin";
 import { useI18n } from "@/lib/i18n";
+import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadContext";
 
 const nav = [
   { href: "/transits", labelKey: "nav.today" as const, icon: Activity, testId: "nav-today" },
@@ -76,6 +77,10 @@ export function Header() {
   const { user, previewAsFree, signOut } = useApp();
   const { t } = useI18n();
   const headerRef = useRef<HTMLElement>(null);
+  const howToRead = useLiteracyHowToReadOptional();
+  const literacyRoute =
+    pathname === "/profile" || pathname === "/soul" || pathname === "/transits";
+  const showHowToRead = Boolean(literacyRoute && howToRead?.available);
 
   // Badge follows effective entitlement (BETA_FULL_ACCESS → unlocked) and Preview as Free.
   const tierIsPro =
@@ -208,9 +213,10 @@ export function Header() {
         </div>
 
         <nav
-          className="mt-2 flex flex-nowrap gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="mt-2 flex flex-nowrap items-center gap-1"
           aria-label={t("nav.primary")}
         >
+          <div className="flex min-w-0 flex-1 flex-nowrap gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {nav.map(({ href, labelKey, icon: Icon, testId }) => {
             const active = pathname === href;
             return (
@@ -230,6 +236,30 @@ export function Header() {
               </Link>
             );
           })}
+          </div>
+          {literacyRoute ? (
+            <div className="shrink-0">
+              {showHowToRead ? (
+                <button
+                  type="button"
+                  data-testid="nav-how-to-read"
+                  onClick={(e) =>
+                    howToRead?.open({ returnFocus: e.currentTarget })
+                  }
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-transparent px-2 py-2 text-xs font-medium text-fg hover:bg-sunken hover:text-growth-ink sm:px-3 sm:text-sm"
+                >
+                  {t("nav.howToRead")}
+                </button>
+              ) : (
+                <span
+                  className="pointer-events-none invisible inline-flex min-h-10 select-none items-center justify-center px-2 py-2 text-xs font-medium sm:px-3 sm:text-sm"
+                  aria-hidden
+                >
+                  {t("nav.howToRead")}
+                </span>
+              )}
+            </div>
+          ) : null}
         </nav>
       </div>
       {showBetaChrome && (
