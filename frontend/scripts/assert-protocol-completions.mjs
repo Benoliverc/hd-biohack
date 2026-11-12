@@ -20,6 +20,7 @@ const {
   formatWeekDayLabel,
   resolveProtocolsTz,
   DEFAULT_PROTOCOLS_TZ,
+  normalizeCompletionKind,
 } = mod;
 
 // Fixed instant: 2026-10-27 12:00 HKT = 2026-10-27 04:00 UTC (Tue)
@@ -88,5 +89,11 @@ assert.deepEqual(doneMapFromCompletions({ a: { done: true, label: "A", kind: "mo
 assert.equal(progressPct(2, 4), 50);
 assert.equal(progressPct(0, 0), 0);
 assert.ok(formatWeekDayLabel("2026-10-27").includes("27"));
+
+assert.equal(normalizeCompletionKind("kit"), "kit");
+assert.equal(normalizeCompletionKind("move"), "move");
+assert.equal(normalizeCompletionKind("baseline"), "baseline");
+assert.equal(normalizeCompletionKind("evening"), "evening");
+assert.equal(normalizeCompletionKind("nope"), "move");
 
 console.log("PASS assert-protocol-completions");

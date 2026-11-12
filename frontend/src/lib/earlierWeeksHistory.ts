@@ -56,6 +56,7 @@ export function isEveningCloseItemId(id: string): boolean {
 }
 
 function normalizeKind(kind: unknown, id: string): CompletionKind {
+  if (kind === "kit" || isTodayKitItemId(id)) return "kit";
   if (isEveningCloseItemId(id) || kind === "evening") return "evening";
   if (kind === "baseline") return "baseline";
   return "move";
@@ -135,9 +136,9 @@ export function filterHistoryRows(
     const id = row.item_id;
     if (!id) continue;
     if (opts.scope === "today") {
-      const isMoveOrKit = isLifestyleMoveItemId(id) || isTodayKitItemId(id);
+      const isMove = isLifestyleMoveItemId(id);
       const isEvening = isEveningCloseItemId(id) || row.kind === "evening";
-      if (isMoveOrKit) {
+      if (isMove) {
         /* include */
       } else if (isEvening) {
         if (!includeEvening) continue;

@@ -233,6 +233,8 @@ export type TodayKitItem = {
   dose?: string;
   kit_supplement_id?: string;
   item_id: string;
+  why?: string;
+  when?: "morning" | "midday" | "evening" | null;
 };
 
 export type TodayMomentNoun = "calm" | "focus" | "recovery";
@@ -806,7 +808,7 @@ export const api = {
       chart_id: number;
       day: string;
       item_id: string;
-      kind: "move" | "baseline" | "evening";
+      kind: "move" | "baseline" | "evening" | "kit";
       label: string;
       done: boolean;
       note?: string | null;

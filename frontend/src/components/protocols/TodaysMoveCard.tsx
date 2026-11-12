@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import type { DayCompletions } from "@/lib/protocolCompletions";
 import { progressPct } from "@/lib/protocolCompletions";
 import type { CheckItem } from "./types";
@@ -34,6 +36,8 @@ export function TodaysMoveCard({
   onToggleBaseline,
   showNoKitFootnote,
   rotatedSlot,
+  todayKitPick,
+  highlightTodayKitPick = false,
 }: {
   items: CheckItem[];
   baselineItems: CheckItem[];
@@ -52,10 +56,19 @@ export function TodaysMoveCard({
   showNoKitFootnote?: boolean;
   /** Slot id that rotated vs yesterday — badge only, no essay. */
   rotatedSlot?: string | null;
+  /** Today's kit pick — distinct row above the trio, not in checkItems / flash. */
+  todayKitPick?: CheckItem | null;
+  highlightTodayKitPick?: boolean;
 }) {
   const { t } = useI18n();
   const pct = progressPct(doneCount, items.length);
   const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
+  const pickRef = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    if (!highlightTodayKitPick || !todayKitPick) return;
+    pickRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightTodayKitPick, todayKitPick]);
 
   return (
     <section
@@ -114,6 +127,91 @@ export function TodaysMoveCard({
           {t("protocols.moveComplete")}
         </div>
       )}
+
+      {todayKitPick ? (
+        <ul className="space-y-2">
+          {(() => {
+            const it = todayKitPick;
+            const checked = Boolean(doneMap[it.id]);
+            const note = completions[it.id]?.note || "";
+            const whenLabel =
+              it.slot === "morning"
+                ? t("today.when.morning")
+                : it.slot === "midday"
+                  ? t("today.when.midday")
+                  : it.slot === "evening"
+                    ? t("today.when.evening")
+                    : it.sub;
+            return (
+              <li key={it.id} ref={pickRef}>
+                <div
+                  className={`rounded-xl border px-3 py-2.5 ${
+                    checked
+                      ? "border-growth/50 bg-growth-soft/70 opacity-95"
+                      : "border-border bg-canvas"
+                  } ${highlightTodayKitPick ? "ring-2 ring-growth/40 shadow-soft" : ""}`}
+                  data-testid="protocol-today-kit-pick"
+                >
+                  <label className="flex min-h-11 cursor-pointer gap-3">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
+                      checked={checked}
+                      onChange={() => onToggle(it)}
+                      data-testid={`protocol-check-${it.id}`}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="type-chip uppercase tracking-wide text-fg">
+                        {t("protocols.todayKitPick")}
+                      </span>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <SlotGlyph slot={it.slot} />
+                        <span
+                          className={`type-body font-medium text-fg ${checked ? "line-through" : ""}`}
+                        >
+                          {it.label}
+                        </span>
+                      </span>
+                      {whenLabel ? (
+                        <span className="mt-0.5 block type-caption text-fg">{whenLabel}</span>
+                      ) : null}
+                      {it.why ? (
+                        <span className="mt-1 block text-xs text-fg">{it.why}</span>
+                      ) : null}
+                    </span>
+                  </label>
+                  {checked && (
+                    <div className="mt-2 pl-7">
+                      <label className="block type-caption text-fg" htmlFor={`note-${it.id}`}>
+                        {t("protocols.reflection")}
+                      </label>
+                      <input
+                        id={`note-${it.id}`}
+                        type="text"
+                        maxLength={120}
+                        defaultValue={note}
+                        placeholder={t("protocols.reflectionPlaceholder")}
+                        className="mt-0.5 w-full rounded-lg border border-border bg-sunken px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-muted"
+                        data-testid={`protocol-note-${it.id}`}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() !== (note || "").trim()) {
+                            onNote(it.id, e.target.value);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </li>
+            );
+          })()}
+        </ul>
+      ) : null}
 
       <ul className="space-y-2">
         {items.map((it, idx) => {

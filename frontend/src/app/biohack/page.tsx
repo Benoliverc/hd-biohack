@@ -203,6 +203,13 @@ function shelfDeepLinkRequested(): boolean {
   return hash === "shelf" || qs.get("shelf") === "1";
 }
 
+function stackDeepLinkRequested(): boolean {
+  if (typeof window === "undefined") return false;
+  const hash = window.location.hash.replace(/^#/, "");
+  const qs = new URLSearchParams(window.location.search);
+  return hash === "stack" || qs.get("stack") === "1";
+}
+
 export default function BiohackPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, biohackingUnlocked, setNatalChart } = useApp();
@@ -233,6 +240,7 @@ export default function BiohackPage() {
   const shelfRef = useRef<HTMLDetailsElement | null>(null);
   const [shelfOpen, setShelfOpen] = useState(false);
   const shelfDefaultApplied = useRef(false);
+  const [highlightTodayKitPick, setHighlightTodayKitPick] = useState(false);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const protocolsTz = resolveProtocolsTz(user?.preferred_timezone);
   const dayKey = dayKeyInZone(protocolsTz);
@@ -332,13 +340,15 @@ export default function BiohackPage() {
   useEffect(() => {
     if (inventoryLoading) return;
     const deep = shelfDeepLinkRequested();
+    const stackDeep = stackDeepLinkRequested();
     if (!shelfDefaultApplied.current) {
       shelfDefaultApplied.current = true;
-      setShelfOpen(deep || inventory.length === 0);
-    } else if (deep) {
+      // #stack must not open Shelf; empty-shelf auto-open still applies on ordinary arrivals.
+      setShelfOpen(!stackDeep && (deep || inventory.length === 0));
+    } else if (deep && !stackDeep) {
       setShelfOpen(true);
     }
-    if (deep) {
+    if (deep && !stackDeep) {
       requestAnimationFrame(() => {
         shelfRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -356,6 +366,7 @@ export default function BiohackPage() {
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
+
 
   useEffect(() => {
     // Collapse natal when a new protocol arrives — never yank kit panel shut mid-edit.
@@ -673,6 +684,46 @@ export default function BiohackPage() {
     return items;
   }, [daily]);
 
+  const todayKitPick = useMemo(() => {
+    const kit = indication?.kit_item;
+    if (!kit || indication?.kit_placeholder) return null;
+    const when = kit.when;
+    const slot =
+      when === "morning" || when === "midday" || when === "evening" ? when : undefined;
+    return {
+      id: kit.item_id || `today-kit:${kit.kit_supplement_id || kit.name}`,
+      label: kit.dose ? `${kit.name} · ${kit.dose}` : kit.name,
+      why: kit.why || undefined,
+      slot,
+      kind: "kit" as const,
+    };
+  }, [indication]);
+
+  useEffect(() => {
+    if (!stackDeepLinkRequested()) return;
+    if (!protocol) return;
+    setHighlightTodayKitPick(Boolean(todayKitPick));
+    requestAnimationFrame(() => {
+      document
+        .querySelector('[data-testid="todays-move"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [protocol, todayKitPick]);
+
+  useEffect(() => {
+    const onHash = () => {
+      if (!stackDeepLinkRequested()) return;
+      setHighlightTodayKitPick(Boolean(todayKitPick));
+      requestAnimationFrame(() => {
+        document
+          .querySelector('[data-testid="todays-move"]')
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [todayKitPick]);
+
   const baselineCheckItems = useMemo(() => {
     if (!daily) return [] as CheckItem[];
     const kit = (daily.baseline_kit as PlanItem[]) || [];
@@ -812,6 +863,8 @@ export default function BiohackPage() {
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
           rotatedSlot={whatsNew?.rotated_slot || null}
+          todayKitPick={todayKitPick}
+          highlightTodayKitPick={highlightTodayKitPick}
         />
       )}
 
@@ -1133,7 +1186,9 @@ function WeekSkyCard({
   timeZone?: string | null;
 }) {
   const { t } = useI18n();
-  const moveRows = weekRows.filter((r) => r.kind === "move");
+  const isTodayKitRow = (r: WeekCompletedRow) =>
+    r.kind === "kit" || r.id.startsWith("today-kit:");
+  const moveRows = weekRows.filter((r) => r.kind === "move" && !isTodayKitRow(r));
   const baselineRows = weekRows.filter((r) => r.kind === "baseline");
 
   return (
@@ -1191,6 +1246,11 @@ function WeekSkyCard({
                 {r.kind === "baseline" && (
                   <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
                     baseline
+                  </span>
+                )}
+                {(r.kind === "kit" || r.id.startsWith("today-kit:")) && (
+                  <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                    kit
                   </span>
                 )}
                 {r.note && (

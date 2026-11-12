@@ -11,7 +11,7 @@
  * switches timezone — acceptable for v1 (no migration).
  */
 
-export type CompletionKind = "move" | "baseline" | "evening";
+export type CompletionKind = "move" | "baseline" | "evening" | "kit";
 
 export type CompletionItem = {
   done: boolean;
@@ -122,9 +122,10 @@ function v1StorageKey(userId: number, chartId: number, day: string): string {
 }
 
 
-function normalizeCompletionKind(kind: unknown): CompletionKind {
+export function normalizeCompletionKind(kind: unknown): CompletionKind {
   if (kind === "baseline") return "baseline";
   if (kind === "evening") return "evening";
+  if (kind === "kit") return "kit";
   return "move";
 }
 

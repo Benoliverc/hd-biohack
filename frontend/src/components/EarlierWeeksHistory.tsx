@@ -18,6 +18,7 @@ import {
   groupHistoryByWeek,
   historyWeekHeading,
   isEveningCloseItemId,
+  isTodayKitItemId,
   priorHistoryRange,
   type HistoryScope,
   type HistorySourceRow,
@@ -246,6 +247,11 @@ const EarlierWeeksHistory = forwardRef(function EarlierWeeksHistory(
                           {item.kind === "baseline" ? (
                             <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
                               baseline
+                            </span>
+                          ) : null}
+                          {item.kind === "kit" || isTodayKitItemId(item.id) ? (
+                            <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                              kit
                             </span>
                           ) : null}
                           {item.note ? (
