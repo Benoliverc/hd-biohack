@@ -1,7 +1,7 @@
-import { noveltyDayKeyHkt } from "@/lib/timezone";
+import { noveltyDayKey } from "@/lib/timezone";
 import type { DailySignal, VsYesterdayDelta } from "@/lib/api";
 
-/** Short rotating Human Design facts (EN-first). One per novelty day (07:00 HKT). */
+/** Short rotating Human Design facts (EN-first). One per novelty day (07:00 in the account timezone). */
 export const HD_FACTS_OF_THE_DAY: readonly string[] = [
   "Your Type describes how your energy engages the world — not a personality quiz.",
   "Authority is how decisions land for you; strategy is how you meet invitations.",
@@ -62,12 +62,12 @@ function hashDayKey(dayKey: string): number {
   return h;
 }
 
-export function hdFactForDay(now: Date = new Date()): {
+export function hdFactForDay(now: Date = new Date(), timeZone?: string | null): {
   dayKey: string;
   index: number;
   fact: string;
 } {
-  const dayKey = noveltyDayKeyHkt(now);
+  const dayKey = noveltyDayKey(timeZone, now);
   const index = hashDayKey(dayKey) % HD_FACTS_OF_THE_DAY.length;
   return { dayKey, index, fact: HD_FACTS_OF_THE_DAY[index]! };
 }
@@ -125,8 +125,9 @@ export function contextualHdFact(args: {
   vsYesterday?: readonly VsYesterdayDelta[] | null;
   dailySignal?: DailySignal | null;
   now?: Date;
+  timeZone?: string | null;
 }): ContextualHdFact {
-  const dayKey = noveltyDayKeyHkt(args.now ?? new Date());
+  const dayKey = noveltyDayKey(args.timeZone, args.now ?? new Date());
   const field = pickLiteracyField({
     vsYesterday: args.vsYesterday,
     dailySignal: args.dailySignal,
@@ -140,7 +141,7 @@ export function contextualHdFact(args: {
       howToReadTargetId: LITERACY_JUMP_BY_FIELD[field],
     };
   }
-  const bank = hdFactForDay(args.now ?? new Date());
+  const bank = hdFactForDay(args.now ?? new Date(), args.timeZone);
   return {
     dayKey: bank.dayKey,
     fact: bank.fact,

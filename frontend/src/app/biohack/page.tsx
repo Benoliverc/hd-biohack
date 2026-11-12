@@ -9,7 +9,7 @@ import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api"
 import { useI18n } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
-import { formatResetsInHkt } from "@/lib/timezone";
+import { formatResetsIn, noveltyDayKey, prevNoveltyDayKey } from "@/lib/timezone";
 import { youChipLabel } from "@/lib/youChipLabel";
 import {
   type CompletionKind,
@@ -18,7 +18,6 @@ import {
   dayKeyInZone,
   doneMapFromCompletions,
   formatWeekDayLabel,
-  hkDayKey,
   loadDayCompletions,
   loadWeekCompleted,
   mergeServerCompletions,
@@ -127,10 +126,6 @@ function saveLeadFingerprint(key: string, fingerprint: string, whatsNew?: WhatsN
   }
 }
 
-/** Previous HKT calendar day key (wall-clock −24h, formatted in Asia/Hong_Kong). */
-function prevHkDayKey(d = new Date()): string {
-  return hkDayKey(new Date(d.getTime() - 24 * 60 * 60 * 1000));
-}
 
 
 
@@ -241,8 +236,8 @@ export default function BiohackPage() {
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const protocolsTz = resolveProtocolsTz(user?.preferred_timezone);
   const dayKey = dayKeyInZone(protocolsTz);
-  /** Lead-fingerprint / novelty day keys stay HKT (Daily Novelty Contract). */
-  const noveltyDayKey = hkDayKey();
+  /** Lead-fingerprint / novelty day keys follow the account timezone 07:00 bucket. */
+  const noveltyDayKeyNow = noveltyDayKey(user?.preferred_timezone);
 
   const refreshInventory = useCallback(async () => {
     if (!user) {
@@ -495,13 +490,13 @@ export default function BiohackPage() {
       setError(null);
       try {
         const yFp = loadLeadFingerprint(
-          leadFpKey(user.id, youChart.id, prevHkDayKey())
+          leadFpKey(user.id, youChart.id, prevNoveltyDayKey(user?.preferred_timezone))
         );
         const [protoRes, transitRes] = await Promise.all([
           api.protocol(user.id, youChart.id, {
             yesterdayLeadFingerprint: yFp,
           }),
-          api.transitsToday(youChart.id),
+          api.transitsToday(youChart.id, { userId: user.id }),
         ]);
         setProtocol(protoRes.protocol);
         // Prefer shared derive from /transits/today for weather strip parity with Today
@@ -517,7 +512,7 @@ export default function BiohackPage() {
           wn?.lead_fingerprint ||
           null;
         if (fp) {
-          saveLeadFingerprint(leadFpKey(user.id, youChart.id, noveltyDayKey), fp, wn);
+          saveLeadFingerprint(leadFpKey(user.id, youChart.id, noveltyDayKeyNow), fp, wn);
         }
         setNatalOpen(false);
         await refreshInventory();
@@ -532,7 +527,7 @@ export default function BiohackPage() {
         setLoading(false);
       }
     },
-    [user, youChart, refreshInventory, noveltyDayKey]
+    [user, youChart, refreshInventory, noveltyDayKeyNow]
   );
 
   // Auto-load today's protocol on enter (no Generate ritual)
@@ -624,7 +619,7 @@ export default function BiohackPage() {
   const baseline = (protocol?.natal_baseline as Record<string, unknown>) || null;
   const labels = (protocol?.labels as Record<string, string>) || {};
 
-  const asOfLabel = formatResetsInHkt();
+  const asOfLabel = formatResetsIn(new Date(), user?.preferred_timezone, t);
   const resolvingYou = natalBindingLoading || !youReady;
   const whatsNew: WhatsNew | null =
     (protocol?.whats_new as WhatsNew | undefined) ||

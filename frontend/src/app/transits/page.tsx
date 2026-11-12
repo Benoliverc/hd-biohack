@@ -11,7 +11,7 @@ import {
   type NatalChartSummary,
 } from "@/lib/store";
 import { displayCenter, formatGateLine } from "@/lib/hdCopy";
-import { formatResetsInHkt } from "@/lib/timezone";
+import { formatResetsIn } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadContext";
@@ -209,7 +209,7 @@ export default function TransitsPage() {
     | { sun: Record<string, unknown>; earth: Record<string, unknown> }
     | undefined;
   const overlay = data?.overlay;
-  const asOfLabel = formatResetsInHkt();
+  const asOfLabel = formatResetsIn(new Date(), user?.preferred_timezone, t);
   const resolvingYou = natalBindingLoading || !youReady;
 
   return (
