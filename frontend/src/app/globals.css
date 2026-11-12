@@ -104,6 +104,18 @@ body > * {
   --soul-scroll-mt: calc(var(--app-header-h) + 0.5rem);
 }
 
+/* Header safe-area compensation only. padding-top is the env inset (0 when
+   none), so measured --app-header-h includes a notch without a fixed dummy.
+   Horizontal padding is max()'d with the existing 1rem page gutter. */
+.app-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.app-header-pad-x {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
 /* Deep-link / sticky-nav offset for chart page sections */
 #people-form,
 #bodygraph,

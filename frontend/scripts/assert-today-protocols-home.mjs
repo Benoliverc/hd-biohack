@@ -92,8 +92,8 @@ assert.ok(
   "wordmark is aria-current=page on /",
 );
 assert.ok(
-  /data-testid="nav-wordmark"[\s\S]{0,200}inline-flex min-h-10/.test(header),
-  "wordmark hit target meets min-h-10",
+  /data-testid="nav-wordmark"[\s\S]{0,200}inline-flex min-h-11/.test(header),
+  "wordmark hit target meets min-h-11",
 );
 assert.ok(
   !/data-testid="nav-wordmark"[\s\S]{0,400}border-growth\/40 bg-growth-soft/.test(header),

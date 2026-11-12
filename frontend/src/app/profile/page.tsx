@@ -217,7 +217,7 @@ function ChartSectionNav({
     <nav
       ref={navRef}
       aria-label="Chart sections"
-      className="sticky z-30 -mx-1 overflow-x-clip rounded-xl border border-border bg-canvas/95 px-1.5 py-1.5 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 sm:px-2 sm:py-2"
+      className="sticky z-30 -mx-1 overflow-x-clip rounded-xl border border-border bg-canvas/95 px-1.5 py-1 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 sm:px-2"
       style={{ top: "var(--app-header-h)" }}
     >
       <ul className="flex w-full min-w-0 flex-nowrap gap-0.5 sm:w-max sm:gap-1">
@@ -229,7 +229,7 @@ function ChartSectionNav({
                 e.preventDefault();
                 onJump(item.id);
               }}
-              className="inline-flex h-9 w-full min-w-0 items-center justify-center rounded-full border border-transparent px-2 py-1.5 text-xs text-fg-muted transition hover:border-border hover:bg-sunken hover:text-fg focus-visible:relative sm:w-auto sm:px-3 sm:text-sm"
+              className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-full border border-transparent px-2 py-1.5 text-xs text-fg-secondary transition hover:border-border hover:bg-sunken hover:text-fg focus-visible:relative sm:w-auto sm:px-3 sm:text-sm"
             >
               {item.shortLabel ? (
                 <>

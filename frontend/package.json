@@ -35,7 +35,8 @@
     "assert:today-protocols-home": "npx tsx scripts/assert-today-protocols-home.mjs",
     "assert:first-week-kit-setup": "npx tsx scripts/assert-first-week-kit-setup.mjs",
     "assert:history-beyond-this-week": "npx tsx scripts/assert-history-beyond-this-week.mjs",
-    "assert:how-to-read-fullscreen": "npx tsx scripts/assert-how-to-read-fullscreen.mjs"
+    "assert:how-to-read-fullscreen": "npx tsx scripts/assert-how-to-read-fullscreen.mjs",
+    "assert:header-contrast-touch-safe-area": "npx tsx scripts/assert-header-contrast-touch-safe-area.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
