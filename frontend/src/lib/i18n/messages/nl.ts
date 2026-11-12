@@ -52,6 +52,7 @@ export const messages = {
   'settings.deleteConfirmLabel': 'Typ het e-mailadres van je account om te bevestigen',
   'settings.deleteAccountSubmit': 'Mijn account verwijderen',
   'settings.deleteConfirmMismatch': 'Typ het e-mailadres van je account om te bevestigen.',
+  'settings.backToSettings': 'Terug naar Instellingen',
   'login.headline': 'Chart. Vandaag. Protocollen. Soul.',
   'login.subhead': 'Human Design dat uitmondt in een dag die je kunt volgen.',
   'login.intro': 'Log in om je natal chart te berekenen, te zien wat de hemel vandaag doet, en gegronde protocollen te krijgen — geen mystiek, wel volgende stappen.',
