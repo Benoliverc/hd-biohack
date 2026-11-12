@@ -72,6 +72,14 @@ assert.ok(form.includes('t("chart.firstRun.save")'), "Save my chart");
 assert.ok(form.includes('t("chart.firstRun.saving")'), "Saving your chart…");
 assert.ok(form.includes('t("chart.firstRun.errorDate")'), "in-place birth date error");
 assert.ok(form.includes('t("chart.firstRun.errorTime")'), "in-place birth time error");
+assert.ok(
+  form.includes('!birth.timeUnknown && !birth.birthTime') &&
+    form.includes('t("chart.firstRun.errorTime")'),
+  "errorTime still applies when there is no time and the unknown control is off",
+);
+assert.ok(form.includes('data-testid="first-run-time-unknown"'), "unknown-time control is marked");
+assert.ok(form.includes('t("chart.timeUnknown")'), "unknown-time control copy is keyed");
+assert.ok(form.includes('t("chart.timeUnknownDisclosure")'), "noon disclosure is keyed");
 assert.ok(form.includes('t("chart.firstRun.errorCity")') || city.includes('fieldError'), "in-place city error");
 assert.ok(form.includes('type="submit"'), "Enter submits the first-run form");
 assert.ok(form.includes("type-body") && form.includes("text-fg"), "lead uses body type and primary ink");
@@ -109,6 +117,16 @@ assert.ok(
   /submitFirstRun[\s\S]*slot_kind: "self"[\s\S]*role: "self"/.test(profile) ||
     /slot_kind: "self",\s*role: "self"/.test(profile),
   "first-run calculateChart call saves as You",
+);
+assert.ok(profile.includes('UNKNOWN_BIRTH_TIME = "12:00:00"'), "documented default is 12:00:00");
+assert.ok(profile.includes("effectiveBirthTime(birthTime, timeUnknown)"), "first-run save uses noon when unknown");
+assert.ok(
+  profile.includes("time_unknown: timeUnknown"),
+  "first-run calculateChart sends the time_unknown flag",
+);
+assert.ok(
+  profile.includes("if (!birthDate || (!timeUnknown && !birthTime) || lat == null || lon == null)"),
+  "first-run save requires time only when not marked unknown",
 );
 assert.ok(
   profile.includes("if (preferred && isSelfRow(preferred)) applyRow(preferred)"),
@@ -198,6 +216,9 @@ const locked = {
   "chart.firstRun.editDetails": "Edit your birth details",
   "chart.firstRun.natalLine": "This is your natal. You can edit your birth details anytime.",
   "chart.firstRun.seeTodaysMove": "See today's Move",
+  "chart.timeUnknown": "I don’t know the time",
+  "chart.timeUnknownDisclosure":
+    "We’ll use noon in your birth city. How you decide may be a little less precise.",
 };
 
 const localeDir = resolve(root, "src/lib/i18n/messages");

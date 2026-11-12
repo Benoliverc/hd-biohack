@@ -17,6 +17,7 @@ export type NatalChartSummary = {
   birth_city: string;
   birth_date?: string;
   birth_time?: string;
+  time_unknown?: boolean;
   timezone?: string | null;
   /** Present when known; friends must not drive Today / Protocols sticky. */
   slot_kind?: "self" | "friend" | string;
@@ -71,6 +72,7 @@ function summaryFromRow(row: SavedChartRow): NatalChartSummary {
     birth_city: row.birth_city || "",
     birth_date: row.birth_date,
     birth_time: row.birth_time,
+    time_unknown: row.time_unknown === true,
     timezone: row.timezone ?? null,
     slot_kind: row.slot_kind,
     role: row.role,

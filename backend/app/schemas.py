@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class BirthDataIn(BaseModel):
     birth_date: str = Field(..., description="YYYY-MM-DD")
-    birth_time: str = Field(..., description="HH:MM or HH:MM:SS")
+    birth_time: str | None = Field(None, description="HH:MM or HH:MM:SS")
     birth_city: str
     user_id: int | None = None
     save: bool = False
@@ -23,6 +23,10 @@ class BirthDataIn(BaseModel):
     natal_chart_id: int | None = Field(
         None,
         description="When set with save=true, update this existing chart instead of inserting",
+    )
+    time_unknown: bool = Field(
+        False,
+        description="True when birth time is unknown; server stores and calculates 12:00:00 local noon",
     )
 
 

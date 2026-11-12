@@ -105,9 +105,23 @@ def _user_has_biohacking(user: User) -> bool:
 router = APIRouter()
 
 
-def _parse_birth(data: BirthDataIn) -> tuple[int, int, int, int, int, int]:
-    y, m, d = (int(x) for x in data.birth_date.split("-"))
-    parts = data.birth_time.split(":")
+# Documented default when time_unknown is true: local noon in the birth-city timezone.
+UNKNOWN_BIRTH_TIME = "12:00:00"
+
+
+def _resolved_birth_time(data: BirthDataIn) -> str:
+    """Noon when time is unknown; omitted/blank time without the flag is a validation error."""
+    if data.time_unknown:
+        return UNKNOWN_BIRTH_TIME
+    raw = (data.birth_time or "").strip()
+    if not raw:
+        raise HTTPException(status_code=422, detail="Enter a birth time.")
+    return raw
+
+
+def _parse_birth(birth_date: str, birth_time: str) -> tuple[int, int, int, int, int, int]:
+    y, m, d = (int(x) for x in birth_date.split("-"))
+    parts = birth_time.split(":")
     hour = int(parts[0])
     minute = int(parts[1]) if len(parts) > 1 else 0
     second = int(parts[2]) if len(parts) > 2 else 0
@@ -554,7 +568,9 @@ def calc_chart(
         except ValueError as e:
             raise HTTPException(400, str(e)) from e
 
-    y, m, d, hour, minute, second = _parse_birth(body)
+    birth_time = _resolved_birth_time(body)
+    time_unknown = bool(body.time_unknown)
+    y, m, d, hour, minute, second = _parse_birth(body.birth_date, birth_time)
     try:
         chart = calculate_chart(
             y, m, d, hour, minute, second,
@@ -592,7 +608,8 @@ def calc_chart(
             else:
                 row.role = "self"
             row.birth_date = body.birth_date
-            row.birth_time = body.birth_time
+            row.birth_time = birth_time
+            row.time_unknown = time_unknown
             row.birth_city = body.birth_city
             row.lat = geo["lat"]
             row.lon = geo["lon"]
@@ -640,7 +657,8 @@ def calc_chart(
                 slot_kind=slot_kind,
                 role=chart_role,
                 birth_date=body.birth_date,
-                birth_time=body.birth_time,
+                birth_time=birth_time,
+                time_unknown=time_unknown,
                 birth_city=body.birth_city,
                 lat=geo["lat"],
                 lon=geo["lon"],
@@ -684,6 +702,7 @@ def get_user_charts(
             ),
             "birth_date": r.birth_date,
             "birth_time": r.birth_time,
+            "time_unknown": bool(getattr(r, "time_unknown", False)),
             "birth_city": r.birth_city,
             "lat": r.lat,
             "lon": r.lon,

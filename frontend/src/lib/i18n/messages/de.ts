@@ -357,6 +357,11 @@ export const messages = {
   'chart.firstRun.saveFailed': "We couldn't save your chart. Try again.",
   'chart.firstRun.accountFailed': "We couldn't load your account. Try again.",
 
+  'chart.timeUnknown': 'I don’t know the time',
+  'chart.timeUnknownDisclosure': 'We’ll use noon in your birth city. How you decide may be a little less precise.',
+  'chart.timeUnknownCaveat': 'Birth time is unknown, so how you decide may be a little less precise.',
+  'chart.timeUnknownEdit': 'Edit on Chart',
+
   'privacy.link': 'Privacy',
   'privacy.title': 'Privacy',
   'privacy.intro': 'Baseline keeps this short. Here is what we store and how we use it during beta.',

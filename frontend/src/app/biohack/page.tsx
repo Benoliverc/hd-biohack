@@ -79,6 +79,7 @@ function summaryFromSelf(row: SavedChartRow): NatalChartSummary {
     birth_city: row.birth_city || "",
     birth_date: row.birth_date,
     birth_time: row.birth_time,
+    time_unknown: row.time_unknown === true,
     timezone: row.timezone ?? null,
     slot_kind: row.slot_kind ?? "self",
   };

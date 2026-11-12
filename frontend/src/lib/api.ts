@@ -119,6 +119,8 @@ export type SavedChartRow = {
   role?: "self" | "person" | "partner" | string;
   birth_date?: string;
   birth_time?: string;
+  /** True when the natal was saved with an unknown birth time (noon default). */
+  time_unknown?: boolean;
   birth_city: string;
   lat?: number;
   lon?: number;
@@ -624,6 +626,7 @@ export const api = {
     slot_kind?: "self" | "friend";
     role?: "self" | "person" | "partner" | null;
     natal_chart_id?: number | null;
+    time_unknown?: boolean;
   }) =>
     req<{ chart: Record<string, unknown>; natal_chart_id: number | null }>("/chart/calculate", {
       method: "POST",
