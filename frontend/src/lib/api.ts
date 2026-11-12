@@ -605,6 +605,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ token, password }),
     }),
+  changePassword: (current_password: string, new_password: string) =>
+    req<AuthSession>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ current_password, new_password }),
+    }),
+  deleteAccount: (current_password: string, confirmation_email: string) =>
+    req<{ message: string }>("/auth/delete-account", {
+      method: "POST",
+      body: JSON.stringify({ current_password, confirmation_email }),
+    }),
   users: () => req<User[]>("/users"),
   setTier: (id: number, tier: string, actorUserId: number) =>
     req<User>(

@@ -1,16 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
+import { writeSessionToken } from "@/lib/session";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
 import { detectDeviceTimezone } from "@/lib/deviceTimezone";
-import { useI18n, translate, type Locale } from "@/lib/i18n";
-import { Languages, Clock, UserRound } from "lucide-react";
+import { useI18n, translate, type Locale, type MessageKey } from "@/lib/i18n";
+import { Languages, Clock, UserRound, KeyRound, Eye, EyeOff } from "lucide-react";
+
+function accountApiMessage(message: string, t: (key: MessageKey) => string) {
+  if (message === "Choose a different password.") return t("settings.chooseDifferentPassword");
+  if (message === "Type your account email to confirm.") return t("settings.deleteConfirmMismatch");
+  if (
+    message === "Password must be at least 8 characters" ||
+    message === "Password must be at least 8 characters."
+  ) {
+    return t("login.passwordTooShort");
+  }
+  if (message.includes("Email or password") || /didn['’]t work/i.test(message)) {
+    return t("login.genericAuthError");
+  }
+  return message;
+}
 
 export default function SettingsPage() {
-  const { user, setSessionUser, sessionReady } = useApp();
+  const router = useRouter();
+  const { user, setSessionUser, sessionReady, signOut } = useApp();
   const { t, locale, setLocale, locales, labels } = useI18n();
   const [langSelect, setLangSelect] = useState<Locale>(locale);
   const [firstName, setFirstName] = useState("");
@@ -19,6 +37,19 @@ export default function SettingsPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deviceTz, setDeviceTz] = useState<string | null>(null);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [savingDelete, setSavingDelete] = useState(false);
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
 
   useEffect(() => {
     const read = () => setDeviceTz(detectDeviceTimezone());
@@ -112,6 +143,67 @@ export default function SettingsPage() {
       }
     },
     [user, setLocale, setSessionUser, labels]
+  );
+
+  const onChangePassword = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      if (!user) return;
+      setError(null);
+      setFeedback(null);
+      if (newPassword.length < 8) {
+        setError(t("login.passwordTooShort"));
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setError(t("settings.passwordMismatch"));
+        return;
+      }
+      setSavingPassword(true);
+      try {
+        const session = await api.changePassword(currentPassword, newPassword);
+        writeSessionToken(session.access_token);
+        setSessionUser(session.user);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setFeedback(t("settings.passwordUpdated"));
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(accountApiMessage(message, t));
+      } finally {
+        setSavingPassword(false);
+      }
+    },
+    [user, currentPassword, newPassword, confirmPassword, setSessionUser, t]
+  );
+
+  const onDeleteAccount = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      if (!user) return;
+      setError(null);
+      setFeedback(null);
+      if (deleteEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+        setError(t("settings.deleteConfirmMismatch"));
+        return;
+      }
+      if (!deletePassword) {
+        setError(t("login.genericAuthError"));
+        return;
+      }
+      setSavingDelete(true);
+      try {
+        await api.deleteAccount(deletePassword, deleteEmail.trim());
+        signOut();
+        router.replace("/login");
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(accountApiMessage(message, t));
+        setSavingDelete(false);
+      }
+    },
+    [user, deleteEmail, deletePassword, signOut, router, t]
   );
 
   const displayTz =
@@ -253,12 +345,171 @@ export default function SettingsPage() {
         </p>
       </section>
 
-      <p
-        className="rounded-xl border border-border/80 bg-elevated/70 px-4 py-3 text-xs text-fg-muted shadow-soft"
-        data-testid="settings-footer-account"
+      <section
+        className="space-y-6 rounded-2xl border border-border bg-elevated p-5 shadow-soft"
+        data-testid="settings-account"
       >
-        {t("settings.footerAccount")}
-      </p>
+        <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
+          <KeyRound className="h-4 w-4 shrink-0 text-growth" aria-hidden />
+          {t("settings.accountTitle")}
+        </h2>
+
+        <form
+          className="space-y-3"
+          data-testid="settings-change-password"
+          onSubmit={(e) => void onChangePassword(e)}
+          noValidate
+        >
+          <h3 className="text-sm font-semibold text-fg">{t("settings.changePasswordTitle")}</h3>
+
+          <label className="block text-sm text-fg" htmlFor="current-password">
+            {t("settings.currentPassword")}
+          </label>
+          <div className="relative">
+            <input
+              id="current-password"
+              type={showCurrentPassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={currentPassword}
+              disabled={savingPassword}
+              data-testid="settings-change-password-current"
+              className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 pr-12 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg"
+              onClick={() => setShowCurrentPassword((v) => !v)}
+              aria-label={showCurrentPassword ? t("login.hidePassword") : t("login.showPassword")}
+              tabIndex={-1}
+            >
+              {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <label className="block text-sm text-fg" htmlFor="new-password">
+            {t("settings.newPassword")}
+          </label>
+          <div className="relative">
+            <input
+              id="new-password"
+              type={showNewPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={newPassword}
+              disabled={savingPassword}
+              data-testid="settings-change-password-new"
+              className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 pr-12 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg"
+              onClick={() => setShowNewPassword((v) => !v)}
+              aria-label={showNewPassword ? t("login.hidePassword") : t("login.showPassword")}
+              tabIndex={-1}
+            >
+              {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <label className="block text-sm text-fg" htmlFor="confirm-password">
+            {t("settings.confirmPassword")}
+          </label>
+          <div className="relative">
+            <input
+              id="confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={confirmPassword}
+              disabled={savingPassword}
+              data-testid="settings-change-password-confirm"
+              className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 pr-12 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              aria-label={showConfirmPassword ? t("login.hidePassword") : t("login.showPassword")}
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingPassword}
+            data-testid="settings-change-password-submit"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-50 sm:w-auto"
+          >
+            {savingPassword ? t("common.saving") : t("settings.updatePassword")}
+          </button>
+        </form>
+
+        <form
+          className="space-y-3 border-t border-border pt-5"
+          data-testid="settings-delete-account"
+          onSubmit={(e) => void onDeleteAccount(e)}
+          noValidate
+        >
+          <h3 className="text-sm font-semibold text-fg">{t("settings.deleteAccountTitle")}</h3>
+          <p className="text-sm text-fg" data-testid="settings-delete-help">
+            {t("settings.deleteAccountHelp")}
+          </p>
+          <p className="text-sm text-fg" data-testid="settings-delete-email-current">
+            {user.email}
+          </p>
+
+          <label className="block text-sm text-fg" htmlFor="delete-email">
+            {t("settings.deleteConfirmLabel")}
+          </label>
+          <input
+            id="delete-email"
+            type="email"
+            autoComplete="off"
+            value={deleteEmail}
+            disabled={savingDelete}
+            data-testid="settings-delete-email"
+            className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+            onChange={(e) => setDeleteEmail(e.target.value)}
+          />
+
+          <label className="block text-sm text-fg" htmlFor="delete-password">
+            {t("settings.currentPassword")}
+          </label>
+          <div className="relative">
+            <input
+              id="delete-password"
+              type={showDeletePassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={deletePassword}
+              disabled={savingDelete}
+              data-testid="settings-delete-password"
+              className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 pr-12 text-sm text-fg placeholder:text-fg-muted disabled:opacity-60"
+              onChange={(e) => setDeletePassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg"
+              onClick={() => setShowDeletePassword((v) => !v)}
+              aria-label={showDeletePassword ? t("login.hidePassword") : t("login.showPassword")}
+              tabIndex={-1}
+            >
+              {showDeletePassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingDelete}
+            data-testid="settings-delete-submit"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-danger bg-transparent px-4 py-2.5 text-sm font-semibold text-danger hover:bg-danger/5 disabled:opacity-50 sm:w-auto"
+          >
+            {savingDelete ? t("common.saving") : t("settings.deleteAccountSubmit")}
+          </button>
+        </form>
+      </section>
 
       <p
         className="type-caption text-fg-muted"

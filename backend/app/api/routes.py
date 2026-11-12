@@ -15,9 +15,12 @@ from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
 from ..hd.soul_sync import CONTEXT_IDS, compute_soul_sync
 from ..models import (
+    AuthSession,
     NatalChart,
+    PasswordResetToken,
     ProtocolCompletion,
     SupplementInventory,
+    UsageEvent,
     User,
     UserBiometricsDaily,
     UserDailyIntention,
@@ -90,6 +93,8 @@ from ..schemas import (
     RegisterIn,
     ForgotPasswordIn,
     ResetPasswordIn,
+    ChangePasswordIn,
+    DeleteAccountIn,
     MessageOut,
 )
 
@@ -248,6 +253,77 @@ def reset_password(body: ResetPasswordIn, request: Request, db: Session = Depend
     db.commit()
     record_usage_event(user=user, event_type="login")
     return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.post("/auth/change-password", response_model=AuthSessionOut)
+def change_password(
+    body: ChangePasswordIn,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Change the current user's password, revoke every session, and issue a new one."""
+    rate_limit("change-password", limit=10, window_sec=600, request=request)
+    if len(body.new_password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    if not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(401, GENERIC_AUTH_ERROR)
+    if verify_password(body.new_password, user.password_hash):
+        raise HTTPException(400, "Choose a different password.")
+    user.password_hash = hash_password(body.new_password)
+    user.auth_provider = "password"
+    db.commit()
+    db.refresh(user)
+    revoke_all_sessions_for_user(db, user.id)
+    token = create_session(db, user)
+    touch_last_login(db, user)
+    db.commit()
+    return AuthSessionOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.post("/auth/delete-account", response_model=MessageOut)
+def delete_account(
+    body: DeleteAccountIn,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Hard-delete the current user's account and every user-owned row."""
+    rate_limit("delete-account", limit=5, window_sec=600, request=request)
+    if not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(401, GENERIC_AUTH_ERROR)
+    confirmation = (body.confirmation_email or "").strip()
+    if confirmation.lower() != (user.email or "").strip().lower():
+        raise HTTPException(400, "Type your account email to confirm.")
+
+    uid = user.id
+    email = user.email
+    db.query(ProtocolCompletion).filter(ProtocolCompletion.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(NatalChart).filter(NatalChart.user_id == uid).delete(synchronize_session=False)
+    db.query(SupplementInventory).filter(SupplementInventory.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(WeeklyProtocol).filter(WeeklyProtocol.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(UserBiometricsDaily).filter(UserBiometricsDaily.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(UserDailyIntention).filter(UserDailyIntention.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(AuthSession).filter(AuthSession.user_id == uid).delete(synchronize_session=False)
+    db.query(PasswordResetToken).filter(PasswordResetToken.user_id == uid).delete(
+        synchronize_session=False
+    )
+    db.query(UsageEvent).filter(
+        (UsageEvent.user_id == uid) | (func.lower(UsageEvent.email) == email.lower())
+    ).delete(synchronize_session=False)
+    db.delete(user)
+    db.commit()
+    return MessageOut(message="Account deleted")
 
 
 @router.get("/users", response_model=list[UserOut])
