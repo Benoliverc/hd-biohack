@@ -64,14 +64,11 @@ if (!/href="\/privacy"/.test(login)) fail("login Privacy link must go to /privac
 if (!/t\("privacy\.link"\)/.test(login)) fail("login must use privacy.link");
 if (!/t\("privacy\.copyrightShort"\)/.test(login)) fail("login must use privacy.copyrightShort");
 
-// Settings quiet strip under account footer
+// Settings quiet Privacy footer (account controls live in settings-account)
 if (!/data-testid="settings-privacy-footer"/.test(settings)) fail("settings missing privacy footer");
 if (!/href="\/privacy"/.test(settings)) fail("settings Privacy link must go to /privacy");
 if (!/t\("privacy\.link"\)/.test(settings)) fail("settings must use privacy.link");
 if (!/t\("privacy\.copyrightShort"\)/.test(settings)) fail("settings must use privacy.copyrightShort");
-if (!/data-testid="settings-footer-account"/.test(settings)) {
-  fail("settings.footerAccount strip must remain");
-}
 
 const locked = {
   "privacy.link": "Privacy",
@@ -89,7 +86,7 @@ const locked = {
     "Password-reset mail is sent only when you ask for a reset. Support stays at baselineapp@proton.me.",
   "privacy.choicesTitle": "Your choices",
   "privacy.choicesBody":
-    "You can sign out anytime. Account deletion is not in the app yet — email baselineapp@proton.me if you need help with that.",
+    "You can sign out anytime. You can change your password or permanently delete your account in Settings. For other help, email baselineapp@proton.me.",
   "privacy.hdNote":
     "Human Design® is a registered system belonging to its owners. Baseline is an independent informational app and is not affiliated with or endorsed by those owners.",
   "privacy.copyright": "© 2026 Baseline. All rights reserved.",
@@ -102,14 +99,29 @@ for (const [key, value] of Object.entries(locked)) {
   if (!en.includes(value)) fail(`en ${key} must match locked copy`);
 }
 
+const TRANSLATED_PRIVACY_KEYS = new Set(["privacy.choicesBody"]);
+const OLD_CHOICES_BODY =
+  "You can sign out anytime. Account deletion is not in the app yet — email baselineapp@proton.me if you need help with that.";
+
+function valueFor(src, key) {
+  const re = new RegExp(`['"]${key.replace(/\./g, "\\.")}['"]\\s*:\\s*(['"])([\\s\\S]*?)\\1`);
+  const m = src.match(re);
+  return m ? m[2] : null;
+}
+
 for (const [name, src] of locales) {
   for (const key of Object.keys(locked)) {
     if (!srcIncludesKey(src, key)) fail(`${name} missing ${key}`);
   }
-  // Non-EN: EN verbatim for new keys
-  if (name !== "en") {
-    for (const [key, value] of Object.entries(locked)) {
-      if (!src.includes(value)) fail(`${name} ${key} must be EN verbatim`);
+  if (name === "en") continue;
+  for (const [key, value] of Object.entries(locked)) {
+    const got = valueFor(src, key);
+    if (got == null || !got.trim()) fail(`${name} ${key} is missing a value`);
+    if (TRANSLATED_PRIVACY_KEYS.has(key)) {
+      if (got === value) fail(`${name} ${key} must be a real translation, not EN verbatim`);
+      if (got === OLD_CHOICES_BODY) fail(`${name} ${key} must not keep the old sentence`);
+    } else if (got !== value) {
+      fail(`${name} ${key} must be EN verbatim`);
     }
   }
 }
