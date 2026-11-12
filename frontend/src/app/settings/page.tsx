@@ -1,63 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
 import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
+import { detectDeviceTimezone } from "@/lib/deviceTimezone";
 import { useI18n, translate, type Locale } from "@/lib/i18n";
 import { Languages, Clock, UserRound } from "lucide-react";
-
-/** Curated common IANA zones — free-text still accepted below. */
-const COMMON_TIMEZONES = [
-  "Asia/Hong_Kong",
-  "Asia/Tokyo",
-  "Asia/Singapore",
-  "Asia/Shanghai",
-  "Asia/Kolkata",
-  "Asia/Dubai",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Amsterdam",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Toronto",
-  "America/Sao_Paulo",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-  "UTC",
-] as const;
 
 export default function SettingsPage() {
   const { user, setSessionUser, sessionReady } = useApp();
   const { t, locale, setLocale, locales, labels } = useI18n();
-  const [tzSelect, setTzSelect] = useState<string>("");
-  const [tzCustom, setTzCustom] = useState("");
-  const [useCustom, setUseCustom] = useState(false);
   const [langSelect, setLangSelect] = useState<Locale>(locale);
   const [firstName, setFirstName] = useState("");
-  const [savingTz, setSavingTz] = useState(false);
   const [savingLang, setSavingLang] = useState(false);
   const [savingName, setSavingName] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deviceTz, setDeviceTz] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    const current = (user.preferred_timezone || "").trim();
-    if (current && !(COMMON_TIMEZONES as readonly string[]).includes(current)) {
-      setUseCustom(true);
-      setTzCustom(current);
-      setTzSelect("");
-    } else {
-      setUseCustom(false);
-      setTzSelect(current);
-      setTzCustom("");
-    }
-  }, [user?.id, user?.preferred_timezone]);
+    const read = () => setDeviceTz(detectDeviceTimezone());
+    read();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") read();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", read);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", read);
+    };
+  }, []);
 
   useEffect(() => {
     setLangSelect(locale);
@@ -67,11 +42,6 @@ export default function SettingsPage() {
     if (!user) return;
     setFirstName(user.first_name?.trim() || "");
   }, [user?.id, user?.first_name]);
-
-  const effectiveValue = useMemo(() => {
-    if (useCustom) return tzCustom.trim();
-    return tzSelect.trim();
-  }, [useCustom, tzCustom, tzSelect]);
 
   const saveFirstName = useCallback(async () => {
     if (!user) return;
@@ -94,29 +64,6 @@ export default function SettingsPage() {
       setSavingName(false);
     }
   }, [user, firstName, setSessionUser, t]);
-
-  const saveTimezone = useCallback(async () => {
-    if (!user) return;
-    setSavingTz(true);
-    setError(null);
-    setFeedback(null);
-    try {
-      const nextTz = effectiveValue || null;
-      const updated = await api.patchUserSettings(user.id, {
-        preferred_timezone: nextTz,
-      });
-      setSessionUser(updated);
-      setFeedback(
-        nextTz
-          ? t("settings.savedTz", { tz: nextTz })
-          : t("settings.savedTzDefault", { tz: DEFAULT_PROTOCOLS_TZ })
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSavingTz(false);
-    }
-  }, [user, effectiveValue, setSessionUser, t]);
 
   const saveLanguage = useCallback(async () => {
     if (!user) return;
@@ -166,6 +113,9 @@ export default function SettingsPage() {
     },
     [user, setLocale, setSessionUser, labels]
   );
+
+  const displayTz =
+    deviceTz || user?.preferred_timezone?.trim() || DEFAULT_PROTOCOLS_TZ;
 
   if (!sessionReady) {
     return <p className="text-sm text-fg-muted">{t("common.loading")}</p>;
@@ -295,78 +245,12 @@ export default function SettingsPage() {
             <Clock className="h-4 w-4 shrink-0 text-growth" aria-hidden />
             {t("settings.timezoneTitle")}
           </h2>
-          <p className="mt-1 text-xs text-fg-muted">{t("settings.timezoneHelp")}</p>
+          <p className="mt-1 text-sm text-fg">{t("settings.timezoneHelp")}</p>
         </div>
 
-        <label className="block text-sm text-fg-secondary" htmlFor="tz-select">
-          {t("settings.commonZones")}
-        </label>
-        <select
-          id="tz-select"
-          disabled={useCustom || savingTz}
-          className="min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg disabled:opacity-60"
-          value={tzSelect}
-          data-testid="settings-tz-select"
-          onChange={(e) => {
-            setTzSelect(e.target.value);
-            setUseCustom(false);
-          }}
-        >
-          <option value="">{t("settings.defaultTz", { tz: DEFAULT_PROTOCOLS_TZ })}</option>
-          {COMMON_TIMEZONES.map((z) => (
-            <option key={z} value={z}>
-              {z}
-            </option>
-          ))}
-        </select>
-
-        <label className="flex min-h-11 items-center gap-2 text-sm text-fg-secondary">
-          <input
-            type="checkbox"
-            checked={useCustom}
-            data-testid="settings-tz-custom-toggle"
-            onChange={(e) => setUseCustom(e.target.checked)}
-          />
-          {t("settings.customTzToggle")}
-        </label>
-
-        {useCustom && (
-          <div>
-            <label className="block text-sm text-fg-secondary" htmlFor="tz-custom">
-              {t("settings.ianaName")}
-            </label>
-            <input
-              id="tz-custom"
-              type="text"
-              maxLength={128}
-              placeholder="e.g. Pacific/Honolulu"
-              value={tzCustom}
-              disabled={savingTz}
-              data-testid="settings-tz-custom"
-              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted"
-              onChange={(e) => setTzCustom(e.target.value)}
-            />
-          </div>
-        )}
-
-        <p className="text-xs text-fg-muted" data-testid="settings-tz-current">
-          {t("settings.current")}{" "}
-          <span className="font-medium text-fg">
-            {user.preferred_timezone?.trim() ||
-              t("settings.defaultTz", { tz: DEFAULT_PROTOCOLS_TZ })}
-          </span>
+        <p className="text-sm text-fg" data-testid="settings-tz-device">
+          {t("settings.deviceTimezone", { tz: displayTz })}
         </p>
-
-        <button
-          type="button"
-          disabled={savingTz}
-          data-testid="settings-tz-save"
-          onClick={() => void saveTimezone()}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-growth px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 disabled:opacity-50 sm:w-auto"
-        >
-          {savingTz ? t("common.saving") : t("settings.saveTimezone")}
-        </button>
-
       </section>
 
       <p
