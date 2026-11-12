@@ -117,9 +117,9 @@ export function Header() {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 overflow-x-clip border-b border-border bg-canvas/80 backdrop-blur"
+      className="app-header sticky top-0 z-40 overflow-x-clip border-b border-border bg-canvas/80 backdrop-blur"
     >
-      <div className="mx-auto max-w-6xl px-4 py-2.5 sm:py-3">
+      <div className="app-header-pad-x mx-auto max-w-6xl py-2">
         <div className="flex items-center justify-between gap-2">
           <Link
             href="/"
@@ -127,14 +127,14 @@ export function Header() {
             aria-label={t("nav.home")}
             aria-current={pathname === "/" ? "page" : undefined}
             data-testid="nav-wordmark"
-            className="inline-flex min-h-10 min-w-0 shrink items-center truncate text-base font-semibold tracking-tight text-growth sm:text-lg"
+            className="inline-flex min-h-11 min-w-0 shrink items-center truncate text-base font-semibold tracking-tight text-growth-ink sm:text-lg"
           >
             {t("brand.name")}
           </Link>
-          <div className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted sm:gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 text-xs text-fg-secondary sm:gap-2">
             {showDevControls && (
               <details className="relative">
-                <summary className="flex min-h-10 cursor-pointer list-none items-center rounded-lg border border-border px-2.5 text-fg-muted hover:border-growth hover:text-fg-secondary [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-lg border border-border px-2.5 text-fg-secondary hover:border-growth hover:text-fg [&::-webkit-details-marker]:hidden">
                   Dev
                 </summary>
                 <div className="absolute right-0 top-full z-50 mt-1 w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-border bg-elevated p-3 shadow-soft">
@@ -152,10 +152,10 @@ export function Header() {
                     href="/admin"
                     data-testid="nav-admin"
                     title={t("nav.admin")}
-                    className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
+                    className={`inline-flex min-h-11 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
                       pathname === "/admin"
-                        ? "border-growth/40 bg-growth/15 text-growth"
-                        : "border-border text-fg-muted hover:border-growth hover:text-fg-secondary"
+                        ? "border-growth/40 bg-growth/15 text-growth-ink"
+                        : "border-border text-fg-secondary hover:border-growth hover:text-fg"
                     }`}
                   >
                     <Shield className="h-3.5 w-3.5" aria-hidden />
@@ -166,10 +166,10 @@ export function Header() {
                   href="/settings"
                   data-testid="nav-settings"
                   title={t("nav.settings")}
-                  className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
+                  className={`inline-flex min-h-11 min-w-11 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
                     pathname === "/settings"
-                      ? "border-growth/40 bg-growth/15 text-growth"
-                      : "border-border text-fg-muted hover:border-growth hover:text-fg-secondary"
+                      ? "border-growth/40 bg-growth/15 text-growth-ink"
+                      : "border-border text-fg-secondary hover:border-growth hover:text-fg"
                   }`}
                 >
                   <Settings className="h-3.5 w-3.5" aria-hidden />
@@ -178,7 +178,7 @@ export function Header() {
                 <button
                   type="button"
                   data-testid="sign-out"
-                  className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
+                  className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-2.5 py-2.5 text-fg-secondary hover:border-growth hover:text-fg sm:px-3"
                   onClick={() => {
                     signOut();
                     router.replace("/login");
@@ -192,7 +192,7 @@ export function Header() {
               <Link
                 href="/login"
                 data-testid="header-sign-in"
-                className="inline-flex min-h-10 items-center rounded-lg border border-border px-2.5 py-2.5 hover:border-growth sm:px-3"
+                className="inline-flex min-h-11 items-center rounded-lg border border-border px-2.5 py-2.5 text-fg-secondary hover:border-growth hover:text-fg sm:px-3"
               >
                 {t("nav.signIn")}
               </Link>
@@ -202,7 +202,7 @@ export function Header() {
                 data-testid="tier-badge"
                 className={`rounded-full px-2 py-1 ${
                   tierIsPro
-                    ? "bg-growth/20 text-growth"
+                    ? "bg-growth-soft text-growth-ink"
                     : "bg-energy/15 text-energy-ink"
                 }`}
               >
@@ -225,10 +225,10 @@ export function Header() {
                 href={href}
                 data-testid={testId}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs sm:gap-1.5 sm:px-3 sm:text-sm ${
+                className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs sm:gap-1.5 sm:px-3 sm:text-sm ${
                   active
-                    ? "border-growth/40 bg-growth-soft font-medium text-growth"
-                    : "border-transparent text-fg-muted hover:bg-sunken hover:text-fg"
+                    ? "border-growth/40 bg-growth-soft font-medium text-growth-ink"
+                    : "border-transparent text-fg-secondary hover:bg-sunken hover:text-fg"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -246,13 +246,13 @@ export function Header() {
                   onClick={(e) =>
                     howToRead?.open({ returnFocus: e.currentTarget })
                   }
-                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-transparent px-2 py-2 text-xs font-medium text-fg hover:bg-sunken hover:text-growth-ink sm:px-3 sm:text-sm"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent px-2 py-2 text-xs font-medium text-fg hover:bg-sunken hover:text-growth-ink sm:px-3 sm:text-sm"
                 >
                   {t("nav.howToRead")}
                 </button>
               ) : (
                 <span
-                  className="pointer-events-none invisible inline-flex min-h-10 select-none items-center justify-center px-2 py-2 text-xs font-medium sm:px-3 sm:text-sm"
+                  className="pointer-events-none invisible inline-flex min-h-11 select-none items-center justify-center px-2 py-2 text-xs font-medium sm:px-3 sm:text-sm"
                   aria-hidden
                 >
                   {t("nav.howToRead")}
@@ -264,7 +264,7 @@ export function Header() {
       </div>
       {showBetaChrome && (
         <p
-          className="border-t border-border/60 bg-growth-soft/40 px-4 py-1.5 text-center type-caption text-fg-secondary"
+          className="app-header-pad-x border-t border-border/60 bg-growth-soft/40 py-1.5 text-center type-caption text-fg-secondary"
           data-testid="beta-chrome-note"
         >
           {t("beta.chromeNote")}
