@@ -141,6 +141,19 @@ for (const [field, target] of Object.entries(LITERACY_JUMP_BY_FIELD)) {
   );
 }
 
+// Pulse opens the Today reader at the matching step — it is a button, not an in-page hash.
+const pulseCtrl = todayInd.slice(
+  todayInd.lastIndexOf("<", todayInd.indexOf('data-testid="hd-fact-how-to-read"')),
+  todayInd.indexOf(">", todayInd.indexOf('data-testid="hd-fact-how-to-read"')) + 1,
+);
+assert.ok(pulseCtrl.includes("<button"), "pulse How to read is a button");
+assert.ok(todayInd.includes("onHowToRead"), "pulse calls up onHowToRead(stepId)");
+assert.ok(
+  !/data-testid="hd-fact-how-to-read"[\s\S]{0,200}href=\{`#/.test(todayInd) &&
+    !pulseCtrl.includes("href="),
+  "pulse does not hash-scroll the page in place of opening the reader",
+);
+
 // Sky facts stay shorter than a typical Sky Story chapter (soft length guard)
 for (const fact of Object.values(SKY_LITERACY_FACTS)) {
   assert.ok(fact.split(/\s+/).length <= 28, `sky fact too long: ${fact}`);
