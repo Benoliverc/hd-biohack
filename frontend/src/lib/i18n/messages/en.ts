@@ -52,6 +52,7 @@ export const messages = {
   'settings.deleteConfirmLabel': 'Type your account email to confirm',
   'settings.deleteAccountSubmit': 'Delete my account',
   'settings.deleteConfirmMismatch': 'Type your account email to confirm.',
+  'settings.backToSettings': 'Back to Settings',
   'login.headline': 'Chart. Today. Protocols. Soul.',
   'login.subhead': 'Human Design that turns into a day you can follow.',
   'login.intro': 'Sign in to calculate your natal chart, see what the sky is doing today, and get grounded protocols — no mysticism, just next steps.',

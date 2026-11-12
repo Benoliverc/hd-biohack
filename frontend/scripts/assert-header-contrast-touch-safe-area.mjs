@@ -206,6 +206,22 @@ assert.match(
 assert.ok(headerFn.includes('if (pathname === "/login" || pathname === "/reset-password") return null;'),
   "login and reset-password still return no Header");
 
+assert.match(
+  headerFn,
+  /pathname === "\/settings" \|\| pathname\.startsWith\("\/settings\/"\)/,
+  "Settings active state covers /settings and /settings/*",
+);
+assert.match(
+  headerFn,
+  /const literacyRoute =\s*pathname === "\/profile" \|\| pathname === "\/soul" \|\| pathname === "\/transits";/,
+  "How to read stays wired only for exact /profile, /soul, and /transits",
+);
+assert.doesNotMatch(
+  headerFn,
+  /literacyRoute[\s\S]{0,200}\/settings/,
+  "How to read is not broadened to Settings routes",
+);
+
 // --- ChartSectionNav ---
 assert.ok(sectionNav.includes('style={{ top: "var(--app-header-h)" }}'), "ChartSectionNav stays under --app-header-h");
 assert.ok(sectionNav.includes('"--chart-section-nav-h"'), "ResizeObserver still publishes --chart-section-nav-h");

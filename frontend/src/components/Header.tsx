@@ -167,7 +167,7 @@ export function Header() {
                   data-testid="nav-settings"
                   title={t("nav.settings")}
                   className={`inline-flex min-h-11 min-w-11 items-center gap-1 rounded-lg border px-2.5 py-2.5 sm:px-3 ${
-                    pathname === "/settings"
+                    pathname === "/settings" || pathname.startsWith("/settings/")
                       ? "border-growth/40 bg-growth/15 text-growth-ink"
                       : "border-border text-fg-secondary hover:border-growth hover:text-fg"
                   }`}
