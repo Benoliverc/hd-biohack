@@ -149,12 +149,63 @@ assert.ok(settings.includes("settings-timezone"), "timezone section remains");
 assert.ok(settings.includes("settings-tz-device"), "read-only device timezone line is present");
 assert.ok(settings.includes('t("settings.deviceTimezone"'), "read-only line is keyed");
 assert.ok(settings.includes('t("settings.timezoneHelp")'), "help is keyed");
+const tzId = settings.indexOf('data-testid="settings-timezone"');
+assert.ok(tzId >= 0, "settings-timezone test id");
+const tzSectionStart = settings.lastIndexOf("<section", tzId);
+assert.ok(tzSectionStart >= 0 && tzSectionStart < tzId, "timezone section opens before its test id");
+const tzSection = settings.slice(tzSectionStart, settings.indexOf("</section>", tzId));
+assert.ok(/\bbg-elevated\b/.test(tzSection), "timezone card is bg-elevated");
+
+const helpOpen = tzSection.indexOf('t("settings.timezoneHelp")');
+assert.ok(helpOpen >= 0, "timezone help is in the timezone card");
+const helpTag = tzSection.slice(Math.max(0, helpOpen - 160), helpOpen);
+assert.ok(/className="[^"]*\btext-sm\b[^"]*\btext-fg\b/.test(helpTag) && !/text-fg-secondary|text-fg-muted/.test(helpTag), "timezone help uses text-sm text-fg on elevated, not secondary or muted");
+
 const deviceOpen = settings.indexOf('data-testid="settings-tz-device"');
 assert.ok(deviceOpen >= 0, "settings-tz-device test id");
 const deviceTag = settings.slice(deviceOpen - 80, deviceOpen + 160);
-assert.ok(deviceTag.includes("text-fg-secondary"), "device line uses text-fg-secondary");
-assert.ok(!deviceTag.includes("text-fg-muted"), "device line must not use text-fg-muted");
+assert.ok(/className="[^"]*\btext-sm\b[^"]*\btext-fg\b/.test(deviceTag) && !/text-fg-secondary|text-fg-muted/.test(deviceTag), "device line uses text-sm text-fg on elevated, not secondary or muted");
 assert.ok(!deviceTag.includes("text-growth\"" ) && !/text-growth[^-ink]/.test(deviceTag.split(">")[0] || ""), "device line must not use raw text-growth");
+
+// Contrast vs elevated must be computed, not just a class name. text-sm is 14px regular, AA is 4.5:1.
+function hexToRgb(hex) {
+  const h = hex.replace("#", "").trim();
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function channel(c) {
+  const s = c / 255;
+  return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+function luminance(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+function contrastRatio(fg, bg) {
+  const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
+  return (hi + 0.05) / (lo + 0.05);
+}
+function themeTokens(css, marker) {
+  const i = css.indexOf(marker);
+  assert.ok(i >= 0, `globals.css has ${marker}`);
+  const block = css.slice(i, css.indexOf("}", i));
+  const grab = (name) => {
+    const m = block.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
+    assert.ok(m, `${marker} defines --${name}`);
+    return m[1];
+  };
+  return { elevated: grab("elevated"), fg: grab("fg"), fgSecondary: grab("fg-secondary") };
+}
+const css = read("src/app/globals.css");
+const linen = themeTokens(css, ":root {");
+const basalt = themeTokens(css, "html.dark,");
+const linenFg = contrastRatio(linen.fg, linen.elevated);
+const basaltFg = contrastRatio(basalt.fg, basalt.elevated);
+const linenSec = contrastRatio(linen.fgSecondary, linen.elevated);
+const basaltSec = contrastRatio(basalt.fgSecondary, basalt.elevated);
+assert.ok(linenFg >= 4.5, `text-fg on elevated must be AA in Linen (got ${linenFg.toFixed(2)}:1)`);
+assert.ok(basaltFg >= 4.5, `text-fg on elevated must be AA in Basalt (got ${basaltFg.toFixed(2)}:1)`);
+assert.ok(basaltSec < 4.5, `guard: text-fg-secondary on elevated still fails Basalt (${basaltSec.toFixed(2)}:1), so the assert would catch a revert`);
+void linenSec;
 
 // --- Source: sync wiring ---
 const helper = read("src/lib/deviceTimezone.ts");

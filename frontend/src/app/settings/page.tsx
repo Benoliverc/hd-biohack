@@ -245,10 +245,10 @@ export default function SettingsPage() {
             <Clock className="h-4 w-4 shrink-0 text-growth" aria-hidden />
             {t("settings.timezoneTitle")}
           </h2>
-          <p className="mt-1 text-sm text-fg-secondary">{t("settings.timezoneHelp")}</p>
+          <p className="mt-1 text-sm text-fg">{t("settings.timezoneHelp")}</p>
         </div>
 
-        <p className="text-sm text-fg-secondary" data-testid="settings-tz-device">
+        <p className="text-sm text-fg" data-testid="settings-tz-device">
           {t("settings.deviceTimezone", { tz: displayTz })}
         </p>
       </section>
