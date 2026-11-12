@@ -553,6 +553,31 @@ export default function BiohackPage() {
     loadProtocol,
   ]);
 
+  // If a protocol fetch already went out against a stale zone, reload after a successful TZ sync.
+  const lastProtocolTz = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    lastProtocolTz.current = undefined;
+  }, [user?.id]);
+  useEffect(() => {
+    const tz = user?.preferred_timezone ?? null;
+    if (lastProtocolTz.current === undefined) {
+      lastProtocolTz.current = tz;
+      return;
+    }
+    if (lastProtocolTz.current === tz) return;
+    lastProtocolTz.current = tz;
+    if (!biohackingUnlocked || natalBindingLoading || !youReady || !user || !youChart) return;
+    void loadProtocol({ rebuild: true });
+  }, [
+    user?.preferred_timezone,
+    biohackingUnlocked,
+    natalBindingLoading,
+    youReady,
+    user,
+    youChart,
+    loadProtocol,
+  ]);
+
   const addInv = async (preset?: string) => {
     if (!user) return;
     const name = (preset ?? invName).trim();

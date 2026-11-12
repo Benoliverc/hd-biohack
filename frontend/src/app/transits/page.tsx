@@ -181,6 +181,23 @@ export default function TransitsPage() {
     };
   }, [youChart, youReady, natalBindingLoading, fetchToday]);
 
+  // If a Today fetch already went out against a stale zone, reload after a successful TZ sync.
+  const lastTodayTz = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    lastTodayTz.current = undefined;
+  }, [user?.id]);
+  useEffect(() => {
+    const tz = user?.preferred_timezone ?? null;
+    if (lastTodayTz.current === undefined) {
+      lastTodayTz.current = tz;
+      return;
+    }
+    if (lastTodayTz.current === tz) return;
+    lastTodayTz.current = tz;
+    if (natalBindingLoading || !youReady || !youChart) return;
+    void fetchToday({ quiet: true });
+  }, [user?.preferred_timezone, natalBindingLoading, youReady, youChart, fetchToday]);
+
   const addToKit = useCallback(
     async (name: string) => {
       if (!user) {

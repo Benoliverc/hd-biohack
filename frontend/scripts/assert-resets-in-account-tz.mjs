@@ -116,13 +116,13 @@ assert.ok(!/formatResetsInHkt\(/.test(transits), "Today no longer calls formatRe
 assert.ok(biohack.includes("formatResetsIn("), "Protocols countdown uses formatResetsIn");
 assert.ok(biohack.includes("noveltyDayKey(user?.preferred_timezone)"), "lead fingerprints use account novelty day");
 assert.ok(settings.includes('t("settings.timezoneHelp")'), "Settings help is keyed");
-assert.ok(settings.includes('t("settings.savedTz"'), "save toast is keyed");
+assert.ok(settings.includes('t("settings.deviceTimezone"'), "device timezone line is keyed");
+assert.ok(!settings.includes('settings-tz-select'), "Settings picker select is gone");
+assert.ok(!settings.includes('settings-tz-save'), "Settings save timezone button is gone");
 
 const apos = "\u2019";
 const locked = {
-  "settings.timezoneHelp": `Used for Protocols days, Show-up, and when Today${apos}s Move resets \u2014 07:00 in this timezone.`,
-  "settings.savedTz": `Saved \u00b7 days and Today${apos}s Move use {tz}`,
-  "settings.savedTzDefault": `Saved \u00b7 days and Today${apos}s Move fall back to {tz}`,
+  "settings.timezoneHelp": `Used for Protocols days, Show-up, and when Today${apos}s Move resets \u2014 07:00 in your device timezone.`,
   "today.resetsSoon": "Resets soon",
   "today.resetsInOneMinute": "Resets in ~1 minute",
   "today.resetsInMinutes": "Resets in ~{n} minutes",

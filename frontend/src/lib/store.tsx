@@ -10,6 +10,8 @@ import {
 } from "./session";
 import { isAdminUser } from "./admin";
 import { I18nProvider } from "./i18n";
+import { syncDeviceTimezoneForUser } from "./deviceTimezone";
+import { useDeviceTimezoneSync } from "./useDeviceTimezoneSync";
 
 export type NatalChartSummary = {
   id: number;
@@ -161,21 +163,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return [] as User[];
       }
       const me = hydrateAdminFlag(await api.me());
-      setUsers([me]);
-      writeSessionUserId(me.id);
-      setUserId(me.id);
+      // Sync device TZ before first exposing the user so Today / Protocols
+      // do not paint against a stale or Hong Kong fallback.
+      const synced = await syncDeviceTimezoneForUser(me, {
+        patch: api.patchUserSettings,
+      });
+      const current = hydrateAdminFlag(synced.user);
+      setUsers([current]);
+      writeSessionUserId(current.id);
+      setUserId(current.id);
       try {
-        if (me.is_admin) {
+        if (current.is_admin) {
           const list = (await api.users()).map(hydrateAdminFlag);
           if (list.length) {
-            setUsers(list);
-            return list;
+            const withTz = list.map((u) =>
+              u.id === current.id
+                ? { ...u, preferred_timezone: current.preferred_timezone }
+                : u
+            );
+            setUsers(withTz);
+            return withTz;
           }
         }
       } catch {
-        /* keep [me] */
+        /* keep [current] */
       }
-      return [me];
+      return [current];
     } catch (e) {
       const sessionId = readSessionUserId();
       if (sessionId != null && readSessionToken()) {
@@ -220,6 +233,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [users, userId]);
 
   const sessionReady = !usersLoading;
+
+  const mergeUser = useCallback((incoming: User) => {
+    const u = hydrateAdminFlag(incoming);
+    setUsers((prev) => {
+      const others = prev.filter((x) => x.id !== u.id);
+      return [...others, u];
+    });
+  }, []);
+
+  useDeviceTimezoneSync({ sessionReady, user, mergeUser });
 
   // While users are still resolving, keep binding-loading so pages never flash the empty CTA.
   useEffect(() => {
@@ -329,13 +352,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setNatalChartId,
         setNatalChart,
         refreshUsers,
-        mergeUser: (incoming) => {
-          const u = hydrateAdminFlag(incoming);
-          setUsers((prev) => {
-            const others = prev.filter((x) => x.id !== u.id);
-            return [...others, u];
-          });
-        },
+        mergeUser,
         ensureUser,
         biohackingUnlocked,
       }}
