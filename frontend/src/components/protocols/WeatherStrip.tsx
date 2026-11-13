@@ -8,6 +8,9 @@ import type { WhatsNew } from "./types";
 /**
  * Thin sky context for Protocols — chips + link back to Today.
  * Full indication essay / vs_yesterday lives on Today only.
+ * On highlight: energy + space chips, optional what's-new, Full sky on Today link.
+ * On quiet: no energy/space chips; keep what's-new if present and the Full sky link.
+ * Do not add the Today meaning line, the "same weather" line, or vs_yesterday here.
  */
 export function WeatherStrip({
   indication,
@@ -17,6 +20,7 @@ export function WeatherStrip({
   whatsNew?: WhatsNew | null;
 }) {
   const { t } = useI18n();
+  const showEnergySpace = indication.energy_space_slot !== "quiet";
   const energyLabel = localizeEnergyLabel(
     t,
     indication.energy_level,
@@ -38,23 +42,29 @@ export function WeatherStrip({
       className="rounded-2xl border border-energy/40 bg-energy/10 px-4 py-3"
       data-testid="protocols-weather"
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-energy/50 bg-elevated px-2.5 py-0.5 text-xs font-semibold text-energy-ink">
-          {energyLabel}
-        </span>
-        <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg">
-          {spaceLabel}
-        </span>
-        {chip && (
-          <span
-            className="rounded-full border border-energy/50 bg-energy/15 px-2.5 py-0.5 text-xs font-semibold text-energy-ink"
-            data-testid="whats-new-chip"
-            title={whatsNew?.body || indication.daily_signal?.body || undefined}
-          >
-            {chip}
-          </span>
-        )}
-      </div>
+      {showEnergySpace || chip ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {showEnergySpace ? (
+            <>
+              <span className="rounded-full border border-energy/50 bg-elevated px-2.5 py-0.5 text-xs font-semibold text-energy-ink">
+                {energyLabel}
+              </span>
+              <span className="rounded-full border border-border bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg">
+                {spaceLabel}
+              </span>
+            </>
+          ) : null}
+          {chip && (
+            <span
+              className="rounded-full border border-energy/50 bg-energy/15 px-2.5 py-0.5 text-xs font-semibold text-energy-ink"
+              data-testid="whats-new-chip"
+              title={whatsNew?.body || indication.daily_signal?.body || undefined}
+            >
+              {chip}
+            </span>
+          )}
+        </div>
+      ) : null}
       <p className="mt-2 type-caption text-fg-secondary">
         <Link
           href="/transits"

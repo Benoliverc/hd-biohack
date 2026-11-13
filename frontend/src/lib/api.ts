@@ -245,6 +245,7 @@ export type TodayIndicationPayload = {
   energy_label: string;
   preferred_space: PreferredSpace;
   preferred_space_label: string;
+  energy_space_slot?: "highlight" | "quiet";
   main_action_text: string;
   main_action_why: string;
   main_action_micro: string;

@@ -54,5 +54,33 @@ export function localizeSpaceLabel(
   return apiLabel || value || "";
 }
 
+
+const WEATHER_STANCE_KEYS: Record<number, MessageKey> = {
+  1: "today.weatherStance.drained",
+  2: "today.weatherStance.low",
+  3: "today.weatherStance.steady",
+  4: "today.weatherStance.charged",
+  5: "today.weatherStance.hyper",
+};
+
+const WEATHER_SPACE_KEYS: Record<string, MessageKey> = {
+  nature: "today.weatherSpace.nature",
+  people: "today.weatherSpace.people",
+  alone: "today.weatherSpace.alone",
+  focus: "today.weatherSpace.focus",
+  out: "today.weatherSpace.out",
+};
+
+export function weatherMeaningLine(
+  t: TFn,
+  energy?: number | null,
+  space?: string | null
+): string {
+  const stanceKey = energy != null ? WEATHER_STANCE_KEYS[energy] : undefined;
+  const spaceKey = space ? WEATHER_SPACE_KEYS[space] : undefined;
+  if (!stanceKey || !spaceKey) return "";
+  return `${t(stanceKey)}, ${t(spaceKey)}`;
+}
+
 export const ENERGY_LEVELS = [1, 2, 3, 4, 5] as const;
 export const SPACE_VALUES = ["people", "alone", "nature", "focus", "out"] as const;

@@ -39,6 +39,7 @@ import {
   useI18n,
   localizeEnergyLabel,
   localizeSpaceLabel,
+  weatherMeaningLine,
   type MessageKey,
 } from "@/lib/i18n";
 
@@ -402,6 +403,8 @@ export default function TodayIndication({
   const caption = indication.conditioning_caption?.trim() || "";
   const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
+  const energySpaceHighlight = indication.energy_space_slot !== "quiet";
+  const weatherMeaning = weatherMeaningLine(t, energy, space);
   const moveId = indication.move_item_id || "today-move";
   const moveDone = Boolean(completions[moveId]?.done);
   const moveNote = completions[moveId]?.note || "";
@@ -829,26 +832,47 @@ export default function TodayIndication({
           <aside
             className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-44 sm:flex-col"
             data-testid="main-action-status"
-            aria-label={`${t("today.energy")} · ${t("today.space")}`}
+            aria-label={
+              energySpaceHighlight
+                ? `${t("today.energy")} · ${t("today.space")}`
+                : t("today.weatherSame")
+            }
           >
-            <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
-              <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
-                <BatteryMedium className="h-3 w-3" aria-hidden />
-                {t("today.energy")}
+            {energySpaceHighlight ? (
+              <>
+                <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
+                  <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
+                    <BatteryMedium className="h-3 w-3" aria-hidden />
+                    {t("today.energy")}
+                  </p>
+                  <span className="inline-flex items-center rounded-md border border-growth/40 bg-growth-soft px-2 py-0.5 text-xs font-semibold text-growth-ink">
+                    {energyLabel}
+                  </span>
+                </div>
+                <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
+                  <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
+                    <MapPin className="h-3 w-3" aria-hidden />
+                    {t("today.space")}
+                  </p>
+                  <span className="inline-flex items-center rounded-md border border-energy/40 bg-energy-soft px-2 py-0.5 text-xs font-semibold text-energy-ink">
+                    {spaceLabel}
+                  </span>
+                </div>
+                <p
+                  className="min-w-[9rem] w-full text-sm font-normal text-fg"
+                  data-testid="main-action-weather-meaning"
+                >
+                  {weatherMeaning}
+                </p>
+              </>
+            ) : (
+              <p
+                className="min-w-[9rem] flex-1 text-sm font-normal text-fg sm:flex-none"
+                data-testid="main-action-weather-same"
+              >
+                {t("today.weatherSame")}
               </p>
-              <span className="inline-flex items-center rounded-md border border-growth/40 bg-growth-soft px-2 py-0.5 text-xs font-semibold text-growth-ink">
-                {energyLabel}
-              </span>
-            </div>
-            <div className="min-w-[9rem] flex-1 rounded-lg border border-border bg-elevated px-3 py-2 sm:flex-none">
-              <p className="mb-1 inline-flex items-center gap-1 type-chip uppercase tracking-wide text-fg-secondary">
-                <MapPin className="h-3 w-3" aria-hidden />
-                {t("today.space")}
-              </p>
-              <span className="inline-flex items-center rounded-md border border-energy/40 bg-energy-soft px-2 py-0.5 text-xs font-semibold text-energy-ink">
-                {spaceLabel}
-              </span>
-            </div>
+            )}
           </aside>
         </div>
       </div>
