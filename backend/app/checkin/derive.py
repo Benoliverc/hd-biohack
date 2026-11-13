@@ -105,12 +105,6 @@ def _energy_band(
         drivers.append(f"{len(motor_bridge_list)} personal motor bridges active")
         return 4, drivers
 
-    if hd_type in ("Generator", "Manifesting Generator") and sacral_natal:
-        for b in bridges:
-            if "Sacral" in _as_set(b.get("centers")):
-                drivers.append("personal bridge into defined Sacral")
-                return 4, drivers
-
     # Drained (1)
     if root_borrowed and not sacral_borrowed and (not sacral_natal or projector_like):
         drivers.append("Root pressure without Sacral fuel")
@@ -142,14 +136,9 @@ def _preferred_space(
     """First-match preferred space. Returns (space, drivers)."""
     drivers: list[str] = []
     bridge_centers = _bridge_centers(bridges)
-    g_open = "G" not in natal_defined
     sp_open = "Solar_Plexus" not in natal_defined
 
-    if hd_type == "Reflector":
-        drivers.append("Reflector → sample the wider field")
-        return "out", drivers
-
-    if "G" in newly or (g_open and "G" in bridge_centers):
+    if "G" in newly:
         drivers.append("G center conditioning → nature / direction reset")
         return "nature", drivers
 
@@ -189,8 +178,31 @@ def _preferred_space(
         drivers.append(f"{hd_type} default → focus corner")
         return "focus", drivers
 
+    if hd_type == "Reflector":
+        drivers.append("Reflector → sample the wider field")
+        return "out", drivers
+
     drivers.append("default focus corner")
     return "focus", drivers
+
+
+def _energy_space_slot(
+    *,
+    energy_today: int | None,
+    space_today: str | None,
+    prev_indication: dict[str, Any] | None,
+) -> str:
+    """Highlight vs quiet from today's energy/space vs yesterday's, not vs_yesterday pills."""
+    prev = prev_indication or {}
+    energy_yest = prev.get("energy_level")
+    space_yest = prev.get("preferred_space")
+    if energy_yest is None or space_yest is None or energy_today is None or space_today is None:
+        return "highlight"
+    if energy_today != energy_yest or space_today != space_yest:
+        return "highlight"
+    if energy_today in (1, 2, 5):
+        return "highlight"
+    return "quiet"
 
 
 def _attach_novelty(
@@ -234,6 +246,11 @@ def _attach_novelty(
     )
     payload["daily_signal"] = daily
     payload["vs_yesterday"] = vs
+    payload["energy_space_slot"] = _energy_space_slot(
+        energy_today=payload.get("energy_level"),
+        space_today=payload.get("preferred_space"),
+        prev_indication=prev_indication,
+    )
     payload["conditioning_caption"] = CONDITIONING_CAPTION
     payload["sky_story"] = compute_sky_story(
         natal=natal,

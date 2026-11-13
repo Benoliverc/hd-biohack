@@ -111,6 +111,7 @@ class TodayIndication(BaseModel):
     energy_label: str
     preferred_space: Literal["people", "alone", "nature", "focus", "out"]
     preferred_space_label: str
+    energy_space_slot: Literal["highlight", "quiet"] = "highlight"
     main_action_text: str
     main_action_why: str
     main_action_micro: str

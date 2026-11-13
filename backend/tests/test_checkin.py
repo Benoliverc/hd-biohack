@@ -89,7 +89,7 @@ def test_ac5_reflector_space_out():
     overlay = {"newly_defined_centers": [], "bridged_channels": []}
     ind = derive_today_indication(natal, {}, overlay)
     assert ind["preferred_space"] == "out"
-    print("PASS AC5: Reflector → out")
+    print("PASS AC5: quiet-sky Reflector fallback → out")
 
 
 def test_ac6_hyper_anti_stim():
@@ -627,6 +627,210 @@ def test_tomorrow_tease_moon_leaves_vs_holds():
     print("PASS: tomorrow tease moon leaves/holds")
 
 
+
+def test_charged_shortcut_gone_gen_mg_natal_sacral_bridge():
+    overlay = {
+        "newly_defined_centers": [],
+        "bridged_channels": [
+            {"gates": [34, 20], "name": "Charisma", "centers": ["Sacral", "Throat"]}
+        ],
+    }
+    for hd_type in ("Generator", "Manifesting Generator"):
+        natal = _natal(
+            type=hd_type,
+            defined_centers=["Sacral", "Root"],
+            undefined_centers=["Head", "Ajna", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+        )
+        ind = derive_today_indication(natal, {}, overlay)
+        assert ind["energy_level"] != 4, (hd_type, ind["energy_level"], ind["drivers"])
+        assert ind["energy_label"] != "Charged"
+        assert ind["energy_level"] == 3
+        assert "personal bridge into defined Sacral" not in " ".join(ind.get("drivers", []))
+    print("PASS: Gen/MG natal Sacral + one personal Sacral bridge is not Charged")
+
+
+def test_nature_shortcut_gone_open_g_in_bridge_centers_only():
+    natal = _natal(
+        type="Generator",
+        defined_centers=["Sacral"],
+        undefined_centers=["G", "Head", "Ajna", "Throat", "Heart", "Solar_Plexus", "Spleen", "Root"],
+    )
+    overlay = {
+        "newly_defined_centers": [],
+        "bridged_channels": [
+            {"gates": [1, 7], "name": "the Direction of the Self", "centers": ["G"]}
+        ],
+    }
+    ind = derive_today_indication(natal, {}, overlay)
+    assert ind["preferred_space"] != "nature"
+    print("PASS: natal-open G in bridge_centers only is not Nature")
+
+
+def test_reflector_g_newly_nature():
+    natal = _natal(
+        type="Reflector",
+        strategy="Wait a Lunar Cycle",
+        defined_centers=[],
+        undefined_centers=[
+            "Head", "Ajna", "Throat", "G", "Heart",
+            "Solar_Plexus", "Sacral", "Spleen", "Root",
+        ],
+    )
+    overlay = {"newly_defined_centers": ["G"], "bridged_channels": []}
+    ind = derive_today_indication(natal, {}, overlay)
+    assert ind["preferred_space"] == "nature"
+    print("PASS: Reflector + G newly defined → nature, not out")
+
+
+def test_energy_space_slot_no_prev_indication_highlight():
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    ind = derive_today_indication(natal, {}, overlay)
+    assert ind["energy_level"] == 3
+    assert ind["preferred_space"] == "focus"
+    assert ind["energy_space_slot"] == "highlight"
+    print("PASS: no prev_indication → energy_space_slot highlight")
+
+
+def test_energy_space_slot_energy_or_space_changed_highlight():
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    energy_changed = derive_today_indication(
+        natal,
+        {},
+        overlay,
+        prev_indication={"energy_level": 4, "preferred_space": "focus"},
+    )
+    assert energy_changed["energy_level"] == 3
+    assert energy_changed["preferred_space"] == "focus"
+    assert energy_changed["energy_space_slot"] == "highlight"
+
+    space_changed = derive_today_indication(
+        natal,
+        {},
+        overlay,
+        prev_indication={"energy_level": 3, "preferred_space": "nature"},
+    )
+    assert space_changed["energy_level"] == 3
+    assert space_changed["preferred_space"] == "focus"
+    assert space_changed["energy_space_slot"] == "highlight"
+    print("PASS: energy or space changed → energy_space_slot highlight")
+
+
+def test_energy_space_slot_spike_same_as_yesterday_highlight():
+    low_natal = _natal(
+        type="Manifestor",
+        strategy="To Inform",
+        defined_centers=["Throat", "Heart"],
+        undefined_centers=["Head", "Ajna", "Sacral", "Root", "G", "Solar_Plexus", "Spleen"],
+    )
+    low_overlay = {"newly_defined_centers": ["Head", "Ajna"], "bridged_channels": []}
+    low = derive_today_indication(
+        low_natal,
+        {},
+        low_overlay,
+        prev_indication={"energy_level": 2, "preferred_space": "focus"},
+    )
+    assert low["energy_level"] == 2
+    assert low["preferred_space"] == "focus"
+    assert low["energy_space_slot"] == "highlight"
+
+    drained_natal = _natal(
+        type="Projector",
+        strategy="Wait for the Invitation",
+        defined_centers=["Ajna"],
+        undefined_centers=["Sacral", "Root", "Head", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    drained_overlay = {"newly_defined_centers": ["Root"], "bridged_channels": []}
+    drained = derive_today_indication(
+        drained_natal,
+        {},
+        drained_overlay,
+        prev_indication={"energy_level": 1, "preferred_space": "nature"},
+    )
+    assert drained["energy_level"] == 1
+    assert drained["preferred_space"] == "nature"
+    assert drained["energy_space_slot"] == "highlight"
+
+    hyper_natal = _natal(
+        type="Projector",
+        defined_centers=["Ajna"],
+        undefined_centers=["Sacral", "Root", "Head", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    hyper_overlay = {"newly_defined_centers": ["Sacral", "Root"], "bridged_channels": []}
+    hyper = derive_today_indication(
+        hyper_natal,
+        {},
+        hyper_overlay,
+        prev_indication={"energy_level": 5, "preferred_space": "out"},
+    )
+    assert hyper["energy_level"] == 5
+    assert hyper["preferred_space"] == "out"
+    assert hyper["energy_space_slot"] == "highlight"
+    print("PASS: energy 1/2/5 same as yesterday → energy_space_slot highlight")
+
+
+def test_energy_space_slot_steady_or_charged_unchanged_quiet():
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    steady = derive_today_indication(
+        natal,
+        {},
+        overlay,
+        prev_indication={"energy_level": 3, "preferred_space": "focus"},
+    )
+    assert steady["energy_level"] == 3
+    assert steady["preferred_space"] == "focus"
+    assert steady["energy_space_slot"] == "quiet"
+
+    charged_natal = _natal(
+        type="Projector",
+        strategy="Wait for the Invitation",
+        defined_centers=["Ajna", "Throat"],
+        undefined_centers=["Sacral", "Root", "Head", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    charged_overlay = {
+        "newly_defined_centers": ["Sacral"],
+        "bridged_channels": [
+            {"gates": [34, 20], "name": "Charisma", "centers": ["Sacral", "Throat"]}
+        ],
+    }
+    charged = derive_today_indication(
+        charged_natal,
+        {},
+        charged_overlay,
+        prev_indication={"energy_level": 4, "preferred_space": "out"},
+    )
+    assert charged["energy_level"] == 4
+    assert charged["preferred_space"] == "out"
+    assert charged["energy_space_slot"] == "quiet"
+    print("PASS: energy 3 or 4 and space unchanged → energy_space_slot quiet")
+
+
+def test_energy_space_slot_not_inferred_from_vs_yesterday():
+    from datetime import date
+
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    today = _transit(sun_g=50, sun_l=5, moon_g=51, moon_l=4)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    ind = derive_today_indication(
+        natal,
+        today,
+        overlay,
+        prev_transit=yest,
+        prev_overlay=overlay,
+        prev_indication={"energy_level": 3, "preferred_space": "focus"},
+        day=date(2026, 10, 24),
+    )
+    assert ind["energy_level"] == 3
+    assert ind["preferred_space"] == "focus"
+    assert ind["energy_space_slot"] == "quiet"
+    assert isinstance(ind["vs_yesterday"], list)
+    assert ind["vs_yesterday"], "vs_yesterday should still report sky deltas when energy/space are unchanged"
+    print("PASS: energy_space_slot is not inferred from vs_yesterday pills")
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -656,4 +860,12 @@ if __name__ == "__main__":
     test_sky_story_bridge_day_count_with_walker()
     test_derive_attaches_sky_story()
     test_tomorrow_tease_moon_leaves_vs_holds()
+    test_charged_shortcut_gone_gen_mg_natal_sacral_bridge()
+    test_nature_shortcut_gone_open_g_in_bridge_centers_only()
+    test_reflector_g_newly_nature()
+    test_energy_space_slot_no_prev_indication_highlight()
+    test_energy_space_slot_energy_or_space_changed_highlight()
+    test_energy_space_slot_spike_same_as_yesterday_highlight()
+    test_energy_space_slot_steady_or_charged_unchanged_quiet()
+    test_energy_space_slot_not_inferred_from_vs_yesterday()
     print("ALL indication unit tests passed")
