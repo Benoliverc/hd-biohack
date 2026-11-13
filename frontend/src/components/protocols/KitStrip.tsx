@@ -29,8 +29,7 @@ export function KitStrip({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="inline-flex items-center gap-2 text-sm text-fg">
           <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
-          <span className="font-semibold">{t("protocols.yourKit")}</span>
-          <span className="text-fg-muted"> · {loading ? "…" : count}</span>
+          <span className="text-fg-muted">{loading ? "…" : count}</span>
         </p>
         <button
           type="button"
@@ -39,7 +38,7 @@ export function KitStrip({
           data-testid="kit-strip-edit"
         >
           {empty ? <Plus className="h-3.5 w-3.5" aria-hidden /> : null}
-          {empty ? t("protocols.addItems") : t("protocols.edit")}
+          {empty ? t("protocols.addItems") : t("protocols.editShelf")}
         </button>
       </div>
       {empty && (
