@@ -37,10 +37,14 @@ export type NatalShareProps = {
 export type TodayShareProps = {
   variant: "today";
   aspect: ShareAspect;
-  /** Exact same Move string as the on-page Today Move (main_action_text). */
+  /** Exact same Move string as the on-page Today Move (localized). */
   moveText: string;
   typeLabel: string;
   graph: ShareGraphProps;
+  /** Localized "My Baseline · today" chrome. */
+  kicker?: string;
+  /** Localized "Move" label. */
+  moveLabel?: string;
 };
 
 export type ShareBaselineCardProps = NatalShareProps | TodayShareProps;
@@ -140,6 +144,8 @@ export function ShareBaselineCard(props: ShareBaselineCardProps) {
             moveText={props.moveText}
             typeLabel={props.typeLabel}
             graph={props.graph}
+            kicker={props.kicker}
+            moveLabel={props.moveLabel}
           />
         )}
       </div>
@@ -339,6 +345,8 @@ function TodayBody({
   moveText,
   typeLabel,
   graph,
+  kicker = "My Baseline · today",
+  moveLabel = "Move",
 }: {
   canvasW: number; // reserved for future width clamps
   canvasH: number;
@@ -347,6 +355,8 @@ function TodayBody({
   moveText: string;
   typeLabel: string;
   graph: ShareGraphProps;
+  kicker?: string;
+  moveLabel?: string;
 }) {
   const isFeed = aspect === "feed";
   const move = (moveText || "").trim();
@@ -392,7 +402,7 @@ function TodayBody({
           flexShrink: 0,
         }}
       >
-        My Baseline · today
+        {kicker}
       </div>
 
       <div
@@ -420,7 +430,7 @@ function TodayBody({
             marginBottom: 12,
           }}
         >
-          Move
+          {moveLabel}
         </div>
         <div
           style={{

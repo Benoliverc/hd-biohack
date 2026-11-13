@@ -34,6 +34,14 @@ SPACE_LABELS = {
 }
 
 
+def _drv(key: str, text: str, **params: Any) -> dict[str, Any]:
+    part: dict[str, Any] = {"key": key, "text": text}
+    clean = {k: v for k, v in params.items() if v is not None and v != ""}
+    if clean:
+        part["params"] = clean
+    return part
+
+
 def _as_set(values: Any) -> set[str]:
     if not values:
         return set()
@@ -70,9 +78,9 @@ def _energy_band(
     natal_defined: set[str],
     newly: set[str],
     bridges: list[dict[str, Any]],
-) -> tuple[int, list[str]]:
-    """First-match energy banding. Returns (level 1–5, drivers)."""
-    drivers: list[str] = []
+) -> tuple[int, list[dict[str, Any]]]:
+    """First-match energy banding. Returns (level 1–5, driver parts)."""
+    drivers: list[dict[str, Any]] = []
     motor_new = newly & MOTORS
     sacral_borrowed = "Sacral" in newly
     root_borrowed = "Root" in newly
@@ -83,46 +91,46 @@ def _energy_band(
 
     # Hyper (5)
     if len(motor_new) >= 2 and "Root" in motor_new:
-        drivers.append("multiple motors newly defined including Root")
+        drivers.append(_drv("today.driver.multipleMotorsRoot", "multiple motors newly defined including Root"))
         return 5, drivers
     if sacral_borrowed and root_borrowed:
-        drivers.append("temporary Sacral + Root via overlay")
+        drivers.append(_drv("today.driver.tempSacralRoot", "temporary Sacral + Root via overlay"))
         return 5, drivers
     if sp_borrowed and root_borrowed:
-        drivers.append("temporary Solar Plexus + Root via overlay")
+        drivers.append(_drv("today.driver.tempSpRoot", "temporary Solar Plexus + Root via overlay"))
         return 5, drivers
 
     # Charged (4) — after Hyper pairs ruled out
     if sacral_borrowed:
-        drivers.append("temporary Sacral via bridge — borrowed energy, not a Type change")
+        drivers.append(_drv("today.driver.tempSacralBorrowed", "temporary Sacral via bridge — borrowed energy, not a Type change"))
         return 4, drivers
     if heart_borrowed:
-        drivers.append("temporary Heart (Ego) via overlay — borrowed willpower")
+        drivers.append(_drv("today.driver.tempHeartBorrowed", "temporary Heart (Ego) via overlay — borrowed willpower"))
         return 4, drivers
 
     motor_bridge_list = _motor_bridges(bridges)
     if len(motor_bridge_list) >= 2:
-        drivers.append(f"{len(motor_bridge_list)} personal motor bridges active")
+        drivers.append(_drv("today.driver.motorBridges", f"{len(motor_bridge_list)} personal motor bridges active", n=len(motor_bridge_list)))
         return 4, drivers
 
     # Drained (1)
     if root_borrowed and not sacral_borrowed and (not sacral_natal or projector_like):
-        drivers.append("Root pressure without Sacral fuel")
+        drivers.append(_drv("today.driver.rootWithoutSacral", "Root pressure without Sacral fuel"))
         return 1, drivers
 
     # Low (2)
     if newly and newly <= {"Head", "Ajna"}:
-        drivers.append("mind-only newly defined (Head/Ajna)")
+        drivers.append(_drv("today.driver.mindOnlyNewly", "mind-only newly defined (Head/Ajna)"))
         return 2, drivers
     if projector_like and _quiet_sky(newly, bridges):
-        drivers.append(f"{hd_type} with quiet personal sky")
+        drivers.append(_drv("today.driver.typeQuietSky", f"{hd_type} with quiet personal sky", type=hd_type))
         return 2, drivers
 
     # Steady (3)
     if newly:
-        drivers.append("mild overlay — no extreme motor pattern")
+        drivers.append(_drv("today.driver.mildOverlay", "mild overlay — no extreme motor pattern"))
     else:
-        drivers.append("no strong personal conditioning spike")
+        drivers.append(_drv("today.driver.noSpike", "no strong personal conditioning spike"))
     return 3, drivers
 
 
@@ -132,57 +140,57 @@ def _preferred_space(
     natal_defined: set[str],
     newly: set[str],
     bridges: list[dict[str, Any]],
-) -> tuple[PreferredSpace, list[str]]:
-    """First-match preferred space. Returns (space, drivers)."""
-    drivers: list[str] = []
+) -> tuple[PreferredSpace, list[dict[str, Any]]]:
+    """First-match preferred space. Returns (space, driver parts)."""
+    drivers: list[dict[str, Any]] = []
     bridge_centers = _bridge_centers(bridges)
     sp_open = "Solar_Plexus" not in natal_defined
 
     if "G" in newly:
-        drivers.append("G center conditioning → nature / direction reset")
+        drivers.append(_drv("today.driver.gCenterNature", "G center conditioning → nature / direction reset"))
         return "nature", drivers
 
     if newly & {"Head", "Ajna"}:
-        drivers.append("Head/Ajna newly defined → focus corner")
+        drivers.append(_drv("today.driver.headAjnaFocus", "Head/Ajna newly defined → focus corner"))
         return "focus", drivers
 
     if "Solar_Plexus" in newly and sp_open:
-        drivers.append("Solar Plexus borrowed (natal open) → alone")
+        drivers.append(_drv("today.driver.spBorrowedAlone", "Solar Plexus borrowed (natal open) → alone"))
         return "alone", drivers
 
     if "Solar_Plexus" in natal_defined and "Solar_Plexus" in bridge_centers:
-        drivers.append("defined Solar Plexus + bridge → people")
+        drivers.append(_drv("today.driver.spDefinedPeople", "defined Solar Plexus + bridge → people"))
         return "people", drivers
 
     if "Root" in newly and "Sacral" not in newly:
-        drivers.append("Root newly without Sacral → nature")
+        drivers.append(_drv("today.driver.rootNoSacralNature", "Root newly without Sacral → nature"))
         return "nature", drivers
 
     if "Sacral" in newly or "Sacral" in bridge_centers:
-        drivers.append("Sacral borrow/bridge → out & about")
+        drivers.append(_drv("today.driver.sacralOut", "Sacral borrow/bridge → out & about"))
         return "out", drivers
 
     if "Throat" in bridge_centers:
-        drivers.append("Throat personal bridge → people")
+        drivers.append(_drv("today.driver.throatPeople", "Throat personal bridge → people"))
         return "people", drivers
 
     if hd_type == "Projector" and _quiet_sky(newly, bridges):
-        drivers.append("Projector quiet sky → alone")
+        drivers.append(_drv("today.driver.projectorAlone", "Projector quiet sky → alone"))
         return "alone", drivers
 
     if hd_type == "Manifestor":
-        drivers.append("Manifestor → alone / protected window")
+        drivers.append(_drv("today.driver.manifestorAlone", "Manifestor → alone / protected window"))
         return "alone", drivers
 
     if hd_type in ("Generator", "Manifesting Generator"):
-        drivers.append(f"{hd_type} default → focus corner")
+        drivers.append(_drv("today.driver.typeDefaultFocus", f"{hd_type} default → focus corner", type=hd_type))
         return "focus", drivers
 
     if hd_type == "Reflector":
-        drivers.append("Reflector → sample the wider field")
+        drivers.append(_drv("today.driver.reflectorOut", "Reflector → sample the wider field"))
         return "out", drivers
 
-    drivers.append("default focus corner")
+    drivers.append(_drv("today.driver.defaultFocus", "default focus corner"))
     return "focus", drivers
 
 
@@ -317,23 +325,40 @@ def _no_natal_indication(
     motor_hit = transit_defined & {"Sacral", "Heart"}
     if motor_hit:
         energy = 4
-        drivers = [f"sky motors active ({', '.join(sorted(motor_hit))}) — personal overlay needs a natal chart"]
+        centers = ", ".join(sorted(motor_hit))
+        driver_parts = [
+            _drv(
+                "today.driver.skyMotorsNoNatal",
+                f"sky motors active ({centers}) — personal overlay needs a natal chart",
+                centers=centers,
+            )
+        ]
     else:
         energy = 3
-        drivers = ["sky-only reading — personal Energy + Space needs a natal chart"]
+        driver_parts = [
+            _drv(
+                "today.driver.skyOnlyNoNatal",
+                "sky-only reading — personal Energy + Space needs a natal chart",
+            )
+        ]
+    drivers = [d["text"] for d in driver_parts]
 
     space: PreferredSpace = "focus"
-    text, why, micro = compute_main_action(
+    action = compute_main_action(
         energy,
         space,
         natal=None,
         transit=transit,
         overlay=None,
     )
+    text, why, micro = action.text, action.why, action.micro
     why = (
         f"{why.rstrip('.')} · Chart weather only (no natal) — "
         "not biometric or medical; personal bridges need a saved chart."
     )
+    why_parts = list(action.why_parts) + [
+        {"key": "today.why.chartWeatherOnly", "params": {}}
+    ]
     payload = {
         "energy_level": energy,
         "energy_label": ENERGY_LABELS[energy],
@@ -342,7 +367,12 @@ def _no_natal_indication(
         "main_action_text": text,
         "main_action_why": why,
         "main_action_micro": micro,
+        "main_action_key": action.action_key,
+        "main_action_params": action.action_params,
+        "main_action_why_parts": why_parts,
+        "main_action_micro_key": action.micro_key,
         "drivers": drivers,
+        "driver_parts": driver_parts,
         "has_natal": False,
         "save_chart_cta": True,
         "disclaimer": "Chart weather from today's sky — not how you feel, not medical advice.",
@@ -408,26 +438,28 @@ def derive_today_indication(
     bridges = _bridges(overlay)
     hd_type = str(natal.get("type") or "")
 
-    energy, energy_drivers = _energy_band(
+    energy, energy_driver_parts = _energy_band(
         hd_type=hd_type,
         natal_defined=natal_defined,
         newly=newly,
         bridges=bridges,
     )
-    space, space_drivers = _preferred_space(
+    space, space_driver_parts = _preferred_space(
         hd_type=hd_type,
         natal_defined=natal_defined,
         newly=newly,
         bridges=bridges,
     )
 
-    text, why, micro = compute_main_action(
+    action = compute_main_action(
         energy,
         space,
         natal=natal,
         transit=transit,
         overlay=overlay,
     )
+    text, why, micro = action.text, action.why, action.micro
+    why_parts = list(action.why_parts)
 
     # Reinforce temporary/borrowed language when Sacral is newly defined
     if "Sacral" in newly:
@@ -435,8 +467,11 @@ def derive_today_indication(
             why = why.replace("you are a Generator today", "temporary Sacral energy")
         if "borrowed" not in why.lower() and "temporary" not in why.lower():
             why = f"{why.rstrip('.')} · Temporary/borrowed Sacral — not a Type change."
+            why_parts.append({"key": "today.why.borrowedSacral", "params": {}})
 
-    drivers = energy_drivers + [d for d in space_drivers if d not in energy_drivers]
+    seen_drv = {d["key"] for d in energy_driver_parts}
+    driver_parts = energy_driver_parts + [d for d in space_driver_parts if d["key"] not in seen_drv]
+    drivers = [d["text"] for d in driver_parts]
     payload = {
         "energy_level": energy,
         "energy_label": ENERGY_LABELS[energy],
@@ -445,7 +480,12 @@ def derive_today_indication(
         "main_action_text": text,
         "main_action_why": why,
         "main_action_micro": micro,
+        "main_action_key": action.action_key,
+        "main_action_params": action.action_params,
+        "main_action_why_parts": why_parts,
+        "main_action_micro_key": action.micro_key,
         "drivers": drivers,
+        "driver_parts": driver_parts,
         "has_natal": True,
         "save_chart_cta": False,
         "disclaimer": "Chart weather from your design × today's sky — not biometric or medical advice.",

@@ -65,6 +65,8 @@ export function ShareBaselineButton(props: ShareBaselineButtonProps) {
             moveText: props.moveText,
             typeLabel: props.typeLabel,
             graph: props.graph,
+            kicker: t("share.baselineToday"),
+            moveLabel: t("today.move"),
           });
         }
       } catch (e) {

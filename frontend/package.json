@@ -41,7 +41,8 @@
     "assert:how-to-read-fullscreen": "npx tsx scripts/assert-how-to-read-fullscreen.mjs",
     "assert:header-contrast-touch-safe-area": "npx tsx scripts/assert-header-contrast-touch-safe-area.mjs",
     "assert:today-energy-space": "npx tsx scripts/assert-today-energy-space.mjs",
-    "assert:today-wow-first-pass": "npx tsx scripts/assert-today-wow-first-pass.mjs"
+    "assert:today-wow-first-pass": "npx tsx scripts/assert-today-wow-first-pass.mjs",
+    "assert:today-wow-change-line": "npx tsx scripts/assert-today-wow-change-line.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

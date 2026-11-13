@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 PreferredSpace = Literal["people", "alone", "nature", "focus", "out"]
@@ -74,6 +75,37 @@ TYPE_SURPLUS_WHY: dict[str, str] = {
 
 HYPER_NOTE = "Skip extra stimulants and stacked commitments — ride the charge without overloading."
 
+TYPE_SLUG = {
+    "Generator": "Generator",
+    "Manifesting Generator": "ManifestingGenerator",
+    "Manifestor": "Manifestor",
+    "Projector": "Projector",
+    "Reflector": "Reflector",
+}
+
+
+def _type_slug(hd_type: str) -> str:
+    return TYPE_SLUG.get(hd_type, "generic")
+
+
+def _part(key: str, **params: Any) -> dict[str, Any]:
+    out: dict[str, Any] = {"key": key}
+    clean = {k: v for k, v in params.items() if v is not None and v != ""}
+    if clean:
+        out["params"] = clean
+    return out
+
+
+@dataclass
+class MainActionResult:
+    text: str
+    why: str
+    micro: str
+    action_key: str
+    action_params: dict[str, Any] = field(default_factory=dict)
+    why_parts: list[dict[str, Any]] = field(default_factory=list)
+    micro_key: str = ""
+
 
 def _type_strategy(natal: dict[str, Any] | None) -> tuple[str, str]:
     if not natal:
@@ -85,61 +117,111 @@ def _word_count(text: str) -> int:
     return len([w for w in text.replace("—", " ").replace("-", " ").split() if w.strip()])
 
 
+def _sun_theme_label(transit: dict[str, Any] | None) -> tuple[str | None, int | None, int | None]:
+    transit = transit or {}
+    sun_earth = transit.get("sun_earth")
+    if not isinstance(sun_earth, dict):
+        return None, None, None
+    sun = sun_earth.get("sun") or {}
+    gate = sun.get("gate")
+    line = sun.get("line")
+    if gate is not None and line is not None:
+        return f"Gate {gate} · line {line}", gate, line
+    raw = str(sun.get("label") or "").strip()
+    if raw and "." in raw and raw.replace(".", "").isdigit():
+        g, ln = raw.split(".", 1)
+        try:
+            return f"Gate {g} · line {ln}", int(g), int(ln)
+        except ValueError:
+            return f"Gate {g} · line {ln}", None, None
+    if raw:
+        return raw, None, None
+    return "today's Sun", None, None
+
+
 def sky_bullet_one(
     transit: dict[str, Any] | None,
     overlay: dict[str, Any] | None,
 ) -> str | None:
     """Mirror the first Today sky bullet (informational, not medical). For Why, not Main."""
+    text, _part = sky_bullet_one_part(transit, overlay)
+    return text
+
+
+def sky_bullet_one_part(
+    transit: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+) -> tuple[str | None, dict[str, Any] | None]:
     transit = transit or {}
     overlay = overlay or {}
-    sun_earth = transit.get("sun_earth")
-    if isinstance(sun_earth, dict):
-        sun = sun_earth.get("sun") or {}
-        gate = sun.get("gate")
-        line = sun.get("line")
-        if gate is not None and line is not None:
-            label = f"Gate {gate} · line {line}"
-        else:
-            raw = str(sun.get("label") or "").strip()
-            if raw and "." in raw and raw.replace(".", "").isdigit():
-                g, ln = raw.split(".", 1)
-                label = f"Gate {g} · line {ln}"
-            else:
-                label = raw or "today's Sun"
-        return f"Notice the Sun theme ({label}) — let it colour your day without forcing it."
+    label, gate, line = _sun_theme_label(transit)
+    if label is not None:
+        return (
+            f"Notice the Sun theme ({label}) — let it colour your day without forcing it.",
+            _part("today.why.sunTheme", label=label, gate=gate, line=line),
+        )
     newly = overlay.get("newly_defined_centers") or []
     if newly:
         centers = ", ".join(str(c).replace("_", " ") for c in newly[:3])
         return (
             f"Temporary energy in {centers} — expect unfamiliar pressure; "
-            "don't over-identify."
+            "don't over-identify.",
+            _part("today.why.tempEnergy", centers=centers),
         )
     bridged = overlay.get("bridged_channels") or []
     if bridged and isinstance(bridged[0], dict):
         name = bridged[0].get("name") or "a bridge"
-        return f"A bridge may be active ({name}) — watch who/what feels magnetic today."
-    return None
+        return (
+            f"A bridge may be active ({name}) — watch who/what feels magnetic today.",
+            _part("today.why.bridgeActive", name=name),
+        )
+    return None, None
+
+
+def _notice_part(transit: dict[str, Any] | None) -> tuple[str | None, dict[str, Any] | None]:
+    from .novelty import gate_line
+
+    sg, sl = gate_line(transit, "Sun")
+    mg, ml = gate_line(transit, "Moon")
+    if sg is None and mg is None:
+        return None, None
+    from .novelty import sky_notice_sun_moon
+
+    notice = sky_notice_sun_moon(transit)
+    if not notice:
+        return None, None
+    return (
+        f"{notice} — colour the day without forcing it.",
+        _part(
+            "today.why.noticeSunMoon",
+            sun_gate=sg,
+            sun_line=sl,
+            moon_gate=mg,
+            moon_line=ml,
+        ),
+    )
 
 
 def _sky_why_bits(
     transit: dict[str, Any] | None,
     overlay: dict[str, Any] | None,
-) -> list[str]:
+) -> tuple[list[str], list[dict[str, Any]]]:
     """HD / sky mechanics for the collapsed Why — never the Main action line."""
     bits: list[str] = []
-    from .novelty import sky_notice_sun_moon
-
-    notice = sky_notice_sun_moon(transit)
-    if notice:
-        bits.append(f"{notice} — colour the day without forcing it.")
-    sky = sky_bullet_one(transit, overlay)
-    if sky:
+    parts: list[dict[str, Any]] = []
+    notice, notice_part = _notice_part(transit)
+    if notice and notice_part:
+        bits.append(notice)
+        parts.append(notice_part)
+    sky, sky_part = sky_bullet_one_part(transit, overlay)
+    if sky and sky_part:
         # Skip redundant Sun-theme bullet when compact notice already names Sun.
         if notice and "Sun " in notice and "Sun theme" in sky:
             pass
         else:
             bits.append(sky)
-    return bits
+            parts.append(sky_part)
+    return bits, parts
 
 
 def compute_main_action(
@@ -150,14 +232,15 @@ def compute_main_action(
     transit: dict[str, Any] | None = None,
     overlay: dict[str, Any] | None = None,
     cached_top_action: str | None = None,
-) -> tuple[str, str, str]:
+) -> MainActionResult:
     """
-    Return (main_action_text, main_action_why, main_action_micro).
+    Return MainActionResult (text, why, micro, plus stable i18n keys).
 
     main_action_text is a plain doable sentence (≤20 words) — no gate/Sacral/Strategy soup.
     HD mechanics and sky clauses live in main_action_why (collapsed Why in the UI).
     Space micro-move is separate for its own UI line.
     Deterministic only — never calls Protocol generate or an LLM.
+    English template wording is unchanged; keys let the frontend localize.
     """
     if energy_level < ENERGY_MIN or energy_level > ENERGY_MAX:
         raise ValueError(f"energy_level must be {ENERGY_MIN}–{ENERGY_MAX}")
@@ -165,21 +248,35 @@ def compute_main_action(
         raise ValueError("preferred_space must be people|alone|nature|focus|out")
 
     hd_type, strategy = _type_strategy(natal)
+    slug = _type_slug(hd_type)
     micro = SPACE_MICRO[preferred_space]
+    micro_key = f"today.spaceMicro.{preferred_space}"
     battery = TYPE_BATTERY.get(hd_type, "Protect your energy map today.")
-    why_bits = _sky_why_bits(transit, overlay)
+    battery_key = f"today.battery.{slug}" if hd_type in TYPE_SLUG else "today.battery.generic"
+    why_bits, why_parts = _sky_why_bits(transit, overlay)
 
+    def _front(english: str, key: str, **params: Any) -> None:
+        why_bits.insert(0, english)
+        why_parts.insert(0, _part(key, **params))
+
+    def _append(english: str, key: str, **params: Any) -> None:
+        why_bits.append(english)
+        why_parts.append(_part(key, **params))
+
+    action_params: dict[str, Any] = {}
     if energy_level <= 2:
         primary = TYPE_RECOVER_TEXT.get(hd_type, GENERIC_RECOVER)
-        why_bits.insert(0, f"Protect and recover — {battery}")
+        action_key = f"today.move.recover.{slug}" if hd_type in TYPE_RECOVER_TEXT else "today.move.recover.generic"
+        _front(f"Protect and recover — {battery}", "today.why.protectRecover", battery_key=battery_key)
         recover_mech = TYPE_RECOVER_WHY.get(hd_type)
         if recover_mech:
-            why_bits.append(recover_mech)
+            _append(recover_mech, f"today.why.recover.{slug}")
     elif energy_level == 3:
         sky = sky_bullet_one(transit, overlay)
         if sky:
             primary = "Follow today's sky cue — one clear focus, then stop."
-            why_bits.insert(0, "Follow today's sky cue as your OS guide.")
+            action_key = "today.move.steady.skyCue"
+            _front("Follow today's sky cue as your OS guide.", "today.why.followSkyCue")
         elif cached_top_action:
             # Keep cached focus plain; mechanics stay in Why.
             cached = cached_top_action.strip().rstrip(".")
@@ -189,29 +286,44 @@ def compute_main_action(
                 if len(words) > MAIN_ACTION_MAX_WORDS
                 else cached + "."
             )
-            why_bits.insert(0, "Lean on your last protocol focus (read-only).")
+            action_key = "today.move.steady.cached"
+            _front("Lean on your last protocol focus (read-only).", "today.why.cachedFocus")
         elif strategy:
             primary = TYPE_STEADY_TEXT.get(hd_type, GENERIC_STEADY)
-            why_bits.insert(
-                0,
+            action_key = f"today.move.steady.{slug}" if hd_type in TYPE_STEADY_TEXT else "today.move.steady.generic"
+            _front(
                 f"Run your {hd_type or 'chart'} operating system — Strategy: {strategy}.",
+                "today.why.runTypeStrategy",
+                type=hd_type or "chart",
+                strategy=strategy,
             )
         else:
             primary = GENERIC_STEADY
-            why_bits.insert(0, "Keep the day simple — no natal overlay yet.")
+            action_key = "today.move.steady.generic"
+            _front("Keep the day simple — no natal overlay yet.", "today.why.simpleNoNatal")
     else:
         if energy_level == 5:
             primary = HYPER_TEXT
-            why_bits.insert(0, f"Use surplus carefully; avoid more stimulation. {battery}")
-            why_bits.append(HYPER_NOTE)
+            action_key = "today.move.hyper"
+            _front(
+                f"Use surplus carefully; avoid more stimulation. {battery}",
+                "today.why.hyperBattery",
+                battery_key=battery_key,
+            )
+            _append(HYPER_NOTE, "today.why.hyperNote")
         else:
             primary = TYPE_SURPLUS_TEXT.get(hd_type, GENERIC_SURPLUS)
-            why_bits.insert(0, f"Use surplus carefully, Strategy-aligned. {battery}")
+            action_key = f"today.move.surplus.{slug}" if hd_type in TYPE_SURPLUS_TEXT else "today.move.surplus.generic"
+            _front(
+                f"Use surplus carefully, Strategy-aligned. {battery}",
+                "today.why.surplusBattery",
+                battery_key=battery_key,
+            )
         surplus_mech = TYPE_SURPLUS_WHY.get(hd_type)
         if surplus_mech:
-            why_bits.append(surplus_mech)
+            _append(surplus_mech, f"today.why.surplus.{slug}")
         if strategy and hd_type:
-            why_bits.append(f"Strategy: {strategy}.")
+            _append(f"Strategy: {strategy}.", "today.why.strategy", strategy=strategy)
 
     text = primary.rstrip(".") + "."
     # Soft enforce ≤20 words (templates are designed under the cap).
@@ -223,11 +335,21 @@ def compute_main_action(
     # Dedupe while preserving order.
     seen: set[str] = set()
     ordered: list[str] = []
-    for bit in why_bits:
+    ordered_parts: list[dict[str, Any]] = []
+    for bit, part in zip(why_bits, why_parts):
         key = bit.strip().lower()
         if not key or key in seen:
             continue
         seen.add(key)
         ordered.append(bit.strip().rstrip(".") + ".")
+        ordered_parts.append(part)
     why = " ".join(ordered)
-    return text, why, micro
+    return MainActionResult(
+        text=text,
+        why=why,
+        micro=micro,
+        action_key=action_key,
+        action_params=action_params,
+        why_parts=ordered_parts,
+        micro_key=micro_key,
+    )

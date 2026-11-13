@@ -1,3 +1,4 @@
+import { todaySoulMessages } from "./todaySoul.en";
 export const messages = {
   'gloss.hdTerms': 'HD terms (Type, Authority, Centers) stay in English.',
   'nav.home': 'Home',
@@ -417,6 +418,7 @@ export const messages = {
   'privacy.hdNote': 'Human Design® is a registered system belonging to its owners. Baseline is an independent informational app and is not affiliated with or endorsed by those owners.',
   'privacy.copyright': '© 2026 Baseline. All rights reserved.',
   'privacy.copyrightShort': '© 2026 Baseline',
+  ...todaySoulMessages,
 } as const;
 
 export type MessageKey = keyof typeof messages;

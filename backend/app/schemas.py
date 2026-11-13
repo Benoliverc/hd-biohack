@@ -42,6 +42,13 @@ class ChartResponse(BaseModel):
     natal_chart_id: int | None = None
 
 
+class CopyPart(BaseModel):
+    """Structured i18n key plus parameters. English strings remain for back-compat."""
+
+    key: str
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
 class DailySignal(BaseModel):
     key: str
     headline: str
@@ -55,6 +62,13 @@ class DailySignal(BaseModel):
         "conditioning",
         "continuity",
     ]
+    gate: int | None = None
+    line: int | None = None
+    planet: str | None = None
+    continuity_day: int | None = None
+    phase: Literal["on", "clear"] | None = None
+    cue_gate: int | None = None
+    body_part: CopyPart | None = None
 
 
 class VsYesterdayDelta(BaseModel):
@@ -91,6 +105,7 @@ class SkyStory(BaseModel):
     """Free serial weather chapter under Today's new signal (mechanics only)."""
 
     lines: list[str] = Field(default_factory=list)
+    line_parts: list[CopyPart] = Field(default_factory=list)
     tomorrow: TomorrowTease | None = None
     continuity_day: int = 1
     bridge_day: int = 0
@@ -116,7 +131,12 @@ class TodayIndication(BaseModel):
     main_action_text: str
     main_action_why: str
     main_action_micro: str
+    main_action_key: str | None = None
+    main_action_params: dict[str, Any] = Field(default_factory=dict)
+    main_action_why_parts: list[CopyPart] = Field(default_factory=list)
+    main_action_micro_key: str | None = None
     drivers: list[str] = []
+    driver_parts: list[CopyPart] = Field(default_factory=list)
     has_natal: bool = True
     save_chart_cta: bool = False
     disclaimer: str = ""

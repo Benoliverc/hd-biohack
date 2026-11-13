@@ -81,7 +81,7 @@ assert.ok(vsIdx > 0 && toggleIdx > vsIdx, "fold is after vs-yesterday");
 assert.ok(factIdx > panelIdx, "fold is before the lower literacy / tables stack");
 
 // Tease remains when closed; list is not always visible; tomorrow is not duplicated when open
-assert.match(todayInd, /sky_story\?\.tomorrow\?\.text && !upcomingOpen/);
+assert.match(todayInd, /tomorrowText && !upcomingOpen/);
 assert.match(todayInd, /\{upcomingOpen \? \(/);
 assert.doesNotMatch(todayInd, /week-ahead|weekAhead|WeatherStrip/);
 

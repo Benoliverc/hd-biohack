@@ -18,6 +18,7 @@ import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadCont
 import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
+import { localizeMove } from "@/lib/todayCopy";
 import { graphFromChart, typeFromChart } from "@/lib/share/graphFromChart";
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
@@ -333,7 +334,7 @@ export default function TransitsPage() {
         {data?.indication?.main_action_text && youChartPayload ? (
           <ShareBaselineButton
             variant="today"
-            moveText={data.indication.main_action_text}
+            moveText={localizeMove(data.indication, t)}
             typeLabel={typeFromChart(youChartPayload)}
             graph={graphFromChart(youChartPayload)}
             className="shrink-0"

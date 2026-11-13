@@ -269,11 +269,20 @@ const locked = {
 
 const localeDir = resolve(root, "src/lib/i18n/messages");
 const locales = ["en.ts", "de.ts", "es.ts", "fr.ts", "nl.ts"];
+const localeFiles = readdirSync(localeDir)
+  .filter((f) => f.endsWith(".ts") && f !== "index.ts")
+  .sort();
 assert.deepEqual(
-  readdirSync(localeDir).filter((f) => f.endsWith(".ts") && f !== "index.ts").sort(),
+  localeFiles.filter((f) => !/^todaySoul\.(en|de|es|fr|nl)\.ts$/.test(f)),
   [...locales].sort(),
   "five locale files plus index",
 );
+for (const loc of ["en", "de", "es", "fr", "nl"]) {
+  assert.ok(
+    localeFiles.includes(`todaySoul.${loc}.ts`),
+    `todaySoul catalog for ${loc}`,
+  );
+}
 
 function extractMessage(src, key) {
   const re = new RegExp(`['"]${key.replace(/\\./g, "\\\\.").replace(/\./g, "\\.")}['"]\\s*:\\s*(['"\`])([\\s\\S]*?)\\1`);

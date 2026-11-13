@@ -35,13 +35,19 @@ assert.ok(coach.includes('variant === "chart"'), "chart variant");
 assert.ok(coach.includes('variant === "soul"'), "soul variant");
 assert.ok(coach.includes('"How to read your chart"'), "chart title");
 assert.ok(coach.includes('"How to read Soul"'), "soul title");
-assert.ok(coach.includes('"How to read Today"'), "today title");
+assert.ok(
+  coach.includes('"How to read Today"') || coach.includes('today.literacy.howToReadTitle'),
+  "today title"
+);
 assert.ok(coach.includes('"chart-literacy-coach"'), "chart test id");
 assert.ok(coach.includes('"soul-literacy-coach"'), "soul test id");
 assert.ok(coach.includes('"today-literacy-coach"'), "today test id");
 assert.ok(coach.includes("CHART_LITERACY_STEPS"), "chart steps bank");
 assert.ok(coach.includes("SOUL_LITERACY_STEPS"), "soul steps bank");
-assert.ok(coach.includes("TODAY_LITERACY_STEPS"), "today steps bank");
+assert.ok(
+  coach.includes("TODAY_LITERACY_STEPS") || coach.includes("TODAY_LITERACY_I18N"),
+  "today steps bank"
+);
 assert.ok(coach.includes("onJump"), "onJump hook kept");
 
 assert.ok(hdCopy.includes('chart: "baseline.literacy.chart.v1"'), "chart storage key");
