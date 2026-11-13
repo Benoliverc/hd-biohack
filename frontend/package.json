@@ -44,7 +44,8 @@
     "assert:today-wow-first-pass": "npx tsx scripts/assert-today-wow-first-pass.mjs",
     "assert:today-wow-change-line": "npx tsx scripts/assert-today-wow-change-line.mjs",
     "assert:protocols-shelf-naming": "npx tsx scripts/assert-protocols-shelf-naming.mjs",
-    "assert:login-page-first-pass": "npx tsx scripts/assert-login-page-first-pass.mjs"
+    "assert:login-page-first-pass": "npx tsx scripts/assert-login-page-first-pass.mjs",
+    "assert:login-editorial-paper": "npx tsx scripts/assert-login-editorial-paper.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

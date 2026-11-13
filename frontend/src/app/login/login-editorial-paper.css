@@ -1,0 +1,89 @@
+/* Login editorial-paper theme — scoped to /login only.
+   Stronger paper grain lives here. App-wide canvas noise stays untouched. */
+
+.login-paper-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+  background-image: url("/paper-grain.png");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+.login-wordmark {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+}
+
+.login-wordmark-rule {
+  display: block;
+  height: 1px;
+  width: 100%;
+  margin: 12px 0 0;
+  background: var(--growth);
+  opacity: 0.85;
+  border: 0;
+}
+
+.login-wordmark-subhead {
+  margin: 10px 0 0;
+}
+
+.login-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.login-tab {
+  position: relative;
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+.login-tab-selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--growth);
+}
+
+.login-pillar {
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  padding: 14px 0 16px;
+  background: transparent;
+}
+
+.login-pillar-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 0;
+  margin-top: 2px;
+  background: transparent;
+  color: var(--growth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
