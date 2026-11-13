@@ -181,10 +181,21 @@ for (const loc of locales) {
     `${loc} has locked nameless caption`,
   );
 }
-const messageFiles = readdirSync(resolve(root, "src/lib/i18n/messages")).filter(
-  (f) => f.endsWith(".ts") && f !== "index.ts",
+const localeDir = resolve(root, "src/lib/i18n/messages");
+const localeFiles = readdirSync(localeDir)
+  .filter((f) => f.endsWith(".ts") && f !== "index.ts")
+  .sort();
+assert.deepEqual(
+  localeFiles.filter((f) => !/^todaySoul\.(en|de|es|fr|nl)\.ts$/.test(f)),
+  ["de.ts", "en.ts", "es.ts", "fr.ts", "nl.ts"],
+  "five locale files plus index",
 );
-assert.equal(messageFiles.sort().join(","), "de.ts,en.ts,es.ts,fr.ts,nl.ts", "five locale files");
+for (const loc of ["en", "de", "es", "fr", "nl"]) {
+  assert.ok(
+    localeFiles.includes(`todaySoul.${loc}.ts`),
+    `todaySoul catalog for ${loc}`,
+  );
+}
 
 // --- Item 7: Soul literacy ---
 assert.ok(coach.includes('"How to read Soul"'), "coach title stays How to read Soul");
