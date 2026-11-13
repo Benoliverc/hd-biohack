@@ -42,10 +42,25 @@ import {
   weatherMeaningLine,
   type MessageKey,
 } from "@/lib/i18n";
+import {
+  changeLineLead,
+  localizeCueBody,
+  localizeDisclaimer,
+  localizeDrivers,
+  localizeMicro,
+  localizeMove,
+  localizeSkyLines,
+  localizeTomorrow,
+  localizeWhy,
+  termSecondCaption,
+} from "@/lib/todayCopy";
 
 type TFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
 function vsPillLabel(d: VsYesterdayDelta, t: TFn): string {
+  if (d.field === "moon" && d.from === "same conditioning") {
+    return t("today.vs.sameConditioning");
+  }
   const vars = { from: d.from, to: d.to };
   if (d.field === "moon") return t("vs.moon", vars);
   if (d.field === "sun") return t("vs.sun", vars);
@@ -405,6 +420,15 @@ export default function TodayIndication({
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
   const energySpaceHighlight = indication.energy_space_slot !== "quiet";
   const weatherMeaning = weatherMeaningLine(t, energy, space);
+  const moveText = localizeMove(indication, t);
+  const whyText = localizeWhy(indication, t);
+  const microText = localizeMicro(indication, t);
+  const driverLines = localizeDrivers(indication, t);
+  const changeLine = changeLineLead(indication, t);
+  const changeTerms = termSecondCaption(daily, t);
+  const cueBody = localizeCueBody(daily, t);
+  const skyLines = localizeSkyLines(indication, t);
+  const tomorrowText = localizeTomorrow(indication, t);
   const moveId = indication.move_item_id || "today-move";
   const moveDone = Boolean(completions[moveId]?.done);
   const moveNote = completions[moveId]?.note || "";
@@ -446,7 +470,7 @@ export default function TodayIndication({
                       aria-label={t("today.iDidIt")}
                       data-testid="today-move-done"
                       onClick={() =>
-                        persistToggle(moveId, indication.main_action_text || t("today.move"))
+                        persistToggle(moveId, moveText || t("today.move"))
                       }
                       className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
                         moveDone
@@ -460,9 +484,39 @@ export default function TodayIndication({
                       className="type-title text-fg"
                       data-testid="main-action-text"
                     >
-                      {indication.main_action_text}
+                      {moveText}
                     </p>
                   </div>
+
+                  {moveText ? (
+                    <div
+                      className="mt-2 min-h-[1.625rem] pl-14"
+                      data-testid="today-change-line"
+                      data-change-source={changeLine?.source || "reserved"}
+                    >
+                      {changeLine ? (
+                        <>
+                          <p
+                            className={
+                              changeLine.quiet
+                                ? "type-meta text-fg"
+                                : "type-body text-fg"
+                            }
+                          >
+                            {changeLine.text}
+                          </p>
+                          {changeTerms ? (
+                            <p
+                              className="mt-0.5 type-caption text-fg"
+                              data-testid="today-change-line-terms"
+                            >
+                              {changeTerms}
+                            </p>
+                          ) : null}
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   {moveDone ? (
                     <div
@@ -766,7 +820,7 @@ export default function TodayIndication({
               </p>
             ) : null}
 
-            {indication.main_action_why || indication.main_action_micro || indication.drivers?.length ? (
+            {whyText || microText || driverLines.length ? (
               <details className="mt-2 group" data-testid="main-action-why-details">
                 <summary className="mt-1 inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-border bg-sunken/70 px-3 py-2 text-xs font-semibold text-fg transition hover:border-growth/40 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 marker:content-none [&::-webkit-details-marker]:hidden">
                   <span
@@ -778,26 +832,26 @@ export default function TodayIndication({
                   <span>{t("today.why")}</span>
                   <span className="font-normal text-fg-muted">· {t("today.whyHint")}</span>
                 </summary>
-                {indication.main_action_micro ? (
+                {microText ? (
                   <p
-                    className="mt-2 text-sm text-fg-secondary"
+                    className="mt-2 text-sm text-fg"
                     data-testid="main-action-micro"
                   >
-                    {indication.main_action_micro}
+                    {microText}
                   </p>
                 ) : null}
-                {indication.main_action_why ? (
-                  <p className="mt-2 text-sm text-fg-secondary" data-testid="main-action-why">
-                    {indication.main_action_why}
+                {whyText ? (
+                  <p className="mt-2 text-sm text-fg" data-testid="main-action-why">
+                    {whyText}
                   </p>
                 ) : null}
-                {indication.drivers?.length ? (
+                {driverLines.length ? (
                   <div className="mt-2" data-testid="indication-drivers">
                     <p className="text-xs font-medium uppercase tracking-wide text-fg-secondary">
                       {t("today.chartNotes")}
                     </p>
-                    <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg-secondary">
-                      {indication.drivers.slice(0, 4).map((d) => (
+                    <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-fg">
+                      {driverLines.map((d) => (
                         <li key={d}>{d}</li>
                       ))}
                     </ul>
@@ -1035,28 +1089,36 @@ export default function TodayIndication({
                 <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 {t("today.newSignal")}
               </p>
-              <h3
-                className="text-lg font-semibold text-fg"
-                data-testid="daily-signal-headline"
-              >
-                {daily.headline}
-              </h3>
-              <p className="mt-1 text-sm text-fg-secondary" data-testid="daily-signal-body">
-                {daily.body}
-              </p>
+              {changeTerms ? (
+                <p
+                  className="type-caption text-fg"
+                  data-testid="daily-signal-headline"
+                >
+                  {changeTerms}
+                </p>
+              ) : (
+                <p className="sr-only" data-testid="daily-signal-headline">
+                  {t("today.newSignal")}
+                </p>
+              )}
+              {cueBody ? (
+                <p className="mt-1 text-sm text-fg" data-testid="daily-signal-body">
+                  {cueBody}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
-          {indication.sky_story?.lines?.length ? (
+          {skyLines.length ? (
             <div
               className="mt-3 space-y-1.5"
               data-testid="sky-story"
               aria-label={t("today.skyStory")}
             >
-              {indication.sky_story.lines.slice(0, 4).map((line, i) => (
+              {skyLines.slice(0, 4).map((line, i) => (
                 <p
                   key={`${i}-${line.slice(0, 24)}`}
-                  className="text-sm leading-relaxed text-fg-secondary"
+                  className="text-sm leading-relaxed text-fg"
                   data-testid="sky-story-line"
                 >
                   {line}
@@ -1095,16 +1157,16 @@ export default function TodayIndication({
             </details>
           ) : null}
 
-          {indication.sky_story?.tomorrow?.text && !upcomingOpen ? (
+          {tomorrowText && !upcomingOpen ? (
             <p
-              className="mt-3 text-xs text-fg-muted"
+              className="mt-3 type-caption text-fg"
               data-testid="sky-story-tomorrow"
             >
-              {indication.sky_story.tomorrow.text}
+              {tomorrowText}
             </p>
           ) : null}
 
-          <div className={indication.sky_story?.tomorrow?.text && !upcomingOpen ? "mt-1" : "mt-3"}>
+          <div className={tomorrowText && !upcomingOpen ? "mt-1" : "mt-3"}>
             <button
               type="button"
               aria-expanded={upcomingOpen}
@@ -1205,8 +1267,8 @@ export default function TodayIndication({
       ) : null}
 
       {caption ? (
-        <p className="mb-3 text-xs text-fg-muted" data-testid="conditioning-caption">
-          {caption}
+        <p className="mb-3 type-caption text-fg" data-testid="conditioning-caption">
+          {t("today.conditioningCaptionFallback")}
         </p>
       ) : null}
 
@@ -1229,7 +1291,7 @@ export default function TodayIndication({
               {t("today.hdFactLabel")}
             </p>
             <p className="text-sm text-fg-secondary" data-testid="hd-fact-text">
-              {pulse.fact}
+              {t(pulse.factKey)}
             </p>
             {pulse.howToReadTargetId ? (
               <button
@@ -1252,7 +1314,7 @@ export default function TodayIndication({
         className="type-caption leading-relaxed text-fg-secondary"
         data-testid="indication-disclaimer"
       >
-        {indication.disclaimer || t("today.disclaimerFallback")}
+        {localizeDisclaimer(indication, t)}
       </p>
     </div>
   );

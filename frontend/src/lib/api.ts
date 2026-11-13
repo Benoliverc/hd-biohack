@@ -144,11 +144,23 @@ export type DailySignalSource =
   | "conditioning"
   | "continuity";
 
+export type CopyPart = {
+  key: string;
+  params?: Record<string, string | number>;
+};
+
 export type DailySignal = {
   key: string;
   headline: string;
   body: string;
   source: DailySignalSource;
+  gate?: number | null;
+  line?: number | null;
+  planet?: string | null;
+  continuity_day?: number | null;
+  phase?: "on" | "clear" | null;
+  cue_gate?: number | null;
+  body_part?: CopyPart | null;
 };
 
 export type VsYesterdayDelta = {
@@ -181,6 +193,7 @@ export type TomorrowTease = {
 
 export type SkyStory = {
   lines: string[];
+  line_parts?: CopyPart[];
   tomorrow?: TomorrowTease | null;
   continuity_day?: number;
   bridge_day?: number;
@@ -251,7 +264,12 @@ export type TodayIndicationPayload = {
   main_action_text: string;
   main_action_why: string;
   main_action_micro: string;
+  main_action_key?: string | null;
+  main_action_params?: Record<string, string | number>;
+  main_action_why_parts?: CopyPart[];
+  main_action_micro_key?: string | null;
   drivers?: string[];
+  driver_parts?: CopyPart[];
   has_natal: boolean;
   save_chart_cta: boolean;
   disclaimer: string;

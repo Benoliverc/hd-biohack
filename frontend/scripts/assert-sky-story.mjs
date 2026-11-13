@@ -50,7 +50,7 @@ assert.ok(toggleIdx > teaseIdx2, "upcoming toggle under tomorrow tease");
 assert.ok(panelIdx > toggleIdx && panelIdx < factIdx, "fold in sky block, not lower tables");
 assert.ok(moveIdx < skyBlockIdx, "fold is not an always-visible strip in the Move hero");
 assert.match(todayInd, /\{upcomingOpen \? \(/);
-assert.match(todayInd, /sky_story\?\.tomorrow\?\.text && !upcomingOpen/);
+assert.match(todayInd, /tomorrowText && !upcomingOpen/);
 
 // Tease and upcoming list must not invent a future Move
 const forwardChunk = todayInd.slice(teaseIdx2, factIdx);

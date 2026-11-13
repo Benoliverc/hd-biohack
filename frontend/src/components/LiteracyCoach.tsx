@@ -16,10 +16,11 @@ import {
   CHART_LITERACY_STEPS,
   LITERACY_STORAGE_KEYS,
   SOUL_LITERACY_STEPS,
-  TODAY_LITERACY_STEPS,
   type LiteracyJumpMeta,
   type LiteracyStep,
 } from "@/lib/hdCopy";
+import { useI18n } from "@/lib/i18n";
+import { TODAY_LITERACY_I18N } from "@/lib/todayCopy";
 import {
   useLiteracyHowToReadOptional,
   type LiteracyHowToReadOpenOpts,
@@ -286,13 +287,20 @@ function useLiteracyPortal(): HTMLElement | null {
 }
 
 export default function LiteracyCoach({ variant, onJump }: Props) {
+  const { t } = useI18n();
   const storageKey = LITERACY_STORAGE_KEYS[variant];
   const steps: LiteracyStep[] =
     variant === "chart"
       ? CHART_LITERACY_STEPS
       : variant === "soul"
         ? SOUL_LITERACY_STEPS
-        : TODAY_LITERACY_STEPS;
+        : TODAY_LITERACY_I18N.map((step) => ({
+            id: step.id,
+            title: t(step.titleKey),
+            body: t(step.bodyKey),
+            jumpLabel: t(step.jumpKey),
+            targetId: step.targetId,
+          }));
   const testId =
     variant === "chart"
       ? "chart-literacy-coach"
@@ -304,7 +312,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
       ? "How to read your chart"
       : variant === "soul"
         ? "How to read Soul"
-        : "How to read Today";
+        : t("today.literacy.howToReadTitle");
   const reopenLabel =
     variant === "chart"
       ? "How to read"

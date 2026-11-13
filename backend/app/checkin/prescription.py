@@ -266,11 +266,14 @@ def select_move_text(
     history: list[dict[str, Any]] | None,
     pro: bool,
     day_key: str,
-) -> str:
-    """Pick a Move line for the moment; Pro may prefer finished lifestyle variants."""
+) -> tuple[str, str]:
+    """Pick a Move line for the moment; Pro may prefer finished lifestyle variants.
+
+    Returns (english_text, i18n_key). English wording is unchanged.
+    """
     options = MOMENT_MOVES[moment]
     if not pro or len(options) == 1:
-        return _cap_words(options[0])
+        return _cap_words(options[0]), f"today.move.moment.{moment}.0"
     rates = _history_rates(history)
     # Variant index stored as today-move:{moment}:{idx} optional; fall back to day hash.
     # Prefer variants whose parent moment has higher completion when we have history.
@@ -290,7 +293,7 @@ def select_move_text(
                 idx = 1 + (digest % (len(options) - 1))
     else:
         idx = digest % len(options)
-    return _cap_words(options[idx])
+    return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
 
 
 def _slot_from_kit_when(when_text: str | None, fallback: WhenSlot) -> WhenSlot:
@@ -404,7 +407,7 @@ def build_prescription(
         pro=bool(biohacking_unlocked),
         day_key=day_key,
     )
-    move_text = select_move_text(
+    move_text, move_key = select_move_text(
         moment,
         history=history,
         pro=bool(biohacking_unlocked),
@@ -439,6 +442,7 @@ def build_prescription(
         "moment_noun": noun,
         "when": when,
         "move_text": move_text,
+        "move_key": move_key,
         "move_item_id": f"today-move:{moment}",
         "kit_placeholder": placeholder,
         "kit_item": None
@@ -488,6 +492,9 @@ def attach_prescription(
     )
     if replace_main_action and rx.get("move_text"):
         out["main_action_text"] = rx["move_text"]
+        if rx.get("move_key"):
+            out["main_action_key"] = rx["move_key"]
+            out["main_action_params"] = {}
     out["moment"] = rx["moment"]
     out["moment_noun"] = rx["moment_noun"]
     out["when_slot"] = rx["when"]

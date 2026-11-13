@@ -208,11 +208,12 @@ def test_generator_default_focus():
 
 
 def test_main_action_micro_separate():
-    text, why, micro = compute_main_action(
+    action = compute_main_action(
         5,
         "out",
         natal={"type": "Projector", "strategy": "Wait for the Invitation"},
     )
+    text, why, micro = action.text, action.why, action.micro
     assert "stimulant" in text.lower() or "stimulant" in why.lower()
     assert " · " not in text or SPACE_MICRO["out"] not in text
     assert micro == SPACE_MICRO["out"]
@@ -222,11 +223,12 @@ def test_main_action_micro_separate():
 
 
 def test_why_does_not_restate_chips():
-    text, why, micro = compute_main_action(
+    action = compute_main_action(
         1,
         "alone",
         natal={"type": "Projector", "strategy": "Wait for the Invitation"},
     )
+    text, why, micro = action.text, action.why, action.micro
     low = why.lower()
     assert "energy is" not in low
     assert "drained" not in low
@@ -394,13 +396,14 @@ def test_main_action_sky_on_hyper_and_charged():
     natal = {"type": "Manifesting Generator", "strategy": "To Respond"}
     transit = _transit(sun_g=12, sun_l=3, moon_g=44, moon_l=2)
     for level in (1, 2, 4, 5):
-        text, why, micro = compute_main_action(
+        action = compute_main_action(
             level,
             "focus",
             natal=natal,
             transit=transit,
             overlay={"newly_defined_centers": [], "bridged_channels": []},
         )
+        text, why, micro = action.text, action.why, action.micro
         # Sky / gate mechanics live in Why — Main stays plain ≤20 words.
         why_l = why.lower()
         assert "sun 12.3" in why_l or "moon 44.2" in why_l, (level, why)
@@ -419,13 +422,14 @@ def test_main_action_plain_english_max_words():
     natal = {"type": "Generator", "strategy": "To Respond"}
     transit = _transit(sun_g=1, sun_l=1, moon_g=2, moon_l=2)
     for level in (1, 2, 3, 4, 5):
-        text, why, _micro = compute_main_action(
+        action = compute_main_action(
             level,
             "alone",
             natal=natal,
             transit=transit,
             overlay={"newly_defined_centers": ["Sacral"], "bridged_channels": []},
         )
+        text, why, _micro = action.text, action.why, action.micro
         words = len(text.replace("—", " ").split())
         assert words <= MAIN_ACTION_MAX_WORDS, (level, words, text)
         # Mechanics stay out of the doable sentence
@@ -852,6 +856,164 @@ def test_has_previous_indication_true_with_prev():
     print("PASS: prev_indication present → has_previous_indication true")
 
 
+
+def test_gate_cue_library_complete():
+    from app.checkin.novelty import GATE_CUE, _cue_for_gate
+
+    assert set(GATE_CUE) == set(range(1, 65))
+    for gate, cue in GATE_CUE.items():
+        words = [w for w in cue.replace("—", " ").replace("-", " ").split() if w]
+        assert 8 <= len(words) <= 14, (gate, len(words), cue)
+        assert "Gate of" not in cue
+        assert cue == _cue_for_gate(gate, "Moon")
+        assert "colour the day without forcing it" not in _cue_for_gate(gate, "Moon")
+    fallback = _cue_for_gate(None, "Moon")
+    assert "Moon" in fallback
+    print("PASS: GATE_CUE 1–64 preferred over center fallback")
+
+
+def test_daily_signal_additive_fields_moon_gate():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal, GATE_CUE
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=4, moon_g=12, moon_l=3)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    sig = compute_daily_signal(
+        natal=natal,
+        transit=today,
+        overlay={"bridged_channels": [], "newly_defined_centers": []},
+        prev_transit=yest,
+        prev_overlay={"bridged_channels": [], "newly_defined_centers": []},
+        day=date(2026, 10, 24),
+    )
+    assert sig["source"] == "moon_gate"
+    assert sig["gate"] == 12
+    assert sig["line"] == 3
+    assert sig["planet"] == "Moon"
+    assert sig["cue_gate"] == 12
+    assert sig["phase"] is None
+    assert sig["continuity_day"] is None
+    assert sig["body"] == GATE_CUE[12]
+    assert sig["body_part"]["key"] == "today.gateCue.12"
+    print("PASS: moon_gate additive DailySignal fields")
+
+
+def test_daily_signal_hanging_phase_on_and_clear():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal(hanging_gates=[{"held": 10, "missing": 20, "channel": "Awakening"}])
+    overlay = {"bridged_channels": [], "newly_defined_centers": []}
+    today_on = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1, gates=[50, 17, 20])
+    yest_off = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1, gates=[50, 17, 1])
+    on = compute_daily_signal(
+        natal=natal,
+        transit=today_on,
+        overlay=overlay,
+        prev_transit=yest_off,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+    )
+    assert on["source"] == "hanging_pressure"
+    assert on["phase"] == "on"
+    assert on["gate"] == 20
+    assert on["cue_gate"] == 20
+    assert on["key"].startswith("hanging:")
+
+    today_clear = yest_off
+    yest_on = today_on
+    clear = compute_daily_signal(
+        natal=natal,
+        transit=today_clear,
+        overlay=overlay,
+        prev_transit=yest_on,
+        prev_overlay=overlay,
+        day=date(2026, 10, 25),
+    )
+    assert clear["source"] == "hanging_pressure"
+    assert clear["phase"] == "clear"
+    assert clear["key"] == "hanging:clear"
+    print("PASS: hanging_pressure phase on/clear")
+
+
+def test_daily_signal_conditioning_phase():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal()
+    snap = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    empty = {"bridged_channels": [], "newly_defined_centers": []}
+    newly = {"bridged_channels": [], "newly_defined_centers": ["Sacral"]}
+    on = compute_daily_signal(
+        natal=natal,
+        transit=snap,
+        overlay=newly,
+        prev_transit=snap,
+        prev_overlay=empty,
+        day=date(2026, 10, 24),
+    )
+    assert on["source"] == "conditioning"
+    assert on["phase"] == "on"
+    clear = compute_daily_signal(
+        natal=natal,
+        transit=snap,
+        overlay=empty,
+        prev_transit=snap,
+        prev_overlay=newly,
+        day=date(2026, 10, 25),
+    )
+    assert clear["source"] == "conditioning"
+    assert clear["phase"] == "clear"
+    print("PASS: conditioning phase on/clear")
+
+
+def test_daily_signal_continuity_day_on_signal():
+    from datetime import date
+    from app.checkin.novelty import compute_daily_signal
+
+    natal = _natal()
+    snap = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"bridged_channels": [], "newly_defined_centers": []}
+    sig = compute_daily_signal(
+        natal=natal,
+        transit=snap,
+        overlay=overlay,
+        prev_transit=snap,
+        prev_overlay=overlay,
+        day=date(2026, 10, 24),
+    )
+    assert sig["source"] == "continuity"
+    assert sig["continuity_day"] == date(2026, 10, 24).toordinal()
+    assert sig["planet"] in ("Sun", "Moon")
+    assert sig["cue_gate"] in (50, 17)
+    print("PASS: continuity_day lives on DailySignal")
+
+
+def test_first_filled_not_inferred_from_ephemeris():
+    """Yesterday's sky can exist on a first filled day; has_previous_indication stays false."""
+    from datetime import date
+
+    natal = _natal()
+    today = _transit(sun_g=50, sun_l=4, moon_g=12, moon_l=3)
+    yest = _transit(sun_g=50, sun_l=4, moon_g=17, moon_l=1)
+    overlay = {"bridged_channels": [], "newly_defined_centers": []}
+    ind = derive_today_indication(
+        natal,
+        today,
+        overlay,
+        prev_transit=yest,
+        prev_overlay=overlay,
+        prev_indication=None,
+        day=date(2026, 10, 24),
+    )
+    assert ind["has_previous_indication"] is False
+    assert ind["daily_signal"]["source"] == "moon_gate"
+    assert ind["sky_story"]["lines"]
+    print("PASS: first-filled is not inferred from yesterday's ephemeris")
+
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -891,4 +1053,10 @@ if __name__ == "__main__":
     test_energy_space_slot_not_inferred_from_vs_yesterday()
     test_has_previous_indication_false_without_prev()
     test_has_previous_indication_true_with_prev()
+    test_gate_cue_library_complete()
+    test_daily_signal_additive_fields_moon_gate()
+    test_daily_signal_hanging_phase_on_and_clear()
+    test_daily_signal_conditioning_phase()
+    test_daily_signal_continuity_day_on_signal()
+    test_first_filled_not_inferred_from_ephemeris()
     print("ALL indication unit tests passed")

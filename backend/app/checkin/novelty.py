@@ -53,7 +53,70 @@ DailySource = Literal[
 ]
 
 GATE_CUE: dict[int, str] = {
-    # sparse deterministic cues — fallback uses center
+    1: "A creative pulse is close to the surface, seeking a unique shape.",
+    2: "A quiet sense of direction sits underneath today's choices.",
+    3: "Something new is still finding its order; the start feels uneven.",
+    4: "The mind wants a formula for what does not yet have one.",
+    5: "Fixed rhythms feel louder; timing wants to stay in its groove.",
+    6: "Friction in closeness may colour the room more than usual.",
+    7: "Questions of role and leadership sit nearer the front.",
+    8: "The urge to contribute a unique piece is more audible today.",
+    9: "Attention wants to narrow; small details can hold the whole task.",
+    10: "How you carry yourself is more visible than what you declare.",
+    11: "Ideas arrive in clusters; they are weather, not a plan yet.",
+    12: "Words carry more weight than usual; silence is charged too.",
+    13: "Stories want a listener; what is shared may linger.",
+    14: "Resources and skill feel primed to be used, not scattered.",
+    15: "The day's pace may swing between extremes; neither pole is a verdict.",
+    16: "Practiced skill wants to be used; enthusiasm can run ahead of mastery.",
+    17: "Opinions form quickly; they describe a pattern, not a final ruling.",
+    18: "The eye for what could be better is sharper than usual.",
+    19: "Needs and approaches press a little harder at the edges.",
+    20: "The present moment is louder than the plan around it.",
+    21: "Questions of control and provision sit closer to the surface.",
+    22: "Openness and mood may colour every conversation today.",
+    23: "A few essential words may land harder than a long explanation.",
+    24: "The mind turns the same question over, looking for a rational thread.",
+    25: "A plain, uncalculated warmth may show through ordinary acts.",
+    26: "The art of the deal feels closer at hand today.",
+    27: "Care for what must be nourished is more noticeable today.",
+    28: "The risk in the game is easier to feel — information, not a dare.",
+    29: "The pull to say yes and stay with it is stronger than usual.",
+    30: "Feelings may color the room; they are weather, not a verdict.",
+    31: "Influence wants a stage; the question is whether the room asked.",
+    32: "Instincts about what will last are closer to the surface.",
+    33: "A need to withdraw and remember may colour the day's pace.",
+    34: "Raw power is available in bursts; it is fuel, not a mandate.",
+    35: "The appetite for a new experience is more awake than usual.",
+    36: "Emotional weather may dip into a crisis colour; it will move on.",
+    37: "Agreements and family-like bonds feel more vivid today.",
+    38: "A fighting spirit may rise where something valued feels opposed.",
+    39: "Provocation can stir the waters; the mood that follows is the signal.",
+    40: "Aloneness and the terms of support sit closer to the surface.",
+    41: "A sense of decrease can start a cycle — a beginning, not a lack.",
+    42: "A cycle of growth wants to complete what was already started.",
+    43: "A sudden insight may arrive sideways, hard to translate at once.",
+    44: "The past pattern in a person or offer is easier to recognize today.",
+    45: "Gathering and speaking for the group may feel closer at hand.",
+    46: "The body and its path through the day want more trust than usual.",
+    47: "Realizations try to form from a mental press that is not yet clear.",
+    48: "A well of depth is available; it need not be emptied today.",
+    49: "Principles about who belongs, and on what terms, are more awake.",
+    50: "Values about care and responsibility sit nearer the surface.",
+    51: "A jolt may reset the field — a spark, not a verdict.",
+    52: "Stillness has more weight; activity may feel like it can wait.",
+    53: "A new cycle is only starting; the first step is not the path.",
+    54: "Ambition and the next rung may colour the day's drive.",
+    55: "Spirit and mood can swing widely; neither pole is the whole story.",
+    56: "Stories and stimulation travel farther than usual today.",
+    57: "A quiet intuitive alertness is closer to the skin.",
+    58: "The joy of being alive wants a little more room than usual.",
+    59: "The urge to dissolve a wall and get close may be stronger today.",
+    60: "A limitation is more visible; it can also be a clear frame.",
+    61: "An inner question without a quick answer sits nearer the surface.",
+    62: "Small, exact details want more attention than the big claim.",
+    63: "Doubt is working on a pattern; it is a process, not a failure.",
+    64: "A mental fog sits before the picture completes, just short of the click.",
 }
 
 
@@ -182,7 +245,8 @@ def _center_display(center: str) -> str:
     return center.replace("_", " ")
 
 
-def _cue_for_gate(gate: int | None, planet: str) -> str:
+def _cue_fallback(gate: int | None, planet: str) -> str:
+    """Last-resort English body when a library cue is missing."""
     if gate is None:
         return f"Let today's {planet} theme colour the day without forcing it."
     center = GATE_TO_CENTER.get(gate)
@@ -192,6 +256,38 @@ def _cue_for_gate(gate: int | None, planet: str) -> str:
             f"(Gate {gate}) — colour the day without forcing it."
         )
     return f"Notice {planet} in Gate {gate} — colour the day without forcing it."
+
+
+def _cue_fallback_part(gate: int | None, planet: str) -> dict[str, object]:
+    if gate is None:
+        return {"key": "today.gateCue.fallbackPlanet", "params": {"planet": planet}}
+    center = GATE_TO_CENTER.get(gate)
+    if center:
+        return {
+            "key": "today.gateCue.fallbackCenter",
+            "params": {
+                "planet": planet,
+                "center": _center_display(center),
+                "gate": gate,
+            },
+        }
+    return {
+        "key": "today.gateCue.fallbackGate",
+        "params": {"planet": planet, "gate": gate},
+    }
+
+
+def _cue_for_gate(gate: int | None, planet: str) -> str:
+    """Observational body: library cue first, center fallback last-resort only."""
+    if gate is not None and gate in GATE_CUE:
+        return GATE_CUE[gate]
+    return _cue_fallback(gate, planet)
+
+
+def _cue_part(gate: int | None, planet: str) -> dict[str, object]:
+    if gate is not None and gate in GATE_CUE:
+        return {"key": f"today.gateCue.{gate}", "params": {}}
+    return _cue_fallback_part(gate, planet)
 
 
 def _continuity_day_index(
@@ -254,37 +350,44 @@ def compute_daily_signal(
     key: str
     headline: str
     body: str
+    gate: int | None = None
+    line: int | None = None
+    planet: str | None = None
+    continuity_day: int | None = None
+    phase: str | None = None
+    cue_gate: int | None = None
+    body_part: dict[str, Any] | None = None
 
-    # Prefer personal colour in body when hanging pressure present
     hp_rows: list[dict[str, Any]] = today["hanging_rows"]
-    personal_body = None
-    if hp_rows:
-        top = hp_rows[0]
-        personal_body = (
-            f"Sky pressing hanging Gate {top['gate']} "
-            f"({_center_display(str(top['center']))}) — notice without forcing a bridge."
-        )
 
     if mg is not None and mg != ymg:
         source = "moon_gate"
         key = f"moon:{mg}.{ml if ml is not None else '?'}"
         headline = f"Moon into Gate {mg} · line {ml if ml is not None else '?'}"
-        body = personal_body or _cue_for_gate(mg, "Moon")
+        body = _cue_for_gate(mg, "Moon")
+        body_part = _cue_part(mg, "Moon")
+        gate, line, planet, cue_gate = mg, ml, "Moon", mg
     elif mg is not None and ml is not None and ml != yml:
         source = "moon_line"
         key = f"moon:{mg}.{ml}"
         headline = f"Moon still Gate {mg}, now line {ml}"
-        body = personal_body or _cue_for_gate(mg, "Moon")
+        body = _cue_for_gate(mg, "Moon")
+        body_part = _cue_part(mg, "Moon")
+        gate, line, planet, cue_gate = mg, ml, "Moon", mg
     elif sg is not None and sl is not None and sl != ysl:
         source = "sun_line"
         key = f"sun:{sg}.{sl}"
         headline = f"Sun theme shifts to Gate {sg} · line {sl}"
-        body = personal_body or _cue_for_gate(sg, "Sun")
+        body = _cue_for_gate(sg, "Sun")
+        body_part = _cue_part(sg, "Sun")
+        gate, line, planet, cue_gate = sg, sl, "Sun", sg
     elif sg is not None and sg != ysg:
         source = "sun_gate"
         key = f"sun_gate:{sg}"
         headline = f"New Sun gate {sg} — weekly theme turn"
-        body = personal_body or _cue_for_gate(sg, "Sun")
+        body = _cue_for_gate(sg, "Sun")
+        body_part = _cue_part(sg, "Sun")
+        gate, line, planet, cue_gate = sg, sl, "Sun", sg
     elif today["hanging"] != yest["hanging"]:
         source = "hanging_pressure"
         if hp_rows:
@@ -295,12 +398,24 @@ def compute_daily_signal(
                 f"({_center_display(str(top['center']))})"
             )
             body = "Notice without forcing a bridge — pressure is information, not a to-do."
+            body_part = {"key": "today.signal.body.hangingOn", "params": {}}
+            gate = int(top["gate"]) if top.get("gate") is not None else None
+            line = None
+            planet = None
+            phase = "on"
+            cue_gate = gate
         else:
             key = "hanging:clear"
             headline = "Hanging-gate pressure clears"
             body = "Yesterday's hanging pressure has lifted — note the quieter field."
+            body_part = {"key": "today.signal.body.hangingClear", "params": {}}
+            phase = "clear"
     elif today["bridges"] != yest["bridges"] or today["newly"] != yest["newly"]:
         source = "conditioning"
+        if today["newly"] or today["bridges"]:
+            phase = "on"
+        else:
+            phase = "clear"
         if today["newly"] and today["newly"] != yest["newly"]:
             centers = ", ".join(
                 _center_display(c) for c in today["newly"].split(",") if c
@@ -308,10 +423,19 @@ def compute_daily_signal(
             key = f"newly:{today['newly']}"
             headline = f"Conditioning update: {centers}"
             body = "Temporary centers shifted — expect unfamiliar pressure; don't over-identify."
+            body_part = {
+                "key": "today.signal.body.conditioningNewly",
+                "params": {"centers": centers},
+            }
         else:
             key = f"bridge:{today['bridges'] or 'clear'}"
             headline = "Conditioning update: bridges"
-            body = "Personal bridges shifted — watch who or what feels magnetic today."
+            if phase == "clear":
+                body = "The temporary wires of yesterday are no longer in the field."
+                body_part = {"key": "today.signal.body.conditioningClear", "params": {}}
+            else:
+                body = "Personal bridges shifted — watch who or what feels magnetic today."
+                body_part = {"key": "today.signal.body.conditioningBridges", "params": {}}
     else:
         source = "continuity"
         day_n = 1
@@ -335,12 +459,29 @@ def compute_daily_signal(
         body = (
             "Hold the same theme; watch open-center amplification rather than forcing a new move."
         )
+        body_part = {"key": "today.signal.body.continuity", "params": {}}
+        continuity_day = day_n
+        # Term caption + cue: Sun theme first, else Moon.
+        if sg is not None:
+            gate, line, planet, cue_gate = sg, sl, "Sun", sg
+        elif mg is not None:
+            gate, line, planet, cue_gate = mg, ml, "Moon", mg
+        if cue_gate is not None:
+            body = _cue_for_gate(cue_gate, planet or "Sun")
+            body_part = _cue_part(cue_gate, planet or "Sun")
 
     return {
         "key": key,
         "headline": headline,
         "body": body,
         "source": source,
+        "gate": gate,
+        "line": line,
+        "planet": planet,
+        "continuity_day": continuity_day,
+        "phase": phase,
+        "cue_gate": cue_gate,
+        "body_part": body_part,
     }
 
 
@@ -549,14 +690,39 @@ def compute_sky_story(
         )
 
     lines: list[str] = []
+    line_parts: list[dict[str, Any]] = []
+
+    def _add_line(english: str, key: str, **params: Any) -> None:
+        lines.append(english)
+        part: dict[str, Any] = {"key": key}
+        clean = {k: v for k, v in params.items() if v is not None}
+        if clean:
+            part["params"] = clean
+        line_parts.append(part)
 
     if not has_yest:
         if sg is not None:
-            lines.append(f"Day 1 of this Sun theme (Gate {sg}).")
+            _add_line(
+                f"Day 1 of this Sun theme (Gate {sg}).",
+                "today.skyStory.day1SunTheme",
+                gate=sg,
+            )
         else:
-            lines.append("Day 1 of this sky chapter.")
+            _add_line("Day 1 of this sky chapter.", "today.skyStory.day1Chapter")
         if mg is not None:
-            lines.append(f"Moon in Gate {mg}" + (f" · line {ml}" if ml is not None else "") + ".")
+            if ml is not None:
+                _add_line(
+                    f"Moon in Gate {mg} · line {ml}.",
+                    "today.skyStory.moonInGateLine",
+                    gate=mg,
+                    line=ml,
+                )
+            else:
+                _add_line(
+                    f"Moon in Gate {mg}.",
+                    "today.skyStory.moonInGate",
+                    gate=mg,
+                )
     else:
         assert yest is not None
         moon_flipped = (
@@ -573,65 +739,110 @@ def compute_sky_story(
 
         if moon_flipped and mg is not None:
             if today["moon_gate"] != yest["moon_gate"]:
-                lines.append(f"Moon moved to Gate {mg}.")
+                _add_line(
+                    f"Moon moved to Gate {mg}.",
+                    "today.skyStory.moonMoved",
+                    gate=mg,
+                )
             else:
-                lines.append(f"Moon still Gate {mg}, now line {ml if ml is not None else '?'}.")
+                _add_line(
+                    f"Moon still Gate {mg}, now line {ml if ml is not None else '?'}.",
+                    "today.skyStory.moonNewLine",
+                    gate=mg,
+                    line=ml if ml is not None else "?",
+                )
         elif mg is not None:
-            lines.append(f"Moon holds Gate {_gl_label(mg, ml)}.")
+            _add_line(
+                f"Moon holds Gate {_gl_label(mg, ml)}.",
+                "today.skyStory.moonHolds",
+                label=_gl_label(mg, ml),
+            )
 
         if sun_flipped and sg is not None:
-            lines.append(f"Sun/Earth theme turned to Gate {sg}.")
+            _add_line(
+                f"Sun/Earth theme turned to Gate {sg}.",
+                "today.skyStory.sunTurned",
+                gate=sg,
+            )
         elif sg is not None:
             if sun_day <= 1:
-                lines.append(f"Day 1 of this Sun theme (Gate {sg}).")
+                _add_line(
+                    f"Day 1 of this Sun theme (Gate {sg}).",
+                    "today.skyStory.day1SunTheme",
+                    gate=sg,
+                )
             else:
-                lines.append(f"Sun/Earth still in this theme — day {sun_day}.")
+                _add_line(
+                    f"Sun/Earth still in this theme — day {sun_day}.",
+                    "today.skyStory.sunStill",
+                    day=sun_day,
+                )
 
         if today["bridges"]:
             if bridge_flipped:
-                lines.append("A bridge flipped on today.")
+                _add_line("A bridge flipped on today.", "today.skyStory.bridgeOn")
             elif bridge_day > 1:
-                lines.append(f"This bridge is on day {bridge_day}.")
+                _add_line(
+                    f"This bridge is on day {bridge_day}.",
+                    "today.skyStory.bridgeDay",
+                    day=bridge_day,
+                )
             else:
-                lines.append("A bridge is active today.")
+                _add_line("A bridge is active today.", "today.skyStory.bridgeActive")
         elif bridge_flipped and yest["bridges"]:
-            lines.append("Yesterday's bridge cleared.")
+            _add_line("Yesterday's bridge cleared.", "today.skyStory.bridgeCleared")
 
         if newly_flipped and today["newly"]:
             centers = ", ".join(
                 _center_display(c) for c in today["newly"].split(",") if c
             )
             if centers:
-                lines.append(f"Temporary center peeks: {centers}.")
+                _add_line(
+                    f"Temporary center peeks: {centers}.",
+                    "today.skyStory.tempCenters",
+                    centers=centers,
+                )
         elif hanging_flipped and today["hanging_rows"]:
             top = today["hanging_rows"][0]
-            lines.append(
+            _add_line(
                 f"Hanging pressure peeks at Gate {top['gate']} "
-                f"({_center_display(str(top['center']))})."
+                f"({_center_display(str(top['center']))}).",
+                "today.skyStory.hangingPeek",
+                gate=top["gate"],
+                center=_center_display(str(top["center"])),
             )
 
-    # Ensure 2-4 lines; pad from daily_signal observationally if thin
+    # Ensure 2-4 lines; pad observationally if thin — never echo the hero lead.
     if len(lines) < 2 and daily_signal:
         src = daily_signal.get("source")
         if src == "continuity" and sg is not None:
             pad = f"Hold the same Sun Gate {sg} theme."
             if pad not in lines:
-                lines.append(pad)
-        elif daily_signal.get("headline"):
-            # Soft observational echo — not a second to-do
-            echo = str(daily_signal["headline"]).rstrip(".")
-            if echo and all(echo not in ln for ln in lines):
-                lines.append(f"{echo}.")
+                _add_line(pad, "today.skyStory.holdSunTheme", gate=sg)
+        elif daily_signal.get("cue_gate") is not None:
+            cg = daily_signal.get("cue_gate")
+            pad = f"Today is coloured by Gate {cg}."
+            if pad not in lines:
+                _add_line(pad, "today.skyStory.colouredByGate", gate=cg)
 
     if len(lines) < 2:
         if sg is not None and all("Sun" not in ln for ln in lines):
-            lines.append(f"Sun/Earth in Gate {sg}.")
+            _add_line(
+                f"Sun/Earth in Gate {sg}.",
+                "today.skyStory.sunInGate",
+                gate=sg,
+            )
         if mg is not None and all("Moon" not in ln for ln in lines):
-            lines.append(f"Moon in Gate {_gl_label(mg, ml)}.")
+            _add_line(
+                f"Moon in Gate {_gl_label(mg, ml)}.",
+                "today.skyStory.moonInLabel",
+                label=_gl_label(mg, ml),
+            )
     if not lines:
-        lines.append("Sky chapter opens today.")
+        _add_line("Sky chapter opens today.", "today.skyStory.opens")
 
     lines = lines[:4]
+    line_parts = line_parts[:4]
 
     tomorrow = compute_tomorrow_tease(
         day=day,
@@ -642,6 +853,7 @@ def compute_sky_story(
 
     return {
         "lines": lines,
+        "line_parts": line_parts,
         "tomorrow": tomorrow,
         "continuity_day": sun_day,
         "bridge_day": bridge_day if today["bridges"] else 0,
