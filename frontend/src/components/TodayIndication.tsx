@@ -86,8 +86,8 @@ type Props = {
   /** Add a starter or typed name, then refetch inventory + GET /transits/today. */
   onAddToKit?: (name: string) => Promise<{ name: string; duplicate?: boolean }>;
   onRetryInventory?: () => void;
-  /** Open How to read Today at this literacy step id (pulse). */
-  onHowToRead?: (stepId: string, returnFocus?: HTMLElement | null) => void;
+  /** Open How to read Today, optionally at this literacy step id (pulse). */
+  onHowToRead?: (stepId?: string, returnFocus?: HTMLElement | null) => void;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -448,16 +448,16 @@ export default function TodayIndication({
                       onClick={() =>
                         persistToggle(moveId, indication.main_action_text || t("today.move"))
                       }
-                      className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
+                      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
                         moveDone
                           ? "border-growth bg-growth text-fg-inverse"
                           : "border-border bg-elevated text-fg-muted hover:border-growth/50"
                       } ${!canTap ? "opacity-50" : ""}`}
                     >
-                      <Check className="h-3.5 w-3.5" aria-hidden />
+                      <Check className="h-5 w-5" aria-hidden />
                     </button>
                     <p
-                      className={`type-body font-medium text-fg ${moveDone ? "line-through opacity-80" : ""}`}
+                      className="type-title text-fg"
                       data-testid="main-action-text"
                     >
                       {indication.main_action_text}
@@ -805,6 +805,26 @@ export default function TodayIndication({
                 ) : null}
               </details>
             ) : null}
+
+            {indication.has_previous_indication === false ? (
+              <button
+                type="button"
+                data-testid="today-first-filled-invite"
+                className="mt-3 block text-left text-sm text-fg underline-offset-2 hover:underline"
+                onClick={(e) => {
+                  if (onHowToRead) {
+                    onHowToRead(undefined, e.currentTarget);
+                    return;
+                  }
+                  document
+                    .querySelector('[data-testid="today-literacy-coach"]')
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              >
+                {t("today.firstFilledInvite")}
+              </button>
+            ) : null}
+
             {timeUnknown ? (
               <p
                 className="mt-3 type-body text-fg-secondary"

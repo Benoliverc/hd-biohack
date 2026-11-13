@@ -49,6 +49,42 @@ function resolveYouChart(
   return rows.find((r) => isSelfRow(r)) ?? null;
 }
 
+const TODAY_SKY_DETAILS_OPEN_KEY_PREFIX = "hd-biohack:today-sky-details-open:";
+const SKY_DETAILS_JUMP_IDS = new Set([
+  "today-sun-earth",
+  "today-bridged-channels",
+  "today-newly-defined",
+  "today-planetary-gates",
+]);
+
+function skyDetailsOpenKey(userId: number): string {
+  return `${TODAY_SKY_DETAILS_OPEN_KEY_PREFIX}${userId}`;
+}
+
+function readSkyDetailsOpen(userId: number): boolean {
+  try {
+    return window.localStorage.getItem(skyDetailsOpenKey(userId)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSkyDetailsOpen(userId: number, open: boolean): void {
+  try {
+    window.localStorage.setItem(skyDetailsOpenKey(userId), open ? "1" : "0");
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function scrollToTodaySection(targetId: string): void {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const url = `${window.location.pathname}${window.location.search}#${targetId}`;
+  window.history.replaceState(window.history.state, "", url);
+  el.scrollIntoView({ behavior: "auto", block: "start" });
+}
+
 export default function TransitsPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree, biohackingUnlocked } = useApp();
@@ -69,6 +105,39 @@ export default function TransitsPage() {
   const todayReq = useRef(0);
   const inventoryStatusRef = useRef(inventoryStatus);
   inventoryStatusRef.current = inventoryStatus;
+  const skyDetailsRef = useRef<HTMLDetailsElement>(null);
+  const [skyDetailsOpen, setSkyDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.id == null) {
+      setSkyDetailsOpen(false);
+      return;
+    }
+    setSkyDetailsOpen(readSkyDetailsOpen(user.id));
+  }, [user?.id]);
+
+  const persistSkyDetailsOpen = useCallback(
+    (open: boolean) => {
+      setSkyDetailsOpen(open);
+      if (user?.id != null) writeSkyDetailsOpen(user.id, open);
+    },
+    [user?.id]
+  );
+
+  const jumpToTodaySection = useCallback(
+    (targetId: string) => {
+      if (SKY_DETAILS_JUMP_IDS.has(targetId)) {
+        if (skyDetailsRef.current && !skyDetailsRef.current.open) {
+          skyDetailsRef.current.open = true;
+        }
+        persistSkyDetailsOpen(true);
+        requestAnimationFrame(() => scrollToTodaySection(targetId));
+        return;
+      }
+      scrollToTodaySection(targetId);
+    },
+    [persistSkyDetailsOpen]
+  );
 
   // Resolve You natal independently of friend sticky; never pass a friend id to the API.
   useEffect(() => {
@@ -321,115 +390,145 @@ export default function TransitsPage() {
         />
       ) : null}
 
-      {youChart ? <LiteracyCoach variant="today" /> : null}
-
-      {youChart && sunEarth && (
-        <div
-          id="today-sun-earth"
-          className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-energy/40 bg-energy/10 p-5"
-        >
-          <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">{t("page.today.sunEarth")}</h2>
-          <p className="text-lg">
-            Sun{" "}
-            {formatGateLine(
-              (sunEarth.sun.gate as number | undefined) ?? String(sunEarth.sun.label ?? ""),
-              sunEarth.sun.line as number | undefined
-            )}{" "}
-            · Earth{" "}
-            {formatGateLine(
-              (sunEarth.earth.gate as number | undefined) ?? String(sunEarth.earth.label ?? ""),
-              sunEarth.earth.line as number | undefined
-            )}
-          </p>
-        </div>
-      )}
-
-      {youChart && overlay && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div
-            id="today-bridged-channels"
-            className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
-          >
-            <h2 className="mb-2 font-semibold">{t("page.today.bridgedChannels")}</h2>
-            <ul className="space-y-1 text-sm text-fg-secondary">
-              {((overlay.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
-                <li className="text-fg-muted">None right now</li>
-              )}
-              {((overlay.bridged_channels as Array<Record<string, unknown>>) || []).map((c) => (
-                <li key={JSON.stringify(c.gates)}>
-                  {(c.gates as number[]).join("–")} — {String(c.name)} (
-                  {((c.centers as string[]) || []).map(displayCenter).join(", ")})
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div
-            id="today-newly-defined"
-            className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
-          >
-            <h2 className="mb-2 inline-flex items-center gap-1.5 font-semibold">
-              <Hexagon className="h-4 w-4 shrink-0 text-energy-ink" aria-hidden />
-              {t("page.today.newlyDefined")}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {((overlay.newly_defined_centers as string[]) || []).length === 0 && (
-                <span className="text-sm text-fg-muted">No temporary definitions</span>
-              )}
-              {((overlay.newly_defined_centers as string[]) || []).map((c) => (
-                <span
-                  key={c}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-energy/30 bg-energy/15 px-3 py-1.5 text-xs font-medium text-energy-ink"
-                >
-                  <Hexagon className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                  {displayCenter(c)}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {youChart ? <LiteracyCoach variant="today" onJump={jumpToTodaySection} /> : null}
 
       {youChart ? (
-      <div className="overflow-hidden rounded-2xl border border-border">
-        <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
-          Current planetary gates
-        </div>
-        <table className="w-full text-left text-sm">
-          <thead className="text-xs text-fg-muted">
-            <tr>
-              <th className="px-4 py-2">Planet</th>
-              <th className="px-4 py-2">Gate · line</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && activations.length === 0 && (
-              <tr>
-                <td colSpan={2} className="px-4 py-6 text-fg-muted">
-                  Loading today&apos;s gates…
-                </td>
-              </tr>
-            )}
-            {!loading && activations.length === 0 && !error && (
-              <tr>
-                <td colSpan={2} className="px-4 py-6 text-fg-muted">
-                  No planetary activations returned.
-                </td>
-              </tr>
-            )}
-            {activations.map((r) => (
-              <tr key={String(r.planet)} className="border-t border-border">
-                <td className="px-4 py-1.5">{String(r.planet)}</td>
-                <td className="px-4 py-1.5 text-energy-ink">
+        <details
+          ref={skyDetailsRef}
+          className="group rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          data-testid="today-sky-details"
+          open={skyDetailsOpen}
+          onToggle={(e) => {
+            const next = e.currentTarget.open;
+            if (next !== skyDetailsOpen) persistSkyDetailsOpen(next);
+          }}
+        >
+          <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-semibold text-fg transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden
+              className="inline-block text-fg-muted transition-transform group-open:rotate-90"
+            >
+              ▸
+            </span>
+            <span>{t("page.today.skyDetails")}</span>
+          </summary>
+
+          <div className="mt-4 space-y-4">
+            <div
+              id="today-sun-earth"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-energy/40 bg-energy/10 p-5"
+            >
+              <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">
+                {t("page.today.sunEarth")}
+              </h2>
+              <p className="mb-2 text-sm text-fg">{t("page.today.sunEarthLead")}</p>
+              {sunEarth ? (
+                <p className="text-lg text-fg">
+                  Sun{" "}
                   {formatGateLine(
-                    (r.gate as number | undefined) ?? String(r.label ?? ""),
-                    r.line as number | undefined
+                    (sunEarth.sun.gate as number | undefined) ?? String(sunEarth.sun.label ?? ""),
+                    sunEarth.sun.line as number | undefined
+                  )}{" "}
+                  · Earth{" "}
+                  {formatGateLine(
+                    (sunEarth.earth.gate as number | undefined) ?? String(sunEarth.earth.label ?? ""),
+                    sunEarth.earth.line as number | undefined
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div
+                id="today-bridged-channels"
+                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+              >
+                <h2 className="mb-2 font-semibold text-fg">{t("page.today.bridgedChannels")}</h2>
+                <p className="mb-2 text-sm text-fg">{t("page.today.bridgesLead")}</p>
+                <ul className="space-y-1 text-sm text-fg">
+                  {((overlay?.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
+                    <li>{t("page.today.bridgesNone")}</li>
+                  )}
+                  {((overlay?.bridged_channels as Array<Record<string, unknown>>) || []).map((c) => (
+                    <li key={JSON.stringify(c.gates)}>
+                      {(c.gates as number[]).join("–")} — {String(c.name)} (
+                      {((c.centers as string[]) || []).map(displayCenter).join(", ")})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div
+                id="today-newly-defined"
+                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+              >
+                <h2 className="mb-2 inline-flex items-center gap-1.5 font-semibold text-fg">
+                  <Hexagon className="h-4 w-4 shrink-0 text-energy-ink" aria-hidden />
+                  {t("page.today.newlyDefined")}
+                </h2>
+                <p className="mb-2 text-sm text-fg">{t("page.today.newlyDefinedLead")}</p>
+                <div className="flex flex-wrap gap-2">
+                  {((overlay?.newly_defined_centers as string[]) || []).length === 0 && (
+                    <span className="text-sm text-fg">{t("page.today.newlyDefinedNone")}</span>
+                  )}
+                  {((overlay?.newly_defined_centers as string[]) || []).map((c) => (
+                    <span
+                      key={c}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-energy/30 bg-energy/15 px-3 py-1.5 text-xs font-medium text-energy-ink"
+                    >
+                      <Hexagon className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
+                      {displayCenter(c)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="today-planetary-gates"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] overflow-hidden rounded-2xl border border-border"
+            >
+              <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold text-fg">
+                {t("page.today.planetaryGates")}
+              </div>
+              <p className="bg-elevated px-4 pt-2 text-sm text-fg">{t("page.today.gatesLead")}</p>
+              <table className="w-full text-left text-sm">
+                <thead className="text-xs text-fg-muted">
+                  <tr>
+                    <th className="px-4 py-2">{t("page.today.gatesPlanet")}</th>
+                    <th className="px-4 py-2">{t("page.today.gatesGateLine")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading && activations.length === 0 && (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-6 text-sm text-fg">
+                        {t("page.today.gatesLoading")}
+                      </td>
+                    </tr>
+                  )}
+                  {!loading && activations.length === 0 && !error && (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-6 text-sm text-fg">
+                        {t("page.today.gatesEmpty")}
+                      </td>
+                    </tr>
+                  )}
+                  {activations.map((r) => (
+                    <tr key={String(r.planet)} className="border-t border-border">
+                      <td className="px-4 py-1.5 text-fg">{String(r.planet)}</td>
+                      <td className="px-4 py-1.5 text-energy-ink">
+                        {formatGateLine(
+                          (r.gate as number | undefined) ?? String(r.label ?? ""),
+                          r.line as number | undefined
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       ) : null}
     </div>
   );
