@@ -16,7 +16,7 @@ type Mode = "signin" | "create" | "forgot";
 export default function LoginPage() {
   const router = useRouter();
   const { setSessionUser } = useApp();
-  const { t } = useI18n();
+  const { t, locale, setLocale, locales, labels } = useI18n();
   const pillars = [
     { icon: Orbit, title: t("login.pillar.chart.title"), body: t("login.pillar.chart.body") },
     { icon: Activity, title: t("login.pillar.today.title"), body: t("login.pillar.today.body") },
@@ -143,13 +143,13 @@ export default function LoginPage() {
 
       <div className="relative z-[1] mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
         <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
-          <div className="login-story-lockup">
+          <div className="login-story-lockup hidden lg:block">
             <p className="login-wordmark">{t("brand.name")}</p>
             <span className="login-wordmark-rule" aria-hidden="true" />
           </div>
-          <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
+          <h1 className="max-lg:!mt-0 max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
             {t("login.headline")}
-            <span className="mt-2 block text-xl font-normal text-fg-secondary sm:text-2xl">
+            <span className="mt-2 hidden text-xl font-normal text-fg-secondary sm:text-2xl lg:block">
               {t("login.subhead")}
             </span>
           </h1>
@@ -268,6 +268,7 @@ export default function LoginPage() {
 
             {mode === "create" && (
               <>
+                <p className="mt-5 type-body text-fg-secondary">{t("login.hintCreate")}</p>
                 <form className="mt-6 space-y-4" onSubmit={onCreate} noValidate>
                   <label className="block space-y-1.5">
                     <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
@@ -302,6 +303,7 @@ export default function LoginPage() {
                     t={t}
                     autoComplete="new-password"
                   />
+                  <p className="type-caption text-fg-secondary">{t("login.passwordLengthHint")}</p>
                   {error && <AuthError message={error} />}
                   <button
                     type="submit"
@@ -328,6 +330,7 @@ export default function LoginPage() {
                       autoComplete="email"
                       type="email"
                       className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+                      placeholder={t("login.emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
@@ -355,12 +358,13 @@ export default function LoginPage() {
                 </form>
                 <button
                   type="button"
-                  className="mt-4 type-body text-fg-secondary underline-offset-2 hover:underline"
+                  className="mt-4 inline-flex min-h-11 items-center type-body text-fg-secondary underline-offset-2 hover:underline"
                   onClick={() => {
                     setMode("signin");
                     setInfo(null);
                     setError(null);
                   }}
+                  data-testid="login-back-to-signin"
                 >
                   {t("login.backToSignIn")}
                 </button>
@@ -383,6 +387,26 @@ export default function LoginPage() {
             </span>
             <span>{t("privacy.copyrightShort")}</span>
           </p>
+          <div
+            className="mt-1 flex flex-wrap items-center justify-center gap-x-1 text-fg-secondary"
+            data-testid="login-locale"
+            role="group"
+            aria-label={t("settings.languageTitle")}
+          >
+            {locales.map((code) => (
+              <button
+                key={code}
+                type="button"
+                className={`inline-flex min-h-11 items-center px-2 type-caption ${
+                  locale === code ? "font-medium text-fg" : "text-fg-secondary"
+                }`}
+                aria-pressed={locale === code}
+                onClick={() => setLocale(code)}
+              >
+                {labels[code]}
+              </button>
+            ))}
+          </div>
         </section>
       </div>
     </div>
