@@ -95,7 +95,9 @@ if (!/t\("protocols\.fromKit"\)/.test(move)) fail("TodaysMoveCard must t(protoco
 if (!/t\("home\.outcome\.chart\.title"\)/.test(home)) fail("Home must wire outcome chart title");
 if (!/t\("page\.today\.h1"\)/.test(todayPage)) fail("Today page must wire H1");
 if (!/t\("page\.protocols\.h1"\)/.test(biohack)) fail("Protocols page must wire H1");
-if (!/t\("protocols\.yourKit"\)/.test(kit)) fail("KitStrip must wire yourKit");
+// Shelf naming pass: catalogs keep protocols.yourKit, but KitStrip no longer
+// titles the inventory list with it. The Shelf fold is the only inventory title.
+if (/t\("protocols\.yourKit"\)/.test(kit)) fail("KitStrip must not retitle inventory as yourKit");
 if (!/t\("today\.vsYesterday"\)/.test(indication)) fail("TodayIndication must wire vsYesterday");
 if (!/localizeEnergyLabel/.test(indication)) fail("TodayIndication must localize energy");
 

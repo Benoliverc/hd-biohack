@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import { formatResetsIn, noveltyDayKey, prevNoveltyDayKey } from "@/lib/timezone";
@@ -159,10 +159,12 @@ function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] 
   return out;
 }
 
-function slotTitle(id: string): string {
-  if (id === "morning") return "Morning";
-  if (id === "midday") return "Midday";
-  if (id === "evening") return "Evening";
+type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string;
+
+function slotTitle(id: string, t: Translate): string {
+  if (id === "morning") return t("today.when.morning");
+  if (id === "midday") return t("today.when.midday");
+  if (id === "evening") return t("today.when.evening");
   return id;
 }
 
@@ -174,7 +176,8 @@ function announceKitChange(
   before: TimedLeadSnap[],
   after: TimedLeadSnap[],
   kind: "add" | "remove",
-  name: string
+  name: string,
+  t: Translate,
 ): string {
   for (const slot of ["morning", "midday", "evening"]) {
     const b = before.find((x) => x.id === slot);
@@ -183,16 +186,20 @@ function announceKitChange(
     const itemChanged = !b || b.item !== a.item;
     const invChanged = !b || Boolean(b.inInventory) !== Boolean(a.inInventory);
     if (itemChanged || invChanged) {
+      const uses = t("protocols.planUpdatedUses", {
+        slot: slotTitle(slot, t),
+        name: a.inInventory ? bareItemName(a.item) : a.item,
+      });
       if (a.inInventory) {
-        return `Plan updated · ${slotTitle(slot)} now uses ${bareItemName(a.item)} (from your kit)`;
+        return `${uses} ${t("protocols.fromYourShelf")}`;
       }
-      return `Plan updated · ${slotTitle(slot)} now uses ${a.item}`;
+      return uses;
     }
   }
   if (kind === "remove") {
-    return `Removed ${name} · plan refreshed`;
+    return t("protocols.removedPlanRefreshed", { name });
   }
-  return `Kit updated · Today's Move unchanged for this weather`;
+  return t("protocols.shelfUpdatedUnchanged");
 }
 
 
@@ -603,15 +610,15 @@ export default function BiohackPage() {
       await refreshInventory();
       setInvName("");
       setFocusInvId(res.id);
-      setInvFeedback(res.duplicate ? `Already in kit: ${res.name}` : `Added ${res.name}`);
+      setInvFeedback(res.duplicate ? t("protocols.alreadyOnShelf", { name: res.name }) : t("protocols.addedName", { name: res.name }));
       setInventoryOpen(true);
       if (protocol) {
         const next = await loadProtocol({ rebuild: true });
         if (!res.duplicate) {
-          setKitStatus(announceKitChange(before, snapTimedLeads(next), "add", res.name));
+          setKitStatus(announceKitChange(before, snapTimedLeads(next), "add", res.name, t));
         }
       } else if (!res.duplicate) {
-        setKitStatus(`Added ${res.name} to your kit`);
+        setKitStatus(t("protocols.addedToShelf", { name: res.name }));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -632,9 +639,9 @@ export default function BiohackPage() {
       if (focusInvId === item.id) setFocusInvId(null);
       if (protocol) {
         const next = await loadProtocol({ rebuild: true });
-        setKitStatus(announceKitChange(before, snapTimedLeads(next), "remove", item.name));
+        setKitStatus(announceKitChange(before, snapTimedLeads(next), "remove", item.name, t));
       } else {
-        setKitStatus(`Removed ${item.name} · plan refreshed`);
+        setKitStatus(t("protocols.removedPlanRefreshed", { name: item.name }));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -1051,7 +1058,7 @@ function ProtocolsHeader({
       </div>
       {!biohackingUnlocked && (
         <p className="w-full text-xs text-fg-muted sm:order-last">
-          Pro unlocks Today&apos;s Move, this week, and your kit.
+          {t("page.protocols.proUnlocks")}
         </p>
       )}
     </header>
@@ -1121,6 +1128,7 @@ function KitFactCallout({
   cta: string | null;
   onOpenKit: () => void;
 }) {
+  const { t } = useI18n();
   if (fact?.body) {
     const body =
       fact.body.length > 140 ? `${fact.body.slice(0, 137).replace(/\s+\S*$/, "")}…` : fact.body;
@@ -1158,7 +1166,7 @@ function KitFactCallout({
           className="mt-1 text-xs font-medium text-growth underline-offset-2 hover:underline"
           data-testid="kit-fact-open-kit"
         >
-          Edit kit
+          {t("protocols.editShelf")}
         </button>
       </aside>
     );
@@ -1383,6 +1391,7 @@ function InventoryPanel({
   addInv: (name?: string) => Promise<unknown>;
   removeInv: (item: InvItem) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const count = inventory.length;
   return (
     <div className="rounded-2xl border border-border bg-elevated" data-testid="inventory-panel">
@@ -1394,22 +1403,22 @@ function InventoryPanel({
       >
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-fg">
           <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
-          Your kit{count > 0 ? ` (${count})` : ""}
+          {t("page.protocols.shelf")}{count > 0 ? ` (${count})` : ""}
         </span>
         <span className="inline-flex items-center gap-1 text-xs font-medium text-fg-secondary">
-          {open ? "Hide" : "Show"}
+          {open ? t("protocols.hide") : t("protocols.show")}
           <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
         </span>
       </button>
       {open && (
         <div className="border-t border-border px-4 pb-4 pt-3">
           <p className="mb-3 text-xs text-fg-muted">
-            Items in your kit are preferred in today&apos;s timed supports.
+            {t("protocols.shelfHelp")}
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             <input
               className="min-w-[12rem] flex-1 rounded-lg border border-border bg-sunken px-3 py-2 text-sm"
-              placeholder="Add supplement you own"
+              placeholder={t("protocols.addSupplementPlaceholder")}
               value={invName}
               disabled={!user || adding || inventoryLoading || natalBindingLoading}
               onChange={(e) => setInvName(e.target.value)}
@@ -1426,7 +1435,7 @@ function InventoryPanel({
               onClick={() => void addInv()}
               className="min-h-10 rounded-xl border border-border px-3 py-2 text-sm hover:border-growth disabled:opacity-50"
             >
-              {adding ? "Adding…" : "Add to kit"}
+              {adding ? t("protocols.adding") : t("protocols.addToShelf")}
             </button>
           </div>
           {invFeedback && (
@@ -1436,7 +1445,7 @@ function InventoryPanel({
           )}
           {!inventoryLoading && !natalBindingLoading && inventory.length === 0 && (
             <div className="mb-3">
-              <p className="mb-2 text-sm text-fg-muted">No supplements saved yet — tap a starter:</p>
+              <p className="mb-2 text-sm text-fg-muted">{t("protocols.shelfEmptyStarters")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {STARTER_SUPPLEMENTS.map((name) => (
                   <button
@@ -1454,7 +1463,7 @@ function InventoryPanel({
             </div>
           )}
           {inventoryLoading || natalBindingLoading ? (
-            <p className="text-sm text-fg-muted">Loading kit…</p>
+            <p className="text-sm text-fg-muted">{t("protocols.loadingShelf")}</p>
           ) : inventory.length === 0 ? null : (
             <ul className="flex flex-wrap gap-2">
               {inventory.map((it) => (
@@ -1522,6 +1531,7 @@ function BaselineColumn({
   items: StackItem[];
   tone: "growth" | "recovery" | "energy";
 }) {
+  const { t } = useI18n();
   const border =
     tone === "growth"
       ? "border-growth/40"
@@ -1539,7 +1549,7 @@ function BaselineColumn({
               <span className="min-w-0 font-medium text-fg">{it.name}</span>
               {it.in_inventory && (
                 <span className="shrink-0 whitespace-nowrap type-caption font-medium tracking-wide text-growth">
-                  From your kit
+                  {t("protocols.fromKit")}
                 </span>
               )}
             </div>
