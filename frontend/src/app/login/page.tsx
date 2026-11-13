@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { writeSessionToken } from "@/lib/session";
 import { postSignInPath } from "@/lib/youChart";
 import Link from "next/link";
+import "./login-editorial-paper.css";
 
 type Mode = "signin" | "create" | "forgot";
 
@@ -138,18 +139,14 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-[calc(100dvh-0px)] overflow-x-clip bg-canvas">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-70"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 10% 0%, var(--growth-soft), transparent 55%), radial-gradient(ellipse 60% 40% at 90% 100%, color-mix(in srgb, var(--energy) 18%, transparent), transparent 50%)",
-        }}
-      />
+      <div aria-hidden className="login-paper-grain" />
 
-      <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
+      <div className="relative z-[1] mx-auto grid min-h-[100dvh] max-w-6xl gap-8 px-4 py-6 lg:grid-cols-2 lg:items-start lg:gap-12 lg:py-10">
         <section className="order-2 space-y-6 lg:order-1 lg:pr-4">
-          <p className="type-meta font-medium uppercase tracking-[0.14em] text-growth">{t("brand.name")}</p>
+          <div className="login-story-lockup">
+            <p className="login-wordmark">{t("brand.name")}</p>
+            <span className="login-wordmark-rule" aria-hidden="true" />
+          </div>
           <h1 className="max-w-lg text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
             {t("login.headline")}
             <span className="mt-2 block text-xl font-normal text-fg-secondary sm:text-2xl">
@@ -157,13 +154,10 @@ export default function LoginPage() {
             </span>
           </h1>
           <p className="max-w-md type-body leading-relaxed text-fg-secondary">{t("login.intro")}</p>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <ul className="grid sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-1">
             {pillars.map(({ icon: Icon, title, body }) => (
-              <li
-                key={title}
-                className="flex gap-3 rounded-xl border border-border/80 bg-elevated/60 p-3.5 backdrop-blur-sm"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-growth/15 text-growth">
+              <li key={title} className="login-pillar">
+                <span className="login-pillar-icon">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
@@ -177,18 +171,19 @@ export default function LoginPage() {
 
         <section className="order-1 w-full max-w-md justify-self-center lg:order-2 lg:justify-self-end">
           <div className="mb-6 lg:hidden" data-testid="login-mobile-brand">
-            <p className="type-meta font-medium uppercase tracking-[0.14em] text-growth">{t("brand.name")}</p>
-            <p className="mt-2 text-xl font-normal text-fg-secondary">{t("login.subhead")}</p>
+            <p className="login-wordmark">{t("brand.name")}</p>
+            <span className="login-wordmark-rule" aria-hidden="true" />
+            <p className="login-wordmark-subhead type-meta">{t("login.subhead")}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
+          <div className="rounded-2xl border border-border bg-elevated p-6 sm:p-8">
             {mode !== "forgot" && (
-              <div className="flex gap-1 rounded-xl bg-canvas/80 p-1" role="tablist">
+              <div className="login-tabs" role="tablist">
                 <button
                   type="button"
                   role="tab"
                   aria-selected={mode === "signin"}
-                  className={`min-h-11 flex-1 rounded-lg px-3 type-body font-medium transition ${
-                    mode === "signin" ? "bg-elevated text-fg shadow-sm" : "text-fg-secondary hover:text-fg"
+                  className={`login-tab min-h-11 flex-1 type-body ${
+                    mode === "signin" ? "login-tab-selected text-fg font-semibold" : "font-medium text-fg-secondary hover:text-fg"
                   }`}
                   onClick={() => {
                     setMode("signin");
@@ -203,8 +198,8 @@ export default function LoginPage() {
                   type="button"
                   role="tab"
                   aria-selected={mode === "create"}
-                  className={`min-h-11 flex-1 rounded-lg px-3 type-body font-medium transition ${
-                    mode === "create" ? "bg-elevated text-fg shadow-sm" : "text-fg-secondary hover:text-fg"
+                  className={`login-tab min-h-11 flex-1 type-body ${
+                    mode === "create" ? "login-tab-selected text-fg font-semibold" : "font-medium text-fg-secondary hover:text-fg"
                   }`}
                   onClick={() => {
                     setMode("create");
