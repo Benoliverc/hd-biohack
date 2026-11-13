@@ -241,7 +241,7 @@ assert.ok(login.includes('t("login.pillar.protocols.body")'), "login still wires
 // --- Copy keys in all five locale files ---
 const locked = {
   "login.pillar.protocols.body":
-    "A checkable morning, midday, and evening stack from today's sky — preferring what you already own.",
+    "A checkable morning, midday, and evening list, preferring what you already own.",
   "home.title.hasChart": "Start the day on Today.",
   "home.title.noChart": "Know your chart. Run today with it.",
   "home.blurb.pro":
@@ -309,6 +309,10 @@ for (const loc of locales) {
       // Pre-existing i18n smoke requires NL ≠ EN on this key. Surface name, not the old "blueprint" funnel title.
       assert.notEqual(value, en, "nl home.outcome.chart.title must differ from EN for i18n smoke");
       assert.notEqual(value, "Your blueprint", "nl chart card title must not keep the old funnel title");
+    } else if (key === "login.pillar.protocols.body") {
+      // Login page first pass: this body is now translated in all five catalogs.
+      assert.ok(value.length > 0, `${loc} ${key} must be present`);
+      assert.notEqual(value, en, `${loc} ${key} must be translated`);
     } else if (surfaceTitles.has(key) || key === "home.title.noChart") {
       // Surface names may reuse translated nav labels. noChart title was already
       // locked before this pass and may stay translated.

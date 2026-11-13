@@ -75,7 +75,7 @@ export default function LoginPage() {
     setInfo(null);
     const em = email.trim();
     if (!em || !password) {
-      setError(t("login.genericAuthError"));
+      setError(t("login.missingCreateFields"));
       return;
     }
     if (password.length < 8) {
@@ -103,7 +103,7 @@ export default function LoginPage() {
     setInfo(null);
     const em = email.trim();
     if (!em) {
-      setError(t("login.genericAuthError"));
+      setError(t("login.missingForgotEmail"));
       return;
     }
     setLoading(true);
@@ -128,7 +128,7 @@ export default function LoginPage() {
   );
 
   const supportLine = (
-    <p className="mt-4 type-caption text-fg-muted">
+    <p className="mt-4 type-caption text-fg-secondary">
       {t("login.supportPrefix")}{" "}
       <a className="text-growth underline-offset-2 hover:underline" href="mailto:baselineapp@proton.me">
         baselineapp@proton.me
@@ -168,7 +168,7 @@ export default function LoginPage() {
                 </span>
                 <div className="min-w-0">
                   <p className="font-medium text-fg">{title}</p>
-                  <p className="mt-0.5 type-body text-fg-muted">{body}</p>
+                  <p className="mt-0.5 type-body text-fg-secondary">{body}</p>
                 </div>
               </li>
             ))}
@@ -176,6 +176,10 @@ export default function LoginPage() {
         </section>
 
         <section className="order-1 w-full max-w-md justify-self-center lg:order-2 lg:justify-self-end">
+          <div className="mb-6 lg:hidden" data-testid="login-mobile-brand">
+            <p className="type-meta font-medium uppercase tracking-[0.14em] text-growth">{t("brand.name")}</p>
+            <p className="mt-2 text-xl font-normal text-fg-secondary">{t("login.subhead")}</p>
+          </div>
           <div className="rounded-2xl border border-border bg-elevated p-6 shadow-soft sm:p-8">
             {mode !== "forgot" && (
               <div className="flex gap-1 rounded-xl bg-canvas/80 p-1" role="tablist">
@@ -183,8 +187,8 @@ export default function LoginPage() {
                   type="button"
                   role="tab"
                   aria-selected={mode === "signin"}
-                  className={`min-h-10 flex-1 rounded-lg px-3 type-body font-medium transition ${
-                    mode === "signin" ? "bg-elevated text-fg shadow-sm" : "text-fg-muted hover:text-fg"
+                  className={`min-h-11 flex-1 rounded-lg px-3 type-body font-medium transition ${
+                    mode === "signin" ? "bg-elevated text-fg shadow-sm" : "text-fg-secondary hover:text-fg"
                   }`}
                   onClick={() => {
                     setMode("signin");
@@ -199,8 +203,8 @@ export default function LoginPage() {
                   type="button"
                   role="tab"
                   aria-selected={mode === "create"}
-                  className={`min-h-10 flex-1 rounded-lg px-3 type-body font-medium transition ${
-                    mode === "create" ? "bg-elevated text-fg shadow-sm" : "text-fg-muted hover:text-fg"
+                  className={`min-h-11 flex-1 rounded-lg px-3 type-body font-medium transition ${
+                    mode === "create" ? "bg-elevated text-fg shadow-sm" : "text-fg-secondary hover:text-fg"
                   }`}
                   onClick={() => {
                     setMode("create");
@@ -216,8 +220,7 @@ export default function LoginPage() {
 
             {mode === "signin" && (
               <>
-                <h2 className="mt-5 text-xl font-semibold text-fg">{t("login.title")}</h2>
-                <p className="mt-1 type-body text-fg-muted">{t("login.hintEmail")}</p>
+                <p className="mt-5 type-body text-fg-secondary">{t("login.hintEmail")}</p>
                 <form className="mt-6 space-y-4" onSubmit={onSignIn} noValidate>
                   <label className="block space-y-1.5">
                     <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
@@ -242,7 +245,7 @@ export default function LoginPage() {
                   />
                   <button
                     type="button"
-                    className="type-caption font-medium text-growth underline-offset-2 hover:underline"
+                    className="inline-flex min-h-11 items-center type-body font-medium text-growth underline-offset-2 hover:underline"
                     onClick={() => {
                       setMode("forgot");
                       setError(null);
@@ -270,8 +273,6 @@ export default function LoginPage() {
 
             {mode === "create" && (
               <>
-                <h2 className="mt-5 text-xl font-semibold text-fg">{t("login.createAccount")}</h2>
-                <p className="mt-1 type-body text-fg-muted">{t("login.betaCreateHint")}</p>
                 <form className="mt-6 space-y-4" onSubmit={onCreate} noValidate>
                   <label className="block space-y-1.5">
                     <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
@@ -316,14 +317,6 @@ export default function LoginPage() {
                     {loading ? t("login.creating") : t("login.createAccount")}
                   </button>
                 </form>
-                <button
-                  type="button"
-                  className="mt-4 type-body text-fg-secondary underline-offset-2 hover:underline"
-                  onClick={() => setMode("signin")}
-                  data-testid="create-switch-signin"
-                >
-                  {t("login.alreadyHaveAccount")}
-                </button>
                 {betaNote}
                 {supportLine}
               </>
@@ -332,7 +325,7 @@ export default function LoginPage() {
             {mode === "forgot" && (
               <>
                 <h2 className="text-xl font-semibold text-fg">{t("login.forgotPassword")}</h2>
-                <p className="mt-1 type-body text-fg-muted">{t("login.forgotHint")}</p>
+                <p className="mt-1 type-body text-fg-secondary">{t("login.forgotHint")}</p>
                 <form className="mt-6 space-y-4" onSubmit={onForgot} noValidate>
                   <label className="block space-y-1.5">
                     <span className="type-body font-medium text-fg-secondary">{t("login.email")}</span>
@@ -381,7 +374,7 @@ export default function LoginPage() {
             )}
           </div>
           <p
-            className="mt-4 text-center type-caption text-fg-muted"
+            className="mt-4 text-center type-caption text-fg-secondary"
             data-testid="login-privacy-footer"
           >
             <Link
@@ -438,7 +431,7 @@ function PasswordField({
         <input
           type={showPw ? "text" : "password"}
           autoComplete={autoComplete}
-          className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 pr-12 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
+          className="min-h-12 w-full rounded-xl border border-border bg-canvas px-3.5 pr-14 text-base text-fg outline-none ring-growth/40 placeholder:text-fg-muted focus:border-growth focus:ring-2"
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -447,10 +440,10 @@ function PasswordField({
         />
         <button
           type="button"
-          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-fg-muted hover:text-fg"
+          className="absolute right-1.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-fg-secondary hover:text-fg"
           onClick={() => setShowPw((v) => !v)}
           aria-label={showPw ? t("login.hidePassword") : t("login.showPassword")}
-          tabIndex={-1}
+          data-testid="login-password-eye"
         >
           {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
