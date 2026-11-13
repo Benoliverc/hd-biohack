@@ -251,6 +251,7 @@ def _attach_novelty(
         space_today=payload.get("preferred_space"),
         prev_indication=prev_indication,
     )
+    payload["has_previous_indication"] = prev_indication is not None
     payload["conditioning_caption"] = CONDITIONING_CAPTION
     payload["sky_story"] = compute_sky_story(
         natal=natal,

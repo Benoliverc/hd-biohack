@@ -831,6 +831,27 @@ def test_energy_space_slot_not_inferred_from_vs_yesterday():
     print("PASS: energy_space_slot is not inferred from vs_yesterday pills")
 
 
+def test_has_previous_indication_false_without_prev():
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    ind = derive_today_indication(natal, {}, overlay)
+    assert ind["has_previous_indication"] is False
+    print("PASS: no prev_indication → has_previous_indication false")
+
+
+def test_has_previous_indication_true_with_prev():
+    natal = _natal()
+    overlay = {"newly_defined_centers": [], "bridged_channels": []}
+    ind = derive_today_indication(
+        natal,
+        {},
+        overlay,
+        prev_indication={"energy_level": 3, "preferred_space": "focus"},
+    )
+    assert ind["has_previous_indication"] is True
+    print("PASS: prev_indication present → has_previous_indication true")
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -868,4 +889,6 @@ if __name__ == "__main__":
     test_energy_space_slot_spike_same_as_yesterday_highlight()
     test_energy_space_slot_steady_or_charged_unchanged_quiet()
     test_energy_space_slot_not_inferred_from_vs_yesterday()
+    test_has_previous_indication_false_without_prev()
+    test_has_previous_indication_true_with_prev()
     print("ALL indication unit tests passed")

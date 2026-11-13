@@ -246,6 +246,8 @@ export type TodayIndicationPayload = {
   preferred_space: PreferredSpace;
   preferred_space_label: string;
   energy_space_slot?: "highlight" | "quiet";
+  /** False only on the first derived day for this chart. Missing means later/quiet. */
+  has_previous_indication?: boolean;
   main_action_text: string;
   main_action_why: string;
   main_action_micro: string;
