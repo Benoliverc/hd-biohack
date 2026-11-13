@@ -99,7 +99,9 @@ for (const [key, value] of Object.entries(locked)) {
   if (!en.includes(value)) fail(`en ${key} must match locked copy`);
 }
 
-const TRANSLATED_PRIVACY_KEYS = new Set(["privacy.choicesBody"]);
+// privacy.link: locked leftover-English fix on /login (editorial-paper next pass).
+// English stays "Privacy"; de/es/fr/nl must be real translations, not EN verbatim.
+const TRANSLATED_PRIVACY_KEYS = new Set(["privacy.choicesBody", "privacy.link"]);
 const OLD_CHOICES_BODY =
   "You can sign out anytime. Account deletion is not in the app yet — email baselineapp@proton.me if you need help with that.";
 
