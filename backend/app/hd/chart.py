@@ -178,6 +178,72 @@ def calculate_transits(when: datetime | None = None) -> dict[str, Any]:
     }
 
 
+def planet_display_name(name: str) -> str:
+    """Planet label used by the planetary gates table, with official node names."""
+    if name == "North_Node":
+        return "North Node"
+    if name == "South_Node":
+        return "South Node"
+    return name.replace("_", " ") if "_" in name else name
+
+
+def _annotate_bridged_channel(
+    channel: dict[str, Any],
+    natal_gates: set[int],
+    transit: dict[str, Any],
+) -> dict[str, Any]:
+    """Attach natal/sky ownership, kind, and sky planets to one bridged row."""
+    gates = [int(g) for g in (channel.get("gates") or [])]
+    xor = len(gates) >= 2 and (gates[0] in natal_gates) ^ (gates[1] in natal_gates)
+    if xor:
+        kind = "hanging"
+        natal_end = [g for g in gates if g in natal_gates]
+        transit_end = [g for g in gates if g not in natal_gates]
+    else:
+        kind = "transit_transit"
+        natal_end = []
+        transit_end = list(gates)
+
+    transit_end_set = set(transit_end)
+    by_planet: dict[str, dict[str, Any]] = {}
+    extras: list[dict[str, Any]] = []
+    for act in transit.get("activations") or []:
+        if not isinstance(act, dict):
+            continue
+        try:
+            gate = int(act.get("gate"))
+        except (TypeError, ValueError):
+            continue
+        if gate not in transit_end_set:
+            continue
+        planet = str(act.get("planet") or "")
+        row = {
+            "name": planet_display_name(planet),
+            "gate": gate,
+            "line": int(act["line"]) if act.get("line") is not None else 0,
+        }
+        if planet in PLANET_ORDER:
+            by_planet[planet] = row
+        else:
+            extras.append(row)
+
+    transit_planets: list[dict[str, Any]] = []
+    for name in PLANET_ORDER:
+        if name in by_planet:
+            transit_planets.append(by_planet[name])
+    transit_planets.extend(extras)
+
+    return {
+        "gates": gates,
+        "name": channel.get("name") or "",
+        "centers": list(channel.get("centers") or []),
+        "natal_gates": natal_end,
+        "transit_gates": transit_end,
+        "transit_planets": transit_planets,
+        "kind": kind,
+    }
+
+
 def overlay_transits(natal: dict[str, Any], transit: dict[str, Any]) -> dict[str, Any]:
     """Composite: natal + current transits → bridged channels, newly defined centers."""
     natal_gates = set(natal["activated_gates"])
@@ -209,6 +275,9 @@ def overlay_transits(natal: dict[str, Any], transit: dict[str, Any]) -> dict[str
         or (c["gates"][0] in natal_gates) ^ (c["gates"][1] in natal_gates)
     ]
 
+    chosen = personal_bridges or bridged
+    annotated = [_annotate_bridged_channel(c, natal_gates, transit) for c in chosen]
+
     newly_defined = sorted(composite_defined - natal_defined)
 
     sun = transit["sun_earth"]["sun"]
@@ -220,7 +289,7 @@ def overlay_transits(natal: dict[str, Any], transit: dict[str, Any]) -> dict[str
     }
 
     return {
-        "bridged_channels": personal_bridges or bridged,
+        "bridged_channels": annotated,
         "newly_defined_centers": newly_defined,
         "composite_defined_centers": sorted(composite_defined),
         "weekly_macro_theme": weekly_theme,

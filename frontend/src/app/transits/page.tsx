@@ -5,7 +5,15 @@ import { useI18n } from "@/lib/i18n";
 import { Hexagon } from "lucide-react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, type SavedChartRow } from "@/lib/api";
+import { api, type BridgedChannel, type SavedChartRow, type TransitResponse } from "@/lib/api";
+import {
+  bridgeChannelTestId,
+  bridgeMeaningText,
+  bridgeOwnershipText,
+  bridgeWindowCaption,
+  bridgeWindowText,
+  skyDetailsSummaryKey,
+} from "@/lib/bridgedChannels";
 import {
   useApp,
   type NatalChartSummary,
@@ -15,7 +23,6 @@ import { formatResetsIn } from "@/lib/timezone";
 import TodayIndication from "@/components/TodayIndication";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadContext";
-import type { TodayIndicationPayload } from "@/lib/api";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { localizeMove } from "@/lib/todayCopy";
@@ -87,18 +94,14 @@ function scrollToTodaySection(targetId: string): void {
 }
 
 export default function TransitsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user, natalChartId, natalBindingLoading, setNatalChart, previewAsFree, biohackingUnlocked } = useApp();
   const howToRead = useLiteracyHowToReadOptional();
   const [youChart, setYouChart] = useState<NatalChartSummary | null>(null);
   /** Full natal chart_json for share card BodyGraph (no PII on the image). */
   const [youChartPayload, setYouChartPayload] = useState<Record<string, unknown> | null>(null);
   const [youReady, setYouReady] = useState(false);
-  const [data, setData] = useState<{
-    transit: Record<string, unknown>;
-    overlay: Record<string, unknown> | null;
-    indication: TodayIndicationPayload | null;
-  } | null>(null);
+  const [data, setData] = useState<TransitResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [inventoryCount, setInventoryCount] = useState(0);
@@ -296,6 +299,14 @@ export default function TransitsPage() {
     | { sun: Record<string, unknown>; earth: Record<string, unknown> }
     | undefined;
   const overlay = data?.overlay;
+  const bridgedChannels: BridgedChannel[] = overlay?.bridged_channels ?? [];
+  const noveltyDay = overlay?.novelty_day ?? null;
+  const noveltyYear = noveltyDay && /^\d{4}-/.test(noveltyDay)
+    ? Number(noveltyDay.slice(0, 4))
+    : new Date().getFullYear();
+  const skyDetailsLabel = t(skyDetailsSummaryKey(bridgedChannels.length), {
+    n: bridgedChannels.length,
+  });
   const asOfLabel = formatResetsIn(new Date(), user?.preferred_timezone, t);
   const resolvingYou = natalBindingLoading || !youReady;
 
@@ -411,7 +422,7 @@ export default function TransitsPage() {
             >
               ▸
             </span>
-            <span>{t("page.today.skyDetails")}</span>
+            <span>{skyDetailsLabel}</span>
           </summary>
 
           <div className="mt-4 space-y-4">
@@ -446,16 +457,30 @@ export default function TransitsPage() {
               >
                 <h2 className="mb-2 font-semibold text-fg">{t("page.today.bridgedChannels")}</h2>
                 <p className="mb-2 text-sm text-fg">{t("page.today.bridgesLead")}</p>
-                <ul className="space-y-1 text-sm text-fg">
-                  {((overlay?.bridged_channels as Array<Record<string, unknown>>) || []).length === 0 && (
-                    <li>{t("page.today.bridgesNone")}</li>
+                <ul className="space-y-3">
+                  {bridgedChannels.length === 0 && (
+                    <li className="text-sm text-fg">{t("page.today.bridgesNone")}</li>
                   )}
-                  {((overlay?.bridged_channels as Array<Record<string, unknown>>) || []).map((c) => (
-                    <li key={JSON.stringify(c.gates)}>
-                      {(c.gates as number[]).join("–")} — {String(c.name)} (
-                      {((c.centers as string[]) || []).map(displayCenter).join(", ")})
-                    </li>
-                  ))}
+                  {bridgedChannels.map((c) => {
+                    const caption = bridgeWindowCaption(c, noveltyDay, t);
+                    return (
+                      <li
+                        key={bridgeChannelTestId(c.gates)}
+                        data-testid={bridgeChannelTestId(c.gates)}
+                        className="space-y-1"
+                      >
+                        <p className="font-semibold text-fg">{c.name}</p>
+                        <p className="text-sm text-fg">{bridgeMeaningText(c, t)}</p>
+                        <p className="text-sm text-fg-secondary">{bridgeOwnershipText(c, t)}</p>
+                        <p className="text-sm text-fg-secondary">
+                          {bridgeWindowText(c, t, locale, noveltyYear)}
+                        </p>
+                        {caption ? (
+                          <p className="type-caption text-fg-secondary">{caption}</p>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
               <div

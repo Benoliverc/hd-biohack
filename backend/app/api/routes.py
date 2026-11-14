@@ -13,6 +13,7 @@ from ..checkin.novelty import compute_upcoming_horizon, hkt_bucket_instant, hkt_
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
+from ..hd.bridged_windows import annotate_bridged_channel_windows
 from ..hd.soul_sync import CONTEXT_IDS, compute_soul_sync
 from ..models import (
     AuthSession,
@@ -876,6 +877,14 @@ def transits_today(
         natal = row.chart_json
         overlay = overlay_transits(natal, transit)
         prev_overlay = overlay_transits(natal, prev_transit)
+        annotate_bridged_channel_windows(
+            natal,
+            overlay,
+            day,
+            tz_name,
+            calc_transit=calculate_transits,
+            calc_overlay=overlay_transits,
+        )
 
     owned_names: list[str] = []
     inventory_notes: dict[str, str] = {}
