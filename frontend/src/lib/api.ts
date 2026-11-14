@@ -241,6 +241,36 @@ export type UpcomingSkyPayload = {
   days: UpcomingDay[];
 };
 
+export type BridgedChannelKind = "hanging" | "transit_transit";
+
+export type TransitPlanet = {
+  name: string;
+  gate: number;
+  line: number;
+};
+
+export type BridgedChannel = {
+  gates: number[];
+  name: string;
+  centers: string[];
+  natal_gates?: number[];
+  transit_gates?: number[];
+  transit_planets?: TransitPlanet[];
+  kind?: BridgedChannelKind;
+  window_start?: string | null;
+  window_end?: string | null;
+};
+
+export type TransitOverlay = {
+  bridged_channels?: BridgedChannel[];
+  newly_defined_centers?: string[];
+  composite_defined_centers?: string[];
+  weekly_macro_theme?: Record<string, unknown>;
+  transit_gates?: number[];
+  /** ISO calendar date of the account's 07:00 novelty bucket (Today). */
+  novelty_day?: string;
+};
+
 export type TodayKitItem = {
   name: string;
   dose?: string;
@@ -284,6 +314,12 @@ export type TodayIndicationPayload = {
   move_item_id?: string | null;
   kit_placeholder?: boolean;
   kit_item?: TodayKitItem | null;
+};
+
+export type TransitResponse = {
+  transit: Record<string, unknown>;
+  overlay: TransitOverlay | null;
+  indication: TodayIndicationPayload | null;
 };
 
 
@@ -684,11 +720,7 @@ export const api = {
     if (opts?.userId != null) q.set("user_id", String(opts.userId));
     if (opts?.previewAsFree) q.set("preview_as_free", "true");
     const qs = q.toString();
-    return req<{
-      transit: Record<string, unknown>;
-      overlay: Record<string, unknown> | null;
-      indication: TodayIndicationPayload | null;
-    }>(`/transits/today${qs ? `?${qs}` : ""}`);
+    return req<TransitResponse>(`/transits/today${qs ? `?${qs}` : ""}`);
   },
   transitsUpcoming: (
     natalChartId?: number,
