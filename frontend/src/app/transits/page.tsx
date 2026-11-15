@@ -59,6 +59,7 @@ function resolveYouChart(
 
 const TODAY_SKY_DETAILS_OPEN_KEY_PREFIX = "hd-biohack:today-sky-details-open:";
 const SKY_DETAILS_JUMP_IDS = new Set([
+  "today-sky-details",
   "today-sun-earth",
   "today-bridged-channels",
   "today-newly-defined",
@@ -399,15 +400,17 @@ export default function TransitsPage() {
           onHowToRead={(stepId, returnFocus) =>
             howToRead?.open({ stepId, returnFocus })
           }
+          literacyCoach={
+            <LiteracyCoach variant="today" onJump={jumpToTodaySection} />
+          }
         />
       ) : null}
-
-      {youChart ? <LiteracyCoach variant="today" onJump={jumpToTodaySection} /> : null}
 
       {youChart ? (
         <details
           ref={skyDetailsRef}
-          className="group rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          id="today-sky-details"
+          className="group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
           data-testid="today-sky-details"
           open={skyDetailsOpen}
           onToggle={(e) => {

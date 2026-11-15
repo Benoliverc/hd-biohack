@@ -33,27 +33,29 @@ assert.ok(
 // --- One pattern, same variants / titles / test ids / banks ---
 assert.ok(coach.includes('variant === "chart"'), "chart variant");
 assert.ok(coach.includes('variant === "soul"'), "soul variant");
-assert.ok(coach.includes('"How to read your chart"'), "chart title");
-assert.ok(coach.includes('"How to read Soul"'), "soul title");
-assert.ok(
-  coach.includes('"How to read Today"') || coach.includes('today.literacy.howToReadTitle'),
-  "today title"
-);
+assert.ok(coach.includes('variant === "protocols"') || coach.includes('"protocols"'), "protocols variant");
+assert.ok(coach.includes("chart.literacy.howToReadTitle"), "chart title is i18n");
+assert.ok(coach.includes("soul.literacy.howToReadTitle"), "soul title is i18n");
+assert.ok(coach.includes("today.literacy.howToReadTitle"), "today title is i18n");
+assert.ok(coach.includes("protocols.literacy.howToUseTitle"), "protocols title is i18n");
 assert.ok(coach.includes('"chart-literacy-coach"'), "chart test id");
 assert.ok(coach.includes('"soul-literacy-coach"'), "soul test id");
 assert.ok(coach.includes('"today-literacy-coach"'), "today test id");
-assert.ok(coach.includes("CHART_LITERACY_STEPS"), "chart steps bank");
-assert.ok(coach.includes("SOUL_LITERACY_STEPS"), "soul steps bank");
-assert.ok(
-  coach.includes("TODAY_LITERACY_STEPS") || coach.includes("TODAY_LITERACY_I18N"),
-  "today steps bank"
-);
+assert.ok(coach.includes('"protocols-literacy-coach"'), "protocols test id");
+assert.ok(coach.includes("CHART_LITERACY_I18N"), "chart steps bank is i18n");
+assert.ok(coach.includes("SOUL_LITERACY_I18N"), "soul steps bank is i18n");
+assert.ok(coach.includes("TODAY_LITERACY_I18N"), "today steps bank is i18n");
+assert.ok(coach.includes("PROTOCOLS_LITERACY_I18N"), "protocols steps bank is i18n");
 assert.ok(coach.includes("onJump"), "onJump hook kept");
 
-assert.ok(hdCopy.includes('chart: "baseline.literacy.chart.v1"'), "chart storage key");
-assert.ok(hdCopy.includes('soul: "baseline.literacy.soul.v1"'), "soul storage key");
-assert.ok(hdCopy.includes('today: "baseline.literacy.today.v1"'), "today storage key");
+assert.ok(hdCopy.includes('chart: "baseline.literacy.chart.v1"'), "chart storage key unchanged");
+assert.ok(hdCopy.includes('soul: "baseline.literacy.soul.v1"'), "soul storage key unchanged");
+assert.ok(hdCopy.includes('today: "baseline.literacy.today.v1"'), "today storage key unchanged");
+assert.ok(hdCopy.includes('protocols: "baseline.literacy.protocols.v1"'), "protocols storage key");
 assert.ok(coach.includes("LITERACY_STORAGE_KEYS"), "coach uses existing storage keys");
+assert.ok(!hdCopy.includes("baseline.literacy.chart.v2"), "did not bump chart key");
+assert.ok(!hdCopy.includes("baseline.literacy.soul.v2"), "did not bump soul key");
+assert.ok(!hdCopy.includes("baseline.literacy.today.v2"), "did not bump today key");
 
 // --- No expanded inline panel, no pager, no first-visit auto-open ---
 assert.doesNotMatch(coach, /max-h-\[min\(32vh/);
@@ -83,8 +85,11 @@ assert.ok(
 
 // First-visit label is the full title; Got it uses reopen labels already in the component
 assert.ok(coach.includes('const chipLabel = dismissed ? reopenLabel : title'), "first-visit vs Got-it chip labels");
-assert.ok(coach.includes('? "How to read"'), "chart/today reopen label");
-assert.ok(coach.includes('? "How to read Soul"'), "soul reopen label is not shortened");
+assert.ok(coach.includes('chart: "nav.howToRead"'), "chart reopen uses translated How to read");
+assert.ok(coach.includes('soul: "nav.howToRead"'), "soul dismissed chip shortens to How to read");
+assert.ok(coach.includes('today: "nav.howToRead"'), "today reopen uses translated How to read");
+assert.ok(coach.includes('protocols: "nav.howToUse"'), "protocols dismissed chip is How to use");
+assert.ok(!coach.includes('"How to read Soul"'), "soul dismissed chip is not hardcoded How to read Soul");
 assert.doesNotMatch(coach, /New badge|data-literacy-new|"New"/);
 
 // Only Got it writes the key
@@ -128,12 +133,12 @@ assert.ok(
 );
 assert.ok(
   fact.includes("LITERACY_JUMP_BY_FIELD") &&
-    fact.includes('"today-new-signal"') &&
-    fact.includes('"today-sun-earth"') &&
-    fact.includes('"today-bridged-channels"') &&
-    fact.includes('"today-newly-defined"'),
-  "LITERACY_JUMP_BY_FIELD values stay the existing step/section ids",
+    fact.includes('"today-move"') &&
+    fact.includes('"today-sky-details"'),
+  "LITERACY_JUMP_BY_FIELD points at the locked Today step ids",
 );
+assert.ok(!/moon:\s*"today-new-signal"/.test(fact), "moon no longer points at today-new-signal");
+assert.ok(!fact.includes('"today-sun-earth"') || !/sun:\s*"today-sun-earth"/.test(fact), "sun no longer points at today-sun-earth as a step id");
 
 // Direct live hashes still exist as page section ids (do not rename)
 for (const id of ["today-new-signal", "today-sun-earth", "today-bridged-channels", "today-newly-defined"]) {
@@ -146,7 +151,7 @@ assert.ok(coach.includes("document.body.appendChild"), "portal is on document.bo
 assert.ok(coach.includes('role="dialog"'), "role=dialog");
 assert.ok(coach.includes('aria-modal="true"'), "aria-modal");
 assert.ok(coach.includes("aria-labelledby"), "aria-labelledby on title");
-assert.ok(coach.includes('aria-label="Close"'), "close aria-label");
+assert.ok(coach.includes('aria-label={t("literacy.chrome.close")}'), "close aria-label is i18n");
 assert.ok(coach.includes("fixed inset-0"), "fixed inset-0 covers the viewport");
 assert.ok(/h-\[100dvh\]/.test(coach), "height 100dvh");
 assert.ok(!/top:\s*var\(--app-header-h\)/.test(coach), "not sat under --app-header-h");
@@ -166,13 +171,12 @@ assert.ok(coach.includes('key === "Escape"') || coach.includes('key === "Escape"
 assert.ok(coach.includes("Tab"), "focus trap via Tab");
 
 // Section rail + continuous article + N sections
-assert.ok(coach.includes(`${"steps.length"} sections`) || coach.includes("sections"), "N sections label");
-assert.ok(coach.includes("{steps.length} sections"), "quiet N sections");
+assert.ok(coach.includes("literacy.chrome.sections"), "N sections label is i18n");
 assert.ok(coach.includes("Sections") || coach.includes(`${"testId"}-rail`), "section rail");
 assert.ok(coach.includes("`${testId}-rail`") || coach.includes("data-testid={`${testId}-rail`}"), "rail test id");
 assert.ok(coach.includes("`${testId}-step-${step.id}`") || coach.includes("data-testid={`${testId}-step-${step.id}`}"), "step test ids kept");
 assert.ok(coach.includes("`${testId}-jump-${step.id}`") || coach.includes("data-testid={`${testId}-jump-${step.id}`}"), "jump test ids kept");
-assert.ok(coach.includes("Jump · {step.jumpLabel}"), "Jump · {jumpLabel} kept");
+assert.ok(coach.includes("literacy.chrome.jump"), "Jump · {label} is i18n");
 assert.ok(coach.includes("type-body"), "body uses type-body");
 assert.ok(coach.includes("type-section"), "section titles use type-section");
 assert.ok(coach.includes("max-w-prose"), "max-w-prose");
@@ -199,18 +203,24 @@ assert.ok(/prev !== pathname && openRef\.current/.test(coach), "route change clo
 
 // --- Header opener ---
 assert.ok(header.includes('data-testid="nav-how-to-read"'), "nav-how-to-read test id");
-assert.ok(header.includes('t("nav.howToRead")'), "header label is i18n How to read");
-assert.ok(header.includes('pathname === "/profile"'), "header only on Chart");
-assert.ok(header.includes('pathname === "/soul"'), "header only on Soul");
-assert.ok(header.includes('pathname === "/transits"'), "header only on Today");
+assert.ok(header.includes("literacyHeaderKey"), "header label key is route-aware");
+assert.ok(header.includes('pathname === "/profile"'), "header on Chart");
+assert.ok(header.includes('pathname === "/soul"'), "header on Soul");
+assert.ok(header.includes('pathname === "/transits"'), "header on Today");
+assert.ok(header.includes('pathname === "/biohack"'), "header How to use can appear on Protocols");
+assert.ok(header.includes('"nav.howToRead"'), "Chart / Soul / Today header label stays nav.howToRead");
+assert.ok(header.includes('"nav.howToUse"'), "Protocols header label is How to use");
 assert.ok(
-  /const literacyRoute =\s*pathname === "\/profile" \|\| pathname === "\/soul" \|\| pathname === "\/transits"/.test(header),
-  "header opener routes are only Chart, Soul, and Today",
+  /pathname === "\/profile"/.test(header) &&
+    /pathname === "\/soul"/.test(header) &&
+    /pathname === "\/transits"/.test(header) &&
+    /pathname === "\/biohack"/.test(header),
+  "header opener routes are Chart, Soul, Today, and Protocols",
 );
 assert.ok(
-  !/literacyRoute[\s\S]{0,200}\/biohack/.test(header) &&
-    !/showHowToRead[\s\S]{0,200}\/settings/.test(header),
-  "header opener is not shown on Protocols or Settings",
+  !/showHowToRead[\s\S]{0,200}\/settings/.test(header) &&
+    !/literacyRoute[\s\S]{0,80}\/settings/.test(header),
+  "header opener is not shown on Settings",
 );
 assert.ok(header.includes("howToRead?.available"), "visibility is signaled from the coach");
 assert.ok(header.includes("howToRead?.open"), "header press opens that page's reader");
@@ -234,12 +244,17 @@ const protoStart = biohack.indexOf("function ProtocolsHeader");
 assert.ok(protoStart >= 0, "ProtocolsHeader lives on Protocols");
 assert.ok(!/nav-how-to-read/.test(biohack.slice(protoStart, protoStart + 2500)), "not added to ProtocolsHeader");
 
-// Placement: in-page chips stay in current slots
+// Placement: Chart / Soul stay on-page; Today chip sits under the Move hero
 assert.ok(profile.includes('<LiteracyCoach'), "chart coach stays on profile");
 assert.ok(soul.includes('<LiteracyCoach'), "soul coach stays on soul");
-const todayCoachIdx = transits.indexOf('<LiteracyCoach');
-const todayIndIdx = transits.indexOf("<TodayIndication");
-assert.ok(todayCoachIdx > todayIndIdx && todayIndIdx > 0, "Today chip stays after TodayIndication, not above the Move");
+assert.ok(todayInd.includes("literacyCoach"), "TodayIndication accepts the in-page chip slot");
+const heroEnd = todayInd.indexOf('data-testid="main-action-status"');
+const slotIdx = todayInd.indexOf("{literacyCoach}");
+const eveningIdx = todayInd.indexOf("Evening Close");
+assert.ok(heroEnd > 0 && slotIdx > heroEnd, "Today chip is mounted under the Move + Energy/Space hero");
+assert.ok(eveningIdx > slotIdx && slotIdx > 0, "Today chip sits before Evening Close");
+assert.ok(transits.includes("literacyCoach="), "transits page passes the Today coach into the hero slot");
+assert.ok(transits.includes("<LiteracyCoach"), "Today LiteracyCoach still lives on the transits page tree");
 
 // Existing shipped Today slots were not moved
 assert.ok(todayInd.includes('data-testid="today-upcoming-toggle"'), "Next 7 days fold stays");

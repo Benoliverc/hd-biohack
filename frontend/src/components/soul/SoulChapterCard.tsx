@@ -5,6 +5,8 @@ import { ChevronDown } from "lucide-react";
 
 type Props = {
   testId: string;
+  /** Stable document id; defaults to testId so jumps can land on the chapter root. */
+  id?: string;
   title: string;
   tease?: string | null;
   open: boolean;
@@ -22,6 +24,7 @@ type Props = {
  */
 export default function SoulChapterCard({
   testId,
+  id,
   title,
   tease,
   open,
@@ -46,7 +49,7 @@ export default function SoulChapterCard({
       : `overflow-hidden rounded-2xl border ${border} bg-elevated`;
 
   return (
-    <div data-testid={testId} className={shell}>
+    <div id={id ?? testId} data-testid={testId} className={shell}>
       <button
         type="button"
         aria-expanded={open}

@@ -118,15 +118,12 @@ assert.doesNotMatch(signalBlock, /changeLine\.text/, "sky block does not repeat 
 assert.doesNotMatch(signalBlock, /daily\.headline/, "sky block does not display baked English headline as the lead");
 assert.match(signalBlock, /localizeCueBody|cueBody/, "sky block carries the cue body");
 
-// Literacy step copy updated; shell unchanged
-const hdCopy = read("src/lib/hdCopy.ts");
-assert.match(hdCopy, /id: "today-new-signal"/, "literacy keeps today-new-signal id");
-assert.match(hdCopy, /targetId: "today-new-signal"/, "literacy keeps today-new-signal jump");
-assert.match(hdCopy, /The line under the Move is the one change/, "first literacy step explains the hero change line");
-assert.match(hdCopy, /terms and the day's cue/, "first literacy step points to the sky block for terms and cue");
-for (const id of ["today-sun-earth", "today-bridged-channels", "today-newly-defined"]) {
-  assert.match(hdCopy, new RegExp(`id: "${id}"`), `How to read keeps step ${id}`);
-}
+// Literacy is Move-first; the change-line is still taught in How to read Today; shell unchanged
+const todaySoulEn = read("src/lib/i18n/messages/todaySoul.en.ts");
+assert.match(todayCopy, /id: "today-move"/, "literacy first step is The Move");
+assert.match(todayCopy, /targetId: "main-action"/, "The Move jumps to the hero");
+assert.match(todaySoulEn, /The short line under it is the one change/, "Move step explains the hero change line");
+assert.doesNotMatch(todayCopy, /id: "today-new-signal"/, "How to read no longer uses the old four-step ids");
 
 const coach = read("src/components/LiteracyCoach.tsx");
 assert.match(coach, /createPortal/, "How to read fullscreen shell stays");
@@ -145,7 +142,7 @@ for (const key of [
   "today.changeLine.moonGate",
   "today.move.steady.skyCue",
   "share.baselineToday",
-  "today.literacy.newSignal.body",
+  "today.literacy.move.body",
 ]) {
   assert.ok(NEW_KEYS.includes(key), `missing ${key}`);
 }

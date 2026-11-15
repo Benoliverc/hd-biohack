@@ -71,11 +71,11 @@ const VS_LITERACY_PRIORITY: readonly SkyLiteracyField[] = [
 
 /** How to read Today step ids that match a literacy field. */
 export const LITERACY_JUMP_BY_FIELD: Record<SkyLiteracyField, string> = {
-  moon: "today-new-signal",
-  sun: "today-sun-earth",
-  hanging_pressure: "today-new-signal",
-  bridge: "today-bridged-channels",
-  newly_defined: "today-newly-defined",
+  moon: "today-move",
+  sun: "today-sky-details",
+  hanging_pressure: "today-move",
+  bridge: "today-sky-details",
+  newly_defined: "today-sky-details",
 };
 
 function hashDayKey(dayKey: string): number {

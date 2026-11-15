@@ -34,7 +34,7 @@ const moonPulse = contextualHdFact({
 assert.equal(moonPulse.skyKeyed, true);
 assert.equal(moonPulse.field, "moon");
 assert.equal(moonPulse.fact, SKY_LITERACY_FACTS.moon);
-assert.equal(moonPulse.howToReadTargetId, "today-new-signal");
+assert.equal(moonPulse.howToReadTargetId, "today-move");
 assert.ok(moonPulse.fact.length > 0);
 
 const bridgePulse = contextualHdFact({
@@ -42,14 +42,14 @@ const bridgePulse = contextualHdFact({
   now: fixed,
 });
 assert.equal(bridgePulse.field, "bridge");
-assert.equal(bridgePulse.howToReadTargetId, "today-bridged-channels");
+assert.equal(bridgePulse.howToReadTargetId, "today-sky-details");
 
 const newlyPulse = contextualHdFact({
   vsYesterday: [{ field: "newly_defined", from: "none", to: "Sacral" }],
   now: fixed,
 });
 assert.equal(newlyPulse.field, "newly_defined");
-assert.equal(newlyPulse.howToReadTargetId, "today-newly-defined");
+assert.equal(newlyPulse.howToReadTargetId, "today-sky-details");
 
 const hangingPulse = contextualHdFact({
   vsYesterday: [{ field: "hanging_pressure", from: "none", to: "20" }],
@@ -62,7 +62,7 @@ const sunPulse = contextualHdFact({
   now: fixed,
 });
 assert.equal(sunPulse.field, "sun");
-assert.equal(sunPulse.howToReadTargetId, "today-sun-earth");
+assert.equal(sunPulse.howToReadTargetId, "today-sky-details");
 
 // energy/space alone → not literacy key; fall back to bank
 const energyOnly = contextualHdFact({
@@ -134,7 +134,7 @@ assert.ok(
 // Jump targets match How to read Today steps
 for (const [field, target] of Object.entries(LITERACY_JUMP_BY_FIELD)) {
   assert.ok(
-    ["today-new-signal", "today-sun-earth", "today-bridged-channels", "today-newly-defined"].includes(
+    ["today-move", "today-energy-space", "today-sky-details"].includes(
       target
     ),
     `${field} → ${target}`

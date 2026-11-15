@@ -211,11 +211,16 @@ assert.match(
   /pathname === "\/settings" \|\| pathname\.startsWith\("\/settings\/"\)/,
   "Settings active state covers /settings and /settings/*",
 );
-assert.match(
-  headerFn,
-  /const literacyRoute =\s*pathname === "\/profile" \|\| pathname === "\/soul" \|\| pathname === "\/transits";/,
-  "How to read stays wired only for exact /profile, /soul, and /transits",
+assert.ok(
+  headerFn.includes('pathname === "/profile"') &&
+    headerFn.includes('pathname === "/soul"') &&
+    headerFn.includes('pathname === "/transits"') &&
+    headerFn.includes('pathname === "/biohack"'),
+  "How to read / How to use stays wired for exact /profile, /soul, /transits, and /biohack",
 );
+assert.ok(headerFn.includes("protocolsHowToUse"), "Protocols header uses the How to use label path");
+assert.ok(headerFn.includes('"nav.howToUse"'), "Protocols header label key is nav.howToUse");
+assert.ok(headerFn.includes('"nav.howToRead"') || headerFn.includes("nav.howToRead"), "Chart / Soul / Today still use How to read");
 assert.doesNotMatch(
   headerFn,
   /literacyRoute[\s\S]{0,200}\/settings/,

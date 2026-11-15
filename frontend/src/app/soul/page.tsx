@@ -289,6 +289,9 @@ type SoulJumpPlan = {
 };
 
 function planSoulJump(targetId: string): SoulJumpPlan {
+  if (targetId === "soul-chapter-love") {
+    return { chapter: "love", playbookCard: null };
+  }
   if (targetId === "soul-hero") {
     return { chapter: null, playbookCard: null };
   }
@@ -995,6 +998,17 @@ function SoulUnlockedContent() {
               <LiteracyCoach
                 variant="soul"
                 onJump={(targetId) => {
+                  const loveJump =
+                    targetId === "soul-pickers" || targetId === "soul-chapter-love";
+                  if (loveJump) {
+                    const partnerReady =
+                      result.friend?.role === "partner" &&
+                      Boolean(result.partner_overview);
+                    void handleSoulJump(
+                      partnerReady ? "soul-chapter-love" : "soul-pickers",
+                    );
+                    return;
+                  }
                   void handleSoulJump(targetId);
                 }}
               />

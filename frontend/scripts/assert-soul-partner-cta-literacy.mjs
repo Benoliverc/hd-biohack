@@ -30,7 +30,7 @@ const SPECTRUMS_BODY =
 const POWER_BODY =
   "Sometimes one of you holds the full theme; the other holds only half. That can feel like fighting over the thermostat — same room, different set points. Each card below names who holds the fuller set point for that theme and gives a plain what-to-do. These are high-awareness zones to tune together; they are not a verdict that one person is 'in charge.'";
 const SPARK_BODY =
-  "In Spark & Glue, three everyday patterns show up. Spark is ignition when you meet — each of you holds one half of a wire. Bedrock is shared themes you both already hold — a baseline you can lean on without drama. Dominance is when one person fully holds a theme the other doesn't — a steady gift to borrow from, not a power trip. Role names live in Learn more.";
+  "In Spark & Glue, three everyday patterns show up. Spark is ignition when you meet — each of you holds one half of a wire. Bedrock is shared themes you both already hold — a baseline you can lean on without drama. Dominance is when one person fully holds a theme the other doesn’t — a steady gift to borrow from, not a power trip. Role names live in Learn more.";
 
 function openingTagWithTestId(src, testid) {
   const needle = `data-testid="${testid}"`;
@@ -60,10 +60,32 @@ function catalogOf(locale) {
 }
 
 function soulLiteracyRegion() {
-  const start = hdCopy.indexOf("export const SOUL_LITERACY_STEPS");
-  const end = hdCopy.indexOf("export const TODAY_LITERACY_STEPS");
-  assert.ok(start > 0 && end > start, "locate SOUL_LITERACY_STEPS");
+  const start = hdCopy.indexOf("export const SOUL_LITERACY_I18N");
+  const end = hdCopy.indexOf("export const PROTOCOLS_LITERACY_I18N");
+  assert.ok(start > 0 && end > start, "locate SOUL_LITERACY_I18N");
   return hdCopy.slice(start, end);
+}
+
+function catalogValue(src, key) {
+  const needle = `"${key}": "`;
+  const start = src.indexOf(needle);
+  assert.ok(start >= 0, `missing catalog key ${key}`);
+  let i = start + needle.length;
+  let out = "";
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === "\\") {
+      const next = src[i + 1];
+      if (next === "n") out += "\n";
+      else out += next;
+      i += 2;
+      continue;
+    }
+    if (ch === '"') break;
+    out += ch;
+    i += 1;
+  }
+  return out;
 }
 
 function stepIds(region) {
@@ -198,8 +220,9 @@ for (const loc of ["en", "de", "es", "fr", "nl"]) {
 }
 
 // --- Item 7: Soul literacy ---
-assert.ok(coach.includes('"How to read Soul"'), "coach title stays How to read Soul");
-assert.ok(coach.includes("SOUL_LITERACY_STEPS"), "coach still reads SOUL_LITERACY_STEPS");
+const enCatalog = catalogOf("en");
+assert.ok(coach.includes("soul.literacy.howToReadTitle"), "coach title is i18n How to read Soul");
+assert.ok(coach.includes("SOUL_LITERACY_I18N"), "coach still reads SOUL_LITERACY_I18N");
 
 const soulSteps = soulLiteracyRegion();
 assert.deepEqual(
@@ -216,39 +239,45 @@ assert.deepEqual(
 );
 
 const signature = stepBlock(soulSteps, "signature-not-score");
-assert.ok(signature.includes('title: "Aura Signature first"'), "signature title");
-assert.ok(signature.includes(SIGNATURE_BODY), "signature body locked");
-assert.ok(!signature.includes("architecture of the bond across work, life, and play"));
-assert.ok(!signature.includes("work, life, and play"));
+assert.ok(signature.includes('titleKey: "soul.literacy.signature.title"'), "signature title key");
+assert.equal(catalogValue(enCatalog, "soul.literacy.signature.title"), "Aura Signature first", "signature title");
+assert.equal(catalogValue(enCatalog, "soul.literacy.signature.body"), SIGNATURE_BODY, "signature body locked");
+assert.ok(!catalogValue(enCatalog, "soul.literacy.signature.body").includes("architecture of the bond across work, life, and play"));
+assert.ok(!catalogValue(enCatalog, "soul.literacy.signature.body").includes("work, life, and play"));
 
 const love = stepBlock(soulSteps, "love-is-partner-only");
-assert.ok(love.includes('title: "Love guidance is Partner-only"'), "love step title");
-assert.ok(love.includes('jumpLabel: "Partner"'), "love jump label");
-assert.ok(love.includes('targetId: "soul-pickers"'), "love jumps to soul-pickers");
-assert.ok(love.includes(LOVE_BODY), "love step body locked");
+assert.ok(love.includes('titleKey: "soul.literacy.love.title"'), "love step title key");
+assert.equal(catalogValue(enCatalog, "soul.literacy.love.title"), "Love guidance", "love rail title is shortened");
+assert.equal(catalogValue(enCatalog, "soul.literacy.love.jump"), "Partner", "love jump label");
+assert.ok(love.includes('targetId: "soul-pickers"'), "love bank target stays soul-pickers as the fallback");
+assert.equal(catalogValue(enCatalog, "soul.literacy.love.body"), LOVE_BODY, "love step body locked");
+assert.ok(page.includes('targetId === "soul-chapter-love"'), "planSoulJump has a Love-chapter case");
+assert.ok(page.includes('result.friend?.role === "partner"'), "Love jump is Partner-aware at click time");
+assert.ok(page.includes('result.partner_overview'), "Love jump checks partner_overview");
 
 const wire = stepBlock(soulSteps, "wire-somatic");
-assert.ok(wire.includes('title: "Body-first playbook + how you wire"'), "wire title");
-assert.ok(wire.includes(WIRE_BODY), "wire body locked");
-assert.ok(!wire.includes("context you picked"));
-assert.ok(!wire.includes("(work, life, or play)"));
+assert.ok(wire.includes('titleKey: "soul.literacy.playbook.title"'), "wire title key");
+assert.equal(catalogValue(enCatalog, "soul.literacy.playbook.title"), "The playbook", "wire rail title is shortened");
+assert.equal(catalogValue(enCatalog, "soul.literacy.playbook.body"), WIRE_BODY, "wire body locked");
+assert.ok(!catalogValue(enCatalog, "soul.literacy.playbook.body").includes("context you picked"));
+assert.ok(!catalogValue(enCatalog, "soul.literacy.playbook.body").includes("(work, life, or play)"));
 
 const spectrums = stepBlock(soulSteps, "spectrums-not-fit");
-assert.ok(spectrums.includes('title: "Pace · steadiness · intensity"'));
-assert.ok(spectrums.includes(SPECTRUMS_BODY), "Spectrums step unchanged");
-assert.ok(spectrums.includes('jumpLabel: "Spectrums"'));
+assert.equal(catalogValue(enCatalog, "soul.literacy.spectrums.title"), "Pace · steadiness · intensity");
+assert.equal(catalogValue(enCatalog, "soul.literacy.spectrums.body"), SPECTRUMS_BODY, "Spectrums step unchanged");
+assert.equal(catalogValue(enCatalog, "soul.literacy.spectrums.jump"), "Spectrums");
 assert.ok(spectrums.includes('targetId: "soul-spectrums"'));
 
 const power = stepBlock(soulSteps, "power-dynamics");
-assert.ok(power.includes('title: "Power Dynamics to Tune"'));
-assert.ok(power.includes(POWER_BODY), "Power Dynamics step unchanged");
-assert.ok(power.includes('jumpLabel: "Power Dynamics"'));
+assert.equal(catalogValue(enCatalog, "soul.literacy.power.title"), "Power dynamics");
+assert.equal(catalogValue(enCatalog, "soul.literacy.power.body"), POWER_BODY, "Power Dynamics step unchanged");
+assert.equal(catalogValue(enCatalog, "soul.literacy.power.jump"), "Power Dynamics");
 assert.ok(power.includes('targetId: "soul-card-power_dynamics"'));
 
 const spark = stepBlock(soulSteps, "spark-bedrock-dominance");
-assert.ok(spark.includes('title: "Spark, Bedrock, Dominance"'));
-assert.ok(spark.includes(SPARK_BODY), "Spark & Glue step unchanged");
-assert.ok(spark.includes('jumpLabel: "Spark & Glue"'));
+assert.equal(catalogValue(enCatalog, "soul.literacy.spark.title"), "Spark, Bedrock, Dominance");
+assert.equal(catalogValue(enCatalog, "soul.literacy.spark.body"), SPARK_BODY, "Spark & Glue step unchanged");
+assert.equal(catalogValue(enCatalog, "soul.literacy.spark.jump"), "Spark & Glue");
 assert.ok(spark.includes('targetId: "soul-card-spark_glue"'));
 
 assert.ok(!hdCopy.includes("the context you picked"), "no stale context-you-picked");
