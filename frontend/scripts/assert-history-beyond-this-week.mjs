@@ -255,7 +255,7 @@ assert.ok(
   "earlier weeks sit under this week",
 );
 assert.ok(
-  weekFn.indexOf('testId="week-history"') > weekFn.indexOf("Completed this week"),
+  weekFn.indexOf('testId="week-history"') > weekFn.indexOf("page.protocols.completedThisWeek"),
   "does not replace Completed this week",
 );
 assert.match(weekFn, /scope="protocols"/);
@@ -265,7 +265,7 @@ const callIdx = biohack.indexOf("<WeekSkyCard");
 const natalCallIdx = biohack.indexOf("<NatalBaselineCard");
 const shelfIdx = biohack.indexOf('data-testid="shelf-disclosure"');
 assert.ok(callIdx > shelfIdx, "history is not above the Shelf");
-assert.ok(natalCallIdx > callIdx, "WeekSkyCard stays above Natal baseline");
+assert.ok(natalCallIdx > 0 && callIdx > natalCallIdx, "Natal baseline sits above WeekSkyCard");
 
 // --- Copy, empty, retry ---
 for (const { id, src } of locales) {

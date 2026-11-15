@@ -945,6 +945,15 @@ export default function BiohackPage() {
         </details>
       )}
 
+      {protocol && (
+        <NatalBaselineCard
+          open={natalOpen}
+          onToggle={() => setNatalOpen((v) => !v)}
+          baseline={baseline}
+          labels={labels}
+        />
+      )}
+
       {protocol && weekly && (
         <WeekSkyCard
           theme={String(weekly.theme || "")}
@@ -954,15 +963,6 @@ export default function BiohackPage() {
           userId={user?.id ?? null}
           chartId={youChart?.id ?? null}
           timeZone={protocolsTz}
-        />
-      )}
-
-      {protocol && (
-        <NatalBaselineCard
-          open={natalOpen}
-          onToggle={() => setNatalOpen((v) => !v)}
-          baseline={baseline}
-          labels={labels}
         />
       )}
 
@@ -1198,6 +1198,16 @@ function WeekSkyCard({
     r.kind === "kit" || r.id.startsWith("today-kit:");
   const moveRows = weekRows.filter((r) => r.kind === "move" && !isTodayKitRow(r));
   const baselineRows = weekRows.filter((r) => r.kind === "baseline");
+  const weekKeys = weekDayKeysInZone(resolveProtocolsTz(timeZone));
+  const rowsByDay = new Map<string, WeekCompletedRow[]>();
+  for (const row of weekRows) {
+    const list = rowsByDay.get(row.day) || [];
+    list.push(row);
+    rowsByDay.set(row.day, list);
+  }
+  const groupedDays = weekKeys
+    .filter((day) => (rowsByDay.get(day)?.length ?? 0) > 0)
+    .map((day) => ({ day, rows: rowsByDay.get(day) || [] }));
 
   return (
     <section
@@ -1215,7 +1225,7 @@ function WeekSkyCard({
           <summary className="cursor-pointer list-none type-chip uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden>▸</span>
-              Sky note · this week
+              {t("page.protocols.skyNoteThisWeek")}
             </span>
           </summary>
           <p className="mt-1.5 type-body text-fg-secondary">{skyNote}</p>
@@ -1226,55 +1236,68 @@ function WeekSkyCard({
         className="rounded-xl border border-border bg-elevated/80 px-4 py-3"
         data-testid="week-completed"
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="type-chip uppercase tracking-wide text-growth-ink">
-            Completed this week
-          </p>
-          <span className="type-caption text-fg-secondary" data-testid="week-completed-count">
-            {weekRows.length} checked · {weekLabel}
-          </span>
-        </div>
-        {weekRows.length === 0 ? (
-          <p className="mt-2 type-body text-fg-secondary" data-testid="week-completed-empty">
-            Nothing checked yet — tick Today&apos;s Move or baseline kit items as you go.
-          </p>
-        ) : (
-          <ul className="mt-2 space-y-1.5" data-testid="week-completed-list">
-            {weekRows.map((r) => (
-              <li
-                key={`${r.day}:${r.id}`}
-                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
-              >
-                <span className="shrink-0 type-caption font-medium text-fg-secondary">
-                  {formatWeekDayLabel(r.day)}
-                </span>
-                <span className={r.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
-                  {r.label}
-                </span>
-                {r.kind === "baseline" && (
-                  <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
-                    baseline
-                  </span>
-                )}
-                {(r.kind === "kit" || r.id.startsWith("today-kit:")) && (
-                  <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
-                    kit
-                  </span>
-                )}
-                {r.note && (
-                  <span className="w-full type-caption italic text-fg-secondary sm:w-auto">
-                    — {r.note}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-        {(moveRows.length > 0 || baselineRows.length > 0) && (
-          <p className="mt-2 type-caption text-fg-secondary">
-            {moveRows.length} move · {baselineRows.length} baseline · synced to your account
-          </p>
-        )}
+        <details className="group">
+          <summary className="flex min-h-12 cursor-pointer list-none flex-wrap items-center justify-between gap-2 marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
+              <span className="type-chip uppercase tracking-wide text-growth-ink">
+                {t("page.protocols.completedThisWeek")}
+              </span>
+            </span>
+            <span className="type-caption text-fg-secondary" data-testid="week-completed-count">
+              {weekRows.length > 0
+                ? t("page.protocols.completedCount", { n: weekRows.length, weekLabel })
+                : t("page.protocols.completedNoneClosed", { weekLabel })}
+            </span>
+          </summary>
+          {weekRows.length === 0 ? (
+            <p className="mt-2 type-body text-fg-secondary" data-testid="week-completed-empty">
+              {t("page.protocols.completedEmpty")}
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-3" data-testid="week-completed-list">
+              {groupedDays.map(({ day, rows }) => (
+                <li key={day}>
+                  <p className="type-caption font-medium text-fg-secondary">
+                    {formatWeekDayLabel(day)}
+                  </p>
+                  <ul className="mt-1.5 space-y-1.5">
+                    {rows.map((r) => (
+                      <li
+                        key={`${r.day}:${r.id}`}
+                        className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
+                      >
+                        <span className={r.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
+                          {r.label}
+                        </span>
+                        {r.kind === "baseline" && (
+                          <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                            baseline
+                          </span>
+                        )}
+                        {(r.kind === "kit" || r.id.startsWith("today-kit:")) && (
+                          <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                            kit
+                          </span>
+                        )}
+                        {r.note && (
+                          <span className="w-full type-caption italic text-fg-secondary sm:w-auto">
+                            — {r.note}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          )}
+          {(moveRows.length > 0 || baselineRows.length > 0) && (
+            <p className="mt-2 type-caption text-fg-secondary">
+              {moveRows.length} move · {baselineRows.length} baseline · synced to your account
+            </p>
+          )}
+        </details>
         {userId && chartId ? (
           <div className="mt-3">
             <EarlierWeeksHistory
@@ -1306,6 +1329,24 @@ function NatalBaselineCard({
   labels: Record<string, string>;
 }) {
   const { t } = useI18n();
+  const baselineLabel =
+    labels.natal_baseline ||
+    String(baseline?.label || t("page.protocols.natalBaselineFallback"));
+  const emphasizeCount = Array.isArray(baseline?.emphasize) ? baseline.emphasize.length : 0;
+  const increaseCount = Array.isArray(baseline?.increase) ? baseline.increase.length : 0;
+  const easeCount = Array.isArray(baseline?.decrease_or_pause)
+    ? baseline.decrease_or_pause.length
+    : 0;
+  const natalCountParts = [
+    emphasizeCount > 0
+      ? t("page.protocols.natalCountEmphasize", { n: emphasizeCount })
+      : null,
+    increaseCount > 0
+      ? t("page.protocols.natalCountIncrease", { n: increaseCount })
+      : null,
+    easeCount > 0 ? t("page.protocols.natalCountEase", { n: easeCount }) : null,
+  ].filter((part): part is string => Boolean(part));
+  const natalCountCaption = natalCountParts.length > 0 ? natalCountParts.join(" · ") : null;
   return (
     <div
       className="rounded-2xl border border-growth/40 bg-growth-soft/40"
@@ -1319,16 +1360,19 @@ function NatalBaselineCard({
       >
         <span>
           <span className="block text-sm font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
-          <span className="block type-caption text-fg-secondary">Always-on for this chart</span>
+          <span className="block type-caption text-fg-secondary">{baselineLabel}</span>
+          {natalCountCaption ? (
+            <span className="block type-caption text-fg-muted">{natalCountCaption}</span>
+          ) : null}
         </span>
-        <span className="shrink-0 text-xs text-fg-muted">{open ? "Hide" : "Show"}</span>
+        <span className="shrink-0 text-xs text-fg-muted">{open ? t("protocols.hide") : t("protocols.show")}</span>
       </button>
       {open && (
         <div className="space-y-3 border-t border-growth/30 px-4 pb-4 pt-3">
           {baseline ? (
             <>
               <h3 className="text-base font-semibold text-growth-ink">
-                {labels.natal_baseline || String(baseline.label || "Standard care for your chart")}
+                {baselineLabel}
               </h3>
               <p className="type-body text-fg-secondary">{String(baseline.description || "")}</p>
               <div className="grid gap-3 md:grid-cols-3">
