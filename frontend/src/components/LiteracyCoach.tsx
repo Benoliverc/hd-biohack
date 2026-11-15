@@ -24,6 +24,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { TODAY_LITERACY_I18N } from "@/lib/todayCopy";
+import { api } from "@/lib/api";
 import {
   useLiteracyHowToReadOptional,
   type LiteracyHowToReadOpenOpts,
@@ -432,10 +433,22 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
     [consumeHistoryEntry]
   );
 
+  const fireLiteracyEvent = useCallback(
+    (action: "open" | "got_it" | "jump", stepId?: string) => {
+      void api.recordLiteracyEvent({
+        action,
+        variant,
+        ...(stepId ? { step_id: stepId } : {}),
+      });
+    },
+    [variant]
+  );
+
   const openReader = useCallback((opts?: LiteracyHowToReadOpenOpts) => {
     openerRef.current = opts?.returnFocus ?? openerRef.current;
     setOpenStepId(opts?.stepId);
     setOpen(true);
+    fireLiteracyEvent("open", opts?.stepId);
     if (typeof window !== "undefined" && !pushedRef.current) {
       const prev =
         window.history.state && typeof window.history.state === "object"
@@ -444,7 +457,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
       window.history.pushState({ ...prev, [HISTORY_FLAG]: true }, "", window.location.href);
       pushedRef.current = true;
     }
-  }, []);
+  }, [fireLiteracyEvent]);
 
   const closeWithoutWriting = useCallback(() => {
     finishClose({ focus: openerRef.current });
@@ -453,14 +466,16 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
   const handleGotIt = useCallback(() => {
     writeDismissed(storageKey);
     setDismissed(true);
+    fireLiteracyEvent("got_it");
     finishClose({ focus: chipRef.current });
-  }, [finishClose, storageKey]);
+  }, [finishClose, fireLiteracyEvent, storageKey]);
 
   const handleJump = useCallback(
     (step: LiteracyStep) => {
       const meta: LiteracyJumpMeta | undefined = step.deepDiveTab
         ? { deepDiveTab: step.deepDiveTab }
         : undefined;
+      fireLiteracyEvent("jump", step.id);
       const runJump = () => {
         if (onJump) {
           onJump(step.targetId, meta);
@@ -470,7 +485,7 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
       };
       finishClose({ after: runJump });
     },
-    [finishClose, onJump]
+    [finishClose, fireLiteracyEvent, onJump]
   );
 
   useEffect(() => {

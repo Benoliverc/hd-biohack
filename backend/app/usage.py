@@ -18,9 +18,31 @@ from .models import NatalChart, ProtocolCompletion, SupplementInventory, UsageEv
 
 logger = logging.getLogger(__name__)
 
-EventType = Literal["login", "signup", "chart_generated", "protocol_generated", "page_view"]
-EVENT_TYPES = ("login", "signup", "chart_generated", "protocol_generated", "page_view")
+EventType = Literal[
+    "login",
+    "signup",
+    "chart_generated",
+    "protocol_generated",
+    "page_view",
+    "literacy_event",
+]
+EVENT_TYPES = (
+    "login",
+    "signup",
+    "chart_generated",
+    "protocol_generated",
+    "page_view",
+    "literacy_event",
+)
 ACTION_EVENT_TYPES = ("login", "signup", "chart_generated", "protocol_generated")
+LITERACY_ACTIONS = ("open", "got_it", "jump")
+LITERACY_VARIANTS = ("today", "chart", "soul", "protocols")
+FUNNEL_STEP_LABELS = (
+    ("signed_up", "Signed up"),
+    ("me_natal", "Me natal"),
+    ("today_view", "Today view"),
+    ("move_done", "Move done"),
+)
 
 # Primary nav pages only (Header.tsx). Stats key → exact path.
 PAGE_PATHS: dict[str, str] = {
@@ -207,7 +229,7 @@ def list_usage_events(
         q = q.filter(UsageEvent.event_type.in_(ACTION_EVENT_TYPES))
     if day:
         d = _parse_day(day)
-        start, end = _day_bounds(d)
+        start, end = hkt_day_bounds_utc(d)
         q = q.filter(UsageEvent.created_at >= start, UsageEvent.created_at < end)
     total = q.count()
     rows = (
@@ -225,6 +247,7 @@ def list_usage_events(
     items: list[dict[str, Any]] = []
     for r in rows:
         u = users.get(r.user_id) if r.user_id is not None else None
+        email = r.email or ((u.email if u else "") or "")
         items.append(
             {
                 "id": r.id,
@@ -235,6 +258,9 @@ def list_usage_events(
                 "event_type": r.event_type,
                 "created_at": r.created_at,
                 "metadata": r.metadata_json or {},
+                "is_seed_or_dev": (
+                    is_seed_or_dev_user(u) if u is not None else _is_seed_or_dev_email(email)
+                ),
             }
         )
     return total, items
@@ -256,7 +282,11 @@ def _aggregate_bucket(
     db: Session,
     start: datetime,
     end: datetime,
+    *,
+    seed_ids: set[int] | None = None,
 ) -> dict[str, Any]:
+    if seed_ids is None:
+        seed_ids = _seed_user_id_set(db)
     rows = (
         db.query(UsageEvent.event_type, UsageEvent.user_id, UsageEvent.metadata_json)
         .filter(UsageEvent.created_at >= start, UsageEvent.created_at < end)
@@ -269,9 +299,10 @@ def _aggregate_bucket(
     page_visits = _empty_page_visits()
     page_users: dict[str, set[int]] = {k: set() for k in PAGE_KEYS}
     for et, uid, meta in rows:
+        seed_user = uid is not None and uid in seed_ids
         if et == "login":
             logins += 1
-            if uid is not None:
+            if uid is not None and not seed_user:
                 login_users.add(uid)
         elif et == "chart_generated":
             charts += 1
@@ -282,7 +313,7 @@ def _aggregate_bucket(
             if page is None:
                 continue
             page_visits[page]["views"] += 1
-            if uid is not None:
+            if uid is not None and not seed_user:
                 page_users[page].add(uid)
     for k in PAGE_KEYS:
         page_visits[k]["unique_users"] = len(page_users[k])
@@ -301,16 +332,17 @@ def stats_daily(
     from_day: date | None = None,
     to_day: date | None = None,
 ) -> list[dict[str, Any]]:
-    today = datetime.utcnow().date()
+    today = hkt_today_date()
     end_d = to_day or today
     start_d = from_day or (end_d - timedelta(days=13))
     if start_d > end_d:
         start_d, end_d = end_d, start_d
+    seed_ids = _seed_user_id_set(db)
     out: list[dict[str, Any]] = []
     d = start_d
     while d <= end_d:
-        start, end = _day_bounds(d)
-        agg = _aggregate_bucket(db, start, end)
+        start, end = hkt_day_bounds_utc(d)
+        agg = _aggregate_bucket(db, start, end, seed_ids=seed_ids)
         out.append({"day": d.isoformat(), **agg})
         d += timedelta(days=1)
     return out
@@ -321,18 +353,19 @@ def stats_weekly(
     *,
     weeks: int = 12,
 ) -> list[dict[str, Any]]:
-    today = datetime.utcnow().date()
-    # Monday of current ISO week
-    monday = today - timedelta(days=today.weekday())
+    today = hkt_today_date()
+    # Monday of the current Asia/Hong_Kong week (same clock as weekDayKeysInZone).
+    monday = hkt_week_monday(today)
+    seed_ids = _seed_user_id_set(db)
     out: list[dict[str, Any]] = []
     for i in range(weeks - 1, -1, -1):
         week_start = monday - timedelta(weeks=i)
         week_end = week_start + timedelta(days=7)
-        start = datetime(week_start.year, week_start.month, week_start.day)
-        end = datetime(week_end.year, week_end.month, week_end.day)
+        start, _ = hkt_day_bounds_utc(week_start)
+        end, _ = hkt_day_bounds_utc(week_end)
         iso = week_start.isocalendar()
         key = f"{iso.year}-W{iso.week:02d}"
-        agg = _aggregate_bucket(db, start, end)
+        agg = _aggregate_bucket(db, start, end, seed_ids=seed_ids)
         out.append({"week": key, "week_start": week_start.isoformat(), **agg})
     return out
 
@@ -342,8 +375,8 @@ def stats_monthly(
     *,
     months: int = 12,
 ) -> list[dict[str, Any]]:
-    today = datetime.utcnow().date()
-    # First day of current month, then walk back
+    today = hkt_today_date()
+    # First day of current HKT calendar month, then walk back
     first = date(today.year, today.month, 1)
     months_list: list[date] = []
     cur = first
@@ -354,16 +387,17 @@ def stats_monthly(
         else:
             cur = date(cur.year, cur.month - 1, 1)
     months_list.reverse()
+    seed_ids = _seed_user_id_set(db)
     out: list[dict[str, Any]] = []
     for m_start in months_list:
         if m_start.month == 12:
             m_end = date(m_start.year + 1, 1, 1)
         else:
             m_end = date(m_start.year, m_start.month + 1, 1)
-        start = datetime(m_start.year, m_start.month, m_start.day)
-        end = datetime(m_end.year, m_end.month, m_end.day)
+        start, _ = hkt_day_bounds_utc(m_start)
+        end, _ = hkt_day_bounds_utc(m_end)
         key = f"{m_start.year:04d}-{m_start.month:02d}"
-        agg = _aggregate_bucket(db, start, end)
+        agg = _aggregate_bucket(db, start, end, seed_ids=seed_ids)
         out.append({"month": key, **agg})
     return out
 
@@ -463,14 +497,63 @@ def hkt_today_date() -> date:
     return datetime.now(HKT).date()
 
 
-def is_seed_or_dev_user(user: User) -> bool:
-    """Heuristic: local/test emails are seed/dev accounts for total-account pulse."""
-    email = (user.email or "").strip().lower()
-    if email.endswith(".local"):
+def hkt_calendar_date(dt: datetime) -> date:
+    """Asia/Hong_Kong calendar date of a stored naive-UTC or aware datetime."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(HKT).date()
+
+
+def hkt_week_monday(d: date) -> date:
+    """Monday of the HKT week containing `d` (Monday=0 … Sunday=6)."""
+    return d - timedelta(days=d.weekday())
+
+
+def hkt_period_bounds(period_days: int) -> tuple[datetime, datetime]:
+    """UTC-naive [start, end) covering the last `period_days` HKT calendar days, including today."""
+    today = hkt_today_date()
+    start_day = today - timedelta(days=max(1, period_days) - 1)
+    start, _ = hkt_day_bounds_utc(start_day)
+    _, end = hkt_day_bounds_utc(today)
+    return start, end
+
+
+def _is_seed_or_dev_email(email: str | None) -> bool:
+    """Same heuristic as is_seed_or_dev_user, for emails without a User row."""
+    value = (email or "").strip().lower()
+    if value.endswith(".local"):
         return True
-    if email.endswith("@test.hd-biohack.local"):
+    if value.endswith("@test.hd-biohack.local"):
         return True
     return False
+
+
+def is_seed_or_dev_user(user: User) -> bool:
+    """Heuristic: local/test emails are seed/dev accounts for total-account pulse."""
+    return _is_seed_or_dev_email(user.email)
+
+
+def _seed_user_id_set(db: Session) -> set[int]:
+    return {u.id for u in db.query(User).all() if is_seed_or_dev_user(u)}
+
+
+def record_literacy_event(
+    *,
+    user: User,
+    action: str,
+    variant: str,
+    step_id: str | None = None,
+) -> None:
+    """Best-effort How to read event. Never raises. Invalid metadata is skipped."""
+    act = (action or "").strip()
+    var = (variant or "").strip()
+    if act not in LITERACY_ACTIONS or var not in LITERACY_VARIANTS:
+        return
+    metadata: dict[str, Any] = {"action": act, "variant": var}
+    sid = (step_id or "").strip()
+    if sid:
+        metadata["step_id"] = sid
+    record_usage_event(user=user, event_type="literacy_event", metadata=metadata)
 
 
 def touch_last_login(db: Session, user: User, when: datetime | None = None) -> None:
@@ -499,8 +582,11 @@ def overview_new_user_pulse(db: Session) -> dict[str, Any]:
         created = u.created_at
         if created is None:
             continue
-        if not is_seed_or_dev_user(u):
+        seed = is_seed_or_dev_user(u)
+        if not seed:
             total_real += 1
+        if seed:
+            continue
         if start_today <= created < end_today:
             new_today.append(
                 {
@@ -532,6 +618,10 @@ def overview_new_user_pulse(db: Session) -> dict[str, Any]:
     user_map = {u.id: u for u in users}
     for r in signup_rows:
         u = user_map.get(r.user_id) if r.user_id is not None else None
+        if u is not None and is_seed_or_dev_user(u):
+            continue
+        if u is None and _is_seed_or_dev_email(r.email):
+            continue
         banner.append(
             {
                 "user_id": r.user_id,
@@ -547,6 +637,8 @@ def overview_new_user_pulse(db: Session) -> dict[str, Any]:
     for u in users:
         if u.id in seen_ids or u.created_at is None:
             continue
+        if is_seed_or_dev_user(u):
+            continue
         if u.created_at >= since_24h:
             banner.append(
                 {
@@ -560,6 +652,7 @@ def overview_new_user_pulse(db: Session) -> dict[str, Any]:
     banner.sort(key=lambda x: x["created_at"], reverse=True)
 
     spark_delta = new_week - new_prev_week
+    health = compute_overview_health(db, new_today_count=len(new_today))
     return {
         "new_today_count": len(new_today),
         "new_today": new_today,
@@ -569,6 +662,9 @@ def overview_new_user_pulse(db: Session) -> dict[str, Any]:
         "total_accounts": total_real,
         "total_accounts_including_seed": len(users),
         "signups_last_24h": banner[:10],
+        "health": health,
+        "funnel_7": compute_activation_funnel(db, period_days=7),
+        "funnel_30": compute_activation_funnel(db, period_days=30),
     }
 
 
@@ -609,12 +705,221 @@ def _me_natal_within_days(db: Session, user: User, days: int = 7) -> bool:
     return row is not None
 
 
+
+def _empty_literacy_variant() -> dict[str, Any]:
+    return {"opens": 0, "got_it": 0, "got_it_rate": None, "jumps": 0}
+
+
+def compute_literacy_stats(
+    db: Session,
+    *,
+    start: datetime,
+    end: datetime,
+    seed_ids: set[int] | None = None,
+) -> dict[str, Any]:
+    """How to read opens / Got it rate / per-page split. New events only; seed excluded."""
+    if seed_ids is None:
+        seed_ids = _seed_user_id_set(db)
+    rows = (
+        db.query(UsageEvent.user_id, UsageEvent.metadata_json)
+        .filter(
+            UsageEvent.event_type == "literacy_event",
+            UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
+        )
+        .all()
+    )
+    by_variant = {k: _empty_literacy_variant() for k in LITERACY_VARIANTS}
+    opens = 0
+    got_it = 0
+    jumps = 0
+    for uid, meta in rows:
+        if uid is not None and uid in seed_ids:
+            continue
+        payload = meta if isinstance(meta, dict) else {}
+        action = payload.get("action")
+        variant = payload.get("variant")
+        if variant not in by_variant:
+            continue
+        bucket = by_variant[variant]
+        if action == "open":
+            opens += 1
+            bucket["opens"] += 1
+        elif action == "got_it":
+            got_it += 1
+            bucket["got_it"] += 1
+        elif action == "jump":
+            jumps += 1
+            bucket["jumps"] += 1
+    def _rate(got: int, opened: int) -> float | None:
+        if not opened:
+            return None
+        return round(100.0 * got / opened, 1)
+
+    for bucket in by_variant.values():
+        bucket["got_it_rate"] = _rate(bucket["got_it"], bucket["opens"])
+    return {
+        "opens": opens,
+        "got_it": got_it,
+        "jumps": jumps,
+        "got_it_rate": _rate(got_it, opens),
+        "by_variant": by_variant,
+    }
+
+
+def compute_activation_funnel(db: Session, *, period_days: int = 7) -> dict[str, Any]:
+    """Signup → Me natal → Today view → Move done for an HKT signup cohort, seed excluded."""
+    start, end = hkt_period_bounds(period_days)
+    seed_ids = _seed_user_id_set(db)
+    cohort = [
+        u
+        for u in db.query(User).filter(User.created_at >= start, User.created_at < end).all()
+        if u.created_at is not None and u.id not in seed_ids
+    ]
+    signed_up_ids = [u.id for u in cohort]
+    signed_up = len(signed_up_ids)
+
+    me_ids: set[int] = set()
+    if signed_up_ids:
+        natal_rows = (
+            db.query(NatalChart.user_id, NatalChart.created_at, NatalChart.slot_kind)
+            .filter(
+                NatalChart.user_id.in_(signed_up_ids),
+                NatalChart.slot_kind != "friend",
+            )
+            .all()
+        )
+        created_by = {u.id: u.created_at for u in cohort}
+        for uid, created, _slot in natal_rows:
+            signup_at = created_by.get(uid)
+            if signup_at is None:
+                continue
+            if created is None or created >= signup_at:
+                me_ids.add(uid)
+
+    today_ids: set[int] = set()
+    if signed_up_ids:
+        page_rows = (
+            db.query(UsageEvent.user_id, UsageEvent.created_at, UsageEvent.metadata_json)
+            .filter(
+                UsageEvent.event_type == "page_view",
+                UsageEvent.user_id.in_(signed_up_ids),
+            )
+            .all()
+        )
+        created_by = {u.id: u.created_at for u in cohort}
+        for uid, created, meta in page_rows:
+            if uid not in created_by:
+                continue
+            if created is not None and created < created_by[uid]:
+                continue
+            page = _page_from_meta(meta if isinstance(meta, dict) else None)
+            if page == "today":
+                today_ids.add(uid)
+
+    move_ids: set[int] = set()
+    if signed_up_ids:
+        move_rows = (
+            db.query(
+                ProtocolCompletion.user_id,
+                ProtocolCompletion.updated_at,
+                ProtocolCompletion.day,
+            )
+            .filter(
+                ProtocolCompletion.user_id.in_(signed_up_ids),
+                ProtocolCompletion.kind == "move",
+                ProtocolCompletion.done.is_(True),
+            )
+            .all()
+        )
+        created_by = {u.id: u.created_at for u in cohort}
+        for uid, updated, day in move_rows:
+            signup_at = created_by.get(uid)
+            if signup_at is None:
+                continue
+            if updated is not None and updated >= signup_at:
+                move_ids.add(uid)
+                continue
+            if day is not None and day >= hkt_calendar_date(signup_at):
+                move_ids.add(uid)
+
+    counts = {
+        "signed_up": signed_up,
+        "me_natal": len(me_ids),
+        "today_view": len(today_ids),
+        "move_done": len(move_ids),
+    }
+    steps: list[dict[str, Any]] = []
+    prev = None
+    for key, label in FUNNEL_STEP_LABELS:
+        count = counts[key]
+        dropoff = None if prev is None else max(0, prev - count)
+        pct = round(100.0 * count / signed_up, 1) if signed_up else None
+        steps.append(
+            {
+                "key": key,
+                "label": label,
+                "count": count,
+                "dropoff": dropoff,
+                "pct": pct,
+            }
+        )
+        prev = count
+    return {"period_days": period_days, "steps": steps}
+
+
+def compute_overview_health(db: Session, *, new_today_count: int) -> dict[str, Any]:
+    """Health strip: unique logins today, new today, Today engagement among today's logins."""
+    today = hkt_today_date()
+    start, end = hkt_day_bounds_utc(today)
+    seed_ids = _seed_user_id_set(db)
+    login_ids: set[int] = set()
+    for (uid,) in (
+        db.query(UsageEvent.user_id)
+        .filter(
+            UsageEvent.event_type == "login",
+            UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
+            UsageEvent.user_id.isnot(None),
+        )
+        .all()
+    ):
+        if uid is not None and uid not in seed_ids:
+            login_ids.add(uid)
+    today_viewers: set[int] = set()
+    for uid, meta in (
+        db.query(UsageEvent.user_id, UsageEvent.metadata_json)
+        .filter(
+            UsageEvent.event_type == "page_view",
+            UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
+            UsageEvent.user_id.isnot(None),
+        )
+        .all()
+    ):
+        if uid not in login_ids:
+            continue
+        if _page_from_meta(meta if isinstance(meta, dict) else None) == "today":
+            today_viewers.add(uid)
+    active = len(login_ids)
+    viewed = len(today_viewers)
+    engagement = round(100.0 * viewed / active, 1) if active else None
+    return {
+        "unique_logins_today": active,
+        "new_today": new_today_count,
+        "today_active_users": active,
+        "today_page_view_users": viewed,
+        "today_engagement_pct": engagement,
+    }
+
+
 def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
     """Cohort averages for Insights tab. period_days in {7,30,90}."""
     if period_days not in (7, 30, 90):
         period_days = 30
     now = _utcnow()
-    start = now - timedelta(days=period_days)
+    start, end = hkt_period_bounds(period_days)
+    seed_ids = _seed_user_id_set(db)
 
     # Active = distinct users with ≥1 login in period
     login_rows = (
@@ -622,13 +927,14 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
         .filter(
             UsageEvent.event_type == "login",
             UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
             UsageEvent.user_id.isnot(None),
         )
         .all()
     )
     login_by_user: dict[int, list[datetime]] = {}
     for uid, created in login_rows:
-        if uid is None:
+        if uid is None or uid in seed_ids:
             continue
         login_by_user.setdefault(uid, []).append(created)
     active_ids = set(login_by_user.keys())
@@ -637,14 +943,16 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
     avg_logins = (total_logins / active_users) if active_users else 0.0
 
     # New users by created_at
-    new_users_list = (
-        db.query(User).filter(User.created_at >= start, User.created_at <= now).all()
-    )
+    new_users_list = [
+        u
+        for u in db.query(User).filter(User.created_at >= start, User.created_at < end).all()
+        if not is_seed_or_dev_user(u)
+    ]
     new_users = len(new_users_list)
 
     # Median days since last login (all accounts with a last_login_at or login event)
     days_since: list[float] = []
-    all_users = db.query(User).all()
+    all_users = [u for u in db.query(User).all() if not is_seed_or_dev_user(u)]
     for u in all_users:
         last = u.last_login_at
         if last is None:
@@ -674,6 +982,7 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
         .filter(
             UsageEvent.event_type == "page_view",
             UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
             UsageEvent.user_id.isnot(None),
         )
         .all()
@@ -702,6 +1011,7 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
         .filter(
             UsageEvent.event_type == "chart_generated",
             UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
             UsageEvent.user_id.in_(active_ids) if active_ids else False,
         )
         .count()
@@ -713,6 +1023,7 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
         .filter(
             UsageEvent.event_type == "protocol_generated",
             UsageEvent.created_at >= start,
+            UsageEvent.created_at < end,
             UsageEvent.user_id.in_(active_ids) if active_ids else False,
         )
         .count()
@@ -729,13 +1040,13 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
     for u in new_users_list:
         if u.created_at is None:
             continue
-        signup_day = u.created_at.date()
+        signup_day = hkt_calendar_date(u.created_at)
         logins = (
             db.query(UsageEvent.created_at)
             .filter(UsageEvent.user_id == u.id, UsageEvent.event_type == "login")
             .all()
         )
-        login_days = {row[0].date() for row in logins if row[0]}
+        login_days = {hkt_calendar_date(row[0]) for row in logins if row[0]}
         if (signup_day + timedelta(days=1)) in login_days:
             d1_hit += 1
         if (signup_day + timedelta(days=7)) in login_days:
@@ -761,6 +1072,7 @@ def compute_insights(db: Session, *, period_days: int = 30) -> dict[str, Any]:
         "avg_protocols_per_active": round(avg_protocols, 2),
         "return_d1_pct": round(return_d1, 1) if return_d1 is not None else None,
         "return_d7_pct": round(return_d7, 1) if return_d7 is not None else None,
+        "literacy": compute_literacy_stats(db, start=start, end=end, seed_ids=seed_ids),
     }
 
 
@@ -771,10 +1083,12 @@ def list_admin_users(
     limit: int = 50,
     offset: int = 0,
     sort: str = "joined_desc",
+    include_seed: bool = True,
 ) -> tuple[int, list[dict[str, Any]]]:
     """Searchable People list — newest first by default."""
     from .config import get_settings
     from .entitlements import user_has_biohacking
+    from sqlalchemy import not_
 
     query = db.query(User)
     needle = (q or "").strip().lower()
@@ -786,6 +1100,9 @@ def list_admin_users(
             | (User.display_name.ilike(like))
             | (User.first_name.ilike(like))
         )
+    if not include_seed:
+        # Same .local heuristic as is_seed_or_dev_user; applied in SQL for pagination.
+        query = query.filter(not_(User.email.ilike("%.local")))
     total = query.count()
     if sort == "last_login_desc":
         # SQLite-friendly: non-null last_login first, then newest.

@@ -29,7 +29,17 @@ const EVENT_LABELS: Record<string, string> = {
   chart_generated: "Chart",
   protocol_generated: "Protocol",
   page_view: "Page",
+  literacy_event: "How to read",
 };
+
+const LITERACY_VARIANT_LABELS: Record<string, string> = {
+  today: "Today",
+  chart: "Chart",
+  soul: "Soul",
+  protocols: "Protocols",
+};
+
+const FUNNEL_STEP_ORDER = ["Signed up", "Me natal", "Today view", "Move done"] as const;
 
 const PAGE_LABELS: Record<keyof PageVisitsStats, string> = {
   home: "Home",
@@ -96,6 +106,19 @@ function notesFor(ev: UsageEvent): string {
     return label || (typeof m.path === "string" ? m.path : "—");
   }
   if (ev.event_type === "signup") return "New account";
+  if (ev.event_type === "literacy_event") {
+    const action = typeof m.action === "string" ? m.action : "";
+    const variant = typeof m.variant === "string" ? m.variant : "";
+    const variantLabel =
+      variant in LITERACY_VARIANT_LABELS ? LITERACY_VARIANT_LABELS[variant] : variant;
+    const actionLabel =
+      action === "got_it" ? "Got it" : action === "jump" ? "Jump" : action === "open" ? "Open" : action;
+    const bits: string[] = [];
+    if (actionLabel) bits.push(actionLabel);
+    if (variantLabel) bits.push(variantLabel);
+    if (m.step_id) bits.push(String(m.step_id));
+    return bits.join(" · ") || "—";
+  }
   const bits: string[] = [];
   if (m.saved === true) bits.push("saved");
   if (m.saved === false) bits.push("unsaved");
@@ -170,6 +193,7 @@ export default function AdminPage() {
   const [people, setPeople] = useState<AdminUserListItem[]>([]);
   const [peopleTotal, setPeopleTotal] = useState(0);
   const [peopleOffset, setPeopleOffset] = useState(0);
+  const [includeSeed, setIncludeSeed] = useState(false);
   const peopleLimit = 50;
   const [loadingPeople, setLoadingPeople] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -272,6 +296,7 @@ export default function AdminPage() {
         limit: peopleLimit,
         offset: peopleOffset,
         sort: "joined_desc",
+        include_seed: includeSeed,
       });
       setPeople(page.items);
       setPeopleTotal(page.total);
@@ -282,7 +307,7 @@ export default function AdminPage() {
     } finally {
       setLoadingPeople(false);
     }
-  }, [user, allowed, peopleQDebounced, peopleOffset]);
+  }, [user, allowed, peopleQDebounced, peopleOffset, includeSeed]);
 
   const loadDetail = useCallback(
     async (id: number) => {
@@ -326,7 +351,7 @@ export default function AdminPage() {
     if (period === "day") {
       const today = daily[daily.length - 1];
       return {
-        label: today?.day ? `Day ${today.day} (UTC)` : "Today (UTC)",
+        label: today?.day ? `Day ${today.day} (HKT)` : "Today (HKT)",
         unique: today?.unique_users_logged_in ?? 0,
         charts: today?.charts_generated ?? 0,
         protocols: today?.protocols_generated ?? 0,
@@ -338,7 +363,7 @@ export default function AdminPage() {
     if (period === "week") {
       const last = weekly[weekly.length - 1];
       return {
-        label: last?.week ? `Week ${last.week}` : "This week",
+        label: last?.week ? `Week ${last.week} (HKT)` : "This week (HKT)",
         unique: last?.unique_users_logged_in ?? 0,
         charts: last?.charts_generated ?? 0,
         protocols: last?.protocols_generated ?? 0,
@@ -349,7 +374,7 @@ export default function AdminPage() {
     }
     const last = monthly[monthly.length - 1];
     return {
-      label: last?.month ? `Month ${last.month}` : "This month",
+      label: last?.month ? `Month ${last.month} (HKT)` : "This month (HKT)",
       unique: last?.unique_users_logged_in ?? 0,
       charts: last?.charts_generated ?? 0,
       protocols: last?.protocols_generated ?? 0,
@@ -463,22 +488,20 @@ export default function AdminPage() {
 
       {tab === "overview" && (
         <>
-          {pulse && pulse.signups_last_24h.length > 0 && (
-            <div className="mt-4 rounded-xl border border-growth/30 bg-growth/10 px-4 py-3 text-sm text-fg">
-              <span className="font-medium text-growth">New in last 24h — </span>
-              {pulse.signups_last_24h.slice(0, 5).map((s, i) => (
-                <span key={`${s.user_id}-${s.created_at}`}>
-                  {i > 0 ? " · " : ""}
-                  {s.display_name || s.email || "Someone"} ({formatWhen(s.created_at)})
-                </span>
-              ))}
-            </div>
-          )}
-
-          <section className="mt-6 grid gap-3 sm:grid-cols-3">
+          <section
+            className="mt-6 grid gap-3 sm:grid-cols-3"
+            data-testid="admin-health-strip"
+            aria-label="Health strip"
+          >
             <MetricCard
-              label="New today (HKT)"
-              value={pulse?.new_today_count ?? 0}
+              label="Unique logins today"
+              value={pulse?.health?.unique_logins_today ?? 0}
+              hint="HKT today, seed/dev excluded"
+              loading={loadingPulse}
+            />
+            <MetricCard
+              label="New today"
+              value={pulse?.health?.new_today ?? pulse?.new_today_count ?? 0}
               hint={
                 pulse && pulse.new_today.length
                   ? pulse.new_today
@@ -490,32 +513,89 @@ export default function AdminPage() {
               loading={loadingPulse}
             />
             <MetricCard
-              label="New this week"
-              value={pulse?.new_this_week ?? 0}
-              hint={spark}
-              loading={loadingPulse}
-            />
-            <MetricCard
-              label="Total accounts"
-              value={pulse?.total_accounts ?? 0}
+              label="Today engagement"
+              value={pct(pulse?.health?.today_engagement_pct)}
               hint={
-                pulse
-                  ? `Excludes seed/dev (.local); ${pulse.total_accounts_including_seed} incl.`
-                  : undefined
+                pulse?.health
+                  ? `${pulse.health.today_page_view_users} of ${pulse.health.today_active_users} users who logged in today viewed Today`
+                  : "% of users who logged in today with a Today page view"
               }
               loading={loadingPulse}
             />
           </section>
 
-          <section className="mt-6 rounded-2xl border border-border bg-elevated p-4 shadow-soft sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+          <section className="mt-6" data-testid="admin-funnel" aria-label="First-week funnel">
+            <div>
+              <h2 className="text-lg font-semibold text-fg">First-week funnel</h2>
+              <p className="mt-1 text-sm text-fg-secondary">
+                Signed up → Me natal → Today view → Move done. HKT windows, seed/dev excluded.
+                Later steps count if they happened after signup.
+              </p>
+            </div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {(
+                [
+                  { key: "7" as const, funnel: pulse?.funnel_7, title: "Last 7 days (HKT)" },
+                  { key: "30" as const, funnel: pulse?.funnel_30, title: "Last 30 days (HKT)" },
+                ]
+              ).map((col) => (
+                <div
+                  key={col.key}
+                  className="overflow-hidden rounded-2xl border border-border"
+                  data-testid={`admin-funnel-${col.key}`}
+                >
+                  <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
+                    {col.title}
+                  </div>
+                  <ol className="divide-y divide-border">
+                    {FUNNEL_STEP_ORDER.map((label, idx) => {
+                      const step = col.funnel?.steps?.find((s) => s.label === label);
+                      return (
+                        <li
+                          key={label}
+                          className="flex items-baseline justify-between gap-3 px-4 py-3"
+                          data-testid={`funnel-step-${label.toLowerCase().replace(/\s+/g, "-")}-${col.key}`}
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-fg">
+                              {idx + 1}. {label}
+                            </p>
+                            {idx > 0 ? (
+                              <p className="mt-0.5 text-xs text-fg-muted">
+                                Drop-off: {step?.dropoff ?? "—"}
+                              </p>
+                            ) : (
+                              <p className="mt-0.5 text-xs text-fg-muted">Cohort</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-semibold tabular-nums text-growth">
+                              {loadingPulse ? "—" : (step?.count ?? 0)}
+                            </p>
+                            <p className="text-xs text-fg-muted">
+                              {loadingPulse ? "—" : pct(step?.pct ?? null)}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section
+            className="mt-6 rounded-2xl border border-border bg-elevated p-4 shadow-soft sm:p-5"
+            data-testid="admin-plan-switch"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                   {t("admin.planEyebrow")}
                 </p>
-                <h2 className="text-lg font-semibold text-fg">{t("admin.planTitle")}</h2>
-                <p className="mt-1 text-sm text-fg-secondary">{t("admin.planHelp")}</p>
-                <p className="mt-2 text-sm text-fg">
+                <h2 className="text-base font-semibold text-fg">{t("admin.planTitle")}</h2>
+                <p className="mt-1 text-sm text-fg-secondary">
                   {t("admin.planCurrent", {
                     tier:
                       currentTier === "biohacker_pro" ? t("admin.planPro") : t("admin.planFree"),
@@ -570,11 +650,55 @@ export default function AdminPage() {
             )}
           </section>
 
+          {pulse && pulse.signups_last_24h.length > 0 && (
+            <div className="mt-4 rounded-xl border border-growth/30 bg-growth/10 px-4 py-3 text-sm text-fg">
+              <span className="font-medium text-growth">New in last 24h — </span>
+              {pulse.signups_last_24h.slice(0, 5).map((s, i) => (
+                <span key={`${s.user_id}-${s.created_at}`}>
+                  {i > 0 ? " · " : ""}
+                  {s.display_name || s.email || "Someone"} ({formatWhen(s.created_at)})
+                </span>
+              ))}
+            </div>
+          )}
+
+          <section className="mt-6 grid gap-3 sm:grid-cols-3" data-testid="admin-pulse">
+            <MetricCard
+              label="New today (HKT)"
+              value={pulse?.new_today_count ?? 0}
+              hint={
+                pulse && pulse.new_today.length
+                  ? pulse.new_today
+                      .slice(0, 3)
+                      .map((u) => u.display_name || u.email)
+                      .join(", ")
+                  : "No signups yet today"
+              }
+              loading={loadingPulse}
+            />
+            <MetricCard
+              label="New this week"
+              value={pulse?.new_this_week ?? 0}
+              hint={spark}
+              loading={loadingPulse}
+            />
+            <MetricCard
+              label="Total accounts"
+              value={pulse?.total_accounts ?? 0}
+              hint={
+                pulse
+                  ? `Excludes seed/dev (.local); ${pulse.total_accounts_including_seed} incl.`
+                  : undefined
+              }
+              loading={loadingPulse}
+            />
+          </section>
+
           <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-fg">Usage</h2>
               <p className="mt-1 text-sm text-fg-secondary">
-                Logins, charts, protocols, and page visits — UTC days.
+                Logins, charts, protocols, and page visits — HKT days.
               </p>
             </div>
             <div
@@ -618,7 +742,7 @@ export default function AdminPage() {
           {period === "day" && (
             <section className="mt-4 overflow-hidden rounded-2xl border border-border">
               <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
-                Last 14 days (UTC)
+                Last 14 days (HKT)
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
@@ -695,7 +819,7 @@ export default function AdminPage() {
           {period === "day" && (
             <section className="mt-4 overflow-hidden rounded-2xl border border-border">
               <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">
-                Page visits — last 14 days (UTC)
+                Page visits — last 14 days (HKT)
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
@@ -755,6 +879,7 @@ export default function AdminPage() {
                     { id: "chart_generated", label: "Chart" },
                     { id: "protocol_generated", label: "Protocol" },
                     { id: "page_view", label: "Pages" },
+                    { id: "literacy_event", label: "How to read" },
                   ].map((f) => (
                     <button
                       key={f.id || "all"}
@@ -774,7 +899,7 @@ export default function AdminPage() {
                   ))}
                 </div>
                 <label className="flex min-h-10 items-center gap-2 rounded-xl border border-border bg-elevated px-3 text-xs text-fg-secondary">
-                  Day (UTC)
+                  Day (HKT)
                   <input
                     type="date"
                     className="min-h-10 bg-transparent text-sm text-fg outline-none"
@@ -819,8 +944,15 @@ export default function AdminPage() {
                             {formatWhen(ev.created_at)}
                           </td>
                           <td className="px-3 py-2.5">
-                            <div className="font-medium text-fg">
-                              {ev.display_name || ev.username || "—"}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium text-fg">
+                                {ev.display_name || ev.username || "—"}
+                              </span>
+                              {ev.is_seed_or_dev ? (
+                                <span className="rounded-full bg-sunken px-2 py-0.5 text-[10px] uppercase tracking-wide text-fg-muted">
+                                  Seed/dev
+                                </span>
+                              ) : null}
                             </div>
                             <div className="text-xs text-fg-muted">{ev.email}</div>
                           </td>
@@ -872,7 +1004,7 @@ export default function AdminPage() {
             <div>
               <h2 className="text-lg font-semibold text-fg">Insights</h2>
               <p className="mt-1 text-sm text-fg-secondary">
-                Averages over active users in the period (unless noted).
+                Averages over active users in the period (unless noted). Windows are HKT calendar days, seed/dev excluded.
               </p>
             </div>
             <div
@@ -977,6 +1109,52 @@ export default function AdminPage() {
               ))}
             </div>
           </div>
+
+          <div className="mt-8" data-testid="admin-literacy-insights">
+            <h3 className="text-sm font-semibold text-fg">How to read</h3>
+            <p className="mt-1 text-sm text-fg-secondary">
+              New events only for the selected HKT window, seed/dev excluded. Not backfilled from localStorage.
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <MetricCard
+                label="Opens"
+                value={insights?.literacy?.opens ?? 0}
+                hint={`Last ${insightsPeriod} days (HKT)`}
+                loading={loadingInsights}
+              />
+              <MetricCard
+                label="Got it rate"
+                value={pct(insights?.literacy?.got_it_rate)}
+                hint={
+                  insights?.literacy
+                    ? `${insights.literacy.got_it} Got it of ${insights.literacy.opens} opens`
+                    : undefined
+                }
+                loading={loadingInsights}
+              />
+            </div>
+            <h4 className="mt-5 text-xs font-medium uppercase tracking-wide text-fg-muted">
+              Per-page split
+            </h4>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {(["today", "chart", "soul", "protocols"] as const).map((key) => {
+                const row = insights?.literacy?.by_variant?.[key];
+                return (
+                  <MetricCard
+                    key={key}
+                    label={LITERACY_VARIANT_LABELS[key]}
+                    value={row?.opens ?? 0}
+                    hint={
+                      loadingInsights
+                        ? undefined
+                        : `Opens · Got it rate ${pct(row?.got_it_rate)}`
+                    }
+                    loading={loadingInsights}
+                  />
+                );
+              })}
+            </div>
+          </div>
         </section>
       )}
 
@@ -989,19 +1167,36 @@ export default function AdminPage() {
                 Every account — click a row for detail. No passwords, birth data, or natal dumps.
               </p>
             </div>
-            <label className="flex min-h-10 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-elevated px-3 text-sm">
-              <span className="text-fg-muted">Search</span>
-              <input
-                type="search"
-                className="min-h-10 w-full bg-transparent text-fg outline-none"
-                placeholder="Name, email, username"
-                value={peopleQ}
-                onChange={(e) => {
-                  setPeopleOffset(0);
-                  setPeopleQ(e.target.value);
-                }}
-              />
-            </label>
+            <div className="flex w-full max-w-xl flex-wrap items-center justify-end gap-3">
+              <label
+                className="flex min-h-10 items-center gap-2 text-sm text-fg-secondary"
+                data-testid="people-include-seed"
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-growth"
+                  checked={includeSeed}
+                  onChange={(e) => {
+                    setPeopleOffset(0);
+                    setIncludeSeed(e.target.checked);
+                  }}
+                />
+                Include seed/dev
+              </label>
+              <label className="flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-elevated px-3 text-sm">
+                <span className="text-fg-muted">Search</span>
+                <input
+                  type="search"
+                  className="min-h-10 w-full bg-transparent text-fg outline-none"
+                  placeholder="Name, email, username"
+                  value={peopleQ}
+                  onChange={(e) => {
+                    setPeopleOffset(0);
+                    setPeopleQ(e.target.value);
+                  }}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
@@ -1044,8 +1239,18 @@ export default function AdminPage() {
                             onClick={() => setSelectedId(row.id)}
                           >
                             <td className="px-3 py-2.5">
-                              <div className="font-medium text-fg">
-                                {row.display_name || row.username || "—"}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium text-fg">
+                                  {row.display_name || row.username || "—"}
+                                </span>
+                                {row.is_seed_or_dev ? (
+                                  <span
+                                    data-testid="people-seed-badge"
+                                    className="rounded-full bg-sunken px-2 py-0.5 text-[10px] uppercase tracking-wide text-fg-muted"
+                                  >
+                                    Seed/dev
+                                  </span>
+                                ) : null}
                               </div>
                               <div className="text-xs text-fg-muted">{row.email}</div>
                             </td>
@@ -1118,6 +1323,11 @@ export default function AdminPage() {
                     <div>
                       <h3 className="text-base font-semibold text-fg">
                         {detail.display_name || detail.username || detail.email}
+                        {detail.is_seed_or_dev ? (
+                          <span className="ml-2 rounded-full bg-sunken px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-fg-muted">
+                            Seed/dev
+                          </span>
+                        ) : null}
                       </h3>
                       <p className="text-xs text-fg-muted">{detail.email}</p>
                       {detail.username ? (
@@ -1132,6 +1342,21 @@ export default function AdminPage() {
                     >
                       Close
                     </button>
+                  </div>
+
+                  <div data-testid="person-account-meta">
+                    <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
+                      Account
+                    </p>
+                    <ul className="mt-1 space-y-0.5 text-fg-secondary">
+                      <li data-testid="person-joined-date">Joined: {formatDay(detail.created_at)}</li>
+                      <li data-testid="person-auth-provider">
+                        Auth: {detail.auth_provider || "—"}
+                      </li>
+                      <li data-testid="person-seed-or-dev">
+                        Seed/dev: {detail.is_seed_or_dev ? "Yes" : "No"}
+                      </li>
+                    </ul>
                   </div>
 
                   <div>

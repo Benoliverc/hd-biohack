@@ -51,6 +51,7 @@ from ..usage import (
     list_admin_users,
     list_usage_events,
     overview_new_user_pulse,
+    record_literacy_event,
     record_page_view,
     record_usage_event,
     require_admin_user,
@@ -77,6 +78,7 @@ from ..schemas import (
     TransitResponse,
     UpcomingSkyResponse,
     PageViewIn,
+    LiteracyEventIn,
     UsageEventsPage,
     UsageStatsDay,
     UsageStatsMonth,
@@ -1241,13 +1243,33 @@ def usage_page_view(body: PageViewIn):
     return Response(status_code=204)
 
 
+@router.post("/usage/literacy", status_code=204)
+def usage_literacy(
+    body: LiteracyEventIn,
+    current: User | None = Depends(get_optional_user),
+):
+    """Authenticated best-effort How to read event. Always 204; never fails the caller."""
+    try:
+        if current is None:
+            return Response(status_code=204)
+        record_literacy_event(
+            user=current,
+            action=body.action,
+            variant=body.variant,
+            step_id=body.step_id,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+    return Response(status_code=204)
+
+
 @router.get("/admin/usage/events", response_model=UsageEventsPage)
 def admin_usage_events(
     actor_user_id: int = Query(..., description="Acting admin user id"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    day: str | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
-    event_type: str | None = Query(None, description="login|signup|chart_generated|protocol_generated|page_view"),
+    day: str | None = Query(None, description="HKT calendar day YYYY-MM-DD"),
+    event_type: str | None = Query(None, description="login|signup|chart_generated|protocol_generated|page_view|literacy_event"),
     db: Session = Depends(get_db),
 ):
     require_admin_user(db, actor_user_id)
@@ -1260,8 +1282,8 @@ def admin_usage_events(
 @router.get("/admin/usage/stats/daily", response_model=list[UsageStatsDay])
 def admin_usage_stats_daily(
     actor_user_id: int = Query(..., description="Acting admin user id"),
-    from_day: str | None = Query(None, alias="from", description="YYYY-MM-DD UTC"),
-    to_day: str | None = Query(None, alias="to", description="YYYY-MM-DD UTC"),
+    from_day: str | None = Query(None, alias="from", description="YYYY-MM-DD HKT"),
+    to_day: str | None = Query(None, alias="to", description="YYYY-MM-DD HKT"),
     db: Session = Depends(get_db),
 ):
     require_admin_user(db, actor_user_id)
@@ -1328,10 +1350,13 @@ def admin_users_list(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     sort: str = Query("joined_desc", description="joined_desc | last_login_desc"),
+    include_seed: bool = Query(True, description="Include seed/dev (.local) accounts"),
     db: Session = Depends(get_db),
 ):
     require_admin_user(db, actor_user_id)
-    total, items = list_admin_users(db, q=q, limit=limit, offset=offset, sort=sort)
+    total, items = list_admin_users(
+        db, q=q, limit=limit, offset=offset, sort=sort, include_seed=include_seed
+    )
     return {"total": total, "items": items}
 
 

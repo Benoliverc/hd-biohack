@@ -399,6 +399,7 @@ class UsageEventOut(BaseModel):
     event_type: str
     created_at: datetime
     metadata: dict[str, Any] = Field(default_factory=dict)
+    is_seed_or_dev: bool = False
 
 
 class UsageEventsPage(BaseModel):
@@ -422,6 +423,12 @@ class PageVisitsStats(BaseModel):
 class PageViewIn(BaseModel):
     path: str
     user_id: int | None = None
+
+
+class LiteracyEventIn(BaseModel):
+    action: str
+    variant: str
+    step_id: str | None = None
 
 
 class UsageStatsDay(BaseModel):
@@ -608,6 +615,42 @@ class AdminSignupBannerItem(BaseModel):
     source: str = "signup_event"
 
 
+class AdminFunnelStepOut(BaseModel):
+    key: str
+    label: str
+    count: int
+    dropoff: int | None = None
+    pct: float | None = None
+
+
+class AdminFunnelOut(BaseModel):
+    period_days: int
+    steps: list[AdminFunnelStepOut] = Field(default_factory=list)
+
+
+class AdminOverviewHealthOut(BaseModel):
+    unique_logins_today: int = 0
+    new_today: int = 0
+    today_active_users: int = 0
+    today_page_view_users: int = 0
+    today_engagement_pct: float | None = None
+
+
+class AdminLiteracyVariantOut(BaseModel):
+    opens: int = 0
+    got_it: int = 0
+    got_it_rate: float | None = None
+    jumps: int = 0
+
+
+class AdminLiteracyStatsOut(BaseModel):
+    opens: int = 0
+    got_it: int = 0
+    jumps: int = 0
+    got_it_rate: float | None = None
+    by_variant: dict[str, AdminLiteracyVariantOut] = Field(default_factory=dict)
+
+
 class AdminOverviewPulseOut(BaseModel):
     new_today_count: int
     new_today: list[AdminNewUserBrief]
@@ -617,6 +660,9 @@ class AdminOverviewPulseOut(BaseModel):
     total_accounts: int
     total_accounts_including_seed: int
     signups_last_24h: list[AdminSignupBannerItem]
+    health: AdminOverviewHealthOut = Field(default_factory=AdminOverviewHealthOut)
+    funnel_7: AdminFunnelOut | None = None
+    funnel_30: AdminFunnelOut | None = None
 
 
 class AdminInsightsOut(BaseModel):
@@ -633,6 +679,7 @@ class AdminInsightsOut(BaseModel):
     avg_protocols_per_active: float = 0.0
     return_d1_pct: float | None = None
     return_d7_pct: float | None = None
+    literacy: AdminLiteracyStatsOut = Field(default_factory=AdminLiteracyStatsOut)
 
 
 class AdminUserListItem(BaseModel):

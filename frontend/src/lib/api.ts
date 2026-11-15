@@ -328,7 +328,8 @@ export type UsageEventType =
   | "signup"
   | "chart_generated"
   | "protocol_generated"
-  | "page_view";
+  | "page_view"
+  | "literacy_event";
 
 export type PageVisitStat = {
   views: number;
@@ -352,6 +353,7 @@ export type UsageEvent = {
   event_type: UsageEventType | string;
   created_at: string;
   metadata: Record<string, unknown>;
+  is_seed_or_dev?: boolean;
 };
 
 export type UsageEventsPage = {
@@ -387,6 +389,42 @@ export type AdminSignupBannerItem = {
   source: string;
 };
 
+export type AdminFunnelStep = {
+  key: string;
+  label: string;
+  count: number;
+  dropoff: number | null;
+  pct: number | null;
+};
+
+export type AdminFunnel = {
+  period_days: number;
+  steps: AdminFunnelStep[];
+};
+
+export type AdminOverviewHealth = {
+  unique_logins_today: number;
+  new_today: number;
+  today_active_users: number;
+  today_page_view_users: number;
+  today_engagement_pct: number | null;
+};
+
+export type AdminLiteracyVariant = {
+  opens: number;
+  got_it: number;
+  got_it_rate: number | null;
+  jumps: number;
+};
+
+export type AdminLiteracyStats = {
+  opens: number;
+  got_it: number;
+  jumps: number;
+  got_it_rate: number | null;
+  by_variant: Record<string, AdminLiteracyVariant>;
+};
+
 export type AdminOverviewPulse = {
   new_today_count: number;
   new_today: AdminNewUserBrief[];
@@ -396,6 +434,9 @@ export type AdminOverviewPulse = {
   total_accounts: number;
   total_accounts_including_seed: number;
   signups_last_24h: AdminSignupBannerItem[];
+  health?: AdminOverviewHealth;
+  funnel_7?: AdminFunnel | null;
+  funnel_30?: AdminFunnel | null;
 };
 
 export type AdminInsights = {
@@ -412,6 +453,7 @@ export type AdminInsights = {
   avg_protocols_per_active: number;
   return_d1_pct: number | null;
   return_d7_pct: number | null;
+  literacy?: AdminLiteracyStats;
 };
 
 export type AdminUserListItem = {
@@ -775,6 +817,21 @@ export const api = {
       () => undefined
     );
   },
+  recordLiteracyEvent: (payload: {
+    action: "open" | "got_it" | "jump";
+    variant: "today" | "chart" | "soul" | "protocols";
+    step_id?: string;
+  }) => {
+    return fetch(`${API_BASE}/usage/literacy`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    }).then(
+      () => undefined,
+      () => undefined
+    );
+  },
   adminUsageEvents: (
     actorUserId: number,
     opts?: { limit?: number; offset?: number; day?: string; event_type?: string }
@@ -810,13 +867,20 @@ export const api = {
     ),
   adminUsers: (
     actorUserId: number,
-    opts?: { q?: string; limit?: number; offset?: number; sort?: string }
+    opts?: {
+      q?: string;
+      limit?: number;
+      offset?: number;
+      sort?: string;
+      include_seed?: boolean;
+    }
   ) => {
     const q = new URLSearchParams({ actor_user_id: String(actorUserId) });
     if (opts?.q) q.set("q", opts.q);
     if (opts?.limit != null) q.set("limit", String(opts.limit));
     if (opts?.offset != null) q.set("offset", String(opts.offset));
     if (opts?.sort) q.set("sort", opts.sort);
+    if (opts?.include_seed != null) q.set("include_seed", opts.include_seed ? "true" : "false");
     return req<AdminUsersPage>(`/admin/users?${q}`);
   },
   adminUserDetail: (actorUserId: number, userId: number) =>
