@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
 import { api, type TodayIndicationPayload, type UpcomingSkyPayload, type VsYesterdayDelta } from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
@@ -103,6 +103,8 @@ type Props = {
   onRetryInventory?: () => void;
   /** Open How to read Today, optionally at this literacy step id (pulse). */
   onHowToRead?: (stepId?: string, returnFocus?: HTMLElement | null) => void;
+  /** In-page How to read chip, mounted under the Move + Energy/Space hero. */
+  literacyCoach?: ReactNode;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -128,6 +130,7 @@ export default function TodayIndication({
   onAddToKit,
   onRetryInventory,
   onHowToRead,
+  literacyCoach,
 }: Props) {
   const { t, locale } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -950,6 +953,8 @@ export default function TodayIndication({
           </aside>
         </div>
       </div>
+
+      {literacyCoach}
 
       {protocolsUnlocked && !hasKitStackHandoff ? (
         <p className="mb-4">

@@ -78,9 +78,14 @@ export function Header() {
   const { t } = useI18n();
   const headerRef = useRef<HTMLElement>(null);
   const howToRead = useLiteracyHowToReadOptional();
+  const protocolsHowToUse = pathname === "/biohack";
   const literacyRoute =
-    pathname === "/profile" || pathname === "/soul" || pathname === "/transits";
+    pathname === "/profile" ||
+    pathname === "/soul" ||
+    pathname === "/transits" ||
+    protocolsHowToUse;
   const showHowToRead = Boolean(literacyRoute && howToRead?.available);
+  const literacyHeaderKey = protocolsHowToUse ? "nav.howToUse" : "nav.howToRead";
 
   // Badge follows effective entitlement (BETA_FULL_ACCESS → unlocked) and Preview as Free.
   const tierIsPro =
@@ -248,14 +253,14 @@ export function Header() {
                   }
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent px-2 py-2 text-xs font-medium text-fg hover:bg-sunken hover:text-growth-ink sm:px-3 sm:text-sm"
                 >
-                  {t("nav.howToRead")}
+                  {t(literacyHeaderKey)}
                 </button>
               ) : (
                 <span
                   className="pointer-events-none invisible inline-flex min-h-11 select-none items-center justify-center px-2 py-2 text-xs font-medium sm:px-3 sm:text-sm"
                   aria-hidden
                 >
-                  {t("nav.howToRead")}
+                  {t(literacyHeaderKey)}
                 </span>
               )}
             </div>

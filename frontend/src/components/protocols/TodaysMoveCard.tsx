@@ -72,7 +72,8 @@ export function TodaysMoveCard({
 
   return (
     <section
-      className={`space-y-4 rounded-2xl border border-border p-5 shadow-soft ${
+      id="todays-move"
+      className={`scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] space-y-4 rounded-2xl border border-border p-5 shadow-soft ${
         moveComplete && items.length > 0 ? "today-move-achieved" : "bg-elevated"
       }`}
       data-testid="todays-move"

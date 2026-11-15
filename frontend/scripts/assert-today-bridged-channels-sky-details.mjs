@@ -329,24 +329,23 @@ for (const loc of ["de", "es", "fr", "nl"]) {
   }
 }
 
-// --- How to read: append only, keep title/jump/body start ---
-const HOW_TO_APPEND = {
-  en: "Sky details names which end is yours, which planet completes it, and how long the wire lasts.",
-  de: "Himmelsdetails nennt, welches Ende dir gehört, welcher Planet es ergänzt, und wie lange der Draht dauert.",
-  es: "Detalles del cielo indica qué extremo es tuyo, qué planeta lo completa y cuánto dura el cable.",
-  fr: "Les détails du ciel indiquent quel bout est le tien, quelle planète le complète, et combien de temps le fil dure.",
-  nl: "Hemeldetails noemt welk einde van jou is, welke planeet het compleet maakt, en hoe lang de draad duurt.",
+// --- How to read Today: Sky details step (Move-first rewrite) ---
+const SKY_DETAILS_TITLES = {
+  en: "Sky details",
+  de: "Himmelsdetails",
+  es: "Detalles del cielo",
+  fr: "Détails du ciel",
+  nl: "Hemeldetails",
 };
-const EN_BODY_START =
-  "A channel is a full wire between two centers. You may already hold one end (a hanging gate).";
 for (const loc of ["en", "de", "es", "fr", "nl"]) {
   const src = soul[loc];
-  assert.match(src, /"today\.literacy\.bridged\.title"/, `${loc} keeps bridged title`);
-  assert.match(src, /"today\.literacy\.bridged\.jump"/, `${loc} keeps bridged jump`);
-  assert.ok(src.includes(HOW_TO_APPEND[loc]), `${loc} How to read body has the new sentence`);
+  assert.match(src, /"today\.literacy\.skyDetails\.title"/, `${loc} has Sky details title`);
+  assert.match(src, /"today\.literacy\.skyDetails\.jump"/, `${loc} has Sky details jump`);
+  assert.match(src, /"today\.literacy\.skyDetails\.body"/, `${loc} has Sky details body`);
+  assert.ok(src.includes(SKY_DETAILS_TITLES[loc]), `${loc} Sky details title is translated`);
   if (loc === "en") {
-    assert.ok(src.includes(EN_BODY_START), "English How to read body start is unchanged");
-    assert.ok(src.includes("borrowed circuitry"), "existing English body remains");
+    assert.ok(src.includes("temporary bridges (borrowed channels the sky completes)"), "English Sky details body still teaches bridges");
+    assert.ok(src.includes("It is not a second protocol."), "English Sky details body stays locked");
   }
 }
 

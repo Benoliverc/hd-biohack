@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, ChevronDown, Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
+import LiteracyCoach from "@/components/LiteracyCoach";
 import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
 import { useI18n, type MessageKey } from "@/lib/i18n";
@@ -783,6 +784,28 @@ export default function BiohackPage() {
     [user, youChart, dayKey, checkItems, refreshWeek, syncCompletionToServer]
   );
 
+  const jumpToProtocolsSection = useCallback((targetId: string) => {
+    if (targetId === "shelf" || targetId === "shelf-disclosure") {
+      setShelfOpen(true);
+      if (shelfRef.current && !shelfRef.current.open) {
+        shelfRef.current.open = true;
+      }
+      requestAnimationFrame(() => {
+        const el = document.getElementById("shelf") ?? shelfRef.current;
+        if (!el) return;
+        const url = `${window.location.pathname}${window.location.search}#shelf`;
+        window.history.replaceState(window.history.state, "", url);
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+      });
+      return;
+    }
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const url = `${window.location.pathname}${window.location.search}#${targetId}`;
+    window.history.replaceState(window.history.state, "", url);
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+  }, []);
+
   const unlockedBody = (
     <div className="space-y-4">
       {kitStatus && (
@@ -874,6 +897,10 @@ export default function BiohackPage() {
           highlightTodayKitPick={highlightTodayKitPick}
         />
       )}
+
+      {protocol && daily ? (
+        <LiteracyCoach variant="protocols" onJump={jumpToProtocolsSection} />
+      ) : null}
 
       {(protocol || youChart) && (
         <details
@@ -1349,7 +1376,8 @@ function NatalBaselineCard({
   const natalCountCaption = natalCountParts.length > 0 ? natalCountParts.join(" · ") : null;
   return (
     <div
-      className="rounded-2xl border border-growth/40 bg-growth-soft/40"
+      id="natal-baseline-card"
+      className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-growth/40 bg-growth-soft/40"
       data-testid="natal-baseline-card"
     >
       <button

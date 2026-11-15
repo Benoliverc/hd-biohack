@@ -257,11 +257,13 @@ for (const loc of ["de", "es", "fr", "nl"]) {
   }
 }
 
-// How to read's three Today study-layer steps and ids stay put
-const hdCopy = read("src/lib/hdCopy.ts");
-for (const id of ["today-sun-earth", "today-bridged-channels", "today-newly-defined"]) {
-  assert.match(hdCopy, new RegExp(`id: "${id}"`), `How to read keeps step ${id}`);
-  assert.match(hdCopy, new RegExp(`targetId: "${id}"`), `How to read keeps jump target ${id}`);
-}
+// How to read Today is three Move-first steps
+const todayCopy = read("src/lib/todayCopy.ts");
+assert.match(todayCopy, /id: "today-move"/, "How to read starts at The Move");
+assert.match(todayCopy, /targetId: "main-action"/, "The Move jumps to the hero");
+assert.match(todayCopy, /id: "today-energy-space"/, "How to read has Energy and Space");
+assert.match(todayCopy, /targetId: "main-action-status"/, "Energy and Space jump to the chips");
+assert.match(todayCopy, /id: "today-sky-details"/, "How to read has Sky details");
+assert.match(todayCopy, /targetId: "today-sky-details"/, "Sky details jumps to the disclosure");
 
 console.log("assert-today-wow-first-pass: ok");

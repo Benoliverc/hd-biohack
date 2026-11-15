@@ -13,20 +13,23 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import {
-  CHART_LITERACY_STEPS,
+  CHART_LITERACY_I18N,
   LITERACY_STORAGE_KEYS,
-  SOUL_LITERACY_STEPS,
+  PROTOCOLS_LITERACY_I18N,
+  SOUL_LITERACY_I18N,
   type LiteracyJumpMeta,
   type LiteracyStep,
+  type LiteracyStepI18n,
 } from "@/lib/hdCopy";
 import { useI18n } from "@/lib/i18n";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { TODAY_LITERACY_I18N } from "@/lib/todayCopy";
 import {
   useLiteracyHowToReadOptional,
   type LiteracyHowToReadOpenOpts,
 } from "@/components/LiteracyHowToReadContext";
 
-export type LiteracyCoachVariant = "chart" | "soul" | "today";
+export type LiteracyCoachVariant = "chart" | "soul" | "today" | "protocols";
 
 type Props = {
   variant: LiteracyCoachVariant;
@@ -108,6 +111,7 @@ function LiteracyReaderOverlay({
   const articleRef = useRef<HTMLDivElement>(null);
   const [chromeH, setChromeH] = useState(96);
   const portalTarget = useLiteracyPortal();
+  const { t } = useI18n();
 
   useLayoutEffect(() => {
     const el = chromeRef.current;
@@ -186,14 +190,14 @@ function LiteracyReaderOverlay({
               className="mt-1 type-caption text-fg"
               data-testid={`${testId}-sections-count`}
             >
-              {steps.length} sections
+              {t("literacy.chrome.sections", { n: steps.length })}
             </p>
           </div>
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("literacy.chrome.close")}
             data-testid={`${testId}-close`}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border text-fg transition hover:bg-sunken"
           >
@@ -245,7 +249,7 @@ function LiteracyReaderOverlay({
                 data-testid={`${testId}-jump-${step.id}`}
                 className="mt-4 inline-flex min-h-10 items-center rounded-full border border-border bg-elevated px-3 py-2 text-xs font-medium text-fg transition hover:border-growth/40 hover:text-growth-ink"
               >
-                Jump · {step.jumpLabel}
+                {t("literacy.chrome.jump", { label: step.jumpLabel })}
               </button>
             </section>
           ))}
@@ -257,7 +261,7 @@ function LiteracyReaderOverlay({
               data-testid={`${testId}-dismiss`}
               className="inline-flex min-h-10 items-center rounded-lg bg-growth px-3 py-2 text-xs font-semibold text-fg-inverse transition hover:bg-growth-deep"
             >
-              Got it
+              {t("literacy.chrome.gotIt")}
             </button>
           </div>
         </article>
@@ -289,36 +293,42 @@ function useLiteracyPortal(): HTMLElement | null {
 export default function LiteracyCoach({ variant, onJump }: Props) {
   const { t } = useI18n();
   const storageKey = LITERACY_STORAGE_KEYS[variant];
-  const steps: LiteracyStep[] =
-    variant === "chart"
-      ? CHART_LITERACY_STEPS
-      : variant === "soul"
-        ? SOUL_LITERACY_STEPS
-        : TODAY_LITERACY_I18N.map((step) => ({
-            id: step.id,
-            title: t(step.titleKey),
-            body: t(step.bodyKey),
-            jumpLabel: t(step.jumpKey),
-            targetId: step.targetId,
-          }));
+  const banks: Record<LiteracyCoachVariant, readonly LiteracyStepI18n[]> = {
+    chart: CHART_LITERACY_I18N,
+    soul: SOUL_LITERACY_I18N,
+    today: TODAY_LITERACY_I18N,
+    protocols: PROTOCOLS_LITERACY_I18N,
+  };
+  const steps: LiteracyStep[] = banks[variant].map((step) => ({
+    id: step.id,
+    title: t(step.titleKey),
+    body: t(step.bodyKey),
+    jumpLabel: t(step.jumpKey),
+    targetId: step.targetId,
+    deepDiveTab: step.deepDiveTab,
+  }));
   const testId =
     variant === "chart"
       ? "chart-literacy-coach"
       : variant === "soul"
         ? "soul-literacy-coach"
-        : "today-literacy-coach";
-  const title =
-    variant === "chart"
-      ? "How to read your chart"
-      : variant === "soul"
-        ? "How to read Soul"
-        : t("today.literacy.howToReadTitle");
-  const reopenLabel =
-    variant === "chart"
-      ? "How to read"
-      : variant === "soul"
-        ? "How to read Soul"
-        : "How to read";
+        : variant === "protocols"
+          ? "protocols-literacy-coach"
+          : "today-literacy-coach";
+  const titleKeys: Record<LiteracyCoachVariant, MessageKey> = {
+    chart: "chart.literacy.howToReadTitle",
+    soul: "soul.literacy.howToReadTitle",
+    today: "today.literacy.howToReadTitle",
+    protocols: "protocols.literacy.howToUseTitle",
+  };
+  const reopenKeys: Record<LiteracyCoachVariant, MessageKey> = {
+    chart: "nav.howToRead",
+    soul: "nav.howToRead",
+    today: "nav.howToRead",
+    protocols: "nav.howToUse",
+  };
+  const title = t(titleKeys[variant]);
+  const reopenLabel = t(reopenKeys[variant]);
 
   const titleDomId = useId();
   const pathname = usePathname();

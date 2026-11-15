@@ -2,6 +2,7 @@
 
 import { PROFILE_COMBO_ESSAYS } from "./hdProfileCombos";
 import { CHANNEL_COPY as CHANNEL_COPY_DATA } from "./hdChannelCopy";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export const CENTER_ORDER = [
   "Head",
@@ -420,145 +421,130 @@ export const LITERACY_STORAGE_KEYS = {
   chart: "baseline.literacy.chart.v1",
   soul: "baseline.literacy.soul.v1",
   today: "baseline.literacy.today.v1",
+  protocols: "baseline.literacy.protocols.v1",
 } as const;
 
-export const CHART_LITERACY_STEPS: LiteracyStep[] = [
+export type LiteracyStepI18n = {
+  id: string;
+  titleKey: MessageKey;
+  bodyKey: MessageKey;
+  jumpKey: MessageKey;
+  targetId: string;
+  deepDiveTab?: LiteracyDeepDiveTab;
+};
+
+export const CHART_LITERACY_I18N: LiteracyStepI18n[] = [
   {
     id: "defined-open",
-    title: "Defined vs Open centers",
-    body:
-      "Colored shapes are Defined — always-on for you. Pale shapes are Open — you pick up the room there and can tire if you stay plugged in too long.",
-    jumpLabel: "Bodygraph",
+    titleKey: "chart.literacy.definedOpen.title",
+    bodyKey: "chart.literacy.definedOpen.body",
+    jumpKey: "chart.literacy.definedOpen.jump",
     targetId: "bodygraph",
   },
   {
     id: "channels-hanging",
-    title: "Channels & hanging gates",
-    body:
-      "A channel is a full wire: both ends of a path between two centers are lit, so that theme runs reliably in you. A hanging gate means you hold one end of a wire. Certain people (or certain days) can feel magnetic because they bring the other end.",
-    jumpLabel: "Bodygraph",
+    titleKey: "chart.literacy.channelsHanging.title",
+    bodyKey: "chart.literacy.channelsHanging.body",
+    jumpKey: "chart.literacy.channelsHanging.jump",
     targetId: "bodygraph",
   },
   {
     id: "conscious-somatic",
-    title: "Conscious · Somatic · Integrated",
-    body:
-      "The legend under your Bodygraph splits how each activation shows up. Darker chips are Conscious — what your mind notices and can talk about (Personality). Warmer chips are Somatic — what your body knows before words (Design). A ringed or dual mark means Integrated: both stories light the same place. You don't need to memorize jargon; just match the colors to the legend.",
-    jumpLabel: "Legend",
+    titleKey: "chart.literacy.legend.title",
+    bodyKey: "chart.literacy.legend.body",
+    jumpKey: "chart.literacy.legend.jump",
     targetId: "bodygraph-legend",
   },
   {
     id: "type-strategy-authority",
-    title: "Type → Strategy → Authority",
-    body:
-      "These three are your operating loop. Type is the kind of energy engine you run (how you move through a day). Strategy is the low-friction way life tends to invite you — following it usually means less push-and-resist. Authority is your body's yes: the quiet signal that a choice is right for you, before the mind stacks pros and cons. Snapshot puts all three in one place.",
-    jumpLabel: "Snapshot",
+    titleKey: "chart.literacy.typeStrategy.title",
+    bodyKey: "chart.literacy.typeStrategy.body",
+    jumpKey: "chart.literacy.typeStrategy.jump",
     targetId: "snapshot",
   },
   {
     id: "centers-to-watch",
-    title: "Centers to watch",
-    body:
-      "Open centers are where other people and places can pull your baseline off-center first. Snapshot lists the ones that matter most for you so you can notice the pull early instead of fighting symptoms later. Treat them as early-warning dials, not flaws.",
-    jumpLabel: "Centers to watch",
+    titleKey: "chart.literacy.centersWatch.title",
+    bodyKey: "chart.literacy.centersWatch.body",
+    jumpKey: "chart.literacy.centersWatch.jump",
     targetId: "snapshot-centers",
   },
   {
     id: "deep-dive",
-    title: "Deep dive when you want more",
-    body:
-      "When the summary isn't enough, Deep dive opens the same map in finer grain: Core, Centers, Channels, and Planets. Same language as above — just the exact gates and lines under your Snapshot. Open it when you're curious; skip it when you only need the headline.",
-    jumpLabel: "Deep dive",
+    titleKey: "chart.literacy.deepDive.title",
+    bodyKey: "chart.literacy.deepDive.body",
+    jumpKey: "chart.literacy.deepDive.jump",
     targetId: "deep-dive",
     deepDiveTab: "core",
   },
 ];
 
-
 /** Order: Signature first, then Partner-gated Love, then Spectrums → Somatic → Power → Spark. */
-export const SOUL_LITERACY_STEPS: LiteracyStep[] = [
+export const SOUL_LITERACY_I18N: LiteracyStepI18n[] = [
   {
     id: "signature-not-score",
-    title: "Aura Signature first",
-    body:
-      "The big label at the top describes how your two charts tend to lock together — the shape of the bond. It is not a grade, not a dating score, and not 'how good' you are for each other. Secondary badges only appear when something rare lights up; start with the Signature as the shape of the relationship, not a rating.",
-    jumpLabel: "Signature",
+    titleKey: "soul.literacy.signature.title",
+    bodyKey: "soul.literacy.signature.body",
+    jumpKey: "soul.literacy.signature.jump",
     targetId: "soul-hero",
   },
   {
     id: "love-is-partner-only",
-    title: "Love guidance is Partner-only",
-    body:
-      "Signature, the playbook, and the chapters below are how your two charts meet, for any person you saved. Love guidance is a separate chapter. It only appears when you mark this person as Partner, and it doesn’t score the bond.",
-    jumpLabel: "Partner",
+    titleKey: "soul.literacy.love.title",
+    bodyKey: "soul.literacy.love.body",
+    jumpKey: "soul.literacy.love.jump",
     targetId: "soul-pickers",
   },
   {
     id: "spectrums-not-fit",
-    title: "Pace · steadiness · intensity",
-    body:
-      "The three bars map relative intensity (how much you stir in each other), steadiness (how continuous the shared field feels), and pace (how fast or slow you prefer to move together). High intensity can mean high energy that needs clear protocols — it is not a bad match. Read them as rhythm dials, never as a fit percentage.",
-    jumpLabel: "Spectrums",
+    titleKey: "soul.literacy.spectrums.title",
+    bodyKey: "soul.literacy.spectrums.body",
+    jumpKey: "soul.literacy.spectrums.jump",
     targetId: "soul-spectrums",
   },
   {
     id: "wire-somatic",
-    title: "Body-first playbook + how you wire",
-    body:
-      "The playbook is body-first: simple co-regulation moves for this pair. How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label. There is one playbook — not a work, life, or play switch.",
-    jumpLabel: "Body-first playbook",
+    titleKey: "soul.literacy.playbook.title",
+    bodyKey: "soul.literacy.playbook.body",
+    jumpKey: "soul.literacy.playbook.jump",
     targetId: "soul-card-somatic_playbook",
   },
   {
     id: "power-dynamics",
-    title: "Power Dynamics to Tune",
-    body:
-      "Sometimes one of you holds the full theme; the other holds only half. That can feel like fighting over the thermostat — same room, different set points. Each card below names who holds the fuller set point for that theme and gives a plain what-to-do. These are high-awareness zones to tune together; they are not a verdict that one person is 'in charge.'",
-    jumpLabel: "Power Dynamics",
+    titleKey: "soul.literacy.power.title",
+    bodyKey: "soul.literacy.power.body",
+    jumpKey: "soul.literacy.power.jump",
     targetId: "soul-card-power_dynamics",
   },
   {
     id: "spark-bedrock-dominance",
-    title: "Spark, Bedrock, Dominance",
-    body:
-      "In Spark & Glue, three everyday patterns show up. Spark is ignition when you meet — each of you holds one half of a wire. Bedrock is shared themes you both already hold — a baseline you can lean on without drama. Dominance is when one person fully holds a theme the other doesn't — a steady gift to borrow from, not a power trip. Role names live in Learn more.",
-    jumpLabel: "Spark & Glue",
+    titleKey: "soul.literacy.spark.title",
+    bodyKey: "soul.literacy.spark.body",
+    jumpKey: "soul.literacy.spark.jump",
     targetId: "soul-card-spark_glue",
   },
 ];
 
-/** Order matches Today DOM after Move: new signal → Sun/Earth → bridged channels → newly defined. */
-export const TODAY_LITERACY_STEPS: LiteracyStep[] = [
+export const PROTOCOLS_LITERACY_I18N: LiteracyStepI18n[] = [
   {
-    id: "today-new-signal",
-    title: "Today's new signal",
-    body:
-      "The line under the Move is the one change in the sky compared with yesterday — a first glance, not a second to-do. Baseline picks it in a fixed order: the Moon moving into a new gate or line, then a shift in the Sun's line or gate, then new pressure on a hanging gate you already carry, then a change in today's bridges or temporary centers. If none of those moved, you will see a quieter continuity note — another day of the same theme, not a new assignment.\n\nThe block below, Today's new signal, is where the terms and the day's cue live: the planet, gate, and line, and a short observation of what the day is colored by. The Move above is still the one thing to do with that weather. A Moon or Sun shift colors the day or week the Move sits inside. A conditioning update usually lines up with the bridges and temporary centers in Sky details, which also shape your Energy, Space, and the Move itself.",
-    jumpLabel: "Today's new signal",
-    targetId: "today-new-signal",
+    id: "protocols-todays-move",
+    titleKey: "protocols.literacy.todaysMove.title",
+    bodyKey: "protocols.literacy.todaysMove.body",
+    jumpKey: "protocols.literacy.todaysMove.jump",
+    targetId: "todays-move",
   },
   {
-    id: "today-sun-earth",
-    title: "Sun / Earth theme",
-    body:
-      "The Sun and Earth are always opposite each other in the sky. The Sun gate is the week's broader theme — what life is highlighting — and the Earth gate is the ground under it, the balancing place to stand. This pair moves slowly (the Sun stays in one gate for about six days), so it is a chapter, not an hourly weather report.\n\nThe Move is daily and practical. Sun / Earth is the longer background that Move belongs to. You do not need to act on the gate numbers separately, and they are not a second protocol. If you want a reason the week feels like it has a flavor, look here; if you want what to do today, stay with the Move.",
-    jumpLabel: "Sun / Earth",
-    targetId: "today-sun-earth",
+    id: "protocols-shelf-intention",
+    titleKey: "protocols.literacy.shelfIntention.title",
+    bodyKey: "protocols.literacy.shelfIntention.body",
+    jumpKey: "protocols.literacy.shelfIntention.jump",
+    targetId: "shelf",
   },
   {
-    id: "today-bridged-channels",
-    title: "Bridged channels (conditioning)",
-    body:
-      "A channel is a full wire between two centers. You may already hold one end (a hanging gate). Today's sky can bring the other end — or both ends — and temporarily complete a channel that is not part of your natal chart. That completed wire is a bridge. It is called conditioning because it is borrowed circuitry: it can feel vivid and magnetic, and it is not a permanent change to your Type or Strategy.\n\nBridges are one of the main inputs to today's Energy and Space, and therefore to the Move. A motor bridge can leave you feeling more charged than usual; a mind or identity bridge can pull you toward focus or a change of place. The Move often translates that as \"treat the energy as borrowed\" or \"one yes, then pause.\" Notice who or what feels suddenly complete today — that chemistry is often the other half of the wire, not a life verdict.",
-    jumpLabel: "Bridged channels",
-    targetId: "today-bridged-channels",
-  },
-  {
-    id: "today-newly-defined",
-    title: "Newly defined centers today",
-    body:
-      "Your natal chart has defined centers (steady, always-on) and open ones (where you sample life). When today's sky completes enough channels to light an open center, that center shows up here as temporarily defined. It can feel like unusual pressure, fuel, emotion, or willpower that was not yours yesterday. It is a weather event, not a new personality.\n\nThese temporary centers are one of the strongest reasons the Move reads the way it does. A borrowed Sacral or Heart can raise Energy and produce a \"use the charge once, then stop\" Move — it does not make you a Generator. Fresh mind centers (Head or Ajna) often ask for a quieter focus corner. If this list is empty, the sky is not lighting new centers today, and the Move leans more on your usual Type strategy. Do not over-identify with a center that will fade when the transit moves on.",
-    jumpLabel: "Newly defined centers",
-    targetId: "today-newly-defined",
+    id: "protocols-natal-week",
+    titleKey: "protocols.literacy.natalWeek.title",
+    bodyKey: "protocols.literacy.natalWeek.body",
+    jumpKey: "protocols.literacy.natalWeek.jump",
+    targetId: "natal-baseline-card",
   },
 ];
