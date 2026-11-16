@@ -209,7 +209,7 @@ assert.ok(
 );
 assert.ok(page.includes("function truncateLoveTease"), "Love tease helper");
 assert.ok(
-  page.includes("truncateLoveTease(result.partner_overview?.hook)"),
+  page.includes("truncateLoveTease(sc(result.partner_overview?.hook_part, result.partner_overview?.hook || \"\"))"),
   "Love chapter uses the mid-word-safe tease",
 );
 const loveFnStart = page.indexOf("function truncateLoveTease");

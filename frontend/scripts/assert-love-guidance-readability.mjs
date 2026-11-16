@@ -103,11 +103,11 @@ assert.ok(
 // Mid-word-safe Love tease (do not use the playbook mid-word slice for Love)
 assert.ok(page.includes("function truncateLoveTease"), "Love tease helper");
 assert.ok(
-  page.includes("truncateLoveTease(result.partner_overview?.hook)"),
+  page.includes("truncateLoveTease(sc(result.partner_overview?.hook_part, result.partner_overview?.hook || \"\"))"),
   "Love chapter uses the mid-word-safe tease",
 );
 assert.ok(
-  page.includes("truncateTease(result.playbook?.lede)"),
+  page.includes("truncateTease(sc(result.playbook?.lede_part, result.playbook?.lede || \"\"))"),
   "playbook still uses the existing tease helper",
 );
 const loveFnStart = page.indexOf("function truncateLoveTease");
