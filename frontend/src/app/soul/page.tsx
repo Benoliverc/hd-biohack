@@ -184,6 +184,7 @@ function CompletedChannelsList({
   channelRoles: Record<string, Array<Record<string, unknown>>>;
   showPartnerNuance: boolean;
 }) {
+  const { t } = useI18n();
   const em = channelRoles.electromagnetic || [];
   const comp = channelRoles.companionship || [];
   if (!em.length && !comp.length) return null;
@@ -194,11 +195,10 @@ function CompletedChannelsList({
       data-testid="soul-completed-channels"
     >
       <h2 className="mb-1 type-caption font-semibold uppercase tracking-wide text-fg-secondary">
-        Completed channels
+        {t("soul.chrome.completedChannels")}
       </h2>
       <p className="mb-3 type-caption text-fg-secondary">
-        Where you spark and where you share a baseline — base mechanics stay
-        the same; partner notes appear only when Person is marked Partner.
+        {t("soul.chrome.completedChannelsHelp")}
       </p>
       <ul className="space-y-3">
         {em.map((ch, i) => {
@@ -584,7 +584,7 @@ function SoulUnlockedContent() {
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-loading"
         >
-          <p className="type-body text-fg-secondary">Loading saved charts…</p>
+          <p className="type-body text-fg-secondary">{t("soul.chrome.loadingCharts")}</p>
         </div>
       ) : chartsError ? (
         <p className="text-sm text-danger" data-testid="soul-charts-error">
@@ -596,14 +596,14 @@ function SoulUnlockedContent() {
           data-testid="soul-empty-me"
         >
           <p className="mb-3 type-body text-fg-secondary">
-            Soul needs your Me chart first — save your own natal on Chart, then pick a person.
+            {t("soul.chrome.needsMe")}
           </p>
           <Link
             href="/profile"
             className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30"
             data-testid="soul-cta-me"
           >
-            Open Chart to save Me
+            {t("soul.chrome.openChartSaveMe")}
           </Link>
         </div>
       ) : !enoughPeople ? (
@@ -612,10 +612,10 @@ function SoulUnlockedContent() {
           data-testid="soul-empty"
         >
           <p className="mb-1 type-body text-fg-secondary">
-            Add someone to explore the aura between both of you.
+            {t("soul.chrome.emptyAddLead")}
           </p>
           <p className="mb-3 type-caption text-fg-secondary">
-            Save their natal on Chart — Soul uses it as the other half of the pair.
+            {t("soul.chrome.emptyAddBody")}
           </p>
           <Link
             href="/profile"
@@ -623,7 +623,7 @@ function SoulUnlockedContent() {
             className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30"
             data-testid="soul-cta-chart"
           >
-            Add a person on Chart
+            {t("soul.chrome.addPersonOnChart")}
           </Link>
         </div>
       ) : (
@@ -638,30 +638,30 @@ function SoulUnlockedContent() {
             data-testid="soul-pickers"
           >
             <div className="flex min-w-0 flex-1 flex-col gap-1 type-caption text-fg-secondary">
-              You
+              {t("soul.chrome.youLabel")}
               <div
                 className="flex min-h-11 items-center rounded-lg border border-border bg-sunken/60 px-3 text-sm text-fg"
                 data-testid="soul-self-select"
                 aria-readonly="true"
-                title="You is locked to your Me chart"
+                title={t("soul.chrome.youLocked")}
               >
                 <span className="truncate font-medium">
-                  {meRow ? chartOptionLabel(meRow, "Me") : "Me"}
+                  {meRow ? chartOptionLabel(meRow, t("common.me")) : t("common.me")}
                 </span>
                 <span className="type-chip ml-2 shrink-0 rounded-full border border-growth/40 bg-growth/15 px-2 py-0.5 uppercase tracking-wide text-growth">
-                  Me
+                  {t("common.me")}
                 </span>
               </div>
             </div>
             <label className="flex min-w-0 flex-1 flex-col gap-1 type-caption text-fg-secondary">
               <span className="flex flex-wrap items-center gap-2">
-                {isPartnerSelected ? "Partner" : "Person"}
+                {isPartnerSelected ? t("soul.chrome.partnerLabel") : t("soul.chrome.personLabel")}
                 {isPartnerSelected ? (
                   <span
                     className="type-chip inline-flex items-center rounded-full border border-energy/25 bg-energy/5 px-2 py-0.5 tracking-wide text-energy-ink"
                     data-testid="soul-love-guidance-chip"
                   >
-                    Partner · Love guidance
+                    {t("soul.chrome.partnerLoveChip")}
                   </span>
                 ) : null}
                 <Link
@@ -669,7 +669,7 @@ function SoulUnlockedContent() {
                   className="ml-auto text-xs font-medium text-growth underline-offset-2 hover:underline"
                   data-testid="soul-add-person"
                 >
-                  Add person
+                  {t("soul.chrome.addPerson")}
                 </Link>
               </span>
               <select
@@ -698,16 +698,14 @@ function SoulUnlockedContent() {
                 className="type-caption text-fg-secondary"
                 data-testid="soul-love-guidance-reason"
               >
-                Love guidance is on because you marked{" "}
-                <span className="font-medium text-fg-secondary">
-                  {partnerFirstNameFromLabel(selectedFriend?.label) || "them"}
-                </span>{" "}
-                as Partner.{" "}
+                {t("soul.chrome.loveGuidanceOn", {
+                  name: partnerFirstNameFromLabel(selectedFriend?.label) || t("soul.chrome.them"),
+                })}{" "}
                 <Link
                   href="/profile"
                   className="font-medium text-growth underline-offset-2 hover:underline"
                 >
-                  Open Chart
+                  {t("page.today.openChart")}
                 </Link>
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -718,7 +716,7 @@ function SoulUnlockedContent() {
                   className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
                   data-testid="soul-remove-as-partner"
                 >
-                  {removingPartner ? "Removing…" : "Remove as Partner"}
+                  {removingPartner ? t("soul.chrome.removing") : t("soul.chrome.removePartner")}
                 </button>
               </div>
               {removePartnerError ? (
@@ -750,13 +748,13 @@ function SoulUnlockedContent() {
                   className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
                   data-testid="soul-mark-as-partner"
                 >
-                  {markingPartner ? "Marking…" : "Mark as Partner"}
+                  {markingPartner ? t("soul.chrome.marking") : t("soul.chrome.markPartner")}
                 </button>
                 <Link
                   href="/profile"
                   className="text-sm font-medium text-growth underline-offset-2 hover:underline"
                 >
-                  Open Chart
+                  {t("page.today.openChart")}
                 </Link>
               </div>
               {markPartnerError ? (
@@ -777,9 +775,7 @@ function SoulUnlockedContent() {
               data-testid="soul-api-missing"
             >
               <p className="type-body text-fg-secondary">
-                {schemaLag
-                  ? "Soul API is on an older schema. Redeploy with Aura Alchemy, then refresh."
-                  : "Soul sync needs an API update. The page is ready; production API may still be on an older build (Railway deploy pause). Locally, restart the backend on this branch."}
+                {t("soul.chrome.staleApi")}
               </p>
             </div>
           )}
@@ -795,7 +791,7 @@ function SoulUnlockedContent() {
               className="rounded-2xl border border-border bg-elevated p-5"
               data-testid="soul-sync-loading"
             >
-              <p className="type-meta">Reading how your charts meet…</p>
+              <p className="type-meta">{t("soul.chrome.readingMeet")}</p>
             </div>
           )}
 
@@ -807,7 +803,7 @@ function SoulUnlockedContent() {
                   data-testid="soul-partner-overview-missing"
                 >
                   <p className="type-body text-fg-secondary">
-                    Partner is on; love chapters need a sync refresh.
+                    {t("soul.chrome.partnerOnNeedsSync")}
                   </p>
                 </div>
               ) : null}
@@ -815,16 +811,16 @@ function SoulUnlockedContent() {
               {(() => {
                 const isPartner = result.friend?.role === "partner";
                 const partnerCopy = isPartner
-                  ? partnerSignatureForId(result.signature?.id)
+                  ? partnerSignatureForId(result.signature?.id, t)
                   : null;
                 const friendCopy = !isPartner
-                  ? friendSignatureForId(result.signature?.id)
+                  ? friendSignatureForId(result.signature?.id, t)
                   : null;
                 const secondaryPartner = isPartner
-                  ? partnerSignatureForId(result.secondary_signature?.id)
+                  ? partnerSignatureForId(result.secondary_signature?.id, t)
                   : null;
                 const secondaryFriend = !isPartner
-                  ? friendSignatureForId(result.secondary_signature?.id)
+                  ? friendSignatureForId(result.secondary_signature?.id, t)
                   : null;
                 return (
               <div
@@ -835,7 +831,7 @@ function SoulUnlockedContent() {
                 {partnerCopy ? (
                   <>
                     <p className="type-caption uppercase tracking-wide text-fg-secondary">
-                      Between you
+                      {t("soul.chrome.betweenYou")}
                     </p>
                     <div
                       className="mt-1.5 h-px w-12 bg-energy/50"
@@ -857,7 +853,7 @@ function SoulUnlockedContent() {
                           data-testid="soul-signature-tier"
                           className="type-chip rounded-full border border-energy/35 bg-energy/5 px-2.5 py-0.5 uppercase tracking-wide text-energy-ink"
                         >
-                          {partnerCopy.chip || "Strong pull"}
+                          {partnerCopy.chip || t("soul.sig.magnetic_alchemy.chip")}
                         </span>
                       )}
                     </div>
@@ -872,14 +868,14 @@ function SoulUnlockedContent() {
                     </p>
                     <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
                       <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        Why it feels this way
+                        {t("soul.chrome.whyItFeels")}
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{partnerCopy.why}</p>
                     </details>
                   </>
                 ) : friendCopy ? (
                   <>
-                    <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
+                    <p className="type-caption uppercase tracking-wide text-fg-secondary">{t("soul.chrome.auraSignature")}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <h2
                         className="text-3xl font-bold text-growth"
@@ -896,7 +892,7 @@ function SoulUnlockedContent() {
                           data-testid="soul-signature-tier"
                           className="type-chip rounded-full border border-growth/50 bg-growth/20 px-2.5 py-0.5 uppercase tracking-wide text-growth"
                         >
-                          {friendCopy.chip || "Strong pull"}
+                          {friendCopy.chip || t("soul.sig.magnetic_alchemy.chip")}
                         </span>
                       )}
                     </div>
@@ -905,14 +901,14 @@ function SoulUnlockedContent() {
                     </p>
                     <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
                       <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        Why it feels this way
+                        {t("soul.chrome.whyItFeels")}
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{friendCopy.why}</p>
                     </details>
                   </>
                 ) : (
                   <>
-                    <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
+                    <p className="type-caption uppercase tracking-wide text-fg-secondary">{t("soul.chrome.auraSignature")}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <h2
                         className="text-3xl font-bold text-growth"
@@ -991,7 +987,7 @@ function SoulUnlockedContent() {
                   className="type-caption text-center tracking-wide text-fg-secondary"
                   data-testid="soul-explore-bond"
                 >
-                  Explore this bond
+                  {t("soul.chrome.exploreBond")}
                 </p>
               ) : null}
 
@@ -1019,11 +1015,11 @@ function SoulUnlockedContent() {
                   Boolean(result.partner_overview);
                 const loveTease =
                   truncateLoveTease(result.partner_overview?.hook) ||
-                  "How you love · where you harmonize · when it’s hard";
+                  t("soul.chrome.loveHarmonize");
                 const playbookTease =
                   truncateTease(result.playbook?.lede) ||
                   truncateTease(result.playbook?.focus_hint) ||
-                  "Body-first moves, power, bridges, and spark for this pair";
+                  t("soul.chrome.playbookLead");
                 const toggleChapter = (id: SoulChapterId) => {
                   setOpenChapter((prev) => (prev === id ? null : id));
                   // Chapter header toggles start Playbook nested cards closed.
@@ -1038,7 +1034,7 @@ function SoulUnlockedContent() {
                     {isPartner && result.partner_overview ? (
                       <SoulChapterCard
                         testId="soul-chapter-love"
-                        title="Partner mode · Love guidance"
+                        title={t("soul.chrome.partnerMode")}
                         tease={loveTease}
                         open={openChapter === "love"}
                         onToggle={() => toggleChapter("love")}
@@ -1060,7 +1056,7 @@ function SoulUnlockedContent() {
                             className="mt-3 type-caption font-medium text-fg-secondary underline-offset-2 hover:underline"
                             onClick={() => setOpenChapter(null)}
                           >
-                            Back to chapters
+                            {t("soul.chrome.backToChapters")}
                           </button>
                         ) : null}
                       </SoulChapterCard>
@@ -1068,8 +1064,8 @@ function SoulUnlockedContent() {
 
                     <SoulChapterCard
                       testId="soul-chapter-spectrums"
-                      title="Spectrums"
-                      tease="Pace · steadiness · intensity for this pair"
+                      title={t("soul.literacy.spectrums.jump")}
+                      tease={t("soul.chrome.pace")}
                       open={openChapter === "spectrums"}
                       onToggle={() => toggleChapter("spectrums")}
                     >
@@ -1086,7 +1082,7 @@ function SoulUnlockedContent() {
 
                     <SoulChapterCard
                       testId="soul-chapter-playbook"
-                      title="Playbook"
+                      title={t("soul.chrome.playbookTitle")}
                       tease={playbookTease}
                       open={openChapter === "playbook"}
                       onToggle={() => toggleChapter("playbook")}
@@ -1131,8 +1127,8 @@ function SoulUnlockedContent() {
 
                     <SoulChapterCard
                       testId="soul-chapter-channels"
-                      title="Channels"
-                      tease="Where you spark and where you share a baseline"
+                      title={t("soul.chrome.channelsTitle")}
+                      tease={t("soul.chrome.sparkBaseline")}
                       open={openChapter === "channels"}
                       onToggle={() => toggleChapter("channels")}
                     >
@@ -1149,15 +1145,15 @@ function SoulUnlockedContent() {
                           className="type-body text-fg-secondary"
                           data-testid="soul-completed-channels"
                         >
-                          No spark wires or shared-baseline channels for this pair yet.
+                          {t("soul.chrome.noSparkWires")}
                         </p>
                       ) : null}
                     </SoulChapterCard>
 
                     <SoulChapterCard
                       testId="soul-chapter-centers"
-                      title="Centers"
-                      tease="Who brings which always-on theme"
+                      title={t("soul.chrome.centersTitle")}
+                      tease={t("soul.chrome.alwaysOn")}
                       open={openChapter === "centers"}
                       onToggle={() => toggleChapter("centers")}
                     >
@@ -1170,12 +1166,12 @@ function SoulUnlockedContent() {
                           {result.conditioning_strip.map((row) => {
                             const arrow =
                               row.direction === "friend_to_self"
-                                ? "Person → You"
+                                ? t("soul.chrome.personToYou")
                                 : row.direction === "self_to_friend"
-                                  ? "You → Person"
+                                  ? t("soul.chrome.youToPerson")
                                   : row.direction === "both_defined"
-                                    ? "Both defined"
-                                    : "Both open";
+                                    ? t("soul.chrome.bothDefined")
+                                    : t("soul.chrome.bothOpen");
                             return (
                               <li
                                 key={row.center}
@@ -1191,7 +1187,7 @@ function SoulUnlockedContent() {
                                   </span>
                                 </div>
                                 <p className="mt-0.5 text-xs text-fg-secondary">
-                                  You: {row.self} · Person: {row.friend}
+                                  {t("soul.chrome.youPersonStatus", { self: row.self, friend: row.friend })}
                                 </p>
                                 {row.hint ? (
                                   <p className="mt-1 type-caption text-fg-secondary">
@@ -1204,10 +1200,7 @@ function SoulUnlockedContent() {
                         </ul>
                         <div className="space-y-2 type-body text-fg-secondary max-w-prose">
                           <p>
-                            Spectrum bars show relative intensity, steadiness, and pace
-                            — never a single compatibility percentage. Signature
-                            and spectrums stay for this pair; the Playbook blurb and
-                            cards are guidance for how you relate.
+                            {t("soul.chrome.spectrumNote")}
                           </p>
                         </div>
                       </div>
@@ -1230,10 +1223,10 @@ function LockedSoulMock() {
   return (
     <div className="space-y-4" aria-hidden data-testid="soul-locked-mock">
       <div className="rounded-2xl border border-border bg-elevated p-5">
-        <p className="type-caption uppercase tracking-wide text-fg-secondary">Aura Signature</p>
-        <p className="mt-1 text-3xl font-bold text-growth">⚡ Strong pull between you</p>
+        <p className="type-caption uppercase tracking-wide text-fg-secondary">{t("soul.chrome.auraSignature")}</p>
+        <p className="mt-1 text-3xl font-bold text-growth">⚡ {t("soul.sig.magnetic_alchemy.title")}</p>
         <p className="mt-2 text-sm text-fg-secondary">
-          Static preview — live pair sync unlocks with Pro.
+          {t("soul.chrome.staticPreview")}
         </p>
         <div className="mt-3 h-12 rounded-xl border border-growth/30 bg-growth/5" />
       </div>
@@ -1248,7 +1241,7 @@ function LockedSoulMock() {
       </div>
       <div className="rounded-2xl border border-border bg-elevated p-5">
         <p className="type-caption font-semibold uppercase tracking-wide text-fg-secondary">
-          {t("page.soul.h1")} Playbook
+          {t("page.soul.h1")} {t("soul.chrome.playbookTitle")}
         </p>
         <div className="mt-3 space-y-2">
           {[1, 2, 3].map((n) => (

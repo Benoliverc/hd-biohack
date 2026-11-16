@@ -30,7 +30,7 @@ const visible = visibleOverview();
 
 // 1) One open heading; closed-row title only
 assert.ok(
-  page.includes('title="Partner mode · Love guidance"'),
+  page.includes('title={t("soul.chrome.partnerMode")}'),
   "closed chapter row still carries the title",
 );
 assert.ok(
@@ -53,8 +53,11 @@ assert.ok(
   overview.includes('data-testid="soul-partner-pair-title"'),
   "lead is You & {name} / You two",
 );
-assert.ok(overview.includes("You & ${partnerFirstName.trim()}"), "named lead");
-assert.ok(overview.includes('"You two"'), "nameless lead");
+assert.ok(
+  overview.includes('t("soul.partner.youAnd", { name: partnerFirstName.trim() })'),
+  "named lead",
+);
+assert.ok(overview.includes('t("soul.partner.youTwo")'), "nameless lead");
 assert.ok(
   !overview.includes("not a score, not a verdict"),
   "no open-chapter not-a-score line",
@@ -101,15 +104,18 @@ assert.ok(howYouAt > talkAt && howTheyAt > howYouAt, "how-you / how-they follow 
 assert.ok(clickAt > howTheyAt, "Where you click / scrape follows love");
 assert.ok(hardAt > clickAt, "When it's hard comes last");
 
-assert.ok(overview.includes("How you decide"), "How you decide heading");
-assert.ok(overview.includes("How you talk"), "How you talk heading");
-assert.ok(overview.includes("How you love"), "How you love heading");
-assert.ok(overview.includes("How ${partnerFirstName.trim()} loves"), "named how-they heading");
-assert.ok(overview.includes('"How they love"'), "nameless how-they heading");
-assert.ok(overview.includes("Where you click"), "Where you click group heading");
-assert.ok(overview.includes("Where it scrapes"), "Where it scrapes group heading");
+assert.ok(overview.includes('t("soul.partner.howYouDecide")'), "How you decide heading");
+assert.ok(overview.includes('t("soul.partner.howYouTalk")'), "How you talk heading");
+assert.ok(overview.includes('t("soul.partner.howYouLove")'), "How you love heading");
 assert.ok(
-  overview.includes("When it&apos;s hard") || overview.includes("When it's hard"),
+  overview.includes('t("soul.partner.howNameLoves", { name: partnerFirstName.trim() })'),
+  "named how-they heading",
+);
+assert.ok(overview.includes('t("soul.partner.howTheyLove")'), "nameless how-they heading");
+assert.ok(overview.includes('t("soul.partner.whereYouClick")'), "Where you click group heading");
+assert.ok(overview.includes('t("soul.partner.whereItScrapes")'), "Where it scrapes group heading");
+assert.ok(
+  overview.includes('t("soul.partner.whenItsHard")'),
   "When it's hard heading",
 );
 
@@ -132,7 +138,7 @@ assert.ok(
   "shared Try line",
 );
 assert.ok(
-  overview.includes('font-semibold text-fg">Try'),
+  overview.includes('font-semibold text-fg">{t("soul.partner.try")}'),
   "visible Try label",
 );
 const tryFnStart = overview.indexOf("function TryLine");
@@ -222,7 +228,7 @@ assert.ok(
   "Love still gated on partner + partner_overview",
 );
 assert.ok(
-  page.includes("Remove as Partner") && page.includes("Mark as Partner"),
+  page.includes('t("soul.chrome.removePartner")') && page.includes('t("soul.chrome.markPartner")'),
   "Mark / Remove as Partner remain",
 );
 

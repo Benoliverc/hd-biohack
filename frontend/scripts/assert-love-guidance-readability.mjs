@@ -31,7 +31,7 @@ const visible = visibleOverview();
 
 // 1) One title, one lead, no third accordion
 assert.ok(
-  page.includes('title="Partner mode · Love guidance"'),
+  page.includes('title={t("soul.chrome.partnerMode")}'),
   "chapter row still carries the title",
 );
 assert.ok(
@@ -46,8 +46,11 @@ assert.ok(
   overview.includes('data-testid="soul-partner-pair-title"'),
   "lead is You & {name} / You two",
 );
-assert.ok(overview.includes("You & ${partnerFirstName.trim()}"), "named lead");
-assert.ok(overview.includes('"You two"'), "nameless lead");
+assert.ok(
+  overview.includes('t("soul.partner.youAnd", { name: partnerFirstName.trim() })'),
+  "named lead",
+);
+assert.ok(overview.includes('t("soul.partner.youTwo")'), "nameless lead");
 assert.ok(
   overview.includes("type-section text-fg") &&
     overview.includes('data-testid="soul-partner-hook"'),
@@ -80,9 +83,9 @@ assert.ok(
   "both decide and talk blocks remain in the open chapter",
 );
 assert.ok(
-  overview.includes("Where you click") &&
-    overview.includes("Where it scrapes") &&
-    (overview.includes("When it&apos;s hard") || overview.includes("When it's hard")),
+  overview.includes('t("soul.partner.whereYouClick")') &&
+    overview.includes('t("soul.partner.whereItScrapes")') &&
+    overview.includes('t("soul.partner.whenItsHard")'),
   "click / scrape / when it's hard headings remain",
 );
 assert.ok(
@@ -130,7 +133,10 @@ assert.ok(
   !overview.includes("type-caption text-fg-secondary"),
   "no try/caption reading in secondary ink on the open card",
 );
-assert.ok(overview.includes('font-semibold text-fg">Try'), "visible Try label");
+assert.ok(
+  overview.includes('font-semibold text-fg">{t("soul.partner.try")}'),
+  "visible Try label",
+);
 assert.ok(
   !overview.includes("text-fg-muted"),
   "open card reading text is not fg-muted",
@@ -193,7 +199,7 @@ assert.ok(
   "Love still gated on partner + partner_overview",
 );
 assert.ok(
-  page.includes("Remove as Partner") && page.includes("Mark as Partner"),
+  page.includes('t("soul.chrome.removePartner")') && page.includes('t("soul.chrome.markPartner")'),
   "Mark / Remove as Partner remain",
 );
 

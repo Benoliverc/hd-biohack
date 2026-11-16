@@ -153,7 +153,7 @@ assert.equal(valueFor(en, "protocols.fromYourShelf"), "(from your shelf)");
 assert.ok(!/['"]protocols\.fromShelf['"]/.test(en), "do not add a From your shelf badge key");
 
 // --- Leave-alone surfaces keep kit wording ---
-assert.match(en, /using your kit when you own it/);
+assert.match(en, /preferring what you already own on your shelf/);
 assert.equal(valueFor(en, "today.kitSetupAdd"), "Add to kit");
 assert.doesNotMatch(todayInd, /protocols\.editShelf|protocols\.addToShelf|page\.protocols\.proUnlocks/);
 assert.doesNotMatch(home, /page\.protocols\.proUnlocks/);

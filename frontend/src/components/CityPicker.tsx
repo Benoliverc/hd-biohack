@@ -135,7 +135,7 @@ export function CityPicker({
         setGeoError(
           firstRun
             ? t("chart.firstRun.cityNetwork")
-            : "Couldn't reach the geocoder. Check that the API is up, then try again."
+            : t("chart.city.networkOrCoords")
         );
       } finally {
         setLoading(false);
@@ -173,7 +173,7 @@ export function CityPicker({
         onChange(label, la, lo, null);
       }
     } else {
-      setGeoError("Enter valid latitude (−90…90) and longitude (−180…180).");
+      setGeoError(t("chart.city.invalidCoords"));
     }
   };
 
@@ -192,8 +192,8 @@ export function CityPicker({
         /can't reach|failed to fetch|network|geocoder/i.test(msg);
       setGeoError(
         looksNetwork
-          ? msg
-          : "No matches for that place. Try a fuller name, or enter lat/lon."
+          ? t("chart.city.networkOrCoords")
+          : t("chart.city.noMatches")
       );
     } finally {
       setLoading(false);
@@ -212,7 +212,7 @@ export function CityPicker({
     <div className={firstRun ? "relative z-20 space-y-2" : "relative z-20 space-y-2 md:col-span-2"} ref={boxRef}>
       <label className="block text-sm">
         <span className={`mb-1 block ${firstRun ? "text-fg" : "text-fg-muted"}`}>
-          {firstRun ? t("chart.firstRun.cityLabel") : "Birth city / place"}
+          {t("chart.firstRun.cityLabel")}
         </span>
         <div className="relative flex gap-2">
           <input
@@ -225,11 +225,9 @@ export function CityPicker({
               if (results.length) setOpen(true);
             }}
             placeholder={
-              firstRun
-                ? t("chart.firstRun.cityPlaceholder")
-                : disabled
-                  ? "Loading…"
-                  : "Type a city or place name"
+              disabled && !firstRun
+                ? t("common.loading")
+                : t("chart.firstRun.cityPlaceholder")
             }
             autoComplete="off"
             disabled={disabled}
@@ -242,9 +240,9 @@ export function CityPicker({
               onClick={resolveNow}
               disabled={disabled || loading || !q.trim()}
               className="inline-flex min-h-10 shrink-0 items-center rounded-lg border border-border px-3 py-2.5 text-sm text-fg-muted hover:border-growth hover:text-fg disabled:opacity-50"
-              title="Pin coordinates for typed city"
+              title={t("chart.city.findCityTitle")}
             >
-              {loading ? "…" : "Resolve"}
+              {loading ? "…" : t("chart.city.findCity")}
             </button>
           )}
         </div>
@@ -269,8 +267,8 @@ export function CityPicker({
                   ? t("chart.firstRun.cityNetwork")
                   : t("chart.firstRun.cityUnresolved")
                 : geoError
-                  ? "Geocoder unavailable — try again or enter lat/lon."
-                  : "No matches yet — try a fuller name or enter lat/lon."}
+                  ? t("chart.city.networkOrCoords")
+                  : t("chart.city.noMatchesYet")}
             </li>
           )}
           {results.map((r) => (
@@ -310,8 +308,8 @@ export function CityPicker({
                 ? t("chart.firstRun.coordsHide")
                 : t("chart.firstRun.coordsToggle")
               : manual
-                ? "Hide lat/lon"
-                : "Enter lat/lon"}
+                ? t("chart.firstRun.coordsHide")
+                : t("chart.firstRun.coordsToggle")}
           </button>
         </div>
       )}
@@ -319,7 +317,7 @@ export function CityPicker({
       {manual && (
         <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-sunken/80 p-3">
           <label className="text-xs">
-            <span className="mb-1 block text-fg-muted">Latitude</span>
+            <span className="mb-1 block text-fg-muted">{t("chart.city.latitude")}</span>
             <input
               className="w-28 rounded-lg border border-border bg-sunken px-2 py-2 disabled:opacity-60"
               value={latStr}
@@ -329,7 +327,7 @@ export function CityPicker({
             />
           </label>
           <label className="text-xs">
-            <span className="mb-1 block text-fg-muted">Longitude</span>
+            <span className="mb-1 block text-fg-muted">{t("chart.city.longitude")}</span>
             <input
               className="w-28 rounded-lg border border-border bg-sunken px-2 py-2 disabled:opacity-60"
               value={lonStr}
@@ -344,7 +342,7 @@ export function CityPicker({
             disabled={disabled}
             className="min-h-10 rounded-lg border border-border bg-elevated px-3 py-2.5 text-sm text-fg hover:border-growth disabled:opacity-50"
           >
-            Use coordinates
+            {t("chart.city.useCoordinates")}
           </button>
         </div>
       )}
@@ -360,20 +358,22 @@ export function CityPicker({
           </p>
         ) : null
       ) : disabled ? (
-        <p className="text-xs text-fg-muted">Waiting for saved chart…</p>
+        <p className="text-xs text-fg-muted">{t("chart.city.waitingSaved")}</p>
       ) : isResolved ? (
         <p className="text-xs text-growth">
-          Resolved: {lat!.toFixed(4)}, {lon!.toFixed(4)}
-          {tzLabel ? ` · ${tzLabel}` : ""} — ready to calculate
+          {t("chart.city.resolved", {
+            lat: lat!.toFixed(4),
+            lon: lon!.toFixed(4),
+            tz: tzLabel ? ` · ${tzLabel}` : "",
+          })}
         </p>
       ) : q.trim() ? (
         <p className="text-xs text-energy-ink">
-          Tip: pick a suggestion to pin coordinates. Calculate &amp; Save needs a city
-          (or lat/lon).
+          {t("chart.city.tipPick")}
         </p>
       ) : (
         <p className="text-xs text-fg-muted">
-          Enter a birth city (or lat/lon) before Calculate &amp; Save.
+          {t("chart.city.enterBeforeSave")}
         </p>
       )}
     </div>

@@ -23,7 +23,7 @@ const css = readFileSync(resolve(root, "src/app/globals.css"), "utf8");
 //    when the selected person is already Partner (same branch as the reason line).
 assert.ok(page.includes("handleRemoveAsPartner"), "remove handler");
 assert.ok(page.includes('data-testid="soul-remove-as-partner"'), "remove control testid");
-assert.ok(page.includes("Remove as Partner"), "remove label");
+assert.ok(page.includes('t("soul.chrome.removePartner")'), "remove label");
 assert.ok(
   page.includes('renameChart(selectedFriend.id, selectedFriend.label || "", "person")'),
   "renameChart id, label, person — clears tag only",
@@ -67,7 +67,7 @@ assert.ok(
 
 // 2) Chapter title lives on the closed chapter row only (not in the open card)
 assert.ok(
-  page.includes('title="Partner mode · Love guidance"'),
+  page.includes('title={t("soul.chrome.partnerMode")}'),
   "chapter title",
 );
 assert.ok(
@@ -135,7 +135,7 @@ assert.ok(
   "Mark still uses renameChart partner",
 );
 assert.ok(
-  page.includes("Love guidance is on because you marked"),
+  page.includes('t("soul.chrome.loveGuidanceOn"'),
   "partner reason line remains",
 );
 assert.ok(
@@ -145,8 +145,8 @@ assert.ok(
 );
 assert.ok(page.includes('data-testid="soul-empty"'), "dual-prompt empty remains");
 assert.ok(
-  page.includes("Add someone to explore the aura between both of you."),
-  "empty copy unchanged",
+  page.includes('t("soul.chrome.emptyAddLead")'),
+  "empty copy remains keyed",
 );
 
 // No soulmate / valentine language

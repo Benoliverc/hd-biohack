@@ -268,12 +268,52 @@ assert.ok(callIdx > shelfIdx, "history is not above the Shelf");
 assert.ok(natalCallIdx > 0 && callIdx > natalCallIdx, "Natal baseline sits above WeekSkyCard");
 
 // --- Copy, empty, retry ---
+// Language first-pass: leftover history.* keys are translated; pin each locale's strings.
+const HISTORY_PINS = {
+  en: {
+    earlierWeeks: "Earlier weeks",
+    empty: "Nothing earlier than this week yet.",
+    waiting: "Looking up earlier weeks\u2026",
+    error: "Couldn\u2019t load earlier weeks.",
+    retry: "Try again",
+  },
+  de: {
+    earlierWeeks: "Fr\u00fchere Wochen",
+    empty: "Noch nichts vor dieser Woche.",
+    waiting: "Fr\u00fchere Wochen werden gesucht\u2026",
+    error: "Fr\u00fchere Wochen konnten nicht geladen werden.",
+    retry: "Nochmals versuchen",
+  },
+  es: {
+    earlierWeeks: "Semanas anteriores",
+    empty: "Todav\u00eda no hay nada anterior a esta semana.",
+    waiting: "Buscando semanas anteriores\u2026",
+    error: "No se pudieron cargar las semanas anteriores.",
+    retry: "Int\u00e9ntalo de nuevo",
+  },
+  fr: {
+    earlierWeeks: "Semaines pr\u00e9c\u00e9dentes",
+    empty: "Rien de plus t\u00f4t que cette semaine pour l\u2019instant.",
+    waiting: "Recherche des semaines pr\u00e9c\u00e9dentes\u2026",
+    error: "Impossible de charger les semaines pr\u00e9c\u00e9dentes.",
+    retry: "R\u00e9essaie",
+  },
+  nl: {
+    earlierWeeks: "Eerdere weken",
+    empty: "Nog niets van eerder dan deze week.",
+    waiting: "Eerdere weken opzoeken\u2026",
+    error: "Kon eerdere weken niet laden.",
+    retry: "Probeer opnieuw",
+  },
+};
 for (const { id, src } of locales) {
-  assert.match(src, /'history\.earlierWeeks': 'Earlier weeks'/);
-  assert.match(src, /'history\.empty': 'Nothing earlier than this week yet\.'/);
-  assert.match(src, /'history\.waiting': 'Looking up earlier weeks\u2026'/);
-  assert.match(src, /'history\.error': 'Couldn\u2019t load earlier weeks\.'/);
-  assert.match(src, /'history\.retry': 'Try again'/);
+  const pins = HISTORY_PINS[id];
+  assert.ok(pins, `${id} has history pins`);
+  assert.ok(src.includes(`'history.earlierWeeks': '${pins.earlierWeeks}'`), `${id} history.earlierWeeks`);
+  assert.ok(src.includes(`'history.empty': '${pins.empty}'`), `${id} history.empty`);
+  assert.ok(src.includes(`'history.waiting': '${pins.waiting}'`), `${id} history.waiting`);
+  assert.ok(src.includes(`'history.error': '${pins.error}'`), `${id} history.error`);
+  assert.ok(src.includes(`'history.retry': '${pins.retry}'`), `${id} history.retry`);
   assert.ok(!/history\.error.*Couldn't load/.test(src) || src.includes("Couldn\u2019t"), `${id} typographic apostrophe`);
 }
 assert.match(ui, /history\.earlierWeeks/);

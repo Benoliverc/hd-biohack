@@ -9,20 +9,30 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const page = readFileSync(resolve(root, "src/app/soul/page.tsx"), "utf8");
+const en = readFileSync(resolve(root, "src/lib/i18n/messages/en.ts"), "utf8");
 
 // 1) soul-empty copy + Add a person on Chart
 assert.ok(page.includes('data-testid="soul-empty"'));
+assert.ok(page.includes('t("soul.chrome.emptyAddLead")'), "empty lead key");
+assert.ok(page.includes('t("soul.chrome.emptyAddBody")'), "empty body key");
+assert.ok(page.includes('t("soul.chrome.addPersonOnChart")'), "empty CTA key");
 assert.ok(
-  page.includes("Add someone to explore the aura between both of you."),
-  "empty body copy",
-);
-assert.ok(
-  page.includes(
-    "Save their natal on Chart — Soul uses it as the other half of the pair.",
+  en.includes(
+    "'soul.chrome.emptyAddLead': 'Add someone to explore how the charts meet.'",
   ),
-  "empty one-liner",
+  "locked English empty lead",
 );
-assert.ok(page.includes("Add a person on Chart"), "empty CTA label");
+assert.ok(
+  en.includes(
+    "'soul.chrome.emptyAddBody': 'Save their natal on Chart \u2014 Soul uses it as the other half of the pair.'",
+  ),
+  "empty one-liner remains in English catalog",
+);
+assert.ok(
+  en.includes("'soul.chrome.addPersonOnChart': 'Add a person on Chart'"),
+  "empty CTA label remains in English catalog",
+);
+assert.ok(!page.includes("Add someone to explore the aura between both of you."), "old aura sentence is gone");
 assert.ok(page.includes('data-testid="soul-cta-chart"'), "keep soul-cta-chart");
 
 // Empty must not pitch Partner / Love guidance
@@ -38,12 +48,12 @@ assert.ok(
 
 // soul-empty-me left as shipped (no Partner/Love pitch)
 assert.ok(page.includes('data-testid="soul-empty-me"'));
-assert.ok(page.includes("Open Chart to save Me"));
+assert.ok(page.includes('t("soul.chrome.openChartSaveMe")'), "Open Chart to save Me");
 
 // 2) Person-not-partner discovery: Mark as Partner, no Love content in that branch
 assert.ok(page.includes('data-testid="soul-mark-as-partner"'));
 assert.ok(page.includes('data-testid="soul-mark-partner-reason"'));
-assert.ok(page.includes("Mark as Partner"));
+assert.ok(page.includes('t("soul.chrome.markPartner")'), "Mark as Partner");
 assert.ok(page.includes('t("page.soul.markPartnerReasonNamed"') || page.includes("page.soul.markPartnerReason"), "mark reason copy remains");
 assert.ok(page.includes("api.renameChart"));
 assert.ok(page.includes('"partner"'));
@@ -76,17 +86,19 @@ assert.ok(
 
 // Quiet Add person near Person select
 assert.ok(page.includes('data-testid="soul-add-person"'));
-assert.ok(page.includes(">Add person<") || page.includes("Add person\n"));
+assert.ok(page.includes('t("soul.chrome.addPerson")'), "Add person");
 
 // 3) Partner-on reason line no longer requires "on Chart"
 assert.ok(page.includes('data-testid="soul-love-guidance-reason"'));
 assert.ok(
-  page.includes("Love guidance is on because you marked"),
+  page.includes('t("soul.chrome.loveGuidanceOn"'),
   "partner-on reason present",
 );
 assert.ok(
-  page.includes("as Partner.{" ) || page.includes("as Partner. "),
-  "partner-on ends at Partner (Open Chart is separate link)",
+  en.includes(
+    "'soul.chrome.loveGuidanceOn': 'Love guidance is on because you marked {name} as Partner.'",
+  ),
+  "partner-on ends at Partner (Open Chart is a separate link)",
 );
 const reasonStart = page.indexOf('data-testid="soul-love-guidance-reason"');
 const reasonEnd = page.indexOf("</p>", reasonStart);
@@ -95,7 +107,10 @@ assert.ok(
   !reasonBlock.includes("on Chart"),
   "partner-on reason must not say on Chart",
 );
-assert.ok(reasonBlock.includes("Open Chart"), "Open Chart edit escape retained");
+assert.ok(
+  reasonBlock.includes('t("page.today.openChart")'),
+  "Open Chart edit escape retained",
+);
 
 // No Valentine / soulmate language in page
 for (const bad of ["soulmate", "twin flame", "twin-flame", "destiny", "Valentine"]) {

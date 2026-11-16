@@ -112,7 +112,7 @@ assert.match(transits, /skyDetailsSummaryKey\(bridgedChannels\.length\)/, "colla
 assert.equal(skyDetailsSummaryKey(0), "page.today.skyDetails");
 assert.equal(skyDetailsSummaryKey(1), "page.today.skyDetailsBorrowedOne");
 assert.equal(skyDetailsSummaryKey(2), "page.today.skyDetailsBorrowedMany");
-assert.equal(valueOf(en, "page.today.skyDetails"), "Sky details.");
+assert.equal(valueOf(en, "page.today.skyDetails"), "Sky details");
 assert.equal(valueOf(en, "page.today.skyDetailsBorrowedOne"), "Sky details · 1 borrowed wire");
 assert.equal(valueOf(en, "page.today.skyDetailsBorrowedMany"), "Sky details · {n} borrowed wires");
 

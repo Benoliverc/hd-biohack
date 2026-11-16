@@ -109,8 +109,8 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const res = await api.forgotPassword(em);
-      setInfo(res.message || t("login.resetSent"));
+      await api.forgotPassword(em);
+      setInfo(t("login.resetSent"));
     } catch {
       // Still generic success — no existence leak
       setInfo(t("login.resetSent"));

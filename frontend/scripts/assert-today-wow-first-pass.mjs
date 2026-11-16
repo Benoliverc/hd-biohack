@@ -215,7 +215,7 @@ const NEW_KEYS = [
 ];
 
 const EN_LOCKED = {
-  "page.today.skyDetails": "Sky details.",
+  "page.today.skyDetails": "Sky details",
   "page.today.sunEarthLead":
     "The week's broader theme, and the ground under it. It moves slowly — a chapter, not an hourly report.",
   "page.today.bridgesLead":

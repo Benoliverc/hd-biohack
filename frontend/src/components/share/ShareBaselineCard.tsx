@@ -32,6 +32,8 @@ export type NatalShareProps = {
   strategyLabel: string;
   firstName?: string | null;
   graph: ShareGraphProps;
+  /** Localized "My natal Baseline" chrome. */
+  kicker?: string;
 };
 
 export type TodayShareProps = {
@@ -134,6 +136,7 @@ export function ShareBaselineCard(props: ShareBaselineCardProps) {
             strategyLabel={props.strategyLabel}
             firstName={props.firstName}
             graph={props.graph}
+            kicker={props.kicker}
           />
         ) : (
           <TodayBody
@@ -197,6 +200,7 @@ function NatalBody({
   strategyLabel,
   firstName,
   graph,
+  kicker,
 }: {
   canvasW: number; // reserved for future width clamps
   canvasH: number;
@@ -207,6 +211,7 @@ function NatalBody({
   strategyLabel: string;
   firstName?: string | null;
   graph: ShareGraphProps;
+  kicker?: string;
 }) {
   const name = (firstName || "").trim();
   const isFeed = aspect === "feed";
@@ -249,7 +254,7 @@ function NatalBody({
           textAlign: "center",
         }}
       >
-        My natal Baseline
+        {kicker}
       </div>
 
       {/* Hero graph — sized from full canvas %; glued to type below */}
@@ -345,7 +350,7 @@ function TodayBody({
   moveText,
   typeLabel,
   graph,
-  kicker = "My Baseline · today",
+  kicker,
   moveLabel = "Move",
 }: {
   canvasW: number; // reserved for future width clamps

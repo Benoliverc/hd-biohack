@@ -101,7 +101,21 @@ for (const [key, value] of Object.entries(locked)) {
 
 // privacy.link: locked leftover-English fix on /login (editorial-paper next pass).
 // English stays "Privacy"; de/es/fr/nl must be real translations, not EN verbatim.
-const TRANSLATED_PRIVACY_KEYS = new Set(["privacy.choicesBody", "privacy.link"]);
+const TRANSLATED_PRIVACY_KEYS = new Set([
+  "privacy.choicesBody",
+  "privacy.link",
+  // Language first-pass: leftover privacy copy is now translated (copyrightShort stays Baseline).
+  "privacy.intro",
+  "privacy.storeTitle",
+  "privacy.storeBody",
+  "privacy.useTitle",
+  "privacy.useBody",
+  "privacy.emailsTitle",
+  "privacy.emailsBody",
+  "privacy.choicesTitle",
+  "privacy.hdNote",
+  "privacy.copyright",
+]);
 const OLD_CHOICES_BODY =
   "You can sign out anytime. Account deletion is not in the app yet — email baselineapp@proton.me if you need help with that.";
 
@@ -119,7 +133,10 @@ for (const [name, src] of locales) {
   for (const [key, value] of Object.entries(locked)) {
     const got = valueFor(src, key);
     if (got == null || !got.trim()) fail(`${name} ${key} is missing a value`);
-    if (TRANSLATED_PRIVACY_KEYS.has(key)) {
+    if (key === "privacy.title") {
+      // Short label: translation is welcome, EN "Privacy" may stay (e.g. nl).
+      if (got === OLD_CHOICES_BODY) fail(`${name} ${key} must not keep the old sentence`);
+    } else if (TRANSLATED_PRIVACY_KEYS.has(key)) {
       if (got === value) fail(`${name} ${key} must be a real translation, not EN verbatim`);
       if (got === OLD_CHOICES_BODY) fail(`${name} ${key} must not keep the old sentence`);
     } else if (got !== value) {

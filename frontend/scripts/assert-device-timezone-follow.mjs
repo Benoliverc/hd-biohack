@@ -253,7 +253,11 @@ for (const loc of locales) {
   for (const [key, en] of Object.entries(locked)) {
     const value = extractMessage(src, key);
     assert.ok(value, `${loc} missing ${key}`);
-    assert.equal(value, en, `${loc} ${key} must match EN source until translated`);
+    if (loc === "en.ts") {
+      assert.equal(value, en, `en.ts ${key} must match locked EN`);
+    } else {
+      assert.notEqual(value, en, `${loc} ${key} must be translated`);
+    }
   }
   for (const key of retired) {
     assert.equal(extractMessage(src, key), null, `${loc} must retire ${key}`);
