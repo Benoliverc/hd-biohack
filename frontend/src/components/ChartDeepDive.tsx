@@ -9,17 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
-import {
-  AUTHORITY_COPY,
-  CENTER_COPY,
-  DEFINITION_COPY,
-  STRATEGY_COPY,
-  TYPE_COPY,
-  channelMeaning,
-  displayCenter,
-  profileLearnMore,
-  type CenterKey,
-} from "@/lib/hdCopy";
+import { displayCenter, type CenterKey } from "@/lib/hdCopy";
+import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 
 type Chart = Record<string, unknown>;
 
@@ -150,6 +141,7 @@ const CENTER_SLOTS: { key: CenterKey; style: CSSProperties }[] = [
 
 function CentersMatrix({ defined }: { defined: Set<string> }) {
   const { t } = useI18n();
+  const { CENTER_COPY } = useHdCopy();
   const [filter, setFilter] = useState<CenterFilter>("all");
   const [expanded, setExpanded] = useState<CenterKey | null>(null);
 
@@ -294,6 +286,14 @@ export function ChartDeepDive({
   onDomainChange?: (domain: DeepDiveDomain) => void;
 }) {
   const { t } = useI18n();
+  const {
+    TYPE_COPY,
+    STRATEGY_COPY,
+    AUTHORITY_COPY,
+    DEFINITION_COPY,
+    profileLearnMore,
+    channelMeaning,
+  } = useHdCopy();
   const [internalDomain, setInternalDomain] = useState<DeepDiveDomain>("core");
   const active = domain ?? internalDomain;
 

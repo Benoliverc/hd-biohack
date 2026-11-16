@@ -289,19 +289,28 @@ export const CENTER_COPY: Record<
 };
 
 /** Spell gate.line as "Gate N · line L" (accepts "32.6", gate+line, or partial). */
+type GateLineTranslate = (key: MessageKey, vars?: Record<string, string | number>) => string;
+
 export function formatGateLine(
   gateOrLabel: string | number | null | undefined,
-  line?: string | number | null
+  line?: string | number | null,
+  t?: GateLineTranslate
 ): string {
   if (gateOrLabel == null || gateOrLabel === "") return "—";
+  const held = (gate: string | number) =>
+    t ? t("chart.deepDive.gateHeld", { gate: String(gate) }) : `Gate ${gate}`;
+  const full = (gate: string | number, ln: string | number) =>
+    t
+      ? t("chart.deepDive.gateLineFull", { gate: String(gate), line: String(ln) })
+      : `Gate ${gate} · line ${ln}`;
   if (line != null && line !== "") {
-    return `Gate ${gateOrLabel} · line ${line}`;
+    return full(gateOrLabel, line);
   }
   const s = String(gateOrLabel).trim();
   const m = /^(\d+)\s*[.\/]\s*(\d+)$/.exec(s);
-  if (m) return `Gate ${m[1]} · line ${m[2]}`;
+  if (m) return full(m[1], m[2]);
   const n = /^(\d+)$/.exec(s);
-  if (n) return `Gate ${n[1]}`;
+  if (n) return held(n[1]);
   return s;
 }
 

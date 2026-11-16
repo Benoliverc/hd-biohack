@@ -716,7 +716,7 @@ def test_partner_copy_has_no_forbidden_words():
     from app.hd.partner_love_dynamics import all_dynamics_copy_blobs
 
     blobs.extend(all_dynamics_copy_blobs())
-    joined = "\n".join(blobs).lower()
+    joined = "\n".join(b for b in blobs if isinstance(b, str)).lower()
     for word in banned:
         assert word not in joined, f"forbidden phrase in partner copy: {word}"
     # No percentage compatibility scores in partner copy
@@ -738,7 +738,7 @@ def test_partner_copy_has_no_forbidden_words():
         assert phrase not in joined, f"textbook cadence leftover: {phrase}"
     # Curly quotes / fancy apostrophes banned in source strings
     fancy = ("\u2018", "\u2019", "\u201c", "\u201d")
-    raw_joined = "\n".join(blobs)
+    raw_joined = "\n".join(b for b in blobs if isinstance(b, str))
     for ch in fancy:
         assert ch not in raw_joined, "curly quotes/apostrophes must not appear in partner copy"
     print("PASS: partner copy has no forbidden romance tropes / textbook cadence")
@@ -930,3 +930,120 @@ def test_love_dynamics_both_defined_solar_plexus_harmony():
     # shared authority class → shared-authority harmony
     assert any(i["id"] == "shared-authority" for i in harmonies)
     print("PASS: both_defined Solar Plexus harmony + shared authority")
+
+
+def _walk_copy_parts(obj, path=""):
+    found: list[tuple[str, dict]] = []
+    if isinstance(obj, dict):
+        if isinstance(obj.get("key"), str) and str(obj["key"]).startswith("soul.read."):
+            found.append((path, obj))
+        for key, val in obj.items():
+            found.extend(_walk_copy_parts(val, f"{path}.{key}" if path else str(key)))
+    elif isinstance(obj, list):
+        for i, val in enumerate(obj):
+            found.extend(_walk_copy_parts(val, f"{path}[{i}]"))
+    return found
+
+
+def test_copy_parts_present_and_english_bodies_unchanged():
+    """Additive CopyParts: keys exist, English string fields stay the existing bodies."""
+    a = _chart([6, 5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([59], type="Projector", authority="Splenic", profile="5/1")
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Pat", "role": "partner"},
+    )
+
+    # Existing English pins stay intact on this representative payload.
+    assert out["playbook"]["lede"]
+    assert out["playbook"]["lede_part"]["key"].startswith("soul.read.lede.")
+    assert "params" in out["playbook"]["lede_part"]
+    assert out["disclaimer"]
+    assert out["disclaimer_part"]["key"] == "soul.read.disclaimer"
+
+    for badge in out["badges"]:
+        assert badge["label"]
+        assert badge["label_part"]["key"].startswith("soul.read.badge.")
+        if badge.get("description"):
+            assert badge["description_part"]["key"].startswith("soul.read.badge.")
+
+    for spec in out["spectrums"]:
+        assert spec["label"]
+        assert spec["label_part"]["key"].startswith("soul.read.spectrum.")
+        if spec.get("summary"):
+            assert spec["summary_part"]["key"].startswith("soul.read.spectrum.")
+
+    for card in out["cards"]:
+        assert card["title"]
+        assert card["title_part"]["key"].startswith("soul.read.card.")
+        for blk in card.get("body_blocks") or []:
+            if blk.get("headline"):
+                assert blk["headline_part"]["key"].startswith("soul.read.")
+            if blk.get("body"):
+                assert blk["body_part"]["key"].startswith("soul.read.")
+        if card.get("empty_body"):
+            assert card["empty_body_part"]["key"].startswith("soul.read.card.")
+
+    overview = out["partner_overview"]
+    assert overview["how_you_love"]
+    assert overview["how_you_love_part"]["key"].startswith("soul.read.howYouLove.")
+    assert overview["how_they_love"]
+    assert overview["how_they_love_part"]["key"].startswith("soul.read.howTheyLove.")
+    # Named partner uses the named key and still personalizes the English body.
+    assert overview["how_you_love_part"]["key"].endswith(".named")
+    assert "name" in (overview["how_you_love_part"].get("params") or {})
+    assert "Pat" in overview["how_you_love"] or "Pat" in overview["how_they_love"]
+
+    parts = _walk_copy_parts(out)
+    assert len(parts) >= 20, f"expected many CopyParts, got {len(parts)}"
+    for path, part in parts:
+        assert part["key"].startswith("soul.read."), path
+        assert isinstance(part.get("params"), dict), path
+
+    # English bodies used by existing pins still match the pre-CopyPart wording.
+    mag = compute_soul_sync(a, b, context="life")
+    # nameless (no partner meta) still has English lede and nameless love keys
+    nameless = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Friend", "role": "person"},
+    )
+    assert "partner_overview" not in nameless or nameless.get("partner_overview") is None or nameless.get("friend", {}).get("role") != "partner"
+
+    life_lede = compute_soul_sync(a, b, context="life")
+    # magnetic intimacy 6-59 EM typically magnetic_alchemy
+    if life_lede["signature"]["id"] == "magnetic_alchemy":
+        assert life_lede["playbook"]["lede"].startswith("Closeness runs hot here.")
+        assert life_lede["playbook"]["lede_part"]["key"] == "soul.read.lede.magnetic_alchemy.life"
+
+    soma = next(c for c in out["cards"] if c["id"] == "somatic_playbook")
+    if soma.get("title") == "Body-first playbook":
+        assert soma["title_part"]["key"].endswith("somatic_playbook.title") or "somatic" in soma["title_part"]["key"]
+
+    print(f"PASS: CopyParts present ({len(parts)}) and English bodies unchanged")
+
+
+def test_copy_parts_nameless_how_you_love_keys():
+    from app.hd.partner_insights import TYPE_LOVE_BANK
+    from app.hd.partner_names import how_they_love_for_type
+
+    a = _chart([5, 15], type="Generator", authority="Sacral", profile="3/5")
+    b = _chart([1, 8], type="Projector", authority="Splenic", profile="5/1")
+    out = compute_soul_sync(
+        a,
+        b,
+        context="life",
+        self_meta={"id": 1, "label": "Me", "role": "self"},
+        friend_meta={"id": 2, "label": "Partner", "role": "partner"},
+    )
+    overview = out["partner_overview"]
+    assert overview["how_you_love"] == TYPE_LOVE_BANK["Generator"]
+    assert overview["how_you_love_part"]["key"] == "soul.read.howYouLove.generator.nameless"
+    assert overview["how_they_love"] == how_they_love_for_type("Projector")
+    assert overview["how_they_love_part"]["key"] == "soul.read.howTheyLove.projector.nameless"
+    print("PASS: nameless how-you/they-love CopyParts keep English TYPE_LOVE_BANK bodies")

@@ -12,6 +12,7 @@ import {
   type SoulSyncResult,
 } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { resolveSoulChannelNickname, useSoulCopy } from "@/lib/soulCopy";
 import { useApp } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
 import { ChevronDown } from "lucide-react";
@@ -44,6 +45,7 @@ function isAuraSchema(res: SoulSyncResult): boolean {
 }
 
 function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
+  const sc = useSoulCopy();
   const isPacing = spectrum.id === "somatic_pacing";
   const fillPct = Math.max(0, Math.min(100, Number(spectrum.position) || 0));
   const fillClass = isPacing ? "bg-energy" : "bg-growth";
@@ -54,14 +56,14 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
       className="rounded-xl border border-border bg-sunken/40 p-4"
     >
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="type-meta font-semibold text-fg">{spectrum.label}</span>
+        <span className="type-meta font-semibold text-fg">{sc(spectrum.label_part, spectrum.label)}</span>
         <span className={`text-xs font-medium tabular-nums ${highClass}`}>
           {fillPct}%
         </span>
       </div>
       <div className="mb-2 flex justify-between gap-2 type-caption uppercase tracking-wide text-fg-secondary">
-        <span>{spectrum.low_label}</span>
-        <span className={isPacing ? "text-energy" : undefined}>{spectrum.high_label}</span>
+        <span>{sc(spectrum.low_label_part, spectrum.low_label)}</span>
+        <span className={isPacing ? "text-energy" : undefined}>{sc(spectrum.high_label_part, spectrum.high_label)}</span>
       </div>
       <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-elevated">
         <div
@@ -70,7 +72,7 @@ function SpectrumBar({ spectrum }: { spectrum: SoulSpectrum }) {
           data-testid={`soul-spectrum-fill-${spectrum.id}`}
         />
       </div>
-      <p className="type-body text-fg-secondary max-w-prose">{spectrum.summary}</p>
+      <p className="type-body text-fg-secondary max-w-prose">{sc(spectrum.summary_part, spectrum.summary)}</p>
     </div>
   );
 }
@@ -122,6 +124,8 @@ function InsightCard({
   open: boolean;
   onToggle: () => void;
 }) {
+  const { t } = useI18n();
+  const sc = useSoulCopy();
   return (
     <div
       id={`soul-card-${card.id}`}
@@ -135,7 +139,7 @@ function InsightCard({
         className="flex min-h-11 w-full cursor-pointer items-center gap-3 px-5 py-3 text-left outline-none transition-colors hover:bg-sunken/40 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
       >
         <h2 className="min-w-0 flex-1 type-caption font-semibold uppercase tracking-wide text-fg-secondary">
-          {card.title}
+          {sc(card.title_part, card.title)}
         </h2>
         <ChevronDown
           aria-hidden
@@ -149,8 +153,8 @@ function InsightCard({
           <ul className="space-y-3">
             {card.body_blocks.map((blk, i) => (
               <li key={`${card.id}-${i}`}>
-                <p className="type-body font-medium text-fg">{blk.headline}</p>
-                <p className="mt-0.5 type-body text-fg-secondary max-w-prose">{blk.body}</p>
+                <p className="type-body font-medium text-fg">{sc(blk.headline_part, blk.headline)}</p>
+                <p className="mt-0.5 type-body text-fg-secondary max-w-prose">{sc(blk.body_part, blk.body)}</p>
               </li>
             ))}
           </ul>
@@ -162,8 +166,12 @@ function InsightCard({
                 return (
                   <li key={`${b.missing_for}-${b.gate}`}>
                     <p>
-                      Gate {b.gate} · {b.channel || "channel"} · completes{" "}
-                      {b.missing_for === "self" ? "you" : "them"}
+                      {t(
+                        b.missing_for === "self"
+                          ? "soul.chrome.bridgeCompletesYou"
+                          : "soul.chrome.bridgeCompletesThem",
+                        { n: b.gate, channel: b.channel || t("soul.chrome.channelFallbackLower") },
+                      )}
                     </p>
                     {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
                   </li>
@@ -184,7 +192,7 @@ function CompletedChannelsList({
   channelRoles: Record<string, Array<Record<string, unknown>>>;
   showPartnerNuance: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const em = channelRoles.electromagnetic || [];
   const comp = channelRoles.companionship || [];
   if (!em.length && !comp.length) return null;
@@ -202,8 +210,12 @@ function CompletedChannelsList({
       </p>
       <ul className="space-y-3">
         {em.map((ch, i) => {
-          const name = String(ch.channel || "Channel");
           const gates = Array.isArray(ch.gates) ? (ch.gates as number[]) : [];
+          const name = resolveSoulChannelNickname(
+            locale,
+            gates,
+            String(ch.channel || t("soul.chrome.channelFallback")),
+          );
           const gateTxt = gates.length ? gates.join("-") : "";
           const nuance = showPartnerNuance ? asPartnerNuance(ch.partner_nuance) : null;
           return (
@@ -214,15 +226,19 @@ function CompletedChannelsList({
             >
               <p className="type-body font-medium text-fg">
                 {name}
-                {gateTxt ? ` (${gateTxt})` : ""} · Spark
+                {gateTxt ? ` (${gateTxt})` : ""} {t("soul.chrome.sparkChip")}
               </p>
               {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
             </li>
           );
         })}
         {comp.map((ch, i) => {
-          const name = String(ch.channel || "Channel");
           const gates = Array.isArray(ch.gates) ? (ch.gates as number[]) : [];
+          const name = resolveSoulChannelNickname(
+            locale,
+            gates,
+            String(ch.channel || t("soul.chrome.channelFallback")),
+          );
           const gateTxt = gates.length ? gates.join("-") : "";
           const nuance = showPartnerNuance ? asPartnerNuance(ch.partner_nuance) : null;
           return (
@@ -233,7 +249,7 @@ function CompletedChannelsList({
             >
               <p className="type-body font-medium text-fg">
                 {name}
-                {gateTxt ? ` (${gateTxt})` : ""} · Shared baseline
+                {gateTxt ? ` (${gateTxt})` : ""} {t("soul.chrome.sharedBaselineChip")}
               </p>
               {nuance ? <PartnerNuanceBlock nuance={nuance} /> : null}
             </li>
@@ -257,9 +273,9 @@ function pickMeRow(rows: SavedChartRow[], natalId: number | null): SavedChartRow
   return rows.find((r) => r.slot_kind === "self") ?? rows.find((r) => isSelfSlot(r)) ?? null;
 }
 
-function chartOptionLabel(r: SavedChartRow, fallback: string): string {
+function chartOptionLabel(r: SavedChartRow, fallback: string, partnerSuffix: string): string {
   const base = `${r.label || fallback} · ${r.type || "—"} · ${r.profile || "—"}`;
-  return r.role === "partner" ? `${base} · Partner` : base;
+  return r.role === "partner" ? `${base} ${partnerSuffix}` : base;
 }
 
 function waitTwoFrames(): Promise<void> {
@@ -338,6 +354,7 @@ function truncateLoveTease(text: string | null | undefined, max = 96): string | 
 
 function SoulUnlockedContent() {
   const { t } = useI18n();
+  const sc = useSoulCopy();
   const { user, natalChartId, sessionReady } = useApp();
   const [charts, setCharts] = useState<SavedChartRow[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
@@ -646,7 +663,7 @@ function SoulUnlockedContent() {
                 title={t("soul.chrome.youLocked")}
               >
                 <span className="truncate font-medium">
-                  {meRow ? chartOptionLabel(meRow, t("common.me")) : t("common.me")}
+                  {meRow ? chartOptionLabel(meRow, t("common.me"), t("chart.people.partnerSuffix")) : t("common.me")}
                 </span>
                 <span className="type-chip ml-2 shrink-0 rounded-full border border-growth/40 bg-growth/15 px-2 py-0.5 uppercase tracking-wide text-growth">
                   {t("common.me")}
@@ -685,7 +702,7 @@ function SoulUnlockedContent() {
               >
                 {personOptions.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {chartOptionLabel(r, "Person")}
+                    {chartOptionLabel(r, t("soul.chrome.personLabel"), t("chart.people.partnerSuffix"))}
                   </option>
                 ))}
               </select>
@@ -931,7 +948,7 @@ function SoulUnlockedContent() {
                     data-testid="soul-secondary-signature"
                   >
                     <p className="text-xs font-medium text-fg-secondary">
-                      Also:{" "}
+                      {t("soul.chrome.also")}{" "}
                       {secondaryPartner?.title ||
                         secondaryFriend?.title ||
                         result.secondary_signature.label}
@@ -964,19 +981,19 @@ function SoulUnlockedContent() {
                         data-testid={`soul-badge-${b.id}`}
                         className="rounded-xl border border-growth/30 bg-growth/5 px-3 py-2.5"
                       >
-                        <p className="text-xs font-semibold text-growth">{b.label}</p>
+                        <p className="text-xs font-semibold text-growth">{sc(b.label_part, b.label)}</p>
                         {b.description ? (
-                          <p className="mt-1 type-body text-fg-secondary max-w-prose">{b.description}</p>
+                          <p className="mt-1 type-body text-fg-secondary max-w-prose">{sc(b.description_part, b.description)}</p>
                         ) : null}
                         {b.detail ? (
-                          <p className="mt-1 type-caption text-fg-secondary">{b.detail}</p>
+                          <p className="mt-1 type-caption text-fg-secondary">{sc(b.detail_part, b.detail)}</p>
                         ) : null}
                       </li>
                     ))}
                   </ul>
                 )}
                 <p className="mt-4 type-caption text-fg-secondary" data-testid="soul-disclaimer">
-                  {result.disclaimer}
+                  {sc(result.disclaimer_part, result.disclaimer)}
                 </p>
               </div>
                 );
@@ -1014,11 +1031,11 @@ function SoulUnlockedContent() {
                   result.friend?.role === "partner" &&
                   Boolean(result.partner_overview);
                 const loveTease =
-                  truncateLoveTease(result.partner_overview?.hook) ||
+                  truncateLoveTease(sc(result.partner_overview?.hook_part, result.partner_overview?.hook || "")) ||
                   t("soul.chrome.loveHarmonize");
                 const playbookTease =
-                  truncateTease(result.playbook?.lede) ||
-                  truncateTease(result.playbook?.focus_hint) ||
+                  truncateTease(sc(result.playbook?.lede_part, result.playbook?.lede || "")) ||
+                  truncateTease(sc(result.playbook?.focus_hint_part, result.playbook?.focus_hint || "")) ||
                   t("soul.chrome.playbookLead");
                 const toggleChapter = (id: SoulChapterId) => {
                   setOpenChapter((prev) => (prev === id ? null : id));
@@ -1094,12 +1111,12 @@ function SoulUnlockedContent() {
                         >
                           {result.playbook.focus_hint ? (
                             <p className="mb-1 type-chip uppercase tracking-wide text-growth">
-                              {result.playbook.focus_hint}
+                              {sc(result.playbook.focus_hint_part, result.playbook.focus_hint)}
                             </p>
                           ) : null}
                           {result.playbook.lede ? (
                             <p className="type-body text-fg-secondary">
-                              {result.playbook.lede}
+                              {sc(result.playbook.lede_part, result.playbook.lede)}
                             </p>
                           ) : null}
                         </div>
@@ -1187,11 +1204,24 @@ function SoulUnlockedContent() {
                                   </span>
                                 </div>
                                 <p className="mt-0.5 text-xs text-fg-secondary">
-                                  {t("soul.chrome.youPersonStatus", { self: row.self, friend: row.friend })}
+                                  {t("soul.chrome.youPersonStatus", {
+                                    self:
+                                      row.self === "defined"
+                                        ? t("chart.status.defined")
+                                        : row.self === "open"
+                                          ? t("chart.status.open")
+                                          : row.self,
+                                    friend:
+                                      row.friend === "defined"
+                                        ? t("chart.status.defined")
+                                        : row.friend === "open"
+                                          ? t("chart.status.open")
+                                          : row.friend,
+                                  })}
                                 </p>
                                 {row.hint ? (
                                   <p className="mt-1 type-caption text-fg-secondary">
-                                    {row.hint}
+                                    {sc(row.hint_part, row.hint)}
                                   </p>
                                 ) : null}
                               </li>

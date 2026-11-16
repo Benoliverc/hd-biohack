@@ -442,12 +442,14 @@ export default function TransitsPage() {
                   Sun{" "}
                   {formatGateLine(
                     (sunEarth.sun.gate as number | undefined) ?? String(sunEarth.sun.label ?? ""),
-                    sunEarth.sun.line as number | undefined
+                    sunEarth.sun.line as number | undefined,
+                    t
                   )}{" "}
                   · Earth{" "}
                   {formatGateLine(
                     (sunEarth.earth.gate as number | undefined) ?? String(sunEarth.earth.label ?? ""),
-                    sunEarth.earth.line as number | undefined
+                    sunEarth.earth.line as number | undefined,
+                    t
                   )}
                 </p>
               ) : null}
@@ -548,7 +550,8 @@ export default function TransitsPage() {
                       <td className="px-4 py-1.5 text-energy-ink">
                         {formatGateLine(
                           (r.gate as number | undefined) ?? String(r.label ?? ""),
-                          r.line as number | undefined
+                          r.line as number | undefined,
+                          t
                         )}
                       </td>
                     </tr>

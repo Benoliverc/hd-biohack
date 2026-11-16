@@ -207,7 +207,7 @@ function LiteracyReaderOverlay({
         </div>
         <nav
           className="mt-3 flex flex-wrap gap-1.5"
-          aria-label="Sections"
+          aria-label={t("literacy.chrome.sectionsAria")}
           data-testid={`${testId}-rail`}
         >
           {steps.map((step) => (

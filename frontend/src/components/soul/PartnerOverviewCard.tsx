@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useSoulCopy } from "@/lib/soulCopy";
 import type {
   SoulLoveGuidanceItem,
   SoulLoveGuidanceSection,
@@ -37,9 +38,9 @@ function TryLine({ text, testId }: { text?: string | null; testId?: string }) {
   );
 }
 
-function foldTitleIntoBody(section: SoulLoveGuidanceSection): string {
-  const title = section.title?.trim() ?? "";
-  const body = section.body?.trim() ?? "";
+function foldTitleIntoBody(titleRaw: string, bodyRaw: string): string {
+  const title = titleRaw.trim();
+  const body = bodyRaw.trim();
   if (!title) return body;
   if (!body) return title.endsWith(".") ? title : `${title}.`;
   if (body.startsWith(title) || body.includes(title)) return body;
@@ -58,6 +59,7 @@ function GuidanceBlock({
   heading: string;
   items: SoulLoveGuidanceItem[];
 }) {
+  const sc = useSoulCopy();
   if (!items.length) return null;
   return (
     <section className="pt-0" data-testid={testId}>
@@ -69,9 +71,9 @@ function GuidanceBlock({
             className="rounded-xl border border-border bg-elevated px-3.5 py-3"
             data-testid={`${itemTestIdPrefix}-${item.id}`}
           >
-            <p className="text-sm font-semibold text-fg">{item.title}</p>
-            <p className="mt-1.5 type-body text-fg max-w-prose">{item.body}</p>
-            <TryLine text={item.try} />
+            <p className="text-sm font-semibold text-fg">{sc(item.title_part, item.title)}</p>
+            <p className="mt-1.5 type-body text-fg max-w-prose">{sc(item.body_part, item.body)}</p>
+            <TryLine text={sc(item.try_part, item.try)} />
           </li>
         ))}
       </ul>
@@ -92,6 +94,28 @@ export default function PartnerOverviewCard({
   reasonLine,
 }: Props) {
   const { t } = useI18n();
+  const sc = useSoulCopy();
+  const hook = sc(overview.hook_part, overview.hook);
+  const theCurrent = sc(overview.the_current_part, overview.the_current);
+  const howYouLove = sc(overview.how_you_love_part, overview.how_you_love);
+  const howTheyLove = sc(overview.how_they_love_part, overview.how_they_love);
+  const whatThisAsks = sc(overview.what_this_asks_part, overview.what_this_asks);
+  const tenderSpots = sc(overview.tender_spots_part, overview.tender_spots);
+  const tryThis = sc(overview.try_this_part, overview.try_this);
+  const decide = overview.how_you_decide;
+  const communicate = overview.how_you_communicate;
+  const decideTitle = decide ? sc(decide.title_part, decide.title) : "";
+  const decideBody = decide ? sc(decide.body_part, decide.body) : "";
+  const decideTry = decide ? sc(decide.try_part, decide.try) : "";
+  const talkBody = communicate ? sc(communicate.body_part, communicate.body) : "";
+  const talkVoice = communicate ? sc(communicate.voice_part, communicate.voice || "") : "";
+  const talkTry = communicate ? sc(communicate.try_part, communicate.try) : "";
+  const clashBody = overview.when_you_clash
+    ? sc(overview.when_you_clash.body_part, overview.when_you_clash.body)
+    : "";
+  const clashTryText = overview.when_you_clash
+    ? sc(overview.when_you_clash.try_part, overview.when_you_clash.try)
+    : "";
   const title = partnerFirstName?.trim()
     ? t("soul.partner.youAnd", { name: partnerFirstName.trim() })
     : t("soul.partner.youTwo");
@@ -105,20 +129,17 @@ export default function PartnerOverviewCard({
   const harmonies = overview.harmonies ?? [];
   const frictions = overview.frictions ?? [];
 
-  const hasCurrent = hasText(overview.the_current);
-  const hasHowYouLove =
-    hasText(overview.how_you_love) || hasText(overview.how_they_love);
+  const hasCurrent = hasText(theCurrent);
+  const hasHowYouLove = hasText(howYouLove) || hasText(howTheyLove);
   const hasHarmonyFriction = harmonies.length > 0 || frictions.length > 0;
-  const hasDecide = Boolean(overview.how_you_decide);
-  const hasCommunicate = Boolean(overview.how_you_communicate);
-  const clashWhy = overview.when_you_clash?.body;
-  const clashTry = overview.when_you_clash?.try;
-  const hardWhy = hasText(clashWhy)
-    ? clashWhy
-    : hasText(overview.what_this_asks)
-      ? overview.what_this_asks
-      : overview.tender_spots;
-  const hardTry = hasText(clashTry) ? clashTry : overview.try_this;
+  const hasDecide = Boolean(decide);
+  const hasCommunicate = Boolean(communicate);
+  const hardWhy = hasText(clashBody)
+    ? clashBody
+    : hasText(whatThisAsks)
+      ? whatThisAsks
+      : tenderSpots;
+  const hardTry = hasText(clashTryText) ? clashTryText : tryThis;
   const hasWhenItsHard = hasText(hardWhy) || hasText(hardTry);
 
   return (
@@ -140,73 +161,73 @@ export default function PartnerOverviewCard({
         className="mt-4 type-section text-fg"
         data-testid="soul-partner-hook"
       >
-        {overview.hook}
+        {hook}
       </p>
       {hasCurrent ? (
         <p
           className="mt-2 type-body text-fg max-w-prose"
           data-testid="soul-partner-the-current"
         >
-          {overview.the_current}
+          {theCurrent}
         </p>
       ) : null}
 
       <div className="mt-5 space-y-4">
-        {hasDecide && overview.how_you_decide ? (
+        {hasDecide && decide ? (
           <section
             className="rounded-xl border border-border bg-elevated px-4 py-3.5"
             data-testid="soul-love-decide"
           >
             <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouDecide")}</h3>
             <p className="mt-1.5 type-body text-fg max-w-prose">
-              {foldTitleIntoBody(overview.how_you_decide)}
+              {foldTitleIntoBody(decideTitle, decideBody)}
             </p>
-            <TryLine text={overview.how_you_decide.try} />
+            <TryLine text={decideTry} />
           </section>
         ) : null}
 
-        {hasCommunicate && overview.how_you_communicate ? (
+        {hasCommunicate && communicate ? (
           <section
             className="rounded-xl border border-border bg-elevated px-4 py-3.5"
             data-testid="soul-love-communicate"
           >
             <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouTalk")}</h3>
             <p className="mt-1.5 type-body text-fg max-w-prose">
-              {overview.how_you_communicate.body}
+              {talkBody}
             </p>
-            {hasText(overview.how_you_communicate.voice) ? (
+            {hasText(talkVoice) ? (
               <p
                 className="mt-1.5 type-body text-fg max-w-prose"
                 data-testid="soul-love-communicate-voice"
               >
-                {overview.how_you_communicate.voice}
+                {talkVoice}
               </p>
             ) : null}
-            <TryLine text={overview.how_you_communicate.try} />
+            <TryLine text={talkTry} />
           </section>
         ) : null}
 
         {hasHowYouLove ? (
           <section className="grid gap-4 sm:grid-cols-2">
-            {hasText(overview.how_you_love) ? (
+            {hasText(howYouLove) ? (
               <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                 <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouLove")}</h3>
                 <p
                   className="mt-1.5 type-body text-fg max-w-prose"
                   data-testid="soul-partner-how-you-love"
                 >
-                  {overview.how_you_love}
+                  {howYouLove}
                 </p>
               </div>
             ) : null}
-            {hasText(overview.how_they_love) ? (
+            {hasText(howTheyLove) ? (
               <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
                 <h3 className="text-sm font-semibold text-fg">{theyHeading}</h3>
                 <p
                   className="mt-1.5 type-body text-fg max-w-prose"
                   data-testid="soul-partner-how-they-love"
                 >
-                  {overview.how_they_love}
+                  {howTheyLove}
                 </p>
               </div>
             ) : null}
@@ -246,7 +267,7 @@ export default function PartnerOverviewCard({
             ) : null}
             <TryLine
               text={hardTry}
-              testId={hasText(clashTry) ? undefined : "soul-partner-try-this"}
+              testId={hasText(clashTryText) ? undefined : "soul-partner-try-this"}
             />
           </section>
         ) : null}

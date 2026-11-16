@@ -27,7 +27,7 @@ import {
   setCompletionNote,
   toggleCompletion,
   weekDayKeysInZone,
-  weekRangeLabel,
+  weekRangeLabelPart,
 } from "@/lib/protocolCompletions";
 import {
   WeatherStrip,
@@ -991,7 +991,10 @@ export default function BiohackPage() {
           theme={String(weekly.theme || "")}
           skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
           weekRows={weekRows}
-          weekLabel={weekRangeLabel(protocolsTz)}
+          weekLabel={(() => {
+            const weekPart = weekRangeLabelPart(protocolsTz);
+            return t(weekPart.key, weekPart.params);
+          })()}
           userId={user?.id ?? null}
           chartId={youChart?.id ?? null}
           timeZone={protocolsTz}

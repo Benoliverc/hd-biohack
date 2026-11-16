@@ -7,6 +7,14 @@ from __future__ import annotations
 from typing import Any
 
 from .partner_insights import type_pair_key
+from .soul_copy_parts import (
+    part,
+    type_pair_slug_from_key,
+    center_slug,
+    auth_pair_slug,
+    auth_slug as auth_slug_safe,
+    channel_id,
+)
 
 CENTER_KEYS = (
     "Head",
@@ -60,14 +68,48 @@ CLASH_TEMPO_SENTENCE = (
 )
 
 
-def _item(id_: str, title: str, body: str, try_: str) -> dict[str, str]:
-    return {"id": id_, "title": title, "body": body, "try": try_}
+def _item(
+    id_: str,
+    title: str,
+    body: str,
+    try_: str,
+    *,
+    parts: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    out: dict[str, Any] = {"id": id_, "title": title, "body": body, "try": try_}
+    if parts:
+        out.update(parts)
+    return out
 
 
-def _section(title: str, body: str, try_: str, voice: str | None = None) -> dict[str, str]:
-    out = {"title": title, "body": body, "try": try_}
+def _center_item(center: str, state: str, entry: dict[str, str]) -> dict[str, Any]:
+    slug = center_slug(center)
+    return _item(
+        f"center-{center}",
+        entry["title"],
+        entry["body"],
+        entry["try"],
+        parts={
+            "title_part": part(f"soul.read.center.{slug}.{state}.title"),
+            "body_part": part(f"soul.read.center.{slug}.{state}.body"),
+            "try_part": part(f"soul.read.center.{slug}.{state}.try"),
+        },
+    )
+
+
+def _section(
+    title: str,
+    body: str,
+    try_: str,
+    voice: str | None = None,
+    *,
+    parts: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    out: dict[str, Any] = {"title": title, "body": body, "try": try_}
     if voice:
         out["voice"] = voice
+    if parts:
+        out.update(parts)
     return out
 
 
@@ -1308,6 +1350,11 @@ SHARED_AUTHORITY_HARMONY = _item(
         "Say your stage of clarity out loud even when you think it is obvious. Don't "
         "skip the check-in."
     ),
+    parts={
+        "title_part": part("soul.read.harmony.sharedAuthority.title"),
+        "body_part": part("soul.read.harmony.sharedAuthority.body"),
+        "try_part": part("soul.read.harmony.sharedAuthority.try"),
+    },
 )
 
 
@@ -1326,6 +1373,11 @@ def _companionship_harmony(channel_roles: dict[str, Any]) -> dict[str, str] | No
         listed = f"{names[0]} and {names[1]}"
     else:
         listed = ", ".join(names[:-1]) + f", and {names[-1]}"
+    channel_ids = ",".join(
+        channel_id(ch.get("gates")) or str(ch.get("channel") or "")
+        for ch in rows
+        if ch.get("gates") or ch.get("channel")
+    )
     return _item(
         "companionship",
         "What you already share",
@@ -1338,6 +1390,11 @@ def _companionship_harmony(channel_roles: dict[str, Any]) -> dict[str, str] | No
             "Name one shared channel out loud this week and say how you already feel "
             "it in daily life — without turning it into a fix-it project."
         ),
+        parts={
+            "title_part": part("soul.read.harmony.companionship.title"),
+            "body_part": part("soul.read.harmony.companionship.body", channel_ids=channel_ids, listed=listed),
+            "try_part": part("soul.read.harmony.companionship.try"),
+        },
     )
 
 
@@ -1350,9 +1407,7 @@ def _select_frictions(
         if state not in ("you_open_they_defined", "you_defined_they_open"):
             continue
         entry = CENTER_BANK[center][state]
-        out.append(
-            _item(f"center-{center}", entry["title"], entry["body"], entry["try"])
-        )
+        out.append(_center_item(center, state, entry))
         if len(out) >= 4:
             break
     return out
@@ -1371,9 +1426,7 @@ def _select_harmonies(
         if state != "both_defined":
             continue
         entry = CENTER_BANK[center][state]
-        out.append(
-            _item(f"center-{center}", entry["title"], entry["body"], entry["try"])
-        )
+        out.append(_center_item(center, state, entry))
         if len(out) >= 4:
             return out
 
@@ -1396,9 +1449,7 @@ def _select_harmonies(
             if any(i["id"] == f"center-{center}" for i in out):
                 continue
             entry = CENTER_BANK[center][state]
-            out.append(
-                _item(f"center-{center}", entry["title"], entry["body"], entry["try"])
-            )
+            out.append(_center_item(center, state, entry))
     return out[:4]
 
 
@@ -1449,7 +1500,43 @@ def _how_you_decide(
     if not entry:
         return None
     body = _assign_decide_body(auth_a, auth_b, entry, name_b)
-    return _section(entry["title"], body, entry["try"])
+    pair = auth_pair_slug(key)
+    a = normalize_authority(auth_a)
+    b = normalize_authority(auth_b)
+    title = entry["title"].strip()
+    has_lead = title in EVERYDAY_DECIDE_LEADS
+    if not a or not b or a == b or not AUTHORITY_SIDE.get(a) or not AUTHORITY_SIDE.get(b):
+        body_key = (
+            f"soul.read.decide.{pair}.body.withLead" if has_lead else f"soul.read.decide.{pair}.body"
+        )
+        body_part = part(body_key)
+    else:
+        they_key = (
+            f"soul.read.authority.side.{auth_slug_safe(b)}.named"
+            if name_b
+            else f"soul.read.authority.side.{auth_slug_safe(b)}.they"
+        )
+        composed_params = {
+            "you_key": f"soul.read.authority.side.{auth_slug_safe(a)}.you",
+            "they_key": they_key,
+            "name": name_b,
+        }
+        if has_lead:
+            composed_params["lead_key"] = f"soul.read.decide.{pair}.titleLead"
+        tail = AUTHORITY_ASSIGN_TAIL.get(key or "")
+        if tail:
+            composed_params["tail_key"] = f"soul.read.authority.tail.{pair}"
+        body_part = part("soul.read.decide.composed", **composed_params)
+    return _section(
+        entry["title"],
+        body,
+        entry["try"],
+        parts={
+            "title_part": part(f"soul.read.decide.{pair}.title"),
+            "body_part": body_part,
+            "try_part": part(f"soul.read.decide.{pair}.try"),
+        },
+    )
 
 
 def _how_you_communicate(
@@ -1468,7 +1555,20 @@ def _how_you_communicate(
     throat = THROAT_COMMUNICATE[throat_state]
     # Type-pair Try stays the section action. A throat beat, if it adds a new
     # idea, is a second paragraph under the same heading — not a second Try.
-    return _section("How you talk", pair["body"], pair["try"], voice=throat["body"])
+    slug = type_pair_slug_from_key(key)
+    throat_slug = throat_state  # already a stable id
+    return _section(
+        "How you talk",
+        pair["body"],
+        pair["try"],
+        voice=throat["body"],
+        parts={
+            "title_part": part("soul.read.communicate.title"),
+            "body_part": part(f"soul.read.communicate.pair.{slug}.body"),
+            "try_part": part(f"soul.read.communicate.pair.{slug}.try"),
+            "voice_part": part(f"soul.read.communicate.throat.{throat_slug}.body"),
+        },
+    )
 
 
 def _when_you_clash(
@@ -1485,9 +1585,22 @@ def _when_you_clash(
         return None
     body = pair["body"]
     auth_key = authority_pair_key(auth_a, auth_b)
-    if auth_key and frozenset(auth_key.split("|")) in TEMPO_GAP_NORMS:
+    with_tempo = bool(auth_key and frozenset(auth_key.split("|")) in TEMPO_GAP_NORMS)
+    if with_tempo:
         body = f"{body} {CLASH_TEMPO_SENTENCE}"
-    return _section(pair["title"], body, pair["try"])
+    slug = type_pair_slug_from_key(key)
+    return _section(
+        pair["title"],
+        body,
+        pair["try"],
+        parts={
+            "title_part": part(f"soul.read.clash.{slug}.title"),
+            "body_part": part(
+                f"soul.read.clash.{slug}.body.withTempo" if with_tempo else f"soul.read.clash.{slug}.body"
+            ),
+            "try_part": part(f"soul.read.clash.{slug}.try"),
+        },
+    )
 
 
 def build_partner_dynamics(
@@ -1522,22 +1635,30 @@ def build_partner_dynamics(
 
 
 def all_dynamics_copy_blobs() -> list[str]:
-    """Flatten bank strings for forbidden-word tests."""
+    """Flatten bank strings for forbidden-word tests (skip CopyPart dicts)."""
     blobs: list[str] = []
+
+    def _extend(values) -> None:
+        for val in values:
+            if isinstance(val, str):
+                blobs.append(val)
+            elif isinstance(val, dict):
+                _extend(val.values())
+
     for center in CENTER_BANK.values():
         for state in center.values():
-            blobs.extend(state.values())
+            _extend(state.values())
     for block in THROAT_COMMUNICATE.values():
-        blobs.extend(block.values())
+        _extend(block.values())
     for block in TYPE_PAIR_COMMUNICATE.values():
-        blobs.extend(block.values())
+        _extend(block.values())
     for block in TYPE_PAIR_CLASH.values():
-        blobs.extend(block.values())
+        _extend(block.values())
     for block in AUTHORITY_DECIDE_BANK.values():
-        blobs.extend(block.values())
+        _extend(block.values())
     for side in AUTHORITY_SIDE.values():
-        blobs.extend(side.values())
-    blobs.extend(AUTHORITY_ASSIGN_TAIL.values())
-    blobs.extend(SHARED_AUTHORITY_HARMONY.values())
+        _extend(side.values())
+    _extend(AUTHORITY_ASSIGN_TAIL.values())
+    _extend(SHARED_AUTHORITY_HARMONY.values())
     blobs.append(CLASH_TEMPO_SENTENCE)
     return blobs

@@ -18,6 +18,7 @@ from .channels import (
 from .type_authority import derive_definition
 from .partner_insights import apply_partner_layer
 from .partner_names import first_name_from_label, personalize_type_prose
+from .soul_copy_parts import part
 
 ContextId = Literal["work", "life", "play"]
 
@@ -277,9 +278,13 @@ def build_playbook_lede(
     by_sig = PLAYBOOK_LEDES.get(signature_id) or PLAYBOOK_LEDES["spacious_explorers"]
     lede = by_sig.get(context) or by_sig["life"]
     hint = focus_hint if focus_hint is not None else PLAYBOOK_FOCUS_HINTS.get(context, "")
-    out: dict[str, str] = {"lede": lede}
+    out: dict[str, Any] = {
+        "lede": lede,
+        "lede_part": part(f"soul.read.lede.{signature_id}.{context}"),
+    }
     if hint:
         out["focus_hint"] = hint
+        out["focus_hint_part"] = part(f"soul.read.focusHint.{context}")
     return out
 
 
@@ -328,8 +333,27 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
     holder = "You" if you_hold else "They"
     other = "they" if you_hold else "you"
 
-    def pack(headline: str, para1: str, para2: str) -> dict[str, str]:
-        return {"headline": headline, "body": f"{para1}\n\n{para2}"}
+    def pack(
+        headline: str,
+        para1: str,
+        para2: str,
+        *,
+        slug: str,
+        holder_role: str,
+        channel: str | None = None,
+    ) -> dict[str, Any]:
+        body = f"{para1}\n\n{para2}"
+        params: dict[str, Any] = {}
+        if channel:
+            params["channel"] = channel
+        if gset:
+            params["channel_id"] = "-".join(str(g) for g in sorted(gset))
+        return {
+            "headline": headline,
+            "body": body,
+            "headline_part": part(f"soul.read.block.{slug}.headline", **params),
+            "body_part": part(f"soul.read.block.{slug}.body.{holder_role}", **params),
+        }
 
     if gset == CONCENTRATION_GATES:
         if you_hold:
@@ -348,6 +372,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "starts to clash, pause and ask who is setting the focus thermostat today — same "
                     "room, different set points — then agree a window instead of pushing through."
                 ),
+                slug="concentrationTuning",
+                holder_role="self",
             )
         return pack(
             "Concentration Tuning",
@@ -364,6 +390,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "pace starts to clash, pause and ask who is setting the focus thermostat today — "
                 "same room, different set points — then agree a window instead of pushing through."
             ),
+            slug="concentrationTuning",
+            holder_role="friend",
         )
 
     if gset == EXPLORATION_GATES:
@@ -384,6 +412,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "running the adventure thermostat right now, then slow to the slower person's "
                     "real yes."
                 ),
+                slug="explorationTuning",
+                holder_role="self",
             )
         return pack(
             "Exploration Tuning",
@@ -400,6 +430,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "(or they feel stalled), stop and say who is running the adventure thermostat "
                 "right now, then slow to the slower person's real yes."
             ),
+            slug="explorationTuning",
+            holder_role="friend",
         )
 
     if gset == SYNTHESIS_GATES:
@@ -420,6 +452,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "who is holding the belonging thermostat and pause big 'in/out' decisions until "
                     "both of you feel the wave settle."
                 ),
+                slug="synthesisTuning",
+                holder_role="self",
             )
         return pack(
             "Synthesis Tuning",
@@ -436,6 +470,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "heats up, name who is holding the belonging thermostat and pause big 'in/out' "
                 "decisions until both of you feel the wave settle."
             ),
+            slug="synthesisTuning",
+            holder_role="friend",
         )
 
     if gset == STRUCTURING_GATES:
@@ -455,6 +491,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "insight. If either of you pushes pace on a half-baked idea, name who is running "
                     "the clarity thermostat and wait for recognition before the next dump."
                 ),
+                slug="structuringTuning",
+                holder_role="self",
             )
         return pack(
             "Structuring Tuning",
@@ -471,6 +509,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "either of you pushes pace on a half-baked idea, name who is running the clarity "
                 "thermostat and wait for recognition before the next dump."
             ),
+            slug="structuringTuning",
+            holder_role="friend",
         )
 
     if gset == STRUGGLE_GATES:
@@ -490,6 +530,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "abandonment. If no, walk away together and save the spleen. Do not recruit "
                     "them into a war they never named as theirs."
                 ),
+                slug="purposeTenacityTuning",
+                holder_role="self",
             )
         return pack(
             "Purpose & Tenacity Tuning",
@@ -506,6 +548,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "abandonment. If no, help them walk away and save the spleen. You do not have to "
                 "enlist in a war you never named as yours."
             ),
+            slug="purposeTenacityTuning",
+            holder_role="friend",
         )
 
     if gset == TRANSFORMATION_GATES:
@@ -526,6 +570,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "starts to feel like brittle striving, pause and say who is running the ambition "
                     "thermostat, then slow until instinct and drive agree."
                 ),
+                slug="transformationTuning",
+                holder_role="self",
             )
         return pack(
             "Transformation Tuning",
@@ -542,6 +588,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "like brittle striving, pause and say who is running the ambition thermostat, "
                 "then slow until instinct and drive agree."
             ),
+            slug="transformationTuning",
+            holder_role="friend",
         )
 
     if gset == COMMUNITY_GATES:
@@ -562,6 +610,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "used or locked in, name who is holding the loyalty thermostat and pause new "
                     "commitments until the exchange feels mutual again."
                 ),
+                slug="communityTuning",
+                holder_role="self",
             )
         return pack(
             "Community Tuning",
@@ -578,6 +628,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "locked in, name who is holding the loyalty thermostat and pause new commitments "
                 "until the exchange feels mutual again."
             ),
+            slug="communityTuning",
+            holder_role="friend",
         )
 
     if gset == RECOGNITION_GATES:
@@ -597,6 +649,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                     "desire starts driving the schedule, pause and name who is running the hunger "
                     "thermostat."
                 ),
+                slug="desireImaginationTuning",
+                holder_role="self",
             )
         return pack(
             "Desire & Imagination Tuning",
@@ -613,6 +667,8 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
                 "desire starts driving the schedule, pause and name who is running the hunger "
                 "thermostat."
             ),
+            slug="desireImaginationTuning",
+            holder_role="friend",
         )
 
     return pack(
@@ -629,6 +685,9 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             "Slow down, make the set point explicit, and decide together — these are "
             "high-awareness zones, not scoreboards."
         ),
+        slug="channelTuning",
+        holder_role=("self" if you_hold else "friend"),
+        channel=name,
     )
 
 
@@ -830,15 +889,21 @@ def conditioning_strip(
         else:
             direction = "self_to_friend"
             hint = ""
-        rows.append(
-            {
-                "center": center,
-                "self": self_state,
-                "friend": friend_state,
-                "direction": direction,
-                "hint": hint,
-            }
-        )
+        row: dict[str, Any] = {
+            "center": center,
+            "self": self_state,
+            "friend": friend_state,
+            "direction": direction,
+            "hint": hint,
+        }
+        if hint:
+            hint_key = (
+                f"soul.read.hint.{center.lower()}"
+                if center in CENTER_HINTS
+                else "soul.read.hint.fallback"
+            )
+            row["hint_part"] = part(hint_key)
+        rows.append(row)
     return rows
 
 
@@ -942,11 +1007,31 @@ def detect_badges(
         detail = "Split + Split → Single"
         if detail_parts:
             detail = detail + " · " + "; ".join(detail_parts)
+        if bridges_self and bridges_friend:
+            detail_part = part(
+                "soul.read.badge.mutual_split_bridge.detail.withBridges",
+                you_them=", ".join(f"g{b['gate']}" for b in bridges_self[:4]),
+                them_you=", ".join(f"g{b['gate']}" for b in bridges_friend[:4]),
+            )
+        elif bridges_self:
+            detail_part = part(
+                "soul.read.badge.mutual_split_bridge.detail.youFromThem",
+                you_them=", ".join(f"g{b['gate']}" for b in bridges_self[:4]),
+            )
+        elif bridges_friend:
+            detail_part = part(
+                "soul.read.badge.mutual_split_bridge.detail.themFromYou",
+                them_you=", ".join(f"g{b['gate']}" for b in bridges_friend[:4]),
+            )
+        else:
+            detail_part = part("soul.read.badge.mutual_split_bridge.detail")
         badges.append(
             {
                 "id": "mutual_split_bridge",
                 "label": "You bridge each other's gaps (Split→Single)",
                 "detail": detail,
+                "label_part": part("soul.read.badge.mutual_split_bridge.label"),
+                "detail_part": detail_part,
             }
         )
 
@@ -1025,6 +1110,23 @@ def detect_badges(
         desc = BADGE_DESCRIPTIONS.get(badge["id"])
         if desc:
             badge["description"] = desc
+        bid = badge["id"]
+        badge.setdefault("label_part", part(f"soul.read.badge.{bid}.label"))
+        if badge.get("description"):
+            badge.setdefault("description_part", part(f"soul.read.badge.{bid}.description"))
+        if badge.get("detail") and "detail_part" not in badge:
+            if bid == "integration_triad":
+                variant = (
+                    "cross"
+                    if badge["detail"] == "Gate 10 meets 20-34 across the pair"
+                    else "composite"
+                )
+                badge["detail_part"] = part(f"soul.read.badge.{bid}.detail.{variant}")
+            elif bid == "mirror_gates":
+                gates = str(badge["detail"]).removeprefix("Shared hanging: ").strip()
+                badge["detail_part"] = part(f"soul.read.badge.{bid}.detail", gates=gates)
+            else:
+                badge["detail_part"] = part(f"soul.read.badge.{bid}.detail")
     return badges
 
 
@@ -1227,39 +1329,112 @@ def build_spectrums(
     else:
         pace_summary = "Pace looks easy on paper — still take time alone after busy or intense days."
 
+    def _band(value: int) -> str:
+        if value >= 60:
+            return "high"
+        if value >= 30:
+            return "mid"
+        return "low"
+
+    def _spectrum(
+        *,
+        sid: str,
+        label: str,
+        low_label: str,
+        high_label: str,
+        position: int,
+        summary: str,
+        drivers: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        return {
+            "id": sid,
+            "label": label,
+            "low_label": low_label,
+            "high_label": high_label,
+            "position": position,
+            "summary": summary,
+            "drivers": drivers,
+            "label_part": part(f"soul.read.spectrum.{sid}.label"),
+            "low_label_part": part(f"soul.read.spectrum.{sid}.low"),
+            "high_label_part": part(f"soul.read.spectrum.{sid}.high"),
+            "summary_part": part(f"soul.read.spectrum.{sid}.summary.{_band(position)}"),
+        }
+
     return [
-        {
-            "id": "auric_charge",
-            "label": "Intensity",
-            "low_label": "Calmer",
-            "high_label": "High intensity",
-            "position": charge,
-            "summary": charge_summary,
-            "drivers": charge_drivers,
-        },
-        {
-            "id": "circuit_continuity",
-            "label": "Steadiness",
-            "low_label": "More separate",
-            "high_label": "One loop",
-            "position": cont,
-            "summary": cont_summary,
-            "drivers": cont_drivers,
-        },
-        {
-            "id": "somatic_pacing",
-            "label": "Pace",
-            "low_label": "Easy pace",
-            "high_label": "Needs pacing",
-            "position": pace,
-            "summary": pace_summary,
-            "drivers": pace_drivers,
-        },
+        _spectrum(
+            sid="auric_charge",
+            label="Intensity",
+            low_label="Calmer",
+            high_label="High intensity",
+            position=charge,
+            summary=charge_summary,
+            drivers=charge_drivers,
+        ),
+        _spectrum(
+            sid="circuit_continuity",
+            label="Steadiness",
+            low_label="More separate",
+            high_label="One loop",
+            position=cont,
+            summary=cont_summary,
+            drivers=cont_drivers,
+        ),
+        _spectrum(
+            sid="somatic_pacing",
+            label="Pace",
+            low_label="Easy pace",
+            high_label="Needs pacing",
+            position=pace,
+            summary=pace_summary,
+            drivers=pace_drivers,
+        ),
     ]
 
 
 def _holder_label(holder: str) -> str:
     return "Your" if holder == "self" else "Their"
+
+
+def _copy_block(
+    headline: str,
+    body: str,
+    *,
+    headline_key: str,
+    body_key: str,
+    **params,
+) -> dict[str, Any]:
+    return {
+        "headline": headline,
+        "body": body,
+        "headline_part": part(headline_key, **params),
+        "body_part": part(body_key, **params),
+    }
+
+
+def _copy_card(
+    *,
+    id: str,
+    title: str,
+    title_key: str,
+    body_blocks: list[dict[str, Any]],
+    empty_body: str | None = None,
+    empty_key: str | None = None,
+    title_params: dict[str, Any] | None = None,
+    empty_params: dict[str, Any] | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    card: dict[str, Any] = {
+        "id": id,
+        "title": title,
+        "title_part": part(title_key, **(title_params or {})),
+        "body_blocks": body_blocks,
+        **extra,
+    }
+    if empty_body is not None:
+        card["empty_body"] = empty_body
+        if empty_key:
+            card["empty_body_part"] = part(empty_key, **(empty_params or {}))
+    return card
 
 
 def build_cards(
@@ -1307,40 +1482,52 @@ def build_cards(
                             "question before you leave the room so the clarity sticks."
                         )
                     break
+        if holder_note.startswith("You help"):
+            body_variant = "self"
+            body_text = holder_note
+        elif holder_note.startswith("They help"):
+            body_variant = "friend"
+            body_text = holder_note
+        else:
+            body_variant = "together"
+            body_text = holder_note or (
+                "Together you turn abstract mental swirls into crisp, shareable "
+                "insights — the field supplies structure when either mind alone "
+                "would stay foggy. It feels like a thinking partnership: less "
+                "rumination, more sentences you can act on. Habit: after a deep "
+                "talk, write one decision and one open question before you "
+                "separate so the bridge keeps working offline."
+            )
         bridge_blocks.append(
-            {
-                "headline": "Mental Structuring Bridge",
-                "body": holder_note
-                or (
-                    "Together you turn abstract mental swirls into crisp, shareable "
-                    "insights — the field supplies structure when either mind alone "
-                    "would stay foggy. It feels like a thinking partnership: less "
-                    "rumination, more sentences you can act on. Habit: after a deep "
-                    "talk, write one decision and one open question before you "
-                    "separate so the bridge keeps working offline."
-                ),
-            }
+            _copy_block(
+                "Mental Structuring Bridge",
+                body_text,
+                headline_key="soul.read.block.mentalStructuring.headline",
+                body_key=f"soul.read.block.mentalStructuring.body.{body_variant}",
+            )
         )
     if _roles_involving(
         roles, ("dominance", "electromagnetic"), (TRANSITORINESS_GATES, CHARISMA_GATES)
     ):
         bridge_blocks.append(
-            {
-                "headline": "Kinetic Execution Bridge",
-                "body": (
+            _copy_block(
+                "Kinetic Execution Bridge",
+                (
                     "You wire deep intuition into physical action and lived experience — "
                     "insight does not stay theoretical when you are in the same field. "
                     "It feels like momentum: a felt sense becomes a move, a conversation "
                     "becomes an experiment. Habit: when an idea sparks, pick a 15-minute "
                     "embodied next step the same day instead of another planning loop."
                 ),
-            }
+                headline_key="soul.read.block.kineticExecution.headline",
+                body_key="soul.read.block.kineticExecution.body",
+            )
         )
     if "shared_compass" in badge_ids:
         bridge_blocks.append(
-            {
-                "headline": "True North Lock",
-                "body": (
+            _copy_block(
+                "True North Lock",
+                (
                     "Together you generate a defined sense of direction and presence "
                     "that neither of you holds solo. The composite feels oriented — "
                     "less \"where are we going?\" fog, more shared north you can lean on "
@@ -1348,13 +1535,15 @@ def build_cards(
                     "priority out loud and check whether the week's calendar still "
                     "matches it."
                 ),
-            }
+                headline_key="soul.read.block.trueNorthLock.headline",
+                body_key="soul.read.block.trueNorthLock.body",
+            )
         )
     if "mutual_split_bridge" in badge_ids:
         bridge_blocks.append(
-            {
-                "headline": "Split → Single Flow",
-                "body": (
+            _copy_block(
+                "Split → Single Flow",
+                (
                     "Separately you run split circuitry; together the field resolves "
                     "into one continuous definition. It can feel almost electric — "
                     "fragmented attention suddenly has a through-line and decisions "
@@ -1362,7 +1551,9 @@ def build_cards(
                     "days so each nervous system can find its own edges again inside "
                     "the composite flow."
                 ),
-            }
+                headline_key="soul.read.block.splitSingleFlow.headline",
+                body_key="soul.read.block.splitSingleFlow.body",
+            )
         )
     bridge_blocks = bridge_blocks[:4]
     all_bridges = bridges_self + bridges_friend
@@ -1373,20 +1564,23 @@ def build_cards(
         "absence of a big bridge as permission to design connection deliberately "
         "instead of waiting for circuitry to \"click\" on its own."
     )
-    circuit_card: dict[str, Any] = {
-        "id": "circuit_bridge",
-        "title": "How You Wire Together",
-        "body_blocks": bridge_blocks
+    circuit_card = _copy_card(
+        id="circuit_bridge",
+        title="How You Wire Together",
+        title_key="soul.read.card.circuit_bridge.title",
+        body_blocks=bridge_blocks
         or [
-            {
-                "headline": "Quiet wiring",
-                "body": quiet_wiring_body,
-            }
+            _copy_block(
+                "Quiet wiring",
+                quiet_wiring_body,
+                headline_key="soul.read.block.quietWiring.headline",
+                body_key="soul.read.block.quietWiring.body",
+            )
         ],
-        "bridges": all_bridges,
-    }
-    if not bridge_blocks:
-        circuit_card["empty_body"] = quiet_wiring_body
+        bridges=all_bridges,
+        empty_body=None if bridge_blocks else quiet_wiring_body,
+        empty_key=None if bridge_blocks else "soul.read.card.circuit_bridge.empty",
+    )
 
     # Card 2 — spark_glue
     def _channel_cite_line(ch: dict[str, Any]) -> str:
@@ -1401,10 +1595,14 @@ def build_cards(
     spark_blocks: list[dict[str, str]] = []
     if roles["electromagnetic"]:
         cites = ", ".join(_channel_cite_line(c) for c in roles["electromagnetic"])
+        channel_ids = ",".join(
+            "-".join(str(g) for g in (c.get("gates") or []))
+            for c in roles["electromagnetic"]
+        )
         spark_blocks.append(
-            {
-                "headline": "Spark (Electromagnetic)",
-                "body": (
+            _copy_block(
+                "Spark (Electromagnetic)",
+                (
                     "Electromagnetic spark is catalytic chemistry — your charts complete "
                     "channels neither person holds alone, so the aura can feel brighter, "
                     "faster, and more \"alive\" than either baseline. Use it as fuel, not "
@@ -1415,14 +1613,22 @@ def build_cards(
                     "in the peak of intensity.\n\n"
                     f"Channels: {cites}"
                 ),
-            }
+                headline_key="soul.read.block.spark.headline",
+                body_key="soul.read.block.spark.body",
+                channel_ids=channel_ids,
+                cites=cites,
+            )
         )
     if roles["companionship"]:
         cites = ", ".join(_channel_cite_line(c) for c in roles["companionship"])
+        channel_ids = ",".join(
+            "-".join(str(g) for g in (c.get("gates") or []))
+            for c in roles["companionship"]
+        )
         spark_blocks.append(
-            {
-                "headline": "Bedrock (Companionship)",
-                "body": (
+            _copy_block(
+                "Bedrock (Companionship)",
+                (
                     "Companionship glue is the stabilizing layer under whatever spark "
                     "you share — familiar rhythm, tribal ease, and a sense that the "
                     "field already \"gets\" the cadence without constant negotiation. "
@@ -1433,14 +1639,23 @@ def build_cards(
                     "the bond.\n\n"
                     f"Channels: {cites}"
                 ),
-            }
+                headline_key="soul.read.block.bedrock.headline",
+                body_key="soul.read.block.bedrock.body",
+                channel_ids=channel_ids,
+                cites=cites,
+            )
         )
     if roles["dominance"]:
         cites = ", ".join(_dominance_cite_line(c) for c in roles["dominance"])
+        channel_ids = ",".join(
+            "-".join(str(g) for g in (c.get("gates") or []))
+            for c in roles["dominance"]
+        )
+        holders = ",".join(str(c.get("holder") or "self") for c in roles["dominance"])
         spark_blocks.append(
-            {
-                "headline": "Effortless Gifts (Dominance)",
-                "body": (
+            _copy_block(
+                "Effortless Gifts (Dominance)",
+                (
                     "Dominance gifts are channels one of you runs fully — they tend to "
                     "feel effortless for the holder and quietly organizing for the "
                     "receiver. The gift is not control; it is reliable signal the other "
@@ -1450,7 +1665,12 @@ def build_cards(
                     "the other person's decision rights.\n\n"
                     f"On this pair: {cites}"
                 ),
-            }
+                headline_key="soul.read.block.dominance.headline",
+                body_key="soul.read.block.dominance.body",
+                channel_ids=channel_ids,
+                holders=holders,
+                cites=cites,
+            )
         )
     quiet_field_body = (
         "No electromagnetic, companionship, or dominance channels light up as the "
@@ -1460,17 +1680,20 @@ def build_cards(
         "ritual (shared meals, walks, check-ins) so the bond has structure without "
         "waiting for a Magnetic-style spark."
     )
-    spark_card: dict[str, Any] = {
-        "id": "spark_glue",
-        "title": "Spark & Glue",
-        "body_blocks": spark_blocks
+    spark_card = _copy_card(
+        id="spark_glue",
+        title="Spark & Glue",
+        title_key="soul.read.card.spark_glue.title",
+        body_blocks=spark_blocks
         or [
-            {
-                "headline": "Quiet field",
-                "body": quiet_field_body,
-            }
+            _copy_block(
+                "Quiet field",
+                quiet_field_body,
+                headline_key="soul.read.block.quietField.headline",
+                body_key="soul.read.block.quietField.body",
+            )
         ],
-    }
+    )
 
     # Card 3 — power_dynamics
     power_blocks: list[dict[str, str]] = [
@@ -1482,42 +1705,60 @@ def build_cards(
         "collisions on paper (same room, different set points). Keep using Spark & Glue and "
         "the Somatic Playbook when pace still needs tuning."
     )
-    power_card: dict[str, Any] = {
-        "id": "power_dynamics",
-        "title": "Power Dynamics to Tune",
-        "body_blocks": power_blocks
+    power_card = _copy_card(
+        id="power_dynamics",
+        title="Power Dynamics to Tune",
+        title_key="soul.read.card.power_dynamics.title",
+        body_blocks=power_blocks
         or [
-            {
-                "headline": "Steady thermostats",
-                "body": steady_body,
-            }
+            _copy_block(
+                "Steady thermostats",
+                steady_body,
+                headline_key="soul.read.block.steadyThermostats.headline",
+                body_key="soul.read.block.steadyThermostats.body",
+            )
         ],
-    }
-    if not power_blocks:
-        power_card["empty_body"] = steady_body
+        empty_body=None if power_blocks else steady_body,
+        empty_key=None if power_blocks else "soul.read.card.power_dynamics.empty",
+    )
 
     # Card 4 — somatic_playbook
     protocols: list[dict[str, str]] = []
     if sacral_asymmetry(type_a, type_b):
+        sacral_name = first_name_from_label(label_b)
+        sacral_lead = (
+            f"You ↔ {sacral_name}"
+            if sacral_name
+            else f"{type_a or 'You'} ↔ {type_b or 'Friend'}"
+        )
+        sacral_body = (
+            sacral_lead
+            + ". The Sacral partner is a "
+            "nuclear reactor amplifier for the non-Sacral — shared aura can feel "
+            "energizing for hours and then leave the non-Sacral overstimulated "
+            "or oddly depleted once alone. Protect both sides: the Sacral does "
+            "not need to dim their life force, and the non-Sacral does not need "
+            "to apologize for needing discharge. Habit: schedule 30–60 minutes "
+            "of solo wind-down before sleep after high-aura days so borrowed "
+            "Sacral charge can leave the body without either person reading it "
+            "as rejection or coldness."
+        )
+        sacral_params = (
+            {"name": sacral_name}
+            if sacral_name
+            else {"type_a": type_a or "You", "type_b": type_b or "Friend"}
+        )
         protocols.append(
             {
                 "id": "sacral_aura_hygiene",
                 "title": "Sacral / Non-Sacral Aura Hygiene",
-                "body": (
-                    (
-                        f"You ↔ {first_name_from_label(label_b)}"
-                        if first_name_from_label(label_b)
-                        else f"{type_a or 'You'} ↔ {type_b or 'Friend'}"
-                    )
-                    + ". The Sacral partner is a "
-                    "nuclear reactor amplifier for the non-Sacral — shared aura can feel "
-                    "energizing for hours and then leave the non-Sacral overstimulated "
-                    "or oddly depleted once alone. Protect both sides: the Sacral does "
-                    "not need to dim their life force, and the non-Sacral does not need "
-                    "to apologize for needing discharge. Habit: schedule 30–60 minutes "
-                    "of solo wind-down before sleep after high-aura days so borrowed "
-                    "Sacral charge can leave the body without either person reading it "
-                    "as rejection or coldness."
+                "body": sacral_body,
+                "title_part": part("soul.read.block.sacralAuraHygiene.headline"),
+                "body_part": part(
+                    "soul.read.block.sacralAuraHygiene.body.named"
+                    if sacral_name
+                    else "soul.read.block.sacralAuraHygiene.body.nameless",
+                    **sacral_params,
                 ),
             }
         )
@@ -1549,27 +1790,43 @@ def build_cards(
             body = personalize_type_prose(
                 body, type_a=type_a, type_b=type_b, name_b=name_b
             )
+        profile_variant = "6_2_5_1" if pair == {"6/2", "5/1"} else "generic"
         protocols.append(
             {
                 "id": "profile_resonance",
                 "title": f"Profile Resonance ({profile_a} + {profile_b})",
                 "body": body,
+                "title_part": part(
+                    "soul.read.block.profileResonance.headline",
+                    profile_a=profile_a,
+                    profile_b=profile_b,
+                ),
+                "body_part": part(
+                    f"soul.read.block.profileResonance.body.{profile_variant}",
+                    profile_a=profile_a,
+                    profile_b=profile_b,
+                    name=name_b,
+                ),
             }
         )
     if _is_emotional(auth_a) and _is_emotional(auth_b):
         extras = []
+        extra_keys = []
         if _channel_has_gates(roles["companionship"], SYNTHESIS_GATES) or _channel_has_gates(
             roles["electromagnetic"], SYNTHESIS_GATES
         ):
             extras.append("shared 19-49 comfort")
+            extra_keys.append("shared1949")
         if _channel_has_gates(roles["electromagnetic"], INTIMACY_GATES) or _channel_has_gates(
             roles["companionship"], INTIMACY_GATES
         ):
             extras.append("shared 59-6")
+            extra_keys.append("shared596")
         if _channel_has_gates(roles["compromise"], RECOGNITION_GATES) or _channel_has_gates(
             roles["electromagnetic"], RECOGNITION_GATES
         ):
             extras.append("30-41 desire waves")
+            extra_keys.append("desire3041")
         extra_txt = (
             (" Lean into " + ", ".join(extras) + ".") if extras else ""
         )
@@ -1587,11 +1844,24 @@ def build_cards(
                     "and reopen the conversation when both bodies feel flatter."
                     + extra_txt
                 ),
+                "title_part": part("soul.read.block.doubleEmotional.headline"),
+                "body_part": part(
+                    "soul.read.block.doubleEmotional.body.withExtras"
+                    if extra_keys
+                    else "soul.read.block.doubleEmotional.body",
+                    extras=",".join(extra_keys),
+                ),
             }
         )
     protocols = protocols[:3]
-    soma_blocks: list[dict[str, str]] = [
-        {"headline": p["title"], "body": p["body"]} for p in protocols
+    soma_blocks: list[dict[str, Any]] = [
+        {
+            "headline": p["title"],
+            "body": p["body"],
+            **({"headline_part": p["title_part"]} if p.get("title_part") else {}),
+            **({"body_part": p["body_part"]} if p.get("body_part") else {}),
+        }
+        for p in protocols
     ]
     easy_pacing_body = (
         "Pace looks easy on paper — fewer built-in speed clashes — and that can lull "
@@ -1600,20 +1870,23 @@ def build_cards(
         "anyway, and treat \"we feel fine\" as a cue to book the buffer before you "
         "need it."
     )
-    somatic_card: dict[str, Any] = {
-        "id": "somatic_playbook",
-        "title": "Body-first playbook",
-        "body_blocks": soma_blocks
+    somatic_card = _copy_card(
+        id="somatic_playbook",
+        title="Body-first playbook",
+        title_key="soul.read.card.somatic_playbook.title",
+        body_blocks=soma_blocks
         or [
-            {
-                "headline": "Easy pacing",
-                "body": easy_pacing_body,
-            }
+            _copy_block(
+                "Easy pacing",
+                easy_pacing_body,
+                headline_key="soul.read.block.easyPacing.headline",
+                body_key="soul.read.block.easyPacing.body",
+            )
         ],
-        "protocols": protocols,
-    }
-    if not protocols:
-        somatic_card["empty_body"] = easy_pacing_body
+        protocols=protocols,
+        empty_body=None if protocols else easy_pacing_body,
+        empty_key=None if protocols else "soul.read.card.somatic_playbook.empty",
+    )
 
     return [circuit_card, spark_card, power_card, somatic_card]
 
@@ -1753,6 +2026,7 @@ def compute_soul_sync(
         "playbook": {
             "id": context,
             "label": CONTEXT_LABELS[context],
+            "label_part": part(f"soul.read.playbook.label.{context}"),
             "card_order": list(PLAYBOOK_CARD_ORDER[context]),
             **build_playbook_lede(signature["id"], context),
         },
@@ -1772,6 +2046,7 @@ def compute_soul_sync(
             "defined_centers": sorted(composite_defined),
         },
         "disclaimer": DISCLAIMER,
+        "disclaimer_part": part("soul.read.disclaimer"),
     }
     return apply_partner_layer(
         result,
