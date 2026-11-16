@@ -25,14 +25,59 @@ const locales = ["en", "nl", "de", "fr", "es"].map((id) => ({
   src: read(`src/lib/i18n/messages/${id}.ts`),
 }));
 
-const TOGGLE = "Next 7 days";
-const EMPTY = "No sky changes in the next 7 days.";
-const ERROR = "Couldn\u2019t load the next 7 days.";
-const TURNS = "{weekday}: Sun theme turns.";
-const BRIDGE_ON = "{weekday}: a bridge comes on.";
-const BRIDGE_CLEARS = "{weekday}: a bridge clears.";
-const MOON = "{weekday}: Moon leaves this gate.";
-const HOLD = "Sun theme holds through {weekday}.";
+// Language first-pass: leftover today.upcoming.* keys are translated; pin each locale's strings.
+const UPCOMING_PINS = {
+  en: {
+    toggle: "Next 7 days",
+    empty: "No sky changes in the next 7 days.",
+    error: "Couldn\u2019t load the next 7 days.",
+    sunThemeTurns: "{weekday}: Sun theme turns.",
+    bridgeOn: "{weekday}: a bridge comes on.",
+    bridgeClears: "{weekday}: a bridge clears.",
+    moonLeaves: "{weekday}: Moon leaves this gate.",
+    sunThemeHoldsThrough: "Sun theme holds through {weekday}.",
+  },
+  de: {
+    toggle: "N\u00e4chste 7 Tage",
+    empty: "Keine Himmels\u00e4nderungen in den n\u00e4chsten 7 Tagen.",
+    error: "Die n\u00e4chsten 7 Tage konnten nicht geladen werden.",
+    sunThemeTurns: "{weekday}: das Sonnen-Thema wechselt.",
+    bridgeOn: "{weekday}: eine Br\u00fccke geht an.",
+    bridgeClears: "{weekday}: eine Br\u00fccke l\u00f6st sich.",
+    moonLeaves: "{weekday}: der Mond verl\u00e4sst dieses Gate.",
+    sunThemeHoldsThrough: "Das Sonnen-Thema bleibt bis {weekday}.",
+  },
+  es: {
+    toggle: "Pr\u00f3ximos 7 d\u00edas",
+    empty: "Sin cambios en el cielo en los pr\u00f3ximos 7 d\u00edas.",
+    error: "No se pudieron cargar los pr\u00f3ximos 7 d\u00edas.",
+    sunThemeTurns: "{weekday}: el tema del Sol cambia.",
+    bridgeOn: "{weekday}: se enciende un puente.",
+    bridgeClears: "{weekday}: se despeja un puente.",
+    moonLeaves: "{weekday}: la Luna deja este gate.",
+    sunThemeHoldsThrough: "El tema del Sol se mantiene hasta {weekday}.",
+  },
+  fr: {
+    toggle: "7 prochains jours",
+    empty: "Pas de changements dans le ciel pour les 7 prochains jours.",
+    error: "Impossible de charger les 7 prochains jours.",
+    sunThemeTurns: "{weekday} : le th\u00e8me du Soleil tourne.",
+    bridgeOn: "{weekday} : un pont s\u2019allume.",
+    bridgeClears: "{weekday} : un pont se dissipe.",
+    moonLeaves: "{weekday} : la Lune quitte cette porte.",
+    sunThemeHoldsThrough: "Le th\u00e8me du Soleil tient jusqu\u2019\u00e0 {weekday}.",
+  },
+  nl: {
+    toggle: "Komende 7 dagen",
+    empty: "Geen hemelveranderingen in de komende 7 dagen.",
+    error: "Kon de komende 7 dagen niet laden.",
+    sunThemeTurns: "{weekday}: het Zon-thema keert.",
+    bridgeOn: "{weekday}: er komt een brug bij.",
+    bridgeClears: "{weekday}: een brug verdwijnt.",
+    moonLeaves: "{weekday}: de Maan verlaat deze gate.",
+    sunThemeHoldsThrough: "Het Zon-thema houdt aan tot {weekday}.",
+  },
+};
 
 assert.ok(
   pkg.includes('"assert:upcoming-sky": "npx tsx scripts/assert-upcoming-sky.mjs"'),
@@ -98,16 +143,22 @@ assert.match(todayInd, /data-testid="today-upcoming-retry"/);
 assert.match(todayInd, /today\.upcoming\.error/);
 assert.doesNotMatch(foldChunk, /\.message|String\(err|error\.toString/);
 
-// i18n: locked EN in all five locales
+// i18n: per-locale pins (do not require leftover English in de/es/fr/nl)
 for (const { id, src } of locales) {
-  assert.ok(src.includes(`'today.upcoming.toggle': '${TOGGLE}'`), `${id} toggle`);
-  assert.ok(src.includes(`'today.upcoming.empty': '${EMPTY}'`), `${id} empty`);
-  assert.ok(src.includes(`'today.upcoming.error': '${ERROR}'`), `${id} error typographic apostrophe`);
-  assert.ok(src.includes(`'today.upcoming.sunThemeTurns': '${TURNS}'`), `${id} sun turns`);
-  assert.ok(src.includes(`'today.upcoming.bridgeOn': '${BRIDGE_ON}'`), `${id} bridge on`);
-  assert.ok(src.includes(`'today.upcoming.bridgeClears': '${BRIDGE_CLEARS}'`), `${id} bridge clears`);
-  assert.ok(src.includes(`'today.upcoming.moonLeaves': '${MOON}'`), `${id} moon leaves`);
-  assert.ok(src.includes(`'today.upcoming.sunThemeHoldsThrough': '${HOLD}'`), `${id} hold`);
+  const pins = UPCOMING_PINS[id];
+  assert.ok(pins, `${id} has upcoming pins`);
+  assert.ok(src.includes(`'today.upcoming.toggle': '${pins.toggle}'`), `${id} toggle`);
+  assert.ok(src.includes(`'today.upcoming.empty': '${pins.empty}'`), `${id} empty`);
+  assert.ok(src.includes(`'today.upcoming.error': '${pins.error}'`), `${id} error typographic apostrophe`);
+  assert.ok(src.includes(`'today.upcoming.sunThemeTurns': '${pins.sunThemeTurns}'`), `${id} sun turns`);
+  assert.ok(src.includes(`'today.upcoming.bridgeOn': '${pins.bridgeOn}'`), `${id} bridge on`);
+  assert.ok(src.includes(`'today.upcoming.bridgeClears': '${pins.bridgeClears}'`), `${id} bridge clears`);
+  assert.ok(src.includes(`'today.upcoming.moonLeaves': '${pins.moonLeaves}'`), `${id} moon leaves`);
+  assert.ok(src.includes(`'today.upcoming.sunThemeHoldsThrough': '${pins.sunThemeHoldsThrough}'`), `${id} hold`);
+  assert.ok(
+    !/today\.upcoming\.error.*Couldn't load/.test(src) || src.includes("Couldn\u2019t"),
+    `${id} typographic apostrophe`,
+  );
 }
 
 // Protocols week theme / WeatherStrip stay the door to Today; no forecast module there

@@ -36,7 +36,7 @@ const loveChapterAt = page.indexOf('testId="soul-chapter-love"');
 assert.ok(heroAt > 0 && loveChapterAt > heroAt, "Signature hero before Love chapter");
 
 // Explore this bond soft line
-assert.ok(page.includes("Explore this bond"));
+assert.ok(page.includes('t("soul.chrome.exploreBond")'));
 assert.ok(page.includes('data-testid="soul-explore-bond"'));
 
 // One-open jump wiring

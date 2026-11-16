@@ -239,10 +239,10 @@ assert.ok(!hasRawGrowthInk(sectionNav), "ChartSectionNav is not raw text-growth"
 assert.ok(/px-1\.5 py-1 /.test(sectionNav), "ChartSectionNav wrapper is py-1 so the bar grows ~4px, not 8px");
 assert.ok(!/sm:py-2/.test(sectionNav), "ChartSectionNav dropped sm:py-2");
 assert.ok(!/py-1\.5 shadow-soft/.test(sectionNav), "ChartSectionNav wrapper is not py-1.5");
-assert.ok(profile.includes('shortLabel: "People"'), "People short label remains");
-assert.ok(profile.includes('shortLabel: "Body"'), "Body short label remains");
-assert.ok(profile.includes('shortLabel: "Snap"'), "Snap short label remains");
-assert.ok(profile.includes('shortLabel: "Deep"'), "Deep short label remains");
+assert.ok(profile.includes('shortLabelKey: "chart.people.peopleLabel"'), "People short label remains");
+assert.ok(profile.includes('shortLabelKey: "chart.people.bodyShort"'), "Body short label remains");
+assert.ok(profile.includes('shortLabelKey: "chart.people.snapShort"'), "Snap short label remains");
+assert.ok(profile.includes('shortLabelKey: "chart.people.deepShort"'), "Deep short label remains");
 assert.ok(/truncate sm:hidden/.test(sectionNav), "short labels still show on small screens");
 assert.ok(!/nav-how-to-read/.test(sectionNav), "How to read was not moved into ChartSectionNav");
 
