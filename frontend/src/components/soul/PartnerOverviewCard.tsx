@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 import type {
   SoulLoveGuidanceItem,
   SoulLoveGuidanceSection,
@@ -27,10 +28,11 @@ function hasText(value?: string | null): boolean {
 }
 
 function TryLine({ text, testId }: { text?: string | null; testId?: string }) {
+  const { t } = useI18n();
   if (!hasText(text)) return null;
   return (
     <p className="mt-2 type-body text-fg max-w-prose" data-testid={testId}>
-      <span className="font-semibold text-fg">Try</span> {text}
+      <span className="font-semibold text-fg">{t("soul.partner.try")}</span> {text}
     </p>
   );
 }
@@ -89,14 +91,17 @@ export default function PartnerOverviewCard({
   theirType,
   reasonLine,
 }: Props) {
+  const { t } = useI18n();
   const title = partnerFirstName?.trim()
-    ? `You & ${partnerFirstName.trim()}`
-    : "You two";
+    ? t("soul.partner.youAnd", { name: partnerFirstName.trim() })
+    : t("soul.partner.youTwo");
   const theyHeading = partnerFirstName?.trim()
-    ? `How ${partnerFirstName.trim()} loves`
-    : "How they love";
+    ? t("soul.partner.howNameLoves", { name: partnerFirstName.trim() })
+    : t("soul.partner.howTheyLove");
   const typeLine =
-    yourType && theirType ? `${yourType} and ${theirType}` : null;
+    yourType && theirType
+      ? t("soul.partner.typesAnd", { yourType, theirType })
+      : null;
   const harmonies = overview.harmonies ?? [];
   const frictions = overview.frictions ?? [];
 
@@ -152,7 +157,7 @@ export default function PartnerOverviewCard({
             className="rounded-xl border border-border bg-elevated px-4 py-3.5"
             data-testid="soul-love-decide"
           >
-            <h3 className="text-sm font-semibold text-fg">How you decide</h3>
+            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouDecide")}</h3>
             <p className="mt-1.5 type-body text-fg max-w-prose">
               {foldTitleIntoBody(overview.how_you_decide)}
             </p>
@@ -165,7 +170,7 @@ export default function PartnerOverviewCard({
             className="rounded-xl border border-border bg-elevated px-4 py-3.5"
             data-testid="soul-love-communicate"
           >
-            <h3 className="text-sm font-semibold text-fg">How you talk</h3>
+            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouTalk")}</h3>
             <p className="mt-1.5 type-body text-fg max-w-prose">
               {overview.how_you_communicate.body}
             </p>
@@ -185,7 +190,7 @@ export default function PartnerOverviewCard({
           <section className="grid gap-4 sm:grid-cols-2">
             {hasText(overview.how_you_love) ? (
               <div className="rounded-xl border border-border bg-elevated px-4 py-3.5">
-                <h3 className="text-sm font-semibold text-fg">How you love</h3>
+                <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouLove")}</h3>
                 <p
                   className="mt-1.5 type-body text-fg max-w-prose"
                   data-testid="soul-partner-how-you-love"
@@ -213,13 +218,13 @@ export default function PartnerOverviewCard({
             <GuidanceBlock
               testId="soul-love-harmonies"
               itemTestIdPrefix="soul-love-harmony"
-              heading="Where you click"
+              heading={t("soul.partner.whereYouClick")}
               items={harmonies}
             />
             <GuidanceBlock
               testId="soul-love-frictions"
               itemTestIdPrefix="soul-love-friction"
-              heading="Where it scrapes"
+              heading={t("soul.partner.whereItScrapes")}
               items={frictions}
             />
           </div>
@@ -230,7 +235,7 @@ export default function PartnerOverviewCard({
             className="rounded-xl border border-border bg-elevated px-4 py-3.5"
             data-testid="soul-love-hard"
           >
-            <h3 className="text-sm font-semibold text-fg">When it&apos;s hard</h3>
+            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.whenItsHard")}</h3>
             {hasText(hardWhy) ? (
               <p
                 className="mt-1.5 type-body text-fg max-w-prose"

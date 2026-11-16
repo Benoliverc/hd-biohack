@@ -49,25 +49,32 @@ export function ShareBaselineButton(props: ShareBaselineButtonProps) {
       setMenuOpen(false);
       try {
         if (props.variant === "natal") {
-          await captureAndShareBaseline({
-            variant: "natal",
-            aspect,
-            typeLabel: props.typeLabel,
-            profileLabel: props.profileLabel,
-            strategyLabel: props.strategyLabel,
-            firstName: props.firstName,
-            graph: props.graph,
-          });
+          await captureAndShareBaseline(
+            {
+              variant: "natal",
+              aspect,
+              typeLabel: props.typeLabel,
+              profileLabel: props.profileLabel,
+              strategyLabel: props.strategyLabel,
+              firstName: props.firstName,
+              graph: props.graph,
+              kicker: t("share.natalKicker"),
+            },
+            { title: t("share.kickerNatal") }
+          );
         } else {
-          await captureAndShareBaseline({
-            variant: "today",
-            aspect,
-            moveText: props.moveText,
-            typeLabel: props.typeLabel,
-            graph: props.graph,
-            kicker: t("share.baselineToday"),
-            moveLabel: t("today.move"),
-          });
+          await captureAndShareBaseline(
+            {
+              variant: "today",
+              aspect,
+              moveText: props.moveText,
+              typeLabel: props.typeLabel,
+              graph: props.graph,
+              kicker: t("share.baselineToday"),
+              moveLabel: t("today.move"),
+            },
+            { title: t("share.baselineToday") }
+          );
         }
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {

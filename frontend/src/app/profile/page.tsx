@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, SavedChartRow } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { FirstRunChartForm, type FirstRunBirth } from "@/components/FirstRunChartForm";
@@ -78,22 +78,22 @@ function isSelfRow(row: SavedChartRow): boolean {
   return row.slot_kind !== "friend";
 }
 
-/** People never fall back to "Me" — empty labels become "Person". */
-function friendChipLabel(row: SavedChartRow): string {
-  const t = (row.label || "").trim();
-  if (!t || t.toLowerCase() === "me") return "Person";
-  return t;
+/** People never fall back to "Me" — empty labels become the localized Person word. */
+function friendChipLabel(row: SavedChartRow, personFallback: string): string {
+  const label = (row.label || "").trim();
+  if (!label || label.toLowerCase() === "me") return personFallback;
+  return label;
 }
 
 const SECTION_NAV: {
   id: string;
-  label: string;
-  shortLabel?: string;
+  labelKey: MessageKey;
+  shortLabelKey?: MessageKey;
 }[] = [
-  { id: "people-form", label: "People & form", shortLabel: "People" },
-  { id: "bodygraph", label: "Bodygraph", shortLabel: "Body" },
-  { id: "snapshot", label: "Snapshot", shortLabel: "Snap" },
-  { id: "deep-dive", label: "Deep dive", shortLabel: "Deep" },
+  { id: "people-form", labelKey: "chart.people.sectionsPeopleForm", shortLabelKey: "chart.people.peopleLabel" },
+  { id: "bodygraph", labelKey: "chart.people.bodygraph", shortLabelKey: "chart.people.bodyShort" },
+  { id: "snapshot", labelKey: "chart.people.snapshot", shortLabelKey: "chart.people.snapShort" },
+  { id: "deep-dive", labelKey: "chart.people.deepDive", shortLabelKey: "chart.people.deepShort" },
 ];
 
 const DEEP_SECTION_IDS = new Set([
@@ -192,6 +192,7 @@ function ChartSectionNav({
 }: {
   onJump: (id: string, domain?: DeepDiveDomain) => void;
 }) {
+  const { t } = useI18n();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -216,7 +217,7 @@ function ChartSectionNav({
   return (
     <nav
       ref={navRef}
-      aria-label="Chart sections"
+      aria-label={t("chart.people.chartSections")}
       className="sticky z-30 -mx-1 overflow-x-clip rounded-xl border border-border bg-canvas/95 px-1.5 py-1 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-canvas/80 sm:px-2"
       style={{ top: "var(--app-header-h)" }}
     >
@@ -231,13 +232,13 @@ function ChartSectionNav({
               }}
               className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-full border border-transparent px-2 py-1.5 text-xs text-fg-secondary transition hover:border-border hover:bg-sunken hover:text-fg focus-visible:relative sm:w-auto sm:px-3 sm:text-sm"
             >
-              {item.shortLabel ? (
+              {item.shortLabelKey ? (
                 <>
-                  <span className="truncate sm:hidden">{item.shortLabel}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="truncate sm:hidden">{t(item.shortLabelKey)}</span>
+                  <span className="hidden sm:inline">{t(item.labelKey)}</span>
                 </>
               ) : (
-                item.label
+                t(item.labelKey)
               )}
             </a>
           </li>
@@ -672,7 +673,7 @@ export default function ProfilePage() {
   const mapSaveError = (raw: string): string => {
     const lower = raw.toLowerCase();
     if (lower.includes("chart not found") || lower.includes("was deleted")) {
-      return "That person was deleted — pick someone else or add new.";
+      return t("chart.people.deletedNotice");
     }
     return raw;
   };
@@ -686,24 +687,24 @@ export default function ProfilePage() {
     setBusyMode(save ? "save" : "preview");
     setError(null);
     try {
-      if (!birthDate) throw new Error("Enter a birth date.");
-      if (!timeUnknown && !birthTime) throw new Error("Enter a birth time.");
+      if (!birthDate) throw new Error(t("chart.firstRun.errorDate"));
+      if (!timeUnknown && !birthTime) throw new Error(t("chart.firstRun.errorTime"));
       let city = birthCity.trim();
-      if (!city) throw new Error("Enter a birth city or lat/lon.");
+      if (!city) throw new Error(t("chart.people.errorCityOrCoords"));
 
       const activeUser = user ?? (await ensureUser());
-      if (!activeUser?.id) throw new Error("No user account loaded — tap Retry user, then try again.");
+      if (!activeUser?.id) throw new Error(t("chart.people.noUserRetry"));
 
       if (saveIntent === "update") {
         if (editingChartId == null || !selectedSavedRow) {
-          throw new Error("Pick a saved person to update, or add a new person.");
+          throw new Error(t("chart.people.pickOrAdd"));
         }
       }
 
       // Cap only blocks *new* people. Updating a selected saved chart is always allowed.
       if (saveIntent === "create" && savedPeople.length >= MAX_PEOPLE) {
         throw new Error(
-          `At the ${MAX_PEOPLE}-person limit — delete someone to add a new person. You can still update the selected person.`
+          t("chart.people.atPersonLimit", { max: MAX_PEOPLE })
         );
       }
 
@@ -717,34 +718,34 @@ export default function ProfilePage() {
       // Free (and Preview as Free): Me create/update only — no new People charts.
       if (saveIntent === "create" && !biohackingUnlocked) {
         if (kind === "friend") {
-          throw new Error("Saving people charts requires Pro. Free can save your Me chart only.");
+          throw new Error(t("chart.people.savingPeopleRequiresPro"));
         }
         if (hasSelfSaved) {
           throw new Error(
-            "Free can keep one Me chart — update your existing chart instead of creating another."
+            t("chart.people.freeOneMe")
           );
         }
       }
 
       if (save && kind === "friend" && !friendName.trim()) {
-        throw new Error("Enter a name for this person.");
+        throw new Error(t("chart.people.enterName"));
       }
       if (
         save &&
         kind === "friend" &&
         friendName.trim().toLowerCase() === "me"
       ) {
-        throw new Error("Enter a name for this person — don’t use “Me”.");
+        throw new Error(t("chart.people.enterNameNotMe"));
       }
 
       if (saveIntent === "update" && selectedSavedRow) {
         const ok =
           frozenSlot === "self"
             ? window.confirm(
-                "Replace your chart (the one Today & Protocols use) with these birth details?"
+                t("chart.people.confirmReplaceYou")
               )
             : window.confirm(
-                `Replace the saved chart for “${friendChipLabel(selectedSavedRow)}” with these birth details?`
+                t("chart.people.confirmReplacePerson", { name: friendChipLabel(selectedSavedRow, t("chart.people.personFallback")) })
               );
         if (!ok) return;
       }
@@ -796,7 +797,7 @@ export default function ProfilePage() {
 
       if (save) {
         if (!res.natal_chart_id) {
-          setError("Chart calculated but save did not return an id. Try again.");
+          setError(t("chart.people.saveNoId"));
           return;
         }
         setDemoBirthActive(false);
@@ -960,8 +961,8 @@ export default function ProfilePage() {
     if (!user) return;
     const ok = window.confirm(
       isSelfRow(row)
-        ? "Remove your chart? Today & Protocols use this chart."
-        : `Remove “${friendChipLabel(row)}” from People?`
+        ? t("chart.people.confirmRemoveYou")
+        : t("chart.people.confirmRemovePerson", { name: friendChipLabel(row, t("chart.people.personFallback")) })
     );
     if (!ok) return;
     setDeletingId(row.id);
@@ -1025,7 +1026,11 @@ export default function ProfilePage() {
   const activePersonLabel =
     selectedSavedRow?.label ||
     friendName.trim() ||
-    (viewMode === "preview" ? "Preview" : isNewPersonUi ? "New person" : "Me");
+    (viewMode === "preview"
+      ? t("chart.people.previewChip")
+      : isNewPersonUi
+        ? t("chart.people.newPerson")
+        : t("chart.people.meLabel"));
 
   const updatingExistingUi = !isNewPersonUi && selectedSavedRow != null;
   const editingYou =
@@ -1064,8 +1069,7 @@ export default function ProfilePage() {
           "rounded-xl border border-energy/50 bg-energy-soft px-4 py-3 text-sm text-energy-ink",
         body: (
           <>
-            <span className="font-semibold">Editing your chart.</span> People are
-            unchanged.
+            <span className="font-semibold">{t("chart.people.editingYourChart")}</span> {t("chart.people.peopleUnchanged")}
           </>
         ),
       };
@@ -1078,7 +1082,7 @@ export default function ProfilePage() {
         body: (
           <>
             <span className="font-semibold">
-              Editing {friendChipLabel(selectedSavedRow)}.
+              {t("chart.people.editingNamed", { name: friendChipLabel(selectedSavedRow, t("chart.people.personFallback")) })}
             </span>{" "}
             Your chart stays as-is.
           </>
@@ -1092,20 +1096,20 @@ export default function ProfilePage() {
       body: hasSelfSaved ? (
         canCreatePeople ? (
           <>
-            <span className="font-semibold text-fg">New person — nothing is overwritten.</span>
+            <span className="font-semibold text-fg">{t("chart.people.newPersonNothingOverwritten")}</span>
           </>
         ) : (
           <>
-            <span className="font-semibold text-fg">People charts unlock with Pro.</span>{" "}
-            Update Me above, or view an existing person.
+            <span className="font-semibold text-fg">{t("chart.people.peopleUnlockPro")}</span>{" "}
+            {t("chart.people.updateMeOrView")}
           </>
         )
       ) : (
         <>
           <span className="font-semibold text-fg">
             {canCreatePeople
-              ? "New chart — save as You or a person."
-              : "New chart — save as You (Me)."}
+              ? t("chart.people.newChartYouOrPerson")
+              : t("chart.people.newChartYou")}
           </span>
         </>
       ),
@@ -1117,19 +1121,19 @@ export default function ProfilePage() {
       {user && formReady && (
         <div className="rounded-2xl border border-border bg-elevated p-4">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-sm font-semibold text-fg">Saved people</h2>
+            <h2 className="text-sm font-semibold text-fg">{t("chart.people.savedPeople")}</h2>
             <span className="text-xs text-fg-muted">
               {savedPeople.length}/{MAX_PEOPLE}
             </span>
           </div>
           {savedPeople.length === 0 ? (
-            <p className="text-sm text-fg-muted">None yet — add your chart or another person below.</p>
+            <p className="text-sm text-fg-muted">{t("chart.people.noneYetAdd")}</p>
           ) : (
             <div className="space-y-4">
               {youRow && (
                 <div>
                   <p className="mb-1.5 type-chip uppercase tracking-wide text-growth">
-                    You
+                    {t("chart.people.youLabel")}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
@@ -1142,16 +1146,16 @@ export default function ProfilePage() {
                           : "border-growth/40 bg-growth-soft/60 text-growth-ink hover:border-growth"
                       }`}
                     >
-                      <span className="font-semibold">YOU</span>
+                      <span className="font-semibold">{t("chart.people.youBadge")}</span>
                       <span className="text-fg-muted">
                         {(() => {
-                          const name = youChipLabel(youRow);
+                          const name = youChipLabel(youRow, t("chart.people.youLabel"));
                           const meta =
                             youRow.type || youRow.profile
                               ? ` · ${youRow.type || "—"} · ${youRow.profile || "—"}`
                               : "";
                           // Badge already says YOU — if label is You, don't repeat it.
-                          return name === "You" ? meta : ` · ${name}${meta}`;
+                          return name === t("chart.people.youLabel") ? meta : ` · ${name}${meta}`;
                         })()}
                       </span>
                       <span className="mt-0.5 block type-caption leading-snug text-fg-secondary">
@@ -1161,11 +1165,11 @@ export default function ProfilePage() {
                     </button>
                     <button
                       type="button"
-                      aria-label="Remove your chart"
+                      aria-label={t("chart.people.removeYourChart")}
                       disabled={deletingId === youRow.id}
                       onClick={() => void deletePerson(youRow)}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
-                      title="Remove your chart"
+                      title={t("chart.people.removeYourChart")}
                     >
                       {deletingId === youRow.id ? "…" : "×"}
                     </button>
@@ -1175,19 +1179,19 @@ export default function ProfilePage() {
 
               <div>
                 <p className="mb-1.5 type-chip uppercase tracking-wide text-energy-ink">
-                  People
+                  {t("chart.people.peopleLabel")}
                 </p>
                 {friendRows.length === 0 ? (
                   <p className="text-sm text-fg-muted">
                     {canCreatePeople
-                      ? "No people yet — use Save as new person or Add new person."
-                      : "No people yet — People charts unlock with Pro."}
+                      ? t("chart.people.noPeopleSaveAs")
+                      : t("chart.people.noPeoplePro")}
                   </p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
                     {friendRows.map((row) => {
                       const active = editingChartId === row.id && viewMode === "saved";
-                      const name = friendChipLabel(row);
+                      const name = friendChipLabel(row, t("chart.people.personFallback"));
                       return (
                         <li key={row.id} className="inline-flex items-center gap-1">
                           <button
@@ -1204,7 +1208,7 @@ export default function ProfilePage() {
                             <span className="text-fg-muted">
                               {" "}
                               · {row.type || "—"} · {row.profile || "—"}
-                              {row.role === "partner" ? " · Partner" : ""}
+                              {row.role === "partner" ? ` ${t("chart.people.partnerSuffix")}` : ""}
                             </span>
                             <span className="mt-0.5 block type-caption leading-snug text-fg-secondary">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
@@ -1213,7 +1217,7 @@ export default function ProfilePage() {
                           </button>
                           <button
                             type="button"
-                            aria-label={`Delete ${name}`}
+                            aria-label={t("chart.people.deleteName", { name })}
                             disabled={deletingId === row.id}
                             onClick={() => void deletePerson(row)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
@@ -1230,10 +1234,10 @@ export default function ProfilePage() {
               {extraSelfRows.length > 0 && (
                 <div>
                   <p className="mb-1.5 type-chip uppercase tracking-wide text-fg-secondary">
-                    Other charts (you)
+                    {t("chart.people.otherChartsYou")}
                   </p>
                   <p className="mb-2 text-xs text-energy-ink">
-                    Extra Me charts from earlier saves — pick one as You or delete duplicates.
+                    {t("chart.people.extraMeHelp")}
                   </p>
                   <ul className="flex flex-wrap gap-2">
                     {extraSelfRows.map((row) => {
@@ -1250,7 +1254,7 @@ export default function ProfilePage() {
                             }`}
                           >
                             <span className="font-medium">
-                              {youChipLabel(row)} #{row.id}
+                              {youChipLabel(row, t("chart.people.youLabel"))} #{row.id}
                             </span>
                             <span className="mt-0.5 block type-caption leading-snug">
                               {[row.birth_city, row.birth_date].filter(Boolean).join(" · ") ||
@@ -1259,7 +1263,7 @@ export default function ProfilePage() {
                           </button>
                           <button
                             type="button"
-                            aria-label={`Delete duplicate chart ${row.id}`}
+                            aria-label={t("chart.people.deleteDuplicate", { id: row.id })}
                             disabled={deletingId === row.id}
                             onClick={() => void deletePerson(row)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
@@ -1283,26 +1287,23 @@ export default function ProfilePage() {
                 onClick={startNewPerson}
                 className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
               >
-                Add new person
+                {t("chart.people.addNewPerson")}
               </button>
             ) : (
               <p className="text-xs text-fg-muted" data-testid="free-people-pro-hint">
-                Add people with Pro. Free can save and update Me only.
+                {t("chart.people.addPeopleWithPro")}
               </p>
             )}
           </div>
           {atCap && (
             <p className="mt-2 text-xs text-energy-ink">
-              At the {MAX_PEOPLE}-person limit — delete someone to add a new person. You can still
-              update the selected person.
-              {duplicateSelfCount > 1
-                ? " Clean up duplicate Me charts under Other charts (you)."
-                : ""}
+              {t("chart.people.atPersonLimit", { max: MAX_PEOPLE })}
+              {duplicateSelfCount > 1 ? ` ${t("chart.people.cleanupDupes")}` : ""}
             </p>
           )}
           {!atCap && duplicateSelfCount > 1 && (
             <p className="mt-2 text-xs text-energy-ink">
-              Several Me charts saved — clean up duplicates under Other charts (you).
+              {t("chart.people.severalMeCleanup")}
             </p>
           )}
         </div>
@@ -1310,7 +1311,7 @@ export default function ProfilePage() {
 
       {user && !formReady && (
         <div className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm text-fg-secondary">
-          Loading saved chart…
+          {t("chart.people.loadingSavedChart")}
         </div>
       )}
 
@@ -1327,8 +1328,7 @@ export default function ProfilePage() {
           className="flex flex-col gap-2 rounded-xl border border-energy/40 bg-energy/10 px-4 py-3 text-sm text-energy-ink sm:flex-row sm:items-center sm:justify-between"
         >
           <p>
-            <span className="font-semibold">Demo / reference chart</span> — Ra Uru Hu
-            (Montreal, 9 Apr 1948). Not your natal. Clear or save your own birth data when ready.
+            <span className="font-semibold">{t("chart.people.demoChart")}</span> {t("chart.people.demoCaption")}
           </p>
           <button
             type="button"
@@ -1337,7 +1337,7 @@ export default function ProfilePage() {
             onClick={clearDemoBirth}
             className="min-h-10 shrink-0 rounded-lg border border-energy-ink/40 px-3 py-2 text-xs font-medium hover:bg-energy/15 disabled:opacity-60"
           >
-            Clear demo
+            {t("chart.people.clearDemo")}
           </button>
         </div>
       )}
@@ -1351,15 +1351,15 @@ export default function ProfilePage() {
             onClick={() => applyDemoBirth()}
             className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
           >
-            Try demo chart (Ra Uru Hu)
+            {t("chart.people.tryDemo")} (Ra Uru Hu)
           </button>
-          <span className="text-xs text-fg-muted">Reference only — never treated as your chart</span>
+          <span className="text-xs text-fg-muted">{t("chart.people.referenceOnly")}</span>
         </div>
       )}
 
       <div className="relative z-0 grid gap-4 rounded-2xl border border-border bg-elevated p-5 md:grid-cols-4">
         <label className="text-sm">
-          <span className="mb-1 block text-fg-muted">Birth date</span>
+          <span className="mb-1 block text-fg-muted">{t("chart.firstRun.dateLabel")}</span>
           <input
             type="date"
             className="w-full rounded-lg border border-border bg-sunken px-3 py-2 disabled:cursor-wait disabled:opacity-60"
@@ -1372,7 +1372,9 @@ export default function ProfilePage() {
         <div className="text-sm">
           <label className="block">
             <span className="mb-1 block text-fg-muted">
-              Birth time{tzBesideTime ? " (local)" : ""}
+              {t("chart.people.birthTimeLocal", {
+                suffix: tzBesideTime ? ` ${t("chart.people.local")}` : "",
+              })}
             </span>
             <input
               type="time"
@@ -1404,7 +1406,7 @@ export default function ProfilePage() {
             </p>
           ) : null}
           <span className="mt-1 block type-caption text-fg-secondary">
-            Approximate is OK if exact time unknown — chart authority may be less precise.
+            {t("chart.people.timeApprox")}
           </span>
         </div>
         <CityPicker
@@ -1423,19 +1425,19 @@ export default function ProfilePage() {
             <label className="text-sm">
               <span className="mb-1 block text-fg-muted">
                 {editingYou
-                  ? "Person’s name (for Save as new person)"
+                  ? t("chart.people.personNameForSave")
                   : editingFriend
-                    ? "Name"
+                    ? t("chart.people.nameLabel")
                     : saveAs === "friend" || hasSelfSaved
-                      ? "Person’s name"
-                      : "Display name"}
+                      ? t("chart.people.personName")
+                      : t("chart.people.displayName")}
               </span>
               <input
                 className="w-48 rounded-lg border border-border bg-sunken px-3 py-2"
                 placeholder={
                   editingYou || saveAs === "friend" || (isNewPersonUi && hasSelfSaved)
-                    ? "Person’s name"
-                    : "Optional"
+                    ? t("chart.people.personName")
+                    : t("chart.people.optional")
                 }
                 value={friendName}
                 onChange={(e) => setFriendName(e.target.value)}
@@ -1444,7 +1446,9 @@ export default function ProfilePage() {
             </label>
             {updatingExistingUi ? (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
-                Role: {frozenSlot === "self" ? "You" : "Person"} (fixed)
+                {t("chart.people.roleFixed", {
+                  role: frozenSlot === "self" ? t("chart.people.youLabel") : t("chart.people.personFallback"),
+                })}
               </span>
             ) : showMeFriendSegment ? (
               <div className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1">
@@ -1456,7 +1460,7 @@ export default function ProfilePage() {
                     saveAs === "self" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
                   }`}
                 >
-                  Me
+                  {t("chart.people.meLabel")}
                 </button>
                 <button
                   type="button"
@@ -1466,20 +1470,20 @@ export default function ProfilePage() {
                     saveAs === "friend" ? "bg-growth/25 text-growth-ink" : "text-fg-muted"
                   }`}
                 >
-                  Person
+                  {t("chart.people.personFallback")}
                 </button>
               </div>
             ) : isNewPersonUi && !hasSelfSaved ? (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-growth/40 bg-growth-soft px-3 py-2 text-sm text-growth-ink">
-                Saving as You (Me)
+                {t("chart.people.savingAsYou")}
               </span>
             ) : isNewPersonUi && !canCreatePeople ? (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-border bg-sunken/80 px-3 py-2 text-sm text-fg-muted">
-                People unlock with Pro
+                {t("chart.people.peopleUnlockWithPro")}
               </span>
             ) : (
               <span className="mb-2 inline-flex min-h-10 items-center rounded-lg border border-energy/40 bg-energy-soft px-3 py-2 text-sm text-energy-ink">
-                Saving as person
+                {t("chart.people.savingAsPerson")}
               </span>
             )}
             {(editingFriend ||
@@ -1489,7 +1493,7 @@ export default function ProfilePage() {
               <div
                 className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1"
                 data-testid="person-role-control"
-                title="Relationship label for Soul — does not change Pro access"
+                title={t("chart.people.relationshipLabel")}
               >
                 <button
                   type="button"
@@ -1502,7 +1506,7 @@ export default function ProfilePage() {
                   }`}
                   data-testid="person-role-person"
                 >
-                  Person
+                  {t("chart.people.personFallback")}
                 </button>
                 <button
                   type="button"
@@ -1515,7 +1519,7 @@ export default function ProfilePage() {
                   }`}
                   data-testid="person-role-partner"
                 >
-                  Partner
+                  {t("chart.people.partnerRole")}
                 </button>
               </div>
             )}
@@ -1532,7 +1536,7 @@ export default function ProfilePage() {
                     onClick={() => void submit("create", "friend")}
                     className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {busyMode === "save" ? "Saving…" : "Save as new person"}
+                    {busyMode === "save" ? t("common.saving") : t("chart.people.saveAsNewPerson")}
                   </button>
                 )}
                 <button
@@ -1542,7 +1546,7 @@ export default function ProfilePage() {
                   onClick={() => void submit("update")}
                   className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-energy/50 disabled:cursor-wait disabled:opacity-60"
                 >
-                  {busyMode === "save" ? "Saving…" : "Update your chart"}
+                  {busyMode === "save" ? t("common.saving") : t("chart.people.updateYourChart")}
                 </button>
               </>
             ) : editingFriend ? (
@@ -1555,8 +1559,8 @@ export default function ProfilePage() {
                   className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
                 >
                   {busyMode === "save"
-                    ? "Saving…"
-                    : `Update “${friendChipLabel(selectedSavedRow!)}”`}
+                    ? t("common.saving")
+                    : t("chart.people.updateNamed", { name: friendChipLabel(selectedSavedRow!, t("chart.people.personFallback")) })}
                 </button>
                 {canCreatePeople && (
                   <button
@@ -1566,7 +1570,7 @@ export default function ProfilePage() {
                     onClick={() => void submit("create", "friend")}
                     className="min-h-10 rounded-xl border border-border bg-sunken px-4 py-2.5 text-sm font-medium text-fg hover:border-growth/50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Save as another person
+                    {t("chart.people.saveAsAnotherPerson")}
                   </button>
                 )}
               </>
@@ -1591,12 +1595,12 @@ export default function ProfilePage() {
                 className="min-h-10 rounded-xl bg-growth px-4 py-2.5 text-sm font-medium text-fg-inverse hover:bg-growth-deep disabled:cursor-wait disabled:opacity-60"
               >
                 {busyMode === "save"
-                  ? "Saving…"
+                  ? t("common.saving")
                   : !canCreatePeople
-                    ? "Calculate & save"
+                    ? t("chart.people.calculateAndSave")
                     : hasSelfSaved || saveAs === "friend"
-                      ? "Save person"
-                      : "Calculate & save"}
+                      ? t("chart.people.savePerson")
+                      : t("chart.people.calculateAndSave")}
               </button>
             ) : null}
             <button
@@ -1605,29 +1609,29 @@ export default function ProfilePage() {
               disabled={busy || !formReady}
               onClick={() => void submit("preview")}
               className="min-h-10 px-1 py-2.5 text-sm text-fg-muted underline-offset-2 hover:text-fg hover:underline disabled:cursor-wait disabled:opacity-60"
-              title="Try without saving"
+              title={t("chart.people.tryWithoutSaving")}
             >
-              {busyMode === "preview" ? "Working…" : "Preview only (don't save)"}
+              {busyMode === "preview" ? t("chart.people.working") : t("chart.people.previewOnly")}
             </button>
             {user && (
-              <span className="self-center text-xs text-fg-muted">as {user.display_name}</span>
+              <span className="self-center text-xs text-fg-muted">{t("chart.people.asUser", { name: user.display_name })}</span>
             )}
             {viewMode === "preview" && chart && (
               <span className="self-center rounded-full border border-energy/50 bg-energy/10 px-2.5 py-1 text-xs text-energy-ink">
-                Preview (not saved)
-                {natalChartId ? ` · prior saved #${natalChartId}` : ""}
+                {t("chart.people.previewNotSaved", {
+                  suffix: natalChartId ? t("chart.people.priorSaved", { id: natalChartId }) : "",
+                })}
               </span>
             )}
             {viewMode === "saved" && editingChartId && (
-              <span className="self-center text-xs text-growth">Saved chart #{editingChartId}</span>
+              <span className="self-center text-xs text-growth">{t("chart.people.savedChartId", { id: editingChartId })}</span>
             )}
           </div>
         </div>
 
         {formDirtyVsSaved && viewMode === "saved" && (
           <p className="md:col-span-4 rounded-lg border border-energy/40 bg-energy/10 px-3 py-2 text-xs text-energy-ink">
-            Form no longer matches the saved chart — Preview or Update to refresh results. Use Save
-            as new person to add someone else without overwriting.
+            {t("chart.people.formMismatch")}
           </p>
         )}
         {error && (
@@ -1678,10 +1682,10 @@ export default function ProfilePage() {
             className="mx-auto max-w-xl rounded-2xl border border-border bg-elevated p-4"
             data-testid="first-run-saved-people"
           >
-            <h2 className="text-sm font-semibold text-fg">Saved people</h2>
+            <h2 className="text-sm font-semibold text-fg">{t("chart.people.savedPeople")}</h2>
             <ul className="mt-3 flex flex-wrap gap-2">
               {friendRows.map((row) => {
-                const name = friendChipLabel(row);
+                const name = friendChipLabel(row, t("chart.people.personFallback"));
                 return (
                   <li
                     key={row.id}
@@ -1691,7 +1695,7 @@ export default function ProfilePage() {
                     <span className="text-fg-muted">
                       {" "}
                       · {row.type || "—"} · {row.profile || "—"}
-                      {row.role === "partner" ? " · Partner" : ""}
+                      {row.role === "partner" ? ` ${t("chart.people.partnerSuffix")}` : ""}
                     </span>
                   </li>
                 );
@@ -1726,8 +1730,7 @@ export default function ProfilePage() {
         <div className="min-w-0">
           <h1 className="type-title">{t("page.chart.h1")}</h1>
           <p className="mt-1 type-meta">
-            Calculate a chart, see the bodygraph, and save up to {MAX_PEOPLE} people (you + others).
-            Plain language — how your battery and decisions work.
+            {t("chart.people.pageLead", { max: MAX_PEOPLE })}
           </p>
         </div>
         {canShareNatal && shareGraph ? (
@@ -1745,16 +1748,16 @@ export default function ProfilePage() {
 
       {(usersLoading || usersError || (!usersLoading && !user)) && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-energy/50 bg-energy/10 px-4 py-3 text-sm text-energy-ink">
-          {usersLoading && <span>Loading account…</span>}
-          {usersError && <span>Account load issue: {usersError}</span>}
-          {!usersLoading && !user && <span>No Dev user selected yet.</span>}
+          {usersLoading && <span>{t("chart.people.loadingAccount")}</span>}
+          {usersError && <span>{t("chart.people.accountLoadIssue", { error: usersError })}</span>}
+          {!usersLoading && !user && <span>{t("chart.people.noDevUser")}</span>}
           {(usersError || (!usersLoading && !user)) && (
             <button
               type="button"
               className="min-h-10 rounded-lg border border-energy-ink px-3 py-2.5 text-sm hover:bg-energy/15"
               onClick={() => refreshUsers()}
             >
-              Retry user
+              {t("chart.people.retryUser")}
             </button>
           )}
         </div>
@@ -1776,17 +1779,17 @@ export default function ProfilePage() {
                 <div className="text-sm font-semibold text-fg">
                   {firstRunYouReveal
                     ? t("chart.firstRun.editDetails")
-                    : "Edit / switch person"}
+                    : t("chart.people.editSwitchPerson")}
                 </div>
                 <div className="mt-0.5 truncate text-xs text-fg-muted">
                   {activePersonLabel}
                   {typeKey ? ` · ${typeKey}` : ""}
                   {profileStr ? ` · ${profileStr}` : ""}
-                  {viewMode === "preview" ? " · preview" : ""}
+                  {viewMode === "preview" ? ` · ${t("chart.people.preview")}` : ""}
                 </div>
               </div>
-              <span className="shrink-0 text-xs text-fg-muted group-open:hidden">Show</span>
-              <span className="hidden shrink-0 text-xs text-fg-muted group-open:inline">Hide</span>
+              <span className="shrink-0 text-xs text-fg-muted group-open:hidden">{t("chart.people.show")}</span>
+              <span className="hidden shrink-0 text-xs text-fg-muted group-open:inline">{t("chart.people.hide")}</span>
             </summary>
             <div className="space-y-4 border-t border-border px-4 py-4">{peopleAndForm}</div>
           </details>
@@ -1816,7 +1819,7 @@ export default function ProfilePage() {
               id="bodygraph"
               className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4"
             >
-              <h2 className="mb-2 text-sm font-semibold text-fg">Bodygraph</h2>
+              <h2 className="mb-2 text-sm font-semibold text-fg">{t("chart.people.bodygraph")}</h2>
               <BodyGraph
                 definedCenters={defined}
                 channels={channels}
@@ -1841,29 +1844,31 @@ export default function ProfilePage() {
               )}
               <div className="rounded-2xl border border-growth/30 bg-growth-soft px-5 py-4">
                 <p className="text-lg font-semibold text-growth-ink">
-                  You&apos;re a {typeKey}
-                  {TYPE_COPY[typeKey] ? ` — ${TYPE_COPY[typeKey].summary}` : ""}
+                  {t("chart.people.youreAType", {
+                    type: typeKey,
+                    summary: TYPE_COPY[typeKey] ? ` — ${TYPE_COPY[typeKey].summary}` : "",
+                  })}
                 </p>
                 <p className="mt-2 type-body text-fg">
                   {TYPE_BATTERY[typeKey] ||
-                    "This is your energy map — how you fill and how you decide."}
+                    t("chart.people.energyMap")}
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="type-caption uppercase tracking-wide text-fg-secondary">Profile</div>
+                  <div className="type-caption uppercase tracking-wide text-fg-secondary">{t("chart.people.profile")}</div>
                   <div className="mt-1 font-semibold text-growth">{profileStr}</div>
                   <p className="mt-2 type-body text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="type-caption uppercase tracking-wide text-fg-secondary">How you decide</div>
+                  <div className="type-caption uppercase tracking-wide text-fg-secondary">{t("chart.people.howYouDecide")}</div>
                   <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
                   <p className="mt-2 type-body text-fg-secondary">
                     {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
                   </p>
                   <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
-                    Your body&apos;s yes
+                    {t("chart.people.bodysYes")}
                   </div>
                   <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
                   <p className="mt-2 type-body text-fg-secondary">
@@ -1899,9 +1904,9 @@ export default function ProfilePage() {
                   id="snapshot-centers"
                   className="rounded-xl border border-border bg-elevated p-4"
                 >
-                  <h3 className="text-sm font-semibold text-fg">Centers to watch</h3>
+                  <h3 className="text-sm font-semibold text-fg">{t("chart.people.centersToWatch")}</h3>
                   <p className="mb-2 type-caption text-fg-secondary">
-                    Open centers — where you can pick up other people’s energy (energy leaks to notice).
+                    {t("chart.people.openCentersHelp")}
                   </p>
                   <ul className="space-y-2">
                     {watch.map((w) => (

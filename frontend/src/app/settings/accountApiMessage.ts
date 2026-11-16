@@ -12,5 +12,5 @@ export function accountApiMessage(message: string, t: (key: MessageKey) => strin
   if (message.includes("Email or password") || /didn['’]t work/i.test(message)) {
     return t("login.genericAuthError");
   }
-  return message;
+  return t("common.errorGeneric");
 }

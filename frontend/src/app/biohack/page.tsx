@@ -676,7 +676,12 @@ export default function BiohackPage() {
     for (const slot of ["morning", "midday", "evening"] as const) {
       const row = ((daily[slot] as PlanItem[]) || [])[0];
       if (!row) continue;
-      const slotLabel = slot === "morning" ? "Morning" : slot === "midday" ? "Midday" : "Evening";
+      const slotLabel =
+        slot === "morning"
+          ? t("protocols.slotMorning")
+          : slot === "midday"
+            ? t("protocols.slotMidday")
+            : t("protocols.slotEvening");
       const inInv = Boolean(row.in_inventory);
       items.push({
         id: slot,
@@ -690,7 +695,7 @@ export default function BiohackPage() {
       });
     }
     return items;
-  }, [daily]);
+  }, [daily, t]);
 
   const todayKitPick = useMemo(() => {
     const kit = indication?.kit_item;
@@ -1068,7 +1073,7 @@ function ProtocolsHeader({
               title={t("page.protocols.alwaysUsesChart")}
               data-testid="protocols-you-chip"
             >
-              {youChipLabel(youChart)}
+              {youChipLabel(youChart, t("chart.people.youLabel"))}
             </span>
           </>
         ) : (
@@ -1163,10 +1168,10 @@ function KitFactCallout({
       <aside
         className="rounded-xl border border-border/70 bg-elevated/60 px-3 py-2"
         data-testid="kit-fact-callout"
-        aria-label="Kit fact"
+        aria-label={t("protocols.kitFact")}
       >
         <p className="type-chip uppercase tracking-wide text-fg-secondary">
-          Kit fact · today
+          {t("protocols.kitFactToday")}
           {fact.supplement ? (
             <span className="ml-1.5 rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 type-caption font-medium normal-case tracking-normal text-fg-secondary">
               {fact.supplement}
@@ -1175,7 +1180,7 @@ function KitFactCallout({
         </p>
         <p className="mt-1 type-body text-fg-secondary line-clamp-2">{body}</p>
         <p className="mt-1 type-caption text-fg-secondary">
-          {fact.foot || "Informational — not medical advice"}
+          {fact.foot || t("protocols.informationalNotMedical")}
         </p>
       </aside>
     );
@@ -1405,24 +1410,24 @@ function NatalBaselineCard({
               <p className="type-body text-fg-secondary">{String(baseline.description || "")}</p>
               <div className="grid gap-3 md:grid-cols-3">
                 <BaselineColumn
-                  title="Emphasize"
+                  title={t("protocols.emphasize")}
                   tone="growth"
                   items={(baseline.emphasize as StackItem[]) || []}
                 />
                 <BaselineColumn
-                  title="Increase"
+                  title={t("protocols.increase")}
                   tone="recovery"
                   items={(baseline.increase as StackItem[]) || []}
                 />
                 <BaselineColumn
-                  title="Decrease or pause"
+                  title={t("protocols.decreaseOrPause")}
                   tone="energy"
                   items={(baseline.decrease_or_pause as StackItem[]) || []}
                 />
               </div>
             </>
           ) : (
-            <p className="text-sm text-fg-muted">No natal baseline in this protocol.</p>
+            <p className="text-sm text-fg-muted">{t("protocols.noNatalBaseline")}</p>
           )}
         </div>
       )}
@@ -1550,7 +1555,7 @@ function InventoryPanel({
                   <span>{it.name}</span>
                   <button
                     type="button"
-                    aria-label={`Remove ${it.name}`}
+                    aria-label={t("protocols.removeItem", { name: it.name })}
                     disabled={removingId === it.id || adding}
                     onClick={() => void removeInv(it)}
                     className="inline-flex h-6 w-6 min-h-6 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
@@ -1574,12 +1579,12 @@ function LockedPaywallMock() {
   return (
     <div className="space-y-4" aria-hidden>
       <div className="rounded-2xl border border-energy/40 bg-energy/10 p-4">
-        <p className="text-sm font-semibold text-energy-ink">Weather · Energy · Space</p>
+        <p className="text-sm font-semibold text-energy-ink">{t("protocols.weatherEnergySpace")}</p>
         <div className="mt-2 h-8 rounded-lg bg-elevated/60" />
       </div>
       <div className="rounded-2xl border border-growth/40 bg-growth-soft p-5">
         <p className="text-lg font-semibold text-growth-ink">Today&apos;s Move</p>
-        <p className="mt-2 type-body text-fg-secondary">Morning · Midday · Evening checklist</p>
+        <p className="mt-2 type-body text-fg-secondary">{t("protocols.checklistSlots")}</p>
         <div className="mt-3 space-y-2">
           {[1, 2, 3, 4].map((n) => (
             <div key={n} className="h-10 rounded-xl border border-border bg-elevated/80" />
@@ -1588,7 +1593,7 @@ function LockedPaywallMock() {
       </div>
       <div className="rounded-2xl border border-border bg-elevated p-5">
         <p className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</p>
-        <p className="mt-2 type-body text-fg-secondary">Sun/Earth theme + one sky note</p>
+        <p className="mt-2 type-body text-fg-secondary">{t("protocols.sunEarthTheme")}</p>
       </div>
     </div>
   );
@@ -1613,7 +1618,7 @@ function BaselineColumn({
   return (
     <div className={`rounded-xl border ${border} bg-sunken/70 p-3`}>
       <h3 className="mb-2 text-sm font-semibold text-fg">{title}</h3>
-      {items.length === 0 && <p className="text-xs text-fg-muted">None for this chart slice.</p>}
+      {items.length === 0 && <p className="text-xs text-fg-muted">{t("protocols.noneForSlice")}</p>}
       <ul className="space-y-2">
         {items.map((it) => (
           <li key={`${it.name}-${it.center}`} className="rounded-lg bg-elevated px-3 py-2 text-sm">
@@ -1628,7 +1633,7 @@ function BaselineColumn({
             {it.center && (
               <div className="mt-0.5 text-xs tracking-wide text-fg-muted">
                 {it.center === "Type"
-                  ? `Type · ${it.center_status}`
+                  ? t("protocols.typeCenter", { status: it.center_status ?? "" })
                   : `${displayCenter(it.center)} · ${it.center_status}`}
               </div>
             )}

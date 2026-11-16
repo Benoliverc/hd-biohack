@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n";
 import {
   useEffect,
   useState,
@@ -24,11 +25,11 @@ type Chart = Record<string, unknown>;
 
 export type DeepDiveDomain = "core" | "centers" | "channels" | "planets";
 
-const DOMAIN_TABS: { id: DeepDiveDomain; label: string; hash: string }[] = [
-  { id: "core", label: "Core", hash: "core" },
-  { id: "centers", label: "Centers", hash: "centers" },
-  { id: "channels", label: "Channels", hash: "channels" },
-  { id: "planets", label: "Planets", hash: "planets" },
+const DOMAIN_TABS: { id: DeepDiveDomain; labelKey: "chart.deepDive.tabCore" | "chart.deepDive.tabCenters" | "chart.deepDive.tabChannels" | "chart.deepDive.tabPlanets"; hash: string }[] = [
+  { id: "core", labelKey: "chart.deepDive.tabCore", hash: "core" },
+  { id: "centers", labelKey: "chart.deepDive.tabCenters", hash: "centers" },
+  { id: "channels", labelKey: "chart.deepDive.tabChannels", hash: "channels" },
+  { id: "planets", labelKey: "chart.deepDive.tabPlanets", hash: "planets" },
 ];
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
@@ -51,6 +52,7 @@ function Accordion({
   children: ReactNode;
   defaultOpen?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <details
       open={defaultOpen}
@@ -63,8 +65,8 @@ function Accordion({
             <div className="mt-0.5 text-sm text-growth/90 break-words">{subtitle}</div>
           )}
         </div>
-        <span className="mt-0.5 shrink-0 text-xs text-fg-muted group-open:hidden">Learn more</span>
-        <span className="mt-0.5 hidden shrink-0 text-xs text-fg-muted group-open:inline">Hide</span>
+        <span className="mt-0.5 shrink-0 text-xs text-fg-muted group-open:hidden">{t("chart.deepDive.learnMore")}</span>
+        <span className="mt-0.5 hidden shrink-0 text-xs text-fg-muted group-open:inline">{t("chart.deepDive.hide")}</span>
       </summary>
       <div className="border-t border-border px-4 py-3 type-body text-fg-secondary max-w-prose whitespace-pre-wrap">
         {children}
@@ -105,15 +107,16 @@ function ActivationTable({
   title: string;
   rows: Array<Record<string, unknown>>;
 }) {
+  const { t } = useI18n();
   return (
     <div className="overflow-x-auto overflow-hidden rounded-2xl border border-border">
       <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold">{title}</div>
       <table className="w-full text-left text-sm">
         <thead className="text-xs text-fg-muted">
           <tr>
-            <th className="px-4 py-2">Planet</th>
-            <th className="px-4 py-2">Gate.Line</th>
-            <th className="px-4 py-2">Lon°</th>
+            <th className="px-4 py-2">{t("chart.deepDive.planet")}</th>
+            <th className="px-4 py-2">{t("chart.deepDive.gateLine")}</th>
+            <th className="px-4 py-2">{t("chart.deepDive.lon")}</th>
           </tr>
         </thead>
         <tbody>
@@ -146,6 +149,7 @@ const CENTER_SLOTS: { key: CenterKey; style: CSSProperties }[] = [
 ];
 
 function CentersMatrix({ defined }: { defined: Set<string> }) {
+  const { t } = useI18n();
   const [filter, setFilter] = useState<CenterFilter>("all");
   const [expanded, setExpanded] = useState<CenterKey | null>(null);
 
@@ -163,16 +167,15 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-fg-muted">
-        Defined = consistent energy. Open = where you take in and amplify life (wisdom potential +
-        conditioning). Tap a cell for detail. Layout mirrors the bodygraph.
+        {t("chart.deepDive.definedOpenHelp")}
       </p>
 
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter centers">
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("chart.deepDive.filterCenters")}>
         {(
           [
-            ["all", "All"],
-            ["defined", "Defined"],
-            ["open", "Open"],
+            ["all", t("chart.deepDive.filterAll")],
+            ["defined", t("chart.deepDive.defined")],
+            ["open", t("chart.deepDive.open")],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -197,7 +200,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
         className="mx-auto grid max-w-md grid-cols-3 gap-2"
         style={{ gridTemplateRows: "repeat(6, minmax(0, auto))" }}
         role="list"
-        aria-label="Centers bodygraph matrix"
+        aria-label={t("chart.deepDive.centersMatrix")}
       >
         {CENTER_SLOTS.map(({ key, style }) => {
           const isDefined = defined.has(key);
@@ -234,7 +237,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
                       isDefined ? "text-growth" : "text-fg-muted"
                     }`}
                   >
-                    {isDefined ? "Defined" : "Open"}
+                    {isDefined ? t("chart.deepDive.defined") : t("chart.deepDive.open")}
                   </div>
                 </button>
               ) : (
@@ -246,29 +249,29 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
       </div>
 
       {visibleCount === 0 && (
-        <p className="text-sm text-fg-muted">No centers match this filter.</p>
+        <p className="text-sm text-fg-muted">{t("chart.deepDive.noCentersMatch")}</p>
       )}
 
       {expanded && expandedCopy && matchesFilter(expanded) && (
         <div
           className="rounded-xl border border-border bg-elevated px-4 py-3 type-body text-fg-secondary max-w-prose"
           role="region"
-          aria-label={`${displayCenter(expanded)} detail`}
+          aria-label={t("chart.deepDive.centerDetail", { center: displayCenter(expanded) })}
         >
           <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="font-semibold text-fg">{displayCenter(expanded)}</h3>
             <span className={`text-xs ${expandedDefined ? "text-growth" : "text-fg-muted"}`}>
-              {expandedDefined ? "Defined — consistent" : "Open — takes in / amplifies"}
+              {expandedDefined ? t("chart.deepDive.definedConsistent") : t("chart.deepDive.openAmplifies")}
             </span>
           </div>
           <p className="mb-2">{expandedDefined ? expandedCopy.defined : expandedCopy.open}</p>
-          <p className="text-xs text-fg-muted">Body / energy hint: {expandedCopy.bodyHint}</p>
+          <p className="text-xs text-fg-muted">{t("chart.deepDive.bodyHint", { hint: expandedCopy.bodyHint })}</p>
           <button
             type="button"
             className="mt-3 text-xs text-fg-muted underline-offset-2 hover:text-fg hover:underline"
             onClick={() => setExpanded(null)}
           >
-            Collapse
+            {t("chart.deepDive.collapse")}
           </button>
         </div>
       )}
@@ -290,6 +293,7 @@ export function ChartDeepDive({
   domain?: DeepDiveDomain;
   onDomainChange?: (domain: DeepDiveDomain) => void;
 }) {
+  const { t } = useI18n();
   const [internalDomain, setInternalDomain] = useState<DeepDiveDomain>("core");
   const active = domain ?? internalDomain;
 
@@ -345,14 +349,14 @@ export function ChartDeepDive({
 
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-fg">Deep dive</h2>
-          <p className="text-xs text-fg-muted">Core blueprint, centers, channels, and planet tables.</p>
+          <h2 className="text-lg font-semibold text-fg">{t("chart.deepDive.title")}</h2>
+          <p className="text-xs text-fg-muted">{t("chart.deepDive.subtitle")}</p>
         </div>
       </div>
 
       <div
         role="tablist"
-        aria-label="Deep dive domains"
+        aria-label={t("chart.deepDive.domains")}
         className="flex w-full gap-1 rounded-xl border border-border bg-sunken p-1"
       >
         {DOMAIN_TABS.map((tab, index) => {
@@ -386,7 +390,7 @@ export function ChartDeepDive({
                   : "text-fg-secondary hover:bg-elevated/80 hover:text-fg"
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
               {selected && (
                 <span
                   className="pointer-events-none absolute inset-x-2 bottom-0.5 h-0.5 rounded-full bg-growth"
@@ -406,24 +410,24 @@ export function ChartDeepDive({
         {active === "core" && (
           <div className="space-y-2">
             <p className="text-xs text-fg-muted">
-              Tap each row to expand. Short labels on the card; deeper context inside.
+              {t("chart.deepDive.tapToExpand")}
             </p>
             <Accordion title="Type" subtitle={hdType} defaultOpen>
               <SummaryLearnMore
                 info={typeInfo}
-                fallback="Your energetic Role in how you correctly engage with life."
+                fallback={t("chart.deepDive.typeBlurb")}
               />
             </Accordion>
             <Accordion title="Strategy" subtitle={strategy}>
               <SummaryLearnMore
                 info={STRATEGY_COPY[strategy]}
-                fallback="How you correctly engage opportunities so resistance drops."
+                fallback={t("chart.deepDive.strategyBlurb")}
               />
             </Accordion>
-            <Accordion title="Inner Authority" subtitle={authority}>
+            <Accordion title={t("chart.deepDive.innerAuthority")} subtitle={authority}>
               <SummaryLearnMore
                 info={AUTHORITY_COPY[authority]}
-                fallback="Your body's decision-making process — follow this over mental urgency."
+                fallback={t("chart.deepDive.authorityBlurb")}
               />
             </Accordion>
             <Accordion title="Profile" subtitle={profile}>
@@ -432,7 +436,7 @@ export function ChartDeepDive({
             <Accordion title="Definition" subtitle={definition}>
               <SummaryLearnMore
                 info={DEFINITION_COPY[definition]}
-                fallback="How your defined centers connect into one or more circuits."
+                fallback={t("chart.deepDive.definitionBlurb")}
               />
             </Accordion>
           </div>
@@ -444,12 +448,12 @@ export function ChartDeepDive({
           <div className="space-y-2">
             {channels.length === 0 ? (
               <div className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm text-fg-secondary">
-                No full channels (Reflector or hanging-only activations).
+                {t("chart.deepDive.noFullChannels")}
               </div>
             ) : (
               <>
                 <p className="text-xs text-fg-muted">
-                  Active channels · {channels.length} defined. Tap each to expand.
+                  {t("chart.deepDive.activeChannels", { n: channels.length })}
                 </p>
                 {channels.map((ch) => {
                   const g = (ch.gates as number[]) || [];
@@ -469,7 +473,7 @@ export function ChartDeepDive({
               </>
             )}
 
-            <Accordion title="Activated gates" subtitle={`${gates.length} gates`}>
+            <Accordion title={t("chart.deepDive.activatedGates")} subtitle={t("chart.deepDive.gatesCount", { n: gates.length })}>
               <div className="flex flex-wrap gap-1.5">
                 {gates.map((g) => (
                   <span
@@ -481,19 +485,17 @@ export function ChartDeepDive({
                 ))}
               </div>
               <p className="mt-3 text-xs text-fg-muted">
-                Personality (black) + Design (red) activations combined. See the Planets tab for
-                planet and line detail.
+                {t("chart.deepDive.activatedGatesHelp")}
               </p>
             </Accordion>
 
-            <Accordion title="Hanging gates" subtitle={`${hanging.length} open channel halves`}>
+            <Accordion title={t("chart.deepDive.hangingGates")} subtitle={t("chart.deepDive.openHalves", { n: hanging.length })}>
               {hanging.length === 0 ? (
-                <p>No hanging gates listed.</p>
+                <p>{t("chart.deepDive.noHanging")}</p>
               ) : (
                 <>
                   <p className="mb-3 text-xs text-fg-muted">
-                    You hold one gate of a channel; the missing half can feel magnetic when others
-                    (or transits) bring it.
+                    {t("chart.deepDive.hangingHelp")}
                   </p>
                   <ul className="space-y-2">
                     {hanging.map((h) => (
@@ -501,8 +503,8 @@ export function ChartDeepDive({
                         key={`${h.held}-${h.missing}-${String(h.channel)}`}
                         className="rounded-lg bg-sunken/80 px-3 py-2 text-sm"
                       >
-                        <span className="text-growth">Gate {String(h.held)}</span>
-                        <span className="text-fg-muted"> waiting for </span>
+                        <span className="text-growth">{t("chart.deepDive.gateHeld", { gate: String(h.held) })}</span>
+                        <span className="text-fg-muted"> {t("chart.deepDive.waitingFor")} </span>
                         <span className="text-energy-ink/90">{String(h.missing)}</span>
                         <span className="text-fg-muted"> — {String(h.channel)}</span>
                       </li>
@@ -516,8 +518,8 @@ export function ChartDeepDive({
 
         {active === "planets" && (
           <div className="grid gap-4 md:grid-cols-2">
-            <ActivationTable title="Personality (Black)" rows={personality} />
-            <ActivationTable title="Design (Red)" rows={design} />
+            <ActivationTable title={t("chart.deepDive.personalityBlack")} rows={personality} />
+            <ActivationTable title={t("chart.deepDive.designRed")} rows={design} />
           </div>
         )}
       </div>

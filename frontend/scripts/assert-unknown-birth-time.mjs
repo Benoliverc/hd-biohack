@@ -116,7 +116,7 @@ assert.ok(
   "HTML required respects the unknown flag",
 );
 assert.ok(
-  /if \(!timeUnknown && !birthTime\) throw new Error\("Enter a birth time\."\)/.test(profile),
+  /if \(!timeUnknown && !birthTime\) throw new Error\(t\("chart\.firstRun\.errorTime"\)\)/.test(profile),
   "editor Enter a birth time guard respects the flag",
 );
 
@@ -217,10 +217,13 @@ for (const loc of locales) {
   for (const [key, en] of Object.entries(locked)) {
     const value = extractMessage(src, key);
     assert.ok(value, `${loc} missing ${key}`);
-    assert.equal(value, en, `${loc} ${key} must match EN source until translated`);
-    if (key === "chart.timeUnknown" || key === "chart.timeUnknownDisclosure") {
-      assert.ok(value.includes(apos), `${loc} ${key} must use a typographic apostrophe`);
-      assert.ok(!value.includes("'") && !value.includes("\u0027") || value.includes(apos), `${loc} ${key} typographic check`);
+    if (loc === "en.ts") {
+      assert.equal(value, en, `en.ts ${key} must match locked EN`);
+      if (key === "chart.timeUnknown" || key === "chart.timeUnknownDisclosure") {
+        assert.ok(value.includes(apos), `${loc} ${key} must use a typographic apostrophe`);
+      }
+    } else {
+      assert.notEqual(value, en, `${loc} ${key} must be translated`);
     }
   }
 }

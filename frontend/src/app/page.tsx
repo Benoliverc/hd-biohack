@@ -264,7 +264,7 @@ export default function HomePage() {
             title: t("home.outcome.soul.title"),
             body: t("home.outcome.soul.body"),
             b1: t("home.outcome.soul.b1"),
-            b2: t("home.outcome.soul.b2"),
+            b2: undefined as string | undefined,
             status: !ready
               ? "…"
               : !hasChart
@@ -297,7 +297,7 @@ export default function HomePage() {
                 <p>{card.body}</p>
                 <ul className="mt-2 list-disc space-y-0.5 pl-4">
                   <li>{card.b1}</li>
-                  <li>{card.b2}</li>
+                  {card.b2 ? <li>{card.b2}</li> : null}
                 </ul>
               </div>
             </Link>

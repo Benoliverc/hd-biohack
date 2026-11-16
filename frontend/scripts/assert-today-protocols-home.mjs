@@ -243,17 +243,17 @@ const locked = {
   "login.pillar.protocols.body":
     "A checkable morning, midday, and evening list, preferring what you already own.",
   "home.title.hasChart": "Start the day on Today.",
-  "home.title.noChart": "Know your chart. Run today with it.",
+  "home.title.noChart": "Know your chart. Start today with it.",
   "home.blurb.pro":
-    "Today gives you one Move for how the sky meets your chart. Protocols is the checkable stack — morning, midday, and evening — using your kit when you own it.",
+    "Today gives you one Move for how the sky meets your chart. Protocols is the checkable stack — morning, midday, and evening — preferring what you already own on your shelf.",
   "home.blurb.free":
-    "Today stays open. Protocols and Soul unlock with Pro — the checkable stack plus kit, and Aura between people you've charted.",
+    "Today stays open. Protocols and Soul unlock with Pro — the checkable stack plus your shelf, and Soul between people whose charts you’ve saved.",
   "home.blurb.noChart": "Save your natal first. Today and Protocols both read from it.",
   "home.path.today": "Today is the morning read.",
   "home.path.protocols": "Protocols is the checkable stack.",
   "home.path.chart": "Chart is your natal.",
   "home.path.soul": "Soul is how you wire with someone.",
-  "home.cta.seeTodaysMove": "See today's Move",
+  "home.cta.seeTodaysMove": "See today’s Move",
   "home.morning.pro": "Start on Today — one Move for the sky. Tick the stack on Protocols.",
   "home.morning.free": "Today is open. Pro unlocks the checkable stack.",
   "home.outcome.today.title": "Today",
@@ -261,7 +261,7 @@ const locked = {
   "home.outcome.chart.title": "Chart",
   "home.outcome.soul.title": "Soul",
   "home.outcome.protocols.body":
-    "A checkable morning, midday, and evening stack shaped by your chart and today's sky — preferring what you already own.",
+    "A checkable morning, midday, and evening stack shaped by your chart and today’s sky — preferring what you already own.",
   "home.outcome.protocols.b1": "Tick the timed leads here.",
   "home.outcome.protocols.b2": "Uses your shelf when something fits.",
   "today.tickStack": "Tick the stack on Protocols",
@@ -322,7 +322,9 @@ for (const loc of locales) {
       assert.ok(value.length > 0, `${loc} ${key} must be present`);
       if (loc === "en.ts") assert.equal(value, en);
     } else {
-      assert.equal(value, en, `${loc} ${key} must match EN source until translated`);
+      // Language first-pass: leftover home/protocols copy is now translated.
+      assert.ok(value.length > 0, `${loc} ${key} must be present`);
+      assert.notEqual(value, en, `${loc} ${key} must be translated`);
     }
   }
 }

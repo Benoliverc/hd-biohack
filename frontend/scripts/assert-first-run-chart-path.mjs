@@ -174,15 +174,15 @@ assert.ok(
   "source badges gated behind !firstRun",
 );
 // Default editor chrome still exists for returners
-assert.ok(city.includes(">Resolve<") || city.includes('"Resolve"'), "default CityPicker still has Resolve");
-assert.ok(city.includes("Enter lat/lon"), "default CityPicker still has Enter lat/lon");
-assert.ok(city.includes("ready to calculate"), "default CityPicker still has ready to calculate");
+assert.ok(city.includes('t("chart.city.findCity")'), "default CityPicker uses Find city");
+assert.ok(city.includes('t("chart.city.useCoordinates")'), "default CityPicker still has coordinate entry");
+assert.ok(city.includes('t("chart.city.resolved"'), "default CityPicker still has the resolved / ready-to-calculate status");
 
 // --- 3. Natal appears ---
 assert.ok(profile.includes("firstRunYouReveal"), "post-save first reveal flag");
 assert.ok(profile.includes("setFirstRunYouReveal(true)"), "You save in-session flips the reveal");
 assert.ok(profile.includes('t("chart.firstRun.editDetails")'), "first reveal relabels the collapsed row");
-assert.ok(profile.includes("Edit / switch person"), "returners keep the current collapsed-row title");
+assert.ok(profile.includes('t("chart.people.editSwitchPerson")'), "returners keep the current collapsed-row title");
 assert.ok(profile.includes('t("chart.firstRun.natalLine")'), "This is your natal line sits above the snapshot");
 assert.ok(profile.includes('data-testid="first-run-natal-line"'), "natal line is marked");
 assert.ok(profile.includes('href="/transits"'), "See today's Move goes to /transits");
@@ -192,7 +192,7 @@ assert.ok(
   !/firstRunYouReveal[\s\S]{0,400}biohack/.test(profile),
   "first-run reveal does not push Protocols",
 );
-assert.ok(profile.includes('You&apos;re a {typeKey}') || profile.includes("You're a {typeKey}"), "existing You're a {Type} snapshot stays");
+assert.ok(profile.includes('t("chart.people.youreAType"'), "existing You're a {Type} snapshot stays");
 assert.ok(profile.includes('id="snapshot"'), "snapshot remains in view after save");
 
 // --- 4. Copy keys in all five locale files ---
@@ -203,7 +203,7 @@ const locked = {
   "chart.firstRun.lead":
     "Enter your birth date, time, and city. This is the natal Today, Protocols, and Soul will use.",
   "chart.firstRun.timeCaption":
-    "An approximate time is fine if you're not sure. How you decide may be a little less precise.",
+    "An approximate time is fine if you’re not sure. How you decide may be a little less precise.",
   "chart.firstRun.cityLabel": "Birth city",
   "chart.firstRun.cityPlaceholder": "Start typing a city",
   "chart.firstRun.cityUnresolved": "Pick your city from the list.",
@@ -215,7 +215,7 @@ const locked = {
   "chart.firstRun.coordsToggle": "I only have coordinates",
   "chart.firstRun.editDetails": "Edit your birth details",
   "chart.firstRun.natalLine": "This is your natal. You can edit your birth details anytime.",
-  "chart.firstRun.seeTodaysMove": "See today's Move",
+  "chart.firstRun.seeTodaysMove": "See today’s Move",
   "chart.timeUnknown": "I don’t know the time",
   "chart.timeUnknownDisclosure":
     "We’ll use noon in your birth city. How you decide may be a little less precise.",
@@ -249,7 +249,11 @@ for (const loc of locales) {
   for (const [key, en] of Object.entries(locked)) {
     const value = extractMessage(src, key);
     assert.ok(value, `${loc} missing ${key}`);
-    assert.equal(value, en, `${loc} ${key} must match EN source until translated`);
+    if (loc === "en.ts") {
+      assert.equal(value, en, `en.ts ${key} must match locked EN`);
+    } else {
+      assert.notEqual(value, en, `${loc} ${key} must be translated`);
+    }
   }
 }
 

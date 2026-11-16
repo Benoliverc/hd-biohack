@@ -139,7 +139,7 @@ const lockedEn = {
   "login.pillar.protocols.body":
     "A checkable morning, midday, and evening list, preferring what you already own.",
   "login.pillar.soul.body":
-    "How you connect with someone you\u2019ve charted, in one short reading.",
+    "How you connect with someone whose chart you\u2019ve saved, in one short reading.",
 };
 for (const [key, expected] of Object.entries(lockedEn)) {
   assert.equal(valueFor(en, key), expected, `EN ${key}`);

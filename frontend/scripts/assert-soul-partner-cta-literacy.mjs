@@ -21,9 +21,9 @@ const NAMELESS =
 const SIGNATURE_BODY =
   "The big label at the top describes how your two charts tend to lock together — the shape of the bond. It is not a grade, not a dating score, and not 'how good' you are for each other. Secondary badges only appear when something rare lights up; start with the Signature as the shape of the relationship, not a rating.";
 const WIRE_BODY =
-  "The playbook is body-first: simple co-regulation moves for this pair. How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label. There is one playbook — not a work, life, or play switch.";
+  "The playbook starts with the body: simple ways to settle together for this pair. How You Wire Together names where a half-wire meets its other side. The centers strip shows who brings which always-on theme. Use these when you want something to try, not just a label. There is one playbook — not a work, life, or play switch.";
 const LOVE_BODY =
-  "Signature, the playbook, and the chapters below are how your two charts meet, for any person you saved. Love guidance is a separate chapter. It only appears when you mark this person as Partner, and it doesn’t score the bond.";
+  "Signature, the playbook, and the chapters below are how your two charts meet, for any person whose chart you’ve saved. Love guidance is a separate chapter. It only appears when you mark this person as Partner, and it doesn’t score the bond.";
 
 const SPECTRUMS_BODY =
   "The three bars map relative intensity (how much you stir in each other), steadiness (how continuous the shared field feels), and pace (how fast or slow you prefer to move together). High intensity can mean high energy that needs clear protocols — it is not a bad match. Read them as rhythm dials, never as a fit percentage.";
@@ -101,8 +101,8 @@ function stepBlock(region, id) {
 
 // --- Item 6: quiet Partner CTA on a Person ---
 assert.ok(page.includes('data-testid="soul-mark-as-partner"'), "Mark as Partner testid");
-assert.ok(page.includes("Mark as Partner"), "Mark as Partner label");
-assert.ok(page.includes("Marking…"), "Marking busy label");
+assert.ok(page.includes('t("soul.chrome.markPartner")'), "Mark as Partner label");
+assert.ok(page.includes('t("soul.chrome.marking")'), "Marking busy label");
 assert.ok(page.includes('data-testid="soul-mark-partner-reason"'), "reason testid");
 assert.ok(page.includes('data-testid="soul-mark-partner-row"'), "quiet row testid");
 assert.ok(
@@ -135,7 +135,7 @@ assert.ok(
   "Person row has no featured card chrome",
 );
 assert.ok(
-  markRow.includes(">Open Chart<") || markRow.includes("Open Chart\n"),
+  markRow.includes('t("page.today.openChart")'),
   "Open Chart stays on the Person row",
 );
 assert.ok(
@@ -175,11 +175,11 @@ assert.ok(!/Love guidance/i.test(meBlock), "no Love guidance pitch in empty-me")
 
 // Partner-on row unchanged
 assert.ok(
-  page.includes("Love guidance is on because you marked"),
+  page.includes('t("soul.chrome.loveGuidanceOn"'),
   "partner-on reason unchanged",
 );
-assert.ok(page.includes("Remove as Partner"), "Remove as Partner remains");
-assert.ok(page.includes("Partner · Love guidance"), "Partner chip remains");
+assert.ok(page.includes('t("soul.chrome.removePartner")'), "Remove as Partner remains");
+assert.ok(page.includes('t("soul.chrome.partnerLoveChip")'), "Partner chip remains");
 assert.ok(
   page.includes('result.friend?.role === "partner"') &&
     page.includes("result.partner_overview"),
@@ -192,16 +192,22 @@ assert.ok(
 
 // i18n: EN is source; other locales may match EN
 const locales = ["en", "nl", "de", "fr", "es"];
+const enSrc = catalogOf("en");
+assert.ok(
+  enSrc.includes(NAMED),
+  "en has locked named caption",
+);
+assert.ok(
+  enSrc.includes(NAMELESS),
+  "en has locked nameless caption",
+);
 for (const loc of locales) {
   const src = catalogOf(loc);
-  assert.ok(
-    src.includes(`'page.soul.markPartnerReasonNamed': '${NAMED}'`),
-    `${loc} has locked named caption`,
-  );
-  assert.ok(
-    src.includes(`'page.soul.markPartnerReason': '${NAMELESS}'`),
-    `${loc} has locked nameless caption`,
-  );
+  assert.ok(src.includes("page.soul.markPartnerReasonNamed"), `${loc} has named caption key`);
+  assert.ok(src.includes("page.soul.markPartnerReason"), `${loc} has nameless caption key`);
+  if (loc === "en") continue;
+  assert.ok(!src.includes(NAMED), `${loc} named caption is translated`);
+  assert.ok(!src.includes(NAMELESS), `${loc} nameless caption is translated`);
 }
 const localeDir = resolve(root, "src/lib/i18n/messages");
 const localeFiles = readdirSync(localeDir)

@@ -228,7 +228,7 @@ export const todaySoulMessages = {
   "today.tomorrow.sunThemeLeaves": "Morgen: Das Sonnenthema dreht sich",
   "today.tomorrow.sunThemeHolds": "Morgen: Das Sonnenthema bleibt",
   "today.vs.sameConditioning": "Dieselbe Konditionierung",
-  "share.baselineToday": "Mein Baseline · heute",
+  "share.baselineToday": 'Meine Baseline · heute',
   "today.literacy.howToReadTitle": "So liest du Today",
   "today.literacy.move.title": "Der Move",
   "today.literacy.move.jump": "Der Move",

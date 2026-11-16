@@ -22,7 +22,8 @@ export async function captureAndShareBaseline(
   const filename = `${stem}-${aspect}-${size.w}x${size.h}.png`;
   const title =
     opts?.title ||
-    (props.variant === "natal" ? "My Baseline" : "My Baseline · today");
+    props.kicker ||
+    (props.variant === "natal" ? opts?.filenameStem || "baseline-natal" : "baseline-today");
 
   // Privacy: never put chart IDs, emails, or kit contents in share text.
   return shareCardImage(blob, filename, title);
