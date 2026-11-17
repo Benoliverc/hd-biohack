@@ -28,7 +28,7 @@ export const messages = {
   'settings.timezoneHelp': 'Gilt für Protocols-Tage, Dabei sein und den Reset von Today’s Move — 07:00 in der Zeitzone deines Geräts.',
   'settings.deviceTimezone': 'Zeitzone deines Geräts: {tz}.',
   'settings.languageTitle': 'Sprache',
-  'settings.languageHelp': 'UI-Sprache gilt für Navigation, Einstellungen, Login, Shell-Labels, Today und Chart/Soul/Protocols-Chrome. Auf Spanisch sind auch die Chart-Deep-Dive-Essays, die Chart-Snapshot-Texte und die Soul-Readings übersetzt. Diese langen Texte können in Deutsch, Français und Nederlands weiterhin auf Englisch erscheinen. HD-Bezeichnungen für Type, Authority und Centers sowie Featurenamen wie Today, Protocols, Chart, Soul, Move, Today’s Move, How to read und Shelf bleiben auf Englisch.',
+  'settings.languageHelp': 'UI-Sprache gilt für Navigation, Einstellungen, Login, Shell-Labels, Today und Chart/Soul/Protocols-Chrome. Auf Spanisch und Niederländisch sind auch die Chart-Deep-Dive-Essays, die Chart-Snapshot-Texte und die Soul-Readings übersetzt. Diese langen Texte können in Deutsch und Français weiterhin auf Englisch erscheinen. HD-Bezeichnungen für Type, Authority und Centers sowie Featurenamen wie Today, Protocols, Chart, Soul, Move, Today’s Move, How to read und Shelf bleiben auf Englisch.',
   'settings.languageLabel': 'Anzeigesprache',
   'settings.saveLanguage': 'Sprache speichern',
   'settings.savedLanguage': 'Gespeichert · Oberflächensprache ist {label}',

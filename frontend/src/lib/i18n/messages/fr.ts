@@ -28,7 +28,7 @@ export const messages = {
   'settings.timezoneHelp': 'Sert aux jours de Protocols, à Présence, et au moment où Today’s Move se réinitialise — 07:00 dans le fuseau horaire de ton appareil.',
   'settings.deviceTimezone': 'Fuseau horaire de ton appareil : {tz}.',
   'settings.languageTitle': 'Langue',
-  'settings.languageHelp': 'La langue de l’interface couvre la navigation, les Réglages, la connexion, les libellés de la shell, Today, et le chrome de Chart/Soul/Protocols. En espagnol, les essais Chart Deep Dive, les textes du snapshot du Chart et les lectures Soul sont traduits aussi. Ces lectures longues peuvent encore être en anglais en Deutsch, Français et Nederlands. Les noms HD de Type, Authority et Center, et les noms de fonctions tels que Today, Protocols, Chart, Soul, Move, Today’s Move, How to read et Shelf, restent en anglais.',
+  'settings.languageHelp': 'La langue de l’interface couvre la navigation, les Réglages, la connexion, les libellés de la shell, Today, et le chrome de Chart/Soul/Protocols. En espagnol et en néerlandais, les essais Chart Deep Dive, les textes du snapshot du Chart et les lectures Soul sont traduits aussi. Ces lectures longues peuvent encore être en anglais en Deutsch et Français. Les noms HD de Type, Authority et Center, et les noms de fonctions tels que Today, Protocols, Chart, Soul, Move, Today’s Move, How to read et Shelf, restent en anglais.',
   'settings.languageLabel': "Langue d'affichage",
   'settings.saveLanguage': 'Enregistrer la langue',
   'settings.savedLanguage': "Enregistré · la langue de l'interface est {label}",

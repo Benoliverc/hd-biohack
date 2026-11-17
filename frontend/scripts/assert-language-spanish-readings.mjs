@@ -3,7 +3,8 @@
  * Run: npx tsx scripts/assert-language-spanish-readings.mjs
  *
  * Leftover chrome translated in de/es/fr/nl; Spanish essay + Soul catalogs
- * wired for locale=es; English source remains the en/de/fr/nl fallback.
+ * wired for locale=es; Dutch readings are a sibling path for locale=nl;
+ * English source remains the en/de/fr fallback.
  */
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
@@ -37,11 +38,11 @@ function catalog(loc) {
   return main;
 }
 
-function loadSoulReadings() {
-  const src = read("src/lib/i18n/soulReadings/es.ts");
+function loadSoulReadings(rel, label) {
+  const src = read(rel);
   const start = src.indexOf("{");
   const end = src.lastIndexOf("}");
-  assert.ok(start >= 0 && end > start, "esSoulReadings object literal");
+  assert.ok(start >= 0 && end > start, `${label} object literal`);
   // eslint-disable-next-line no-new-func
   return Function(`"use strict"; return (${src.slice(start, end + 1)});`)();
 }
@@ -54,8 +55,9 @@ function interpolate(template, params) {
 }
 
 function resolveSoulCopyLite(locale, part, fallback = "") {
-  if (locale !== "es" || !part?.key) return fallback;
-  const tpl = soulEs[part.key];
+  const catalog = locale === "es" ? soulEs : locale === "nl" ? soulNl : null;
+  if (!catalog || !part?.key) return fallback;
+  const tpl = catalog[part.key];
   if (!tpl) return fallback;
   return interpolate(tpl, part.params);
 }
@@ -136,7 +138,8 @@ assert.ok(
 const locales = ["en", "de", "es", "fr", "nl"];
 const catalogs = Object.fromEntries(locales.map((id) => [id, catalog(id)]));
 const en = catalogs.en;
-const soulEs = loadSoulReadings();
+const soulEs = loadSoulReadings("src/lib/i18n/soulReadings/es.ts", "esSoulReadings");
+const soulNl = loadSoulReadings("src/lib/i18n/soulReadings/nl.ts", "nlSoulReadings");
 
 function mustEqual(loc, key, expected) {
   assert.equal(catalogs[loc][key], expected, `${loc} ${key}`);
@@ -148,7 +151,7 @@ function mustHave(loc, key) {
 
 // --- (a) leftover chrome actually translated ---
 const LOCKED_LANGUAGE_HELP =
-  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Spanish, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. Those long readings may still be in English in Deutsch, Français, and Nederlands. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
+  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Spanish and Dutch, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. Those long readings may still be in English in Deutsch and Français. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
 
 mustEqual("en", "settings.languageHelp", LOCKED_LANGUAGE_HELP);
 // typographic apostrophe in Today’s Move
@@ -662,7 +665,9 @@ assert.doesNotMatch(
 
 const soulCopy = read("src/lib/soulCopy.ts");
 assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/es"/);
-assert.match(soulCopy, /locale !== "es"/);
+assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/nl"/);
+assert.match(soulCopy, /function isTranslatedLocale/);
+assert.match(soulCopy, /locale === "es" \|\| locale === "nl"/);
 assert.match(soulCopy, /export function resolveSoulCopy/);
 assert.match(soulCopy, /export function useSoulCopy/);
 
@@ -735,15 +740,23 @@ for (const [name, item] of Object.entries(fixture)) {
   const esOut = resolveSoulCopyLite("es", item, item.en);
   assert.ok(esOut && esOut.trim().length > 0, `${name} Spanish resolve is non-empty`);
   assert.notEqual(esOut, item.en, `${name} Spanish is not the English fallback`);
+  const nlOut = resolveSoulCopyLite("nl", item, item.en);
+  assert.ok(nlOut && nlOut.trim().length > 0, `${name} Dutch resolve is non-empty`);
+  assert.notEqual(nlOut, item.en, `${name} Dutch is not the English fallback`);
+  assert.notEqual(nlOut, esOut, `${name} Dutch is not the Spanish body`);
   assert.equal(resolveSoulCopyLite("en", item, item.en), item.en, `${name} en falls back to English body`);
   assert.equal(resolveSoulCopyLite("de", item, item.en), item.en, `${name} de falls back to English body`);
   assert.equal(resolveSoulCopyLite("fr", item, item.en), item.en, `${name} fr falls back to English body`);
-  assert.equal(resolveSoulCopyLite("nl", item, item.en), item.en, `${name} nl falls back to English body`);
 }
 assert.equal(
   resolveSoulCopyLite("es", { key: "soul.read.missing.doesNotExist", params: {} }, "English body"),
   "English body",
   "missing Spanish key falls back to English body",
+);
+assert.equal(
+  resolveSoulCopyLite("nl", { key: "soul.read.missing.doesNotExist", params: {} }, "English body"),
+  "English body",
+  "missing Dutch key falls back to English body",
 );
 const named = resolveSoulCopyLite("es", fixture.namedLove, fixture.namedLove.en);
 assert.match(named, /Alex/);
