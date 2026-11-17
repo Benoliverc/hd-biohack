@@ -172,7 +172,7 @@ assert.ok(coach.includes("Tab"), "focus trap via Tab");
 
 // Section rail + continuous article + N sections
 assert.ok(coach.includes("literacy.chrome.sections"), "N sections label is i18n");
-assert.ok(coach.includes("Sections") || coach.includes(`${"testId"}-rail`), "section rail");
+assert.ok(coach.includes("literacy.chrome.sectionsAria") || coach.includes("data-testid={`${testId}-rail`}"), "section rail aria is i18n");
 assert.ok(coach.includes("`${testId}-rail`") || coach.includes("data-testid={`${testId}-rail`}"), "rail test id");
 assert.ok(coach.includes("`${testId}-step-${step.id}`") || coach.includes("data-testid={`${testId}-step-${step.id}`}"), "step test ids kept");
 assert.ok(coach.includes("`${testId}-jump-${step.id}`") || coach.includes("data-testid={`${testId}-jump-${step.id}`}"), "jump test ids kept");

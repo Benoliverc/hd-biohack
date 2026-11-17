@@ -74,7 +74,7 @@ const LOCKED_EN = {
   "page.today.noSpike": `No strong personal overlay today — skim today${AP}s planetary gates below.`,
   "today.disclaimerFallback": `Chart weather from your design and today${AP}s sky — not biometric or medical advice.`,
   "settings.languageHelp":
-    "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. Deep Human Design essays may still appear in English.",
+    "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Spanish, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. Those long readings may still be in English in Deutsch, Français, and Nederlands. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.",
   "chart.city.findCity": "Find city",
   "soul.chrome.staleApi": `Soul can${AP}t load right now. Try again in a moment.`,
 };

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { displayCenter } from "@/lib/hdCopy";
+import { useI18n } from "@/lib/i18n";
 import {
   CENTER_GEOM,
   CENTER_LABELS,
@@ -135,6 +136,7 @@ export function BodyGraph({
   svgWidth,
   svgHeight,
 }: BodyGraphProps) {
+  const { t } = useI18n();
   const defined = new Set(definedCenters.map((c) => norm(c) as string));
   const activated = new Set(activatedGates);
   const personality = new Set(personalityGates || []);
@@ -177,7 +179,9 @@ export function BodyGraph({
         name,
         gates: [g0, g1] as [number, number],
         stroke,
-        title: name ? `Channel ${g0}–${g1}: ${name}` : `Channel ${g0}–${g1}`,
+        title: name
+          ? t("chart.bodygraph.channelTitle", { from: g0, to: g1, name })
+          : t("chart.bodygraph.channelTitleBare", { from: g0, to: g1 }),
       };
     })
     .filter(Boolean) as Array<{
@@ -246,7 +250,13 @@ export function BodyGraph({
         dashoffset: dash.dashoffset,
         held: h.held,
         missing: h.missing,
-        title: `Hanging ${h.held} → ${h.missing}${h.channel ? ` · ${h.channel}` : ""}`,
+        title: h.channel
+          ? t("chart.bodygraph.hangingTitleNamed", {
+              held: h.held,
+              missing: h.missing,
+              channel: h.channel,
+            })
+          : t("chart.bodygraph.hangingTitle", { held: h.held, missing: h.missing }),
       };
     })
     .filter(Boolean) as Array<{
@@ -296,9 +306,9 @@ export function BodyGraph({
         className={svgClass}
         style={svgStyle}
         role="img"
-        aria-label="Human Design bodygraph"
+        aria-label={t("chart.bodygraph.aria")}
       >
-        <title>Human Design bodygraph</title>
+        <title>{t("chart.bodygraph.aria")}</title>
         {/* Soft torso silhouette */}
         <path d={TORSO_PATH} fill={ALABASTER} opacity={0.95} />
 
@@ -401,7 +411,9 @@ export function BodyGraph({
             const stroke = isDef ? (motor ? MOTOR_BORDER : "#2F4A38") : OPEN_BORDER;
             const strokeW = 1.5;
             const strokeOp = 1;
-            const status = isDef ? `Defined ${displayCenter(key)}` : `Open ${displayCenter(key)}`;
+            const status = isDef
+              ? t("chart.bodygraph.definedCenter", { center: displayCenter(key) })
+              : t("chart.bodygraph.openCenter", { center: displayCenter(key) });
             return (
               <g key={key}>
                 <path
@@ -448,12 +460,12 @@ export function BodyGraph({
             const center = GATE_TO_CENTER[gate];
             const origin =
               hasSplit && personality.has(gate) && design.has(gate)
-                ? "personality + design"
+                ? t("chart.bodygraph.originBoth")
                 : hasSplit && personality.has(gate)
-                  ? "personality"
+                  ? t("chart.bodygraph.originPersonality")
                   : hasSplit && design.has(gate)
-                    ? "design"
-                    : "activated";
+                    ? t("chart.bodygraph.originDesign")
+                    : t("chart.bodygraph.originActivated");
             const fill = tone === "terracotta" ? TERRACOTTA : OBSIDIAN;
             const textFill = LINEN;
             return (
@@ -466,7 +478,15 @@ export function BodyGraph({
                   stroke={tone === "dual" ? TERRACOTTA : CREAM_STROKE}
                   strokeWidth={tone === "dual" ? 2 : 1.5}
                 >
-                  <title>{`Gate ${gate}${center ? ` · ${displayCenter(center)}` : ""} · ${origin}`}</title>
+                  <title>
+                    {center
+                      ? t("chart.bodygraph.gateTitle", {
+                          gate,
+                          center: displayCenter(center),
+                          origin,
+                        })
+                      : t("chart.bodygraph.gateTitleNoCenter", { gate, origin })}
+                  </title>
                 </circle>
                 <text
                   x={pos.x}
@@ -496,7 +516,7 @@ export function BodyGraph({
           }}
           aria-live="polite"
         >
-          {focusDefined ? "Defined" : "Open"} · {displayCenter(focusCenter!)}
+          {focusDefined ? t("chart.deepDive.defined") : t("chart.deepDive.open")} · {displayCenter(focusCenter!)}
           {focusActiveGates.length > 0
             ? ` · ${focusActiveGates.join(" · ")}`
             : ""}
@@ -513,31 +533,31 @@ export function BodyGraph({
         <div className="flex flex-wrap items-center justify-center gap-1.5">
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
-            title="Conscious · Mind / Personality"
+            title={t("chart.bodygraph.titleConscious")}
           >
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: OBSIDIAN }}
               aria-hidden
             />
-            Conscious
-            <span className="font-normal text-fg-muted">(Mind)</span>
+            {t("chart.bodygraph.legendConscious")}
+            <span className="font-normal text-fg-muted">{t("chart.bodygraph.legendMind")}</span>
           </span>
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
-            title="Somatic · Body / Unconscious"
+            title={t("chart.bodygraph.titleSomatic")}
           >
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: TERRACOTTA }}
               aria-hidden
             />
-            Somatic
-            <span className="font-normal text-fg-muted">(Body)</span>
+            {t("chart.bodygraph.legendSomatic")}
+            <span className="font-normal text-fg-muted">{t("chart.bodygraph.legendBody")}</span>
           </span>
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
-            title="Integrated · Personality + Design"
+            title={t("chart.bodygraph.titleIntegrated")}
           >
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
@@ -547,45 +567,45 @@ export function BodyGraph({
               }}
               aria-hidden
             />
-            Integrated
-            <span className="font-normal text-fg-muted">(Both)</span>
+            {t("chart.bodygraph.legendIntegrated")}
+            <span className="font-normal text-fg-muted">{t("chart.bodygraph.legendBoth")}</span>
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-1.5">
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
-            title="Defined · Consistent Baseline"
+            title={t("chart.bodygraph.titleDefined")}
           >
             <span
               className="inline-block h-2.5 w-2.5 rounded-sm"
               style={{ background: SAGE }}
               aria-hidden
             />
-            Defined
-            <span className="font-normal text-fg-muted">(Baseline)</span>
+            {t("chart.deepDive.defined")}
+            <span className="font-normal text-fg-muted">{t("chart.bodygraph.legendBaseline")}</span>
           </span>
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas/80 px-2.5 py-1 text-[10px] font-medium text-fg"
-            title="Open · Amplifies Environment"
+            title={t("chart.bodygraph.titleOpen")}
           >
             <span
               className="inline-block h-2.5 w-2.5 rounded-sm border"
               style={{ background: ALABASTER, borderColor: OPEN_BORDER }}
               aria-hidden
             />
-            Open
-            <span className="font-normal text-fg-muted">(Amplifies)</span>
+            {t("chart.deepDive.open")}
+            <span className="font-normal text-fg-muted">{t("chart.bodygraph.legendAmplifies")}</span>
           </span>
         </div>
         <p className="text-center text-[10px] text-fg-muted">
-          Tap any center to inspect its mechanics
+          {t("chart.bodygraph.tapHint")}
         </p>
       </div>
 
       {activePaths.length > 0 && (
         <div className="w-full max-w-sm rounded-xl border border-border bg-canvas/60 px-3 py-2">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
-            Active channels
+            {t("chart.bodygraph.activeChannelsHeading")}
           </div>
           <ul className="space-y-0.5 text-[11px] text-fg-secondary">
             {activePaths.map((p) => (
@@ -599,10 +619,10 @@ export function BodyGraph({
                     {" "}
                     ·{" "}
                     {p.stroke === "design"
-                      ? "design"
+                      ? t("chart.bodygraph.strokeDesign")
                       : p.stroke === "split"
-                        ? "both"
-                        : "personality"}
+                        ? t("chart.bodygraph.strokeBoth")
+                        : t("chart.bodygraph.strokePersonality")}
                   </span>
                 ) : null}
               </li>
@@ -614,7 +634,7 @@ export function BodyGraph({
       {hangingGates.length > 0 && (
         <div className="w-full max-w-sm rounded-xl border border-border px-3 py-2">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
-            Hanging gates
+            {t("chart.deepDive.hangingGates")}
           </div>
           <ul className="space-y-0.5 text-[11px] text-fg-secondary">
             {hangingGates.slice(0, 8).map((h, i) => (
@@ -625,7 +645,7 @@ export function BodyGraph({
               </li>
             ))}
             {hangingGates.length > 8 && (
-              <li className="text-fg-muted">+{hangingGates.length - 8} more</li>
+              <li className="text-fg-muted">{t("chart.bodygraph.more", { n: hangingGates.length - 8 })}</li>
             )}
           </ul>
         </div>
@@ -633,11 +653,20 @@ export function BodyGraph({
 
       {definedCenters.length > 0 && (
         <p className="max-w-sm text-center text-[11px] text-fg-muted">
-          Lit: {definedCenters.map((c) => displayCenter(c)).join(" · ")}
+          {t("chart.bodygraph.lit", {
+            centers: definedCenters.map((c) => displayCenter(c)).join(" · "),
+          })}
           {channels.length > 0
-            ? ` · ${channels.length} channel${channels.length === 1 ? "" : "s"}`
+            ? ` · ${t(
+                channels.length === 1
+                  ? "chart.bodygraph.channelCountOne"
+                  : "chart.bodygraph.channelCountMany",
+                { n: channels.length },
+              )}`
             : ""}
-          {activatedGates.length > 0 ? ` · ${activatedGates.length} gates` : ""}
+          {activatedGates.length > 0
+            ? ` · ${t("chart.deepDive.gatesCount", { n: activatedGates.length })}`
+            : ""}
         </p>
       )}
       </>

@@ -13,16 +13,8 @@ import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
-import {
-  TYPE_COPY,
-  TYPE_BATTERY,
-  STRATEGY_COPY,
-  AUTHORITY_PLAIN,
-  AUTHORITY_COPY,
-  centersToWatch,
-  profilePlainLine,
-  displayCenter,
-} from "@/lib/hdCopy";
+import { displayCenter } from "@/lib/hdCopy";
+import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { youChipLabel } from "@/lib/youChipLabel";
 
 type Chart = Record<string, unknown>;
@@ -250,6 +242,15 @@ function ChartSectionNav({
 
 export default function ProfilePage() {
   const { t } = useI18n();
+  const {
+    TYPE_COPY,
+    TYPE_BATTERY,
+    STRATEGY_COPY,
+    AUTHORITY_PLAIN,
+    AUTHORITY_COPY,
+    centersToWatch,
+    profilePlainLine,
+  } = useHdCopy();
   const {
     user,
     usersLoading,

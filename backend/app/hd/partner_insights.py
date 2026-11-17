@@ -13,6 +13,7 @@ from .partner_names import (
     how_they_love_for_type,
     personalize_structure,
 )
+from .soul_copy_parts import part, type_pair_slug_from_key, type_slug, channel_id
 
 # Canonical HD types used in natal chart_json["type"].
 HD_TYPES = (
@@ -23,8 +24,8 @@ HD_TYPES = (
     "Reflector",
 )
 
-PartnerNuance = dict[str, str]
-PartnerOverview = dict[str, str]
+PartnerNuance = dict[str, Any]
+PartnerOverview = dict[str, Any]
 PartnerPairChapters = dict[str, str]
 
 
@@ -527,6 +528,38 @@ PARTNER_NUANCE_BY_CHANNEL: dict[str, PartnerNuance] = {
 PARTNER_NUANCE_BY_CHANNEL["59-6"] = PARTNER_NUANCE_BY_CHANNEL["6-59"]
 
 
+def nuance_with_parts(
+    nuance: PartnerNuance,
+    gates: list[int] | tuple[int, ...] | None = None,
+    *,
+    channel_name: str | None = None,
+) -> PartnerNuance:
+    """Copy a nuance dict and attach stable CopyPart siblings."""
+    out = dict(nuance)
+    ck = channel_id(gates) if gates else ""
+    if not ck and channel_name:
+        # Resolve canonical gate key from the channel nickname when gates are missing.
+        for g1, g2, name in CHANNELS:
+            if name == channel_name or f"{g1}-{g2}" == channel_name or f"{g2}-{g1}" == channel_name:
+                ck = channel_id((g1, g2))
+                break
+    if not ck:
+        return out
+    gift_key = f"soul.read.nuance.{ck}.gift"
+    tender_key = f"soul.read.nuance.{ck}.tender"
+    gift_part = part(gift_key)
+    tender_part = part(tender_key)
+    if out.get("gift_in_love") is not None:
+        out["gift_in_love_part"] = gift_part
+    if out.get("tender_spot") is not None:
+        out["tender_spot_part"] = tender_part
+    if out.get("romantic_synergy") is not None:
+        out["romantic_synergy_part"] = gift_part
+    if out.get("romantic_friction") is not None:
+        out["romantic_friction_part"] = tender_part
+    return out
+
+
 def partner_overview_for_types(
     type_a: str | None, type_b: str | None
 ) -> PartnerOverview | None:
@@ -546,6 +579,14 @@ def partner_overview_for_types(
     the_current = pair["the_current"]
     what_this_asks = pair["what_this_asks"]
     tender_spots = pair["tender_spots"]
+    slug = type_pair_slug_from_key(key)
+    you_slug = type_slug(a)
+    they_slug = type_slug(b)
+    hook_part = part(f"soul.read.overview.{slug}.hook")
+    current_part = part(f"soul.read.overview.{slug}.the_current")
+    asks_part = part(f"soul.read.overview.{slug}.what_this_asks")
+    tender_part = part(f"soul.read.overview.{slug}.tender_spots")
+    try_part = part(f"soul.read.overview.{slug}.try_this")
     return {
         "hook": pair["hook"],
         "the_current": the_current,
@@ -558,6 +599,16 @@ def partner_overview_for_types(
         "core_dynamic": the_current,
         "mutual_growth": what_this_asks,
         "relationship_challenges": tender_spots,
+        "hook_part": hook_part,
+        "the_current_part": current_part,
+        "what_this_asks_part": asks_part,
+        "tender_spots_part": tender_part,
+        "try_this_part": try_part,
+        "core_dynamic_part": current_part,
+        "mutual_growth_part": asks_part,
+        "relationship_challenges_part": tender_part,
+        "how_you_love_part": part(f"soul.read.howYouLove.{you_slug}.nameless"),
+        "how_they_love_part": part(f"soul.read.howTheyLove.{they_slug}.nameless"),
     }
 
 
@@ -634,6 +685,16 @@ def apply_partner_layer(
                 overview["how_you_love"] = apply_how_you_love_name(
                     overview["how_you_love"], name_b
                 )
+            you_slug = type_slug(_norm_type(type_a))
+            they_slug = type_slug(_norm_type(type_b))
+            if overview.get("how_you_love"):
+                overview["how_you_love_part"] = part(
+                    f"soul.read.howYouLove.{you_slug}.named", name=name_b
+                )
+            if overview.get("how_they_love"):
+                overview["how_they_love_part"] = part(
+                    f"soul.read.howTheyLove.{they_slug}.named", name=name_b
+                )
             overview = personalize_structure(
                 overview, type_a=type_a, type_b=type_b, name_b=name_b
             )
@@ -648,7 +709,7 @@ def apply_partner_layer(
         for ch in rows:
             nuance = partner_nuance_for_gates(ch.get("gates"))
             if nuance:
-                new_rows.append({**ch, "partner_nuance": dict(nuance)})
+                new_rows.append({**ch, "partner_nuance": nuance_with_parts(nuance, ch.get("gates"))})
             else:
                 new_rows.append(dict(ch))
         roles[key] = new_rows
@@ -667,7 +728,7 @@ def apply_partner_layer(
                 b = dict(b)
                 nuance = partner_nuance_for_channel_name(b.get("channel"))
                 if nuance:
-                    b["partner_nuance"] = dict(nuance)
+                    b["partner_nuance"] = nuance_with_parts(nuance, channel_name=b.get("channel"))
                 new_bridges.append(b)
             card["bridges"] = new_bridges
         new_cards.append(card)

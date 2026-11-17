@@ -303,6 +303,7 @@ export type TodayIndicationPayload = {
   has_natal: boolean;
   save_chart_cta: boolean;
   disclaimer: string;
+  disclaimer_part?: CopyPart | null;
   daily_signal?: DailySignal | null;
   vs_yesterday?: VsYesterdayDelta[];
   conditioning_caption?: string;
@@ -535,6 +536,10 @@ export type SoulPartnerNuance = {
   romantic_friction: string;
   gift_in_love?: string | null;
   tender_spot?: string | null;
+  romantic_synergy_part?: CopyPart | null;
+  romantic_friction_part?: CopyPart | null;
+  gift_in_love_part?: CopyPart | null;
+  tender_spot_part?: CopyPart | null;
 };
 
 export type SoulLoveGuidanceItem = {
@@ -542,6 +547,9 @@ export type SoulLoveGuidanceItem = {
   title: string;
   body: string;
   try: string;
+  title_part?: CopyPart | null;
+  body_part?: CopyPart | null;
+  try_part?: CopyPart | null;
 };
 
 export type SoulLoveGuidanceSection = {
@@ -550,6 +558,10 @@ export type SoulLoveGuidanceSection = {
   try: string;
   /** Optional second beat for "How you talk" (how voices land). */
   voice?: string | null;
+  title_part?: CopyPart | null;
+  body_part?: CopyPart | null;
+  try_part?: CopyPart | null;
+  voice_part?: CopyPart | null;
 };
 
 export type SoulPartnerOverview = {
@@ -560,6 +572,16 @@ export type SoulPartnerOverview = {
   what_this_asks: string;
   tender_spots: string;
   try_this: string;
+  hook_part?: CopyPart | null;
+  the_current_part?: CopyPart | null;
+  how_you_love_part?: CopyPart | null;
+  how_they_love_part?: CopyPart | null;
+  what_this_asks_part?: CopyPart | null;
+  tender_spots_part?: CopyPart | null;
+  try_this_part?: CopyPart | null;
+  core_dynamic_part?: CopyPart | null;
+  mutual_growth_part?: CopyPart | null;
+  relationship_challenges_part?: CopyPart | null;
   /** Legacy aliases — same strings as the new chapter fields. */
   core_dynamic: string;
   mutual_growth: string;
@@ -596,6 +618,9 @@ export type SoulBadge = {
   label: string;
   detail?: string;
   description?: string;
+  label_part?: CopyPart | null;
+  detail_part?: CopyPart | null;
+  description_part?: CopyPart | null;
 };
 
 export type SoulSpectrum = {
@@ -606,11 +631,17 @@ export type SoulSpectrum = {
   position: number;
   summary: string;
   drivers: SoulDriver[];
+  label_part?: CopyPart | null;
+  low_label_part?: CopyPart | null;
+  high_label_part?: CopyPart | null;
+  summary_part?: CopyPart | null;
 };
 
 export type SoulCardBlock = {
   headline: string;
   body: string;
+  headline_part?: CopyPart | null;
+  body_part?: CopyPart | null;
 };
 
 export type SoulCard = {
@@ -618,6 +649,8 @@ export type SoulCard = {
   title: string;
   body_blocks: SoulCardBlock[];
   empty_body?: string | null;
+  title_part?: CopyPart | null;
+  empty_body_part?: CopyPart | null;
   bridges?: Array<{
     gate: number;
     channel: string;
@@ -638,6 +671,9 @@ export type SoulSyncResult = {
     card_order: string[];
     lede?: string;
     focus_hint?: string | null;
+    label_part?: CopyPart | null;
+    lede_part?: CopyPart | null;
+    focus_hint_part?: CopyPart | null;
   };
   signature: SoulSignature;
   secondary_signature?: SoulSignature | null;
@@ -667,6 +703,7 @@ export type SoulSyncResult = {
     friend: "defined" | "open" | string;
     direction: string;
     hint: string;
+    hint_part?: CopyPart | null;
   }>;
   composite: {
     defined_count: number;
@@ -675,6 +712,7 @@ export type SoulSyncResult = {
     defined_centers: string[];
   };
   disclaimer: string;
+  disclaimer_part?: CopyPart | null;
   /** Legacy Fit fields — if present, FE shows API-lag empty state. */
   natural_fit?: number;
 };

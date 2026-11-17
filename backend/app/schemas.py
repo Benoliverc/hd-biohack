@@ -492,6 +492,9 @@ class SoulBadgeOut(BaseModel):
     label: str
     detail: str = ""
     description: str = ""
+    label_part: CopyPart | None = None
+    detail_part: CopyPart | None = None
+    description_part: CopyPart | None = None
 
 
 class SoulSpectrumOut(BaseModel):
@@ -502,11 +505,17 @@ class SoulSpectrumOut(BaseModel):
     position: int
     summary: str = ""
     drivers: list[dict[str, Any]] = Field(default_factory=list)
+    label_part: CopyPart | None = None
+    low_label_part: CopyPart | None = None
+    high_label_part: CopyPart | None = None
+    summary_part: CopyPart | None = None
 
 
 class SoulCardBlockOut(BaseModel):
     headline: str
     body: str
+    headline_part: CopyPart | None = None
+    body_part: CopyPart | None = None
 
 
 class SoulCardOut(BaseModel):
@@ -516,6 +525,8 @@ class SoulCardOut(BaseModel):
     empty_body: str | None = None
     bridges: list[dict[str, Any]] | None = None
     protocols: list[dict[str, Any]] | None = None
+    title_part: CopyPart | None = None
+    empty_body_part: CopyPart | None = None
 
 
 class SoulPlaybookOut(BaseModel):
@@ -524,6 +535,9 @@ class SoulPlaybookOut(BaseModel):
     card_order: list[str] = Field(default_factory=list)
     lede: str = ""
     focus_hint: str | None = None
+    label_part: CopyPart | None = None
+    lede_part: CopyPart | None = None
+    focus_hint_part: CopyPart | None = None
 
 
 class SoulCompositeOut(BaseModel):
@@ -538,6 +552,10 @@ class SoulPartnerNuanceOut(BaseModel):
     romantic_friction: str
     gift_in_love: str | None = None
     tender_spot: str | None = None
+    romantic_synergy_part: CopyPart | None = None
+    romantic_friction_part: CopyPart | None = None
+    gift_in_love_part: CopyPart | None = None
+    tender_spot_part: CopyPart | None = None
 
 
 class SoulLoveGuidanceItemOut(BaseModel):
@@ -545,6 +563,9 @@ class SoulLoveGuidanceItemOut(BaseModel):
     title: str
     body: str
     try_: str = Field(alias="try")
+    title_part: CopyPart | None = None
+    body_part: CopyPart | None = None
+    try_part: CopyPart | None = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -553,6 +574,11 @@ class SoulLoveGuidanceSectionOut(BaseModel):
     title: str
     body: str
     try_: str = Field(alias="try")
+    voice: str | None = None
+    title_part: CopyPart | None = None
+    body_part: CopyPart | None = None
+    try_part: CopyPart | None = None
+    voice_part: CopyPart | None = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -569,6 +595,16 @@ class SoulPartnerOverviewOut(BaseModel):
     core_dynamic: str
     mutual_growth: str
     relationship_challenges: str
+    hook_part: CopyPart | None = None
+    the_current_part: CopyPart | None = None
+    how_you_love_part: CopyPart | None = None
+    how_they_love_part: CopyPart | None = None
+    what_this_asks_part: CopyPart | None = None
+    tender_spots_part: CopyPart | None = None
+    try_this_part: CopyPart | None = None
+    core_dynamic_part: CopyPart | None = None
+    mutual_growth_part: CopyPart | None = None
+    relationship_challenges_part: CopyPart | None = None
     # Love dynamics (partner role) — nested on the overview hero object.
     harmonies: list[SoulLoveGuidanceItemOut] = Field(default_factory=list)
     frictions: list[SoulLoveGuidanceItemOut] = Field(default_factory=list)
@@ -593,6 +629,7 @@ class SoulSyncOut(BaseModel):
     conditioning_strip: list[dict[str, Any]] = Field(default_factory=list)
     composite: SoulCompositeOut
     disclaimer: str = ""
+    disclaimer_part: CopyPart | None = None
     partner_overview: SoulPartnerOverviewOut | None = None
 
 

@@ -494,7 +494,7 @@ def test_love_chapter_banks_have_no_banned_atmosphere_terms():
     for ov in PARTNER_OVERVIEW_BY_TYPES.values():
         blobs.extend(ov.values())
     blobs.extend(all_dynamics_copy_blobs())
-    joined = "\n".join(blobs).lower()
+    joined = "\n".join(b for b in blobs if isinstance(b, str)).lower()
     for phrase in (
         "lanes",
         "multi-track",
@@ -531,3 +531,33 @@ def test_when_its_hard_is_one_clash_why_and_try():
     assert "What this bond asks" not in clash["body"]
     assert "The tender spots" not in clash["body"]
     assert clash["try"]
+
+
+def test_personalize_structure_skips_copy_parts():
+    from app.hd.partner_names import personalize_structure
+
+    payload = {
+        "how_you_love": "The Generator meets the Projector with a steady sacral yes.",
+        "how_you_love_part": {
+            "key": "soul.read.howYouLove.generator.nameless",
+            "params": {"type_a": "Generator", "type_b": "Projector"},
+        },
+        "nested": {
+            "body_part": {
+                "key": "soul.read.block.spark.body",
+                "params": {"cites": "Intimacy (6-59)"},
+            }
+        },
+    }
+    out = personalize_structure(
+        payload,
+        type_a="Generator",
+        type_b="Projector",
+        name_b="Pat",
+    )
+    assert out["how_you_love_part"]["key"] == "soul.read.howYouLove.generator.nameless"
+    assert out["how_you_love_part"]["params"]["type_a"] == "Generator"
+    assert out["nested"]["body_part"]["key"] == "soul.read.block.spark.body"
+    assert out["nested"]["body_part"]["params"]["cites"] == "Intimacy (6-59)"
+    # English prose may still be personalized; the part dict must not be rewritten.
+    print("PASS: personalize_structure skips *_part CopyPart dicts")

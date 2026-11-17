@@ -51,7 +51,8 @@
     "assert:login-page-first-pass": "npx tsx scripts/assert-login-page-first-pass.mjs",
     "assert:login-editorial-paper": "npx tsx scripts/assert-login-editorial-paper.mjs",
     "assert:login-editorial-paper-next-pass": "npx tsx scripts/assert-login-editorial-paper-next-pass.mjs",
-    "assert:language-first-pass": "npx tsx scripts/assert-language-first-pass.mjs"
+    "assert:language-first-pass": "npx tsx scripts/assert-language-first-pass.mjs",
+    "assert:language-spanish-readings": "npx tsx scripts/assert-language-spanish-readings.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

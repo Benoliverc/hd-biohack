@@ -113,6 +113,15 @@ export function weekRangeLabel(timeZone?: string | null): string {
   return `Mon–Sun · ${zone}`;
 }
 
+export function weekRangeLabelPart(timeZone?: string | null): {
+  key: "protocols.weekRangeHkt" | "protocols.weekRangeZone";
+  params?: { zone: string };
+} {
+  const zone = resolveProtocolsTz(timeZone);
+  if (zone === DEFAULT_PROTOCOLS_TZ) return { key: "protocols.weekRangeHkt" };
+  return { key: "protocols.weekRangeZone", params: { zone } };
+}
+
 export function dayStorageKey(userId: number, chartId: number, day: string): string {
   return `${V2_PREFIX}${userId}:${chartId}:${day}`;
 }

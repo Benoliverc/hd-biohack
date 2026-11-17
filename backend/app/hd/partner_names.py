@@ -489,7 +489,9 @@ def personalize_structure(
         ]
     if isinstance(obj, dict):
         return {
-            key: personalize_structure(val, type_a=type_a, type_b=type_b, name_b=name_b)
+            key: val
+            if str(key).endswith("_part")
+            else personalize_structure(val, type_a=type_a, type_b=type_b, name_b=name_b)
             for key, val in obj.items()
         }
     return obj
