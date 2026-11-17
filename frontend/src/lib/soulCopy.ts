@@ -103,7 +103,7 @@ function enrichParams(part: CopyPart): Params {
 function resolveComposed(params: Params, fallback: string): string {
   const bits = [params.lead_key, params.you_key, params.they_key, params.tail_key]
     .map((key) => (key != null ? lookup(String(key)) : null))
-    .map((tpl, i) => {
+    .map((tpl) => {
       if (!tpl) return "";
       return interpolate(tpl, params);
     })
