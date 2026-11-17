@@ -5,7 +5,6 @@ import { useI18n } from "@/lib/i18n";
 import { useSoulCopy } from "@/lib/soulCopy";
 import type {
   SoulLoveGuidanceItem,
-  SoulLoveGuidanceSection,
   SoulPartnerOverview,
 } from "@/lib/api";
 
