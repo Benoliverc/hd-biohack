@@ -3,9 +3,19 @@
 import { useCallback } from "react";
 import type { CopyPart } from "@/lib/api";
 import { esSoulReadings } from "@/lib/i18n/soulReadings/es";
+import { nlSoulReadings } from "@/lib/i18n/soulReadings/nl";
 import { useI18n } from "@/lib/i18n";
 
 type Params = Record<string, string | number>;
+
+const SOUL_READING_CATALOGS: Record<string, Record<string, string>> = {
+  es: esSoulReadings,
+  nl: nlSoulReadings,
+};
+
+function catalogFor(locale: string): Record<string, string> | null {
+  return SOUL_READING_CATALOGS[locale] ?? null;
+}
 
 function interpolate(template: string, params?: Params): string {
   if (!params) return template;
@@ -14,9 +24,11 @@ function interpolate(template: string, params?: Params): string {
   );
 }
 
-function lookup(key: string | null | undefined): string | null {
+function lookup(locale: string, key: string | null | undefined): string | null {
   if (!key) return null;
-  const raw = esSoulReadings[key];
+  const catalog = catalogFor(locale);
+  if (!catalog) return null;
+  const raw = catalog[key];
   return raw ? raw : null;
 }
 
@@ -28,17 +40,23 @@ function normalizeChannelId(raw: string): string {
   return raw.trim();
 }
 
-function channelName(id: string): string {
+function channelName(locale: string, id: string): string {
   const cid = normalizeChannelId(id);
-  return lookup(`soul.read.channelName.${cid}`) || id.trim();
+  return lookup(locale, `soul.read.channelName.${cid}`) || id.trim();
 }
 
-function listEs(items: string[]): string {
+function listJoin(locale: string, items: string[]): string {
   const clean = items.map((item) => item.trim()).filter(Boolean);
   if (clean.length === 0) return "";
   if (clean.length === 1) return clean[0];
-  if (clean.length === 2) return `${clean[0]} y ${clean[1]}`;
-  return `${clean.slice(0, -1).join(", ")}, y ${clean[clean.length - 1]}`;
+  const conj = locale === "nl" ? "en" : "y";
+  if (clean.length === 2) return `${clean[0]} ${conj} ${clean[1]}`;
+  return `${clean.slice(0, -1).join(", ")}, ${conj} ${clean[clean.length - 1]}`;
+}
+
+function holderFallback(locale: string, holder: "self" | "friend"): string {
+  if (locale === "nl") return holder === "self" ? "Je" : "Hun";
+  return holder === "self" ? "Tu" : "Su";
 }
 
 function channelIdsFrom(params?: Params): string[] {
@@ -49,17 +67,19 @@ function channelIdsFrom(params?: Params): string[] {
     .filter(Boolean);
 }
 
-function formatCites(params?: Params): string {
+function formatCites(locale: string, params?: Params): string {
   const ids = channelIdsFrom(params);
   if (!ids.length) return params?.cites != null ? String(params.cites) : "";
   const holders = params?.holders != null ? String(params.holders).split(",") : [];
   return ids
     .map((id, i) => {
-      const name = channelName(id);
+      const name = channelName(locale, id);
       const holder = holders[i]?.trim();
       const gateTxt = normalizeChannelId(id);
       if (holder === "self" || holder === "friend") {
-        const label = lookup(holder === "self" ? "soul.read.holder.your" : "soul.read.holder.their") || (holder === "self" ? "Tu" : "Su");
+        const label =
+          lookup(locale, holder === "self" ? "soul.read.holder.your" : "soul.read.holder.their") ||
+          holderFallback(locale, holder);
         return `${label} ${name}`;
       }
       return gateTxt ? `${name} (${gateTxt})` : name;
@@ -67,42 +87,42 @@ function formatCites(params?: Params): string {
     .join(", ");
 }
 
-function formatListed(params?: Params): string {
-  if (params?.channel_ids) return listEs(channelIdsFrom(params).map(channelName));
+function formatListed(locale: string, params?: Params): string {
+  if (params?.channel_ids) return listJoin(locale, channelIdsFrom(params).map((id) => channelName(locale, id)));
   return params?.listed != null ? String(params.listed) : "";
 }
 
-function formatExtras(params?: Params): string {
+function formatExtras(locale: string, params?: Params): string {
   if (!params?.extras) return "";
   const names = String(params.extras)
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean)
-    .map((id) => lookup(`soul.read.extra.${id}`) || id);
-  return listEs(names);
+    .map((id) => lookup(locale, `soul.read.extra.${id}`) || id);
+  return listJoin(locale, names);
 }
 
-function enrichParams(part: CopyPart): Params {
+function enrichParams(locale: string, part: CopyPart): Params {
   const params: Params = { ...(part.params || {}) };
   if (params.channel_ids) {
-    params.cites = formatCites(params);
-    params.listed = formatListed(params);
+    params.cites = formatCites(locale, params);
+    params.listed = formatListed(locale, params);
   }
   if (params.channel_id) {
-    params.channel = channelName(String(params.channel_id));
+    params.channel = channelName(locale, String(params.channel_id));
   } else if (params.channel) {
     const raw = String(params.channel);
-    params.channel = /^\d/.test(raw) ? channelName(raw) : raw;
+    params.channel = /^\d/.test(raw) ? channelName(locale, raw) : raw;
   }
   if (params.extras) {
-    params.extras = formatExtras(params);
+    params.extras = formatExtras(locale, params);
   }
   return params;
 }
 
-function resolveComposed(params: Params, fallback: string): string {
+function resolveComposed(locale: string, params: Params, fallback: string): string {
   const bits = [params.lead_key, params.you_key, params.they_key, params.tail_key]
-    .map((key) => (key != null ? lookup(String(key)) : null))
+    .map((key) => (key != null ? lookup(locale, String(key)) : null))
     .map((tpl) => {
       if (!tpl) return "";
       return interpolate(tpl, params);
@@ -111,14 +131,17 @@ function resolveComposed(params: Params, fallback: string): string {
   return bits.length ? bits.join(" ") : fallback;
 }
 
+function isTranslatedLocale(locale: string): locale is "es" | "nl" {
+  return locale === "es" || locale === "nl";
+}
 
-/** Spanish nickname for a completed channel when locale is es; otherwise the English fallback. */
+/** Nickname for a completed channel when locale is es or nl; otherwise the English fallback. */
 export function resolveSoulChannelNickname(
   locale: string,
   gates: Array<number | string> | string | null | undefined,
   fallback: string,
 ): string {
-  if (locale !== "es") return fallback;
+  if (!isTranslatedLocale(locale)) return fallback;
   let id = "";
   if (Array.isArray(gates) && gates.length >= 2) {
     const nums = gates.map(Number).filter((n) => Number.isFinite(n));
@@ -127,22 +150,22 @@ export function resolveSoulChannelNickname(
     id = normalizeChannelId(gates);
   }
   if (!id) return fallback;
-  return lookup(`soul.read.channelName.${id}`) || fallback;
+  return lookup(locale, `soul.read.channelName.${id}`) || fallback;
 }
 
-/** Resolve a Soul CopyPart for the current UI locale. Non-es (and missing keys) fall back to the English API body. */
+/** Resolve a Soul CopyPart for the current UI locale. Non-es/nl (and missing keys) fall back to the English API body. */
 export function resolveSoulCopy(
   locale: string,
   part?: CopyPart | null,
   fallback = ""
 ): string {
-  if (locale !== "es" || !part?.key) return fallback;
+  if (!isTranslatedLocale(locale) || !part?.key) return fallback;
   if (part.key === "soul.read.decide.composed") {
-    return resolveComposed(enrichParams(part), fallback);
+    return resolveComposed(locale, enrichParams(locale, part), fallback);
   }
-  const tpl = lookup(part.key);
+  const tpl = lookup(locale, part.key);
   if (!tpl) return fallback;
-  return interpolate(tpl, enrichParams(part));
+  return interpolate(tpl, enrichParams(locale, part));
 }
 
 export function useSoulCopy(): (part: CopyPart | null | undefined, fallback?: string) => string {

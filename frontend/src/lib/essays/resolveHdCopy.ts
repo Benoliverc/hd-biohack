@@ -29,6 +29,21 @@ import {
   profileLearnMore as profileLearnMoreEs,
   profilePlainLine as profilePlainLineEs,
 } from "@/lib/essays/hdCopy.es";
+import {
+  AUTHORITY_COPY as AUTHORITY_COPY_NL,
+  AUTHORITY_PLAIN as AUTHORITY_PLAIN_NL,
+  CENTER_COPY as CENTER_COPY_NL,
+  DEFINITION_COPY as DEFINITION_COPY_NL,
+  OPEN_CENTER_WATCH as OPEN_CENTER_WATCH_NL,
+  PROFILE_LINES as PROFILE_LINES_NL,
+  STRATEGY_COPY as STRATEGY_COPY_NL,
+  TYPE_BATTERY as TYPE_BATTERY_NL,
+  TYPE_COPY as TYPE_COPY_NL,
+  centersToWatch as centersToWatchNl,
+  channelMeaning as channelMeaningNl,
+  profileLearnMore as profileLearnMoreNl,
+  profilePlainLine as profilePlainLineNl,
+} from "@/lib/essays/hdCopy.nl";
 
 export type HdCopyBundle = {
   TYPE_COPY: typeof TYPE_COPY_EN;
@@ -78,8 +93,26 @@ const ES: HdCopyBundle = {
   channelMeaning: channelMeaningEs,
 };
 
+const NL: HdCopyBundle = {
+  TYPE_COPY: TYPE_COPY_NL,
+  STRATEGY_COPY: STRATEGY_COPY_NL,
+  AUTHORITY_COPY: AUTHORITY_COPY_NL,
+  DEFINITION_COPY: DEFINITION_COPY_NL,
+  PROFILE_LINES: PROFILE_LINES_NL,
+  CENTER_COPY: CENTER_COPY_NL,
+  TYPE_BATTERY: TYPE_BATTERY_NL,
+  AUTHORITY_PLAIN: AUTHORITY_PLAIN_NL,
+  OPEN_CENTER_WATCH: OPEN_CENTER_WATCH_NL,
+  profileLearnMore: profileLearnMoreNl,
+  profilePlainLine: profilePlainLineNl,
+  centersToWatch: centersToWatchNl,
+  channelMeaning: channelMeaningNl,
+};
+
 export function resolveHdCopy(locale: Locale): HdCopyBundle {
-  return locale === "es" ? ES : EN;
+  if (locale === "nl") return NL;
+  if (locale === "es") return ES;
+  return EN;
 }
 
 export function useHdCopy(): HdCopyBundle {
