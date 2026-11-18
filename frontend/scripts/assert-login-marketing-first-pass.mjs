@@ -324,4 +324,44 @@ assert.doesNotMatch(
   "/login page does not render testimonials, press, or user counts",
 );
 
+// --- quiet informational footer (opportunity 7, Option A) ---
+const LOCKED_DISCLAIMER = {
+  en: "Informational only — not medical advice.",
+  de: "Nur zur Information — keine medizinische Beratung.",
+  es: "Solo informativo — no es consejo médico.",
+  fr: "À titre informatif uniquement — pas un avis médical.",
+  nl: "Alleen informatief — geen medisch advies.",
+};
+
+assert.match(page, /data-testid="login-disclaimer-footer"/, "login-disclaimer-footer exists in login/page.tsx");
+assert.match(page, /t\("home\.trust\.disclaimer"\)/, "disclaimer uses home.trust.disclaimer");
+assert.doesNotMatch(
+  page,
+  /t\("page\.protocols\.disclaimer"\)/,
+  "login does not use page.protocols.disclaimer",
+);
+
+const privacyIdx = page.indexOf('data-testid="login-privacy-footer"');
+const disclaimerIdx = page.indexOf('data-testid="login-disclaimer-footer"');
+const localeIdx = page.indexOf('data-testid="login-locale"');
+assert.ok(privacyIdx >= 0, "login-privacy-footer is present");
+assert.ok(localeIdx >= 0, "login-locale is present");
+assert.ok(
+  disclaimerIdx > privacyIdx && localeIdx > disclaimerIdx,
+  "disclaimer sits after login-privacy-footer and before login-locale",
+);
+
+const disclaimerOpen = page.lastIndexOf("<p", disclaimerIdx);
+const disclaimerTag = page.slice(disclaimerOpen, page.indexOf(">", disclaimerIdx) + 1);
+assert.match(disclaimerTag, /type-caption text-fg-secondary/, "disclaimer uses type-caption text-fg-secondary");
+assert.match(disclaimerTag, /text-center/, "disclaimer is centered");
+
+for (const id of ["en", "de", "es", "fr", "nl"]) {
+  assert.equal(
+    valueFor(catalogs[id], "home.trust.disclaimer"),
+    LOCKED_DISCLAIMER[id],
+    `${id} home.trust.disclaimer is unchanged`,
+  );
+}
+
 console.log("assert:login-marketing-first-pass PASS");
