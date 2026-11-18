@@ -130,8 +130,7 @@ const lockedEn = {
   "login.missingCreds": "Enter an email and password.",
   "login.missingCreateFields": "Enter an email and a password of at least 8 characters.",
   "login.missingForgotEmail": "Enter the email on your account.",
-  "login.betaNote":
-    "Baseline is in beta. During beta, you have temporary full access \u2014 including Protocols and Soul.",
+  "login.betaNote": "Baseline is in beta.",
   "login.intro":
     "Calculate your natal chart, see what the sky is doing today, and get grounded protocols \u2014 no mysticism, just next steps.",
   "login.pillar.chart.body":
@@ -166,11 +165,24 @@ for (const { id, src } of locales) {
   }
 }
 
+for (const { id, src } of locales) {
+  const note = valueFor(src, "login.betaNote");
+  assert.ok(!note.includes("Soul"), `${id} login.betaNote must drop the temporary-access clause`);
+  assert.ok(!note.includes("Protocols"), `${id} login.betaNote must drop the temporary-access clause`);
+}
+
 // typographic apostrophe / em dash where locked
 assert.ok(valueFor(en, "login.pillar.soul.body").includes("\u2019"), "soul body uses U+2019");
 assert.ok(valueFor(en, "login.intro").includes("\u2014"), "intro uses em dash");
 assert.ok(valueFor(en, "login.pillar.chart.body").includes("\u2014"), "chart body uses em dash");
-assert.ok(valueFor(en, "login.betaNote").includes("\u2014"), "beta note uses em dash");
+assert.ok(
+  !valueFor(en, "login.betaNote").includes("\u2014"),
+  "short beta note has no em dash / temporary-access clause",
+);
+assert.ok(
+  !/temporary full access|Protocols and Soul/i.test(valueFor(en, "login.betaNote")),
+  "short beta note drops the temporary-full-access clause",
+);
 
 // --- Missing-fields vs generic auth ---
 const onCreateStart = page.indexOf("async function onCreate");

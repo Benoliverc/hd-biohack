@@ -36,7 +36,8 @@ class Settings(BaseSettings):
     # Default OFF for public signup beta — set SEED_DEV_USERS=true only for local/demo.
     seed_dev_users: bool = False
     # When true, every signed-in user gets Pro entitlements without rewriting subscription_tier.
-    beta_full_access: bool = True
+    # Default off: stored Free/Pro is the only access truth. Production Railway must set BETA_FULL_ACCESS=false.
+    beta_full_access: bool = False
     # HMAC / opaque-session signing secret. Empty → ephemeral per-process secret (dev only).
     session_secret: str = ""
     # Resend transactional mail (password reset only). Missing key → generic success, no send.

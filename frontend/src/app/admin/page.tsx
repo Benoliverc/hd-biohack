@@ -199,6 +199,9 @@ export default function AdminPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<AdminUserDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [peoplePlanBusy, setPeoplePlanBusy] = useState(false);
+  const [peoplePlanFeedback, setPeoplePlanFeedback] = useState<string | null>(null);
+  const [peoplePlanError, setPeoplePlanError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -347,6 +350,11 @@ export default function AdminPage() {
     else setDetail(null);
   }, [selectedId, loadDetail]);
 
+  useEffect(() => {
+    setPeoplePlanFeedback(null);
+    setPeoplePlanError(null);
+  }, [selectedId]);
+
   const cards = useMemo(() => {
     if (period === "day") {
       const today = daily[daily.length - 1];
@@ -408,6 +416,46 @@ export default function AdminPage() {
       }
     },
     [user, allowed, currentTier, mergeUser, t]
+  );
+
+  const personTier =
+    detail?.subscription_tier === "biohacker_pro" || detail?.biohacking_enabled
+      ? "biohacker_pro"
+      : "free";
+
+  const setPersonPlan = useCallback(
+    async (tier: "free" | "biohacker_pro") => {
+      if (!user || !allowed || !detail) return;
+      if (tier === personTier) return;
+      setPeoplePlanBusy(true);
+      setPeoplePlanError(null);
+      setPeoplePlanFeedback(null);
+      try {
+        const updated = await api.setTier(detail.id, tier, user.id);
+        if (updated.id === user.id) {
+          mergeUser(updated);
+        }
+        setPeople((rows) =>
+          rows.map((row) =>
+            row.id === updated.id
+              ? {
+                  ...row,
+                  subscription_tier: updated.subscription_tier,
+                  biohacking_enabled: updated.biohacking_enabled,
+                }
+              : row
+          )
+        );
+        await Promise.all([loadPeople(), loadDetail(detail.id)]);
+        const label = tier === "biohacker_pro" ? t("admin.planPro") : t("admin.planFree");
+        setPeoplePlanFeedback(t("admin.planSaved", { tier: label }));
+      } catch (e) {
+        setPeoplePlanError(e instanceof Error ? e.message : t("admin.planError"));
+      } finally {
+        setPeoplePlanBusy(false);
+      }
+    },
+    [user, allowed, detail, personTier, mergeUser, loadPeople, loadDetail, t]
   );
 
   if (!sessionReady) {
@@ -1265,11 +1313,6 @@ export default function AdminPage() {
                               <span className="rounded-full bg-sunken px-2 py-0.5 text-xs">
                                 {row.subscription_tier === "biohacker_pro" ? "Pro" : "Free"}
                               </span>
-                              {row.beta_full_access ? (
-                                <span className="ml-1 rounded-full bg-growth/15 px-2 py-0.5 text-xs text-growth">
-                                  Beta
-                                </span>
-                              ) : null}
                             </td>
                             <td className="px-3 py-2.5">{row.has_me_natal ? "Yes" : "—"}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-fg-secondary">
@@ -1359,15 +1402,63 @@ export default function AdminPage() {
                     </ul>
                   </div>
 
-                  <div>
+                  <div data-testid="people-plan-switch">
                     <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                       Access
                     </p>
                     <p className="mt-1 text-fg">
-                      {detail.subscription_tier === "biohacker_pro" ? "Pro" : "Free"}
-                      {detail.beta_full_access ? " · Beta Pro grant" : ""}
-                      {detail.biohacking_enabled ? " · biohacking flag on" : ""}
+                      {t("admin.planCurrent", {
+                        tier:
+                          personTier === "biohacker_pro"
+                            ? t("admin.planPro")
+                            : t("admin.planFree"),
+                      })}
                     </p>
+                    <div
+                      className="mt-2 inline-flex rounded-xl border border-border bg-canvas p-1"
+                      role="group"
+                      aria-label={t("admin.planTitle")}
+                    >
+                      {(
+                        [
+                          { id: "free" as const, label: t("admin.planFree") },
+                          { id: "biohacker_pro" as const, label: t("admin.planPro") },
+                        ]
+                      ).map((opt) => {
+                        const active = personTier === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            disabled={peoplePlanBusy}
+                            aria-pressed={active}
+                            className={`min-h-10 rounded-lg px-4 text-sm disabled:opacity-60 ${
+                              active
+                                ? "bg-growth-soft border border-growth/40 font-medium text-growth"
+                                : "border border-transparent text-fg-muted hover:text-fg"
+                            }`}
+                            onClick={() => void setPersonPlan(opt.id)}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {peoplePlanBusy && (
+                      <p className="mt-2 text-sm text-fg-muted" role="status">
+                        {t("admin.planSaving")}
+                      </p>
+                    )}
+                    {peoplePlanFeedback && !peoplePlanBusy && (
+                      <p className="mt-2 text-sm text-growth" role="status">
+                        {peoplePlanFeedback}
+                      </p>
+                    )}
+                    {peoplePlanError && (
+                      <p className="mt-2 text-sm text-danger" role="alert">
+                        {peoplePlanError}
+                      </p>
+                    )}
                   </div>
 
                   <div>

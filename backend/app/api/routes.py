@@ -173,7 +173,7 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
 
 @router.post("/auth/register", response_model=AuthSessionOut)
 def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
-    """Create a password account. Tier is always free; caller cannot pick Pro."""
+    """Create a password account. Tier is always Pro; caller cannot pick a tier."""
     rate_limit("register", limit=10, window_sec=600, request=request)
     email = body.email.strip().lower()
     if "@" not in email or "." not in email.split("@", 1)[-1]:
@@ -193,8 +193,8 @@ def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
         display_name=display,
         first_name=first,
         auth_provider="password",
-        subscription_tier="free",
-        biohacking_enabled=False,
+        subscription_tier="biohacker_pro",
+        biohacking_enabled=True,
         password_hash=hash_password(body.password),
         username=None,
     )
@@ -356,11 +356,9 @@ def set_tier(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
-    """Admin-only plan switch. v1: actor must be allowlisted admin and may change self only."""
+    """Admin-only plan switch. Allowlisted admin may change any person's Free or Pro plan."""
     require_self(current, actor_user_id)
-    actor = require_admin_user(db, actor_user_id)
-    if actor.id != user_id:
-        raise HTTPException(403, "Admin may only change their own plan")
+    require_admin_user(db, actor_user_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(404, "User not found")

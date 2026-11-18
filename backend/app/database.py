@@ -39,6 +39,7 @@ def init_db() -> None:
     _ensure_user_auth_columns()
     _ensure_user_settings_columns()
     _ensure_user_last_login_column()
+    upgrade_existing_free_users_to_pro()
 
 
 def _ensure_natal_chart_columns() -> None:
@@ -114,3 +115,42 @@ def _ensure_user_last_login_column() -> None:
         return
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME"))
+
+
+FREE_USERS_TO_PRO_MIGRATION = "upgrade_existing_free_users_to_pro_20261119"
+
+
+def upgrade_existing_free_users_to_pro() -> int:
+    """One-time: existing free accounts become Pro so nobody loses access when the overlay is off.
+
+    Already-Pro users are left alone. Idempotent: a later startup (or an admin
+    switch back to Free) must not re-upgrade rows. Returns the number of rows
+    upgraded on this run (0 if already applied).
+    """
+    from sqlalchemy import inspect
+
+    from .models import DataMigration, User
+
+    insp = inspect(engine)
+    if "users" not in insp.get_table_names():
+        return 0
+
+    Base.metadata.create_all(bind=engine, tables=[DataMigration.__table__])
+
+    db = SessionLocal()
+    try:
+        if db.get(DataMigration, FREE_USERS_TO_PRO_MIGRATION) is not None:
+            return 0
+        upgraded = (
+            db.query(User)
+            .filter(User.subscription_tier == "free")
+            .update(
+                {"subscription_tier": "biohacker_pro", "biohacking_enabled": True},
+                synchronize_session=False,
+            )
+        )
+        db.add(DataMigration(name=FREE_USERS_TO_PRO_MIGRATION))
+        db.commit()
+        return int(upgraded or 0)
+    finally:
+        db.close()

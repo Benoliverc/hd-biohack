@@ -50,8 +50,8 @@ def test_register_login_session_and_locked_users():
         user = body["user"]
         assert user["email"] == "new.user@example.com"
         assert user["first_name"] == "Ada"
-        assert user["subscription_tier"] == "free"
-        assert user["biohacking_enabled"] is False
+        assert user["subscription_tier"] == "biohacker_pro"
+        assert user["biohacking_enabled"] is True
         assert user["biohacking_unlocked"] is True
         assert user["auth_provider"] == "password"
         tok = body["access_token"]

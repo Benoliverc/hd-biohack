@@ -94,7 +94,7 @@ export const messages = {
   'login.creating': 'Account wordt aangemaakt…',
   'login.genericAuthError': 'E-mail of wachtwoord werkte niet. Probeer het opnieuw.',
   'login.resetSent': 'Als dat e-mailadres bij Baseline bekend is, hebben we een resetlink gestuurd.',
-  'login.betaNote': 'Baseline is in bèta. Tijdens de bèta heb je tijdelijk volledige toegang — inclusief Protocols en Soul.',
+  'login.betaNote': 'Baseline is in bèta.',
   'login.betaCreateHint': 'Dit is de Baseline-bèta. Terwijl we bouwen, heeft iedereen tijdelijk volledige toegang.',
   'login.passwordTooShort': 'Het wachtwoord moet minstens 8 tekens hebben.',
   'login.passwordLengthHint': 'Minstens 8 tekens.',
