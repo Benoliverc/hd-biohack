@@ -6,6 +6,7 @@ import {
   clearSession,
   readSessionToken,
   readSessionUserId,
+  syncSessionPresenceCookie,
   writeSessionUserId,
 } from "./session";
 import { isAdminUser } from "./admin";
@@ -223,6 +224,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [users, userId, refreshUsers]);
 
   useEffect(() => {
+    syncSessionPresenceCookie();
     refreshUsers().catch(console.error);
   }, [refreshUsers]);
 

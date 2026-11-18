@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { writeSessionToken } from "@/lib/session";
 import { postSignInPath } from "@/lib/youChart";
 import Link from "next/link";
+import Image from "next/image";
 import "./login-editorial-paper.css";
 
 type Mode = "signin" | "create" | "forgot";
@@ -167,6 +168,17 @@ export default function LoginPage() {
               </li>
             ))}
           </ul>
+          <figure className="login-product-still-frame" data-testid="login-product-still">
+            <Image
+              src="/login/today-after-chart.png"
+              alt={t("login.productStillAlt")}
+              width={780}
+              height={884}
+            />
+            <figcaption className="type-caption text-fg-secondary">
+              {t("login.productStillCaption")}
+            </figcaption>
+          </figure>
         </section>
 
         <section className="order-1 w-full max-w-md justify-self-center lg:order-2 lg:justify-self-end">

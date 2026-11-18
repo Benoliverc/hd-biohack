@@ -99,6 +99,8 @@ export const messages = {
   'login.passwordTooShort': 'Het wachtwoord moet minstens 8 tekens hebben.',
   'login.passwordLengthHint': 'Minstens 8 tekens.',
   'login.supportPrefix': 'Hulp nodig?',
+  'login.productStillCaption': 'Today, nadat je een Chart hebt opgeslagen.',
+  'login.productStillAlt': 'Een stilstaand beeld van het Baseline-scherm Today, nadat je een nataal Chart hebt opgeslagen.',
   'reset.title': 'Kies een nieuw wachtwoord',
   'reset.hint': 'Kies een nieuw wachtwoord voor je Baseline-account.',
   'reset.submit': 'Wachtwoord opslaan',
