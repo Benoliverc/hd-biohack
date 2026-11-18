@@ -399,6 +399,12 @@ export default function LoginPage() {
             </span>
             <span>{t("privacy.copyrightShort")}</span>
           </p>
+          <p
+            className="mt-1 text-center type-caption text-fg-secondary"
+            data-testid="login-disclaimer-footer"
+          >
+            {t("home.trust.disclaimer")}
+          </p>
           <div
             className="mt-1 flex flex-wrap items-center justify-center gap-x-1 text-fg-secondary"
             data-testid="login-locale"
