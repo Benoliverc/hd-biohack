@@ -99,6 +99,8 @@ export const messages = {
   'login.passwordTooShort': 'Password must be at least 8 characters.',
   'login.passwordLengthHint': 'At least 8 characters.',
   'login.supportPrefix': 'Need help?',
+  'login.productStillCaption': 'Today after a chart is saved.',
+  'login.productStillAlt': 'A still of the Baseline Today screen after a natal chart has been saved.',
   'reset.title': 'Choose a new password',
   'reset.hint': 'Pick a new password for your Baseline account.',
   'reset.submit': 'Save password',

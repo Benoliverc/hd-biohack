@@ -99,6 +99,8 @@ export const messages = {
   'login.passwordTooShort': 'Le mot de passe doit contenir au moins 8 caractères.',
   'login.passwordLengthHint': 'Au moins 8 caractères.',
   'login.supportPrefix': 'Besoin d’aide ?',
+  'login.productStillCaption': 'Today, une fois un Chart enregistré.',
+  'login.productStillAlt': 'Une image de l’écran Today de Baseline, une fois un Chart natal enregistré.',
   'reset.title': 'Choisis un nouveau mot de passe',
   'reset.hint': 'Choisis un nouveau mot de passe pour ton compte Baseline.',
   'reset.submit': 'Enregistrer le mot de passe',

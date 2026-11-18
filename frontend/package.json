@@ -54,7 +54,8 @@
     "assert:language-first-pass": "npx tsx scripts/assert-language-first-pass.mjs",
     "assert:language-spanish-readings": "npx tsx scripts/assert-language-spanish-readings.mjs",
     "assert:language-dutch-readings": "npx tsx scripts/assert-language-dutch-readings.mjs",
-    "assert:favicon-b": "npx tsx scripts/assert-favicon-b.mjs"
+    "assert:favicon-b": "npx tsx scripts/assert-favicon-b.mjs",
+    "assert:login-marketing-first-pass": "npx tsx scripts/assert-login-marketing-first-pass.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -240,3 +240,15 @@ body > * {
   font-weight: 600;
   line-height: 1.5;
 }
+
+/* Pre-hydration cover for a signed-in returner who landed on /login
+   before the presence cookie existed. Hides the Sign in form until AuthGate
+   can show auth.loading. */
+html[data-baseline-session-pending]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--canvas);
+  z-index: 9999;
+  pointer-events: none;
+}

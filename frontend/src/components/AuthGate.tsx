@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
 import { readSessionToken, readSessionUserId } from "@/lib/session";
@@ -22,6 +22,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const signedInOnLogin = Boolean(
     sessionReady && user && pathname === "/login" && readSessionUserId() && readSessionToken()
   );
+  const storedSessionOnLogin = pathname === "/login" && Boolean(readSessionToken());
+
+  useLayoutEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.removeAttribute("data-baseline-session-pending");
+  }, [pathname]);
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -57,7 +63,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (signedInOnLogin) {
+  if (signedInOnLogin || storedSessionOnLogin) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
         {t("auth.loading")}
