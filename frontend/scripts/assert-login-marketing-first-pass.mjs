@@ -55,6 +55,44 @@ function keysOf(src) {
   return keys;
 }
 
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  if (pb <= pc) return b;
+  return c;
+}
+
+function unfilter(data, w, h, bpp) {
+  const stride = w * bpp;
+  const out = Buffer.alloc(stride * h);
+  let src = 0;
+  for (let y = 0; y < h; y++) {
+    const filter = data[src++];
+    const row = src;
+    const dest = y * stride;
+    const prev = y === 0 ? null : (y - 1) * stride;
+    for (let i = 0; i < stride; i++) {
+      const x = data[row + i];
+      const a = i >= bpp ? out[dest + i - bpp] : 0;
+      const b = prev !== null ? out[prev + i] : 0;
+      const c = prev !== null && i >= bpp ? out[prev + i - bpp] : 0;
+      let val;
+      if (filter === 0) val = x;
+      else if (filter === 1) val = (x + a) & 255;
+      else if (filter === 2) val = (x + b) & 255;
+      else if (filter === 3) val = (x + ((a + b) >> 1)) & 255;
+      else if (filter === 4) val = (x + paeth(a, b, c)) & 255;
+      else throw new Error(`unsupported PNG filter ${filter}`);
+      out[dest + i] = val;
+    }
+    src += stride;
+  }
+  return out;
+}
+
 function readPng(buf) {
   assert.equal(buf[0], 0x89, "PNG signature");
   assert.equal(buf.subarray(1, 4).toString("ascii"), "PNG", "PNG signature");
@@ -73,7 +111,30 @@ function readPng(buf) {
   assert.ok(ihdr, "PNG IHDR");
   const w = ihdr.readUInt32BE(0);
   const h = ihdr.readUInt32BE(4);
-  return { w, h };
+  const bitDepth = ihdr[8];
+  const colorType = ihdr[9];
+  let pixels = null;
+  if (bitDepth === 8 && (colorType === 2 || colorType === 6) && idats.length) {
+    const raw = inflateSync(Buffer.concat(idats));
+    const bpp = colorType === 6 ? 4 : 3;
+    pixels = unfilter(raw, w, h, bpp);
+  }
+  return { w, h, bitDepth, colorType, pixels };
+}
+
+function pngHasRgb(png, r, g, b) {
+  assert.ok(png.pixels, "PNG pixel data was decoded");
+  const bpp = png.colorType === 6 ? 4 : 3;
+  const row = png.w * bpp;
+  for (let y = 0; y < png.h; y++) {
+    for (let x = 0; x < png.w; x++) {
+      const i = y * row + x * bpp;
+      if (png.pixels[i] === r && png.pixels[i + 1] === g && png.pixels[i + 2] === b) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 const pkg = read("package.json");
@@ -167,6 +228,11 @@ assert.ok(existsSync(ogPath), "frontend/public/og/share-1200x630.png exists");
 const og = readPng(readBuf("public/og/share-1200x630.png"));
 assert.equal(og.w, 1200, "OG image is 1200px wide");
 assert.equal(og.h, 630, "OG image is 630px tall");
+assert.equal(og.bitDepth, 8, "OG image is 8-bit");
+assert.equal(og.colorType, 2, "OG image is RGB (PNG color type 2)");
+assert.ok(pngHasRgb(og, 0xf7, 0xf6, 0xf2), "OG image contains linen #f7f6f2");
+assert.ok(pngHasRgb(og, 0x3a, 0x56, 0x42), "OG image contains growth-deep #3a5642");
+assert.ok(pngHasRgb(og, 0x2f, 0x46, 0x36), "OG image contains growth-ink #2f4636");
 const stillPng = readPng(readBuf("public/login/today-after-chart.png"));
 assert.ok(stillPng.w >= 390, `still is at least phone-width (got ${stillPng.w})`);
 
