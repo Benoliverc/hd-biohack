@@ -154,7 +154,65 @@ def test_indication_embedded_and_matches_derive():
     print("PASS: embedded indication matches derive")
 
 
+
+
+def test_sacral_open_sp_evening_not_emotional_authority():
+    """Alex case: Generator/MG Sacral + open Solar Plexus must not say Emotional Authority."""
+    natal = _mg_natal(authority="Sacral")
+    assert "Solar_Plexus" in natal["undefined_centers"]
+    overlay = {
+        "newly_defined_centers": ["Head"],
+        "bridged_channels": [],
+        "weekly_macro_theme": {"summary": "Sun in Gate 50 Line 4 / Earth in Gate 3 Line 4"},
+    }
+    # Steady energy so we don't take Hyper anti-stim evening branch
+    ind = derive_today_indication(natal, {}, overlay)
+    # Force Steady if needed by rebuilding with indication override
+    if ind.get("energy_label") in ("Hyper", "Charged"):
+        ind = dict(ind)
+        ind["energy_label"] = "Steady"
+        ind["energy_level"] = 3
+    proto = build_protocol(
+        natal,
+        overlay,
+        ["Omega-3", "Magnesium Glycinate", "Zinc"],
+        indication=ind,
+        transit={},
+    )
+    evening = proto["daily_plan"]["evening"][0]
+    blob = f"{evening.get('item','')} {evening.get('why','')} {evening.get('dose_hint','')}"
+    assert "Emotional Authority" not in blob, blob
+    assert "Emotional Authority / open Solar Plexus" not in blob
+    print("PASS: Sacral + open SP evening lead is not Emotional Authority")
+
+
+def test_emotional_auth_may_get_wave_evening_lead():
+    natal = _mg_natal(
+        authority="Emotional (Solar Plexus)",
+        defined_centers=["Sacral", "Solar_Plexus", "Throat", "G"],
+        undefined_centers=["Head", "Ajna", "Heart", "Root", "Spleen"],
+    )
+    overlay = {
+        "newly_defined_centers": [],
+        "bridged_channels": [],
+        "weekly_macro_theme": {"summary": "Sun in Gate 50 Line 4 / Earth in Gate 3 Line 4"},
+    }
+    ind = derive_today_indication(natal, {}, overlay)
+    if ind.get("energy_label") in ("Hyper", "Charged"):
+        ind = dict(ind)
+        ind["energy_label"] = "Steady"
+        ind["energy_level"] = 3
+    proto = build_protocol(natal, overlay, ["Zinc"], indication=ind, transit={})
+    evening = proto["daily_plan"]["evening"][0]
+    blob = f"{evening.get('item','')} {evening.get('why','')}"
+    assert "emotional crest" in blob.lower() or "Emotional Authority" in blob, blob
+    assert "Emotional Authority / open Solar Plexus" not in blob
+    print("PASS: Emotional authority may get wave evening lead")
+
+
 if __name__ == "__main__":
+    test_sacral_open_sp_evening_not_emotional_authority()
+    test_emotional_auth_may_get_wave_evening_lead()
     test_weekly_theme_uses_sun_earth_summary()
     test_two_days_different_hero_or_timed_leads()
     test_hero_not_locked_to_daylight_caffeine_magnesium()

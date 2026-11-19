@@ -1014,6 +1014,53 @@ def test_first_filled_not_inferred_from_ephemeris():
 
 
 
+
+def test_emotional_mg_why_this_no_sacral_yes():
+    """Maya case: MG + Emotional Why this must not say Sacral yes."""
+    natal = _natal(
+        type="Manifesting Generator",
+        strategy="To Respond then inform",
+        authority="Emotional (Solar Plexus)",
+        defined_centers=["Sacral", "Solar_Plexus", "Throat", "G"],
+        undefined_centers=["Head", "Ajna", "Heart", "Root", "Spleen"],
+    )
+    # Recover (1) and surplus/hyper (4/5) emit battery + recover/surplus Why lines.
+    for energy in (1, 4, 5):
+        action = compute_main_action(energy, "focus", natal=natal)
+        assert "Sacral yes" not in action.why, (energy, action.why)
+        keys = [p.get("key") for p in action.why_parts]
+        params = [p.get("params") or {} for p in action.why_parts]
+        battery_keys = [pr.get("battery_key") for pr in params if pr.get("battery_key")]
+        assert any(
+            (k or "").endswith(".emotional") for k in keys
+        ) or any(
+            (bk or "").endswith(".emotional") for bk in battery_keys
+        ), (energy, keys, battery_keys)
+        assert "feelings" in action.why.lower() or "clear after" in action.why.lower(), action.why
+    # Sacral MG may still say Sacral yes
+    sacral = _natal(
+        type="Manifesting Generator",
+        strategy="To Respond then inform",
+        authority="Sacral",
+        defined_centers=["Sacral", "Throat", "G"],
+        undefined_centers=["Head", "Ajna", "Heart", "Root", "Solar_Plexus", "Spleen"],
+    )
+    action_s = compute_main_action(1, "focus", natal=sacral)
+    assert "Sacral yes" in action_s.why
+    print("PASS: Emotional MG Why this has no Sacral yes")
+
+
+def test_missing_authority_keeps_type_only_why():
+    natal = _natal(type="Manifesting Generator", strategy="To Respond then inform")
+    # no authority key
+    natal.pop("authority", None)
+    action = compute_main_action(1, "focus", natal=natal)
+    keys = [p.get("key") for p in action.why_parts]
+    assert not any(k and k.endswith(".emotional") for k in keys if k)
+    assert not any(k and k.endswith(".otherAuth") for k in keys if k)
+    print("PASS: missing authority keeps type-only Why keys")
+
+
 if __name__ == "__main__":
     test_ac2_sacral_bridge_charged_temporary_language()
     test_ac3_root_without_sacral_drained()
@@ -1059,4 +1106,6 @@ if __name__ == "__main__":
     test_daily_signal_conditioning_phase()
     test_daily_signal_continuity_day_on_signal()
     test_first_filled_not_inferred_from_ephemeris()
+    test_emotional_mg_why_this_no_sacral_yes()
+    test_missing_authority_keeps_type_only_why()
     print("ALL indication unit tests passed")

@@ -565,10 +565,18 @@ def _slot_from_stack(
         )
         if kit_hit:
             return kit_hit
+        # Bank had no legal action for this slot — do not place an owned supplement
+        # via the unfiltered stack (that can put evening-only magnesium on morning).
+        # Caller falls back to a behavior lead instead.
+        return None
     if not stack_items:
         return None
+    # No owned kit: allow non-owned stack recommendation only.
     avoid = {str(x) for x in (avoid_ids or ())}
     owned_hits = [it for it in stack_items if _inv_hit(it["name"], owned)]
+    if owned:
+        # Owned path already returned above; reaching here means owned was empty.
+        owned_hits = []
     if avoid and owned_hits:
         from .kit_variety import match_owned_supplements
 
@@ -637,7 +645,10 @@ def _pick_timed_supports(
     defined = set(natal.get("defined_centers", []))
     newly = set(overlay.get("newly_defined_centers", []))
     focus = set(focus_centers) | newly
-    open_sp = "Solar_Plexus" in undefined or "Emotional" in (natal.get("authority") or "")
+    authority_raw = str(natal.get("authority") or "")
+    open_sp = "Solar_Plexus" in undefined
+    auth_l = authority_raw.lower()
+    emotional_auth = "emotional" in auth_l or "solar plexus" in auth_l
     sacral_def = "Sacral" in defined
     hd_type = natal.get("type") or ""
     bridges = overlay.get("bridged_channels") or []
@@ -943,12 +954,12 @@ def _pick_timed_supports(
                 1,
                 track_inventory=False,
             )
-    elif open_sp or "Solar_Plexus" in focus:
+    elif emotional_auth:
         evening = _plan_item(
             "Evening",
             "No big decisions on the emotional crest",
             "Sleep on it; re-check tomorrow",
-            "Emotional Authority / open Solar Plexus — truth isn't in the peak of the wave.",
+            "Emotional Authority — truth isn't in the peak of the wave.",
             owned,
             1,
             track_inventory=False,
@@ -1016,7 +1027,9 @@ def _build_actionable_plans(
     strategy = natal.get("strategy") or ""
     undefined = set(natal.get("undefined_centers", []))
     open_root = "Root" in undefined
-    open_sp = "Solar_Plexus" in undefined or "Emotional" in authority
+    open_sp = "Solar_Plexus" in undefined
+    auth_l = str(authority or "").lower()
+    emotional_auth = "emotional" in auth_l or "solar plexus" in auth_l
 
     ind = indication or {}
     energy_label = str(ind.get("energy_label") or "Steady")
@@ -1123,8 +1136,11 @@ def _build_actionable_plans(
 
     if open_root:
         dont.append("Stack afternoon/evening caffeine when you feel other people's urgency.")
-    if open_sp and "emotional crest" not in " ".join(dont).lower():
+    if emotional_auth and "emotional crest" not in " ".join(dont).lower():
         dont.append("Big decisions at the emotional peak.")
+    elif open_sp and "others' feelings" not in " ".join(dont).lower():
+        # Open Solar Plexus conditioning — never labeled Emotional Authority.
+        dont.append("Others' feelings are not yours — don't take them as a decision.")
     if adjusts:
         bit = adjusts[0].split(": ", 1)[-1] if ": " in adjusts[0] else adjusts[0]
         if bit not in do and len(do) < 3:

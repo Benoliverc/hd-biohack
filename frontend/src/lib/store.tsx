@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, SavedChartRow, User } from "./api";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { api, isApiError, SavedChartRow, User } from "./api";
 import {
   clearSession,
   readSessionToken,
@@ -141,6 +141,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [natalChart, setNatalChart] = useState<NatalChartSummary | null>(null);
   // Start true so /transits and /biohack never flash the empty-natal CTA before first bind.
   const [natalBindingLoading, setNatalBindingLoading] = useState(true);
+  /** Bumps on sign-out so an in-flight refreshUsers cannot write the old user back. */
+  const refreshGenRef = useRef(0);
 
   const natalChartId = natalChart?.id ?? null;
 
@@ -153,22 +155,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshUsers = useCallback(async () => {
+    const gen = refreshGenRef.current;
     setUsersLoading(true);
     setUsersError(null);
     try {
       const token = readSessionToken();
       if (!token) {
+        if (gen !== refreshGenRef.current) return [] as User[];
         setUsers([]);
         writeSessionUserId(null);
         setUserId(null);
         return [] as User[];
       }
       const me = hydrateAdminFlag(await api.me());
+      if (gen !== refreshGenRef.current) return [] as User[];
       // Sync device TZ before first exposing the user so Today / Protocols
       // do not paint against a stale or Hong Kong fallback.
       const synced = await syncDeviceTimezoneForUser(me, {
         patch: api.patchUserSettings,
       });
+      if (gen !== refreshGenRef.current) return [] as User[];
       const current = hydrateAdminFlag(synced.user);
       setUsers([current]);
       writeSessionUserId(current.id);
@@ -176,6 +182,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         if (current.is_admin) {
           const list = (await api.users()).map(hydrateAdminFlag);
+          if (gen !== refreshGenRef.current) return [] as User[];
           if (list.length) {
             const withTz = list.map((u) =>
               u.id === current.id
@@ -191,18 +198,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       return [current];
     } catch (e) {
-      const sessionId = readSessionUserId();
-      if (sessionId != null && readSessionToken()) {
-        setUserId((prev) => prev ?? sessionId);
-      } else {
+      if (gen !== refreshGenRef.current) return [] as User[];
+      const status = isApiError(e) ? e.status : 0;
+      if (status === 401 || status === 403) {
         clearSession();
         setUsers([]);
         setUserId(null);
+      } else {
+        const sessionId = readSessionUserId();
+        if (sessionId != null && readSessionToken()) {
+          setUserId((prev) => prev ?? sessionId);
+        } else {
+          clearSession();
+          setUsers([]);
+          setUserId(null);
+        }
       }
       setUsersError(e instanceof Error ? e.message : "Failed to load session");
       return [] as User[];
     } finally {
-      setUsersLoading(false);
+      if (gen === refreshGenRef.current) {
+        setUsersLoading(false);
+      }
     }
   }, []);
 
@@ -338,11 +355,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (token) {
             void api.logout().catch(() => undefined);
           }
+          refreshGenRef.current += 1;
           clearSession();
           setNatalChart(null);
           setNatalBindingLoading(false);
           setUserId(null);
           setUsers([]);
+          setUsersLoading(false);
         },
         enforcePaywall,
         setEnforcePaywall,

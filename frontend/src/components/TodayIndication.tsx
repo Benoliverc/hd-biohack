@@ -95,6 +95,8 @@ type Props = {
   createdAt?: string | null;
   /** Natal Type of Me only (People never drive Today). */
   natalType?: string | null;
+  /** Natal Authority of Me only — Evening close / authority-aware copy. */
+  natalAuthority?: string | null;
   /** True when the loaded You natal was saved with an unknown birth time. */
   timeUnknown?: boolean;
   /** Protocols unlocked (Pro or beta full access). Omit the stack handoff when locked. */
@@ -129,6 +131,7 @@ export default function TodayIndication({
   preferredTimezone = null,
   createdAt = null,
   natalType = null,
+  natalAuthority = null,
   timeUnknown = false,
   protocolsUnlocked = false,
   inventoryStatus = "unknown",
@@ -917,16 +920,26 @@ export default function TodayIndication({
                 </button>
               </div>
             ) : (
-              <Link
-                href={inventoryCount > 0 ? "/biohack#stack" : "/biohack#shelf"}
-                className="mt-3 flex min-h-11 items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
-                data-testid="today-kit-placeholder"
+              <div
+                className="mt-3"
+                data-testid="today-kit-placeholder-wrap"
               >
-                <span className="font-medium text-fg">{t("today.kitPick")}:</span>
-                <span className="type-body text-fg">
-                  {inventoryCount > 0 ? t("today.kitSetupNoMatch") : t("today.kitSetupEmpty")}
-                </span>
-              </Link>
+                {kitFeedback ? (
+                  <p className="mb-1.5 type-caption text-fg" role="status">
+                    {kitFeedback}
+                  </p>
+                ) : null}
+                <Link
+                  href={inventoryCount > 0 ? "/biohack#stack" : "/biohack#shelf"}
+                  className="flex min-h-11 items-start gap-2 rounded-lg border border-dashed border-border/80 bg-sunken/40 px-3 py-2 text-sm text-fg transition hover:border-growth/30 hover:text-fg-secondary"
+                  data-testid="today-kit-placeholder"
+                >
+                  <span className="font-medium text-fg">{t("today.kitPick")}:</span>
+                  <span className="type-body text-fg">
+                    {inventoryCount > 0 ? t("today.kitSetupNoMatch") : t("today.kitSetupEmpty")}
+                  </span>
+                </Link>
+              </div>
             )}
 
             {indication.when_slot ? (
@@ -1100,7 +1113,7 @@ export default function TodayIndication({
         });
         if (!visible) return null;
         const saved = parseEveningCloseLabel(row?.label);
-        const qKey = eveningQuestionKey(typeKey);
+        const qKey = eveningQuestionKey(typeKey, natalAuthority);
         const options = eveningAnswerOptions(typeKey);
         const canTap = Boolean(userId && chartId);
         const note = row?.note || "";

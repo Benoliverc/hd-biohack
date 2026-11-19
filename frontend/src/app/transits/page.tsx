@@ -26,7 +26,7 @@ import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadCont
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { localizeMove } from "@/lib/todayCopy";
-import { graphFromChart, typeFromChart } from "@/lib/share/graphFromChart";
+import { authorityFromChart, graphFromChart, typeFromChart } from "@/lib/share/graphFromChart";
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
   return row.slot_kind !== "friend";
@@ -392,6 +392,7 @@ export default function TransitsPage() {
           preferredTimezone={user?.preferred_timezone ?? null}
           createdAt={user?.created_at ?? null}
           natalType={typeFromChart(youChartPayload)}
+          natalAuthority={authorityFromChart(youChartPayload)}
           timeUnknown={youChart.time_unknown === true}
           protocolsUnlocked={biohackingUnlocked}
           inventoryStatus={inventoryStatus}

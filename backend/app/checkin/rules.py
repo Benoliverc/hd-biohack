@@ -83,6 +83,82 @@ TYPE_SLUG = {
     "Reflector": "Reflector",
 }
 
+# Authority-aware Why this for Generator / MG (Sacral copy stays the default type key).
+# Emotional: yes clear after feelings moved — never "Sacral yes."
+# Other known authorities: type-only lines that name neither Sacral nor Emotional.
+TYPE_BATTERY_EMOTIONAL: dict[str, str] = {
+    "Generator": "Your battery fills when a yes is clear after the feelings have moved — not when you push.",
+    "Manifesting Generator": "Your battery needs a yes clear after the feelings have moved — then inform — not constant acceleration.",
+}
+TYPE_RECOVER_WHY_EMOTIONAL: dict[str, str] = {
+    "Generator": "Protect rest — only respond when a yes is clear after the feelings have moved; skip forced starts.",
+    "Manifesting Generator": "Downshift: one yes clear after feelings moved, inform, then rest between bursts.",
+}
+TYPE_SURPLUS_WHY_EMOTIONAL: dict[str, str] = {
+    "Generator": "Use surplus to respond to one clear yes after the feelings have moved — not a longer to-do list.",
+    "Manifesting Generator": "Channel the charge into one clear yes after feelings moved, then inform before you accelerate.",
+}
+
+TYPE_BATTERY_OTHER_AUTH: dict[str, str] = {
+    "Generator": "Your battery fills when you respond — not when you push.",
+    "Manifesting Generator": "Your battery needs a clear yes first — then inform — not constant acceleration.",
+}
+TYPE_RECOVER_WHY_OTHER_AUTH: dict[str, str] = {
+    "Generator": "Protect rest — only respond to what clearly lights you up; skip forced starts.",
+    "Manifesting Generator": "Downshift: one clear yes at a time, inform, then rest between bursts.",
+}
+TYPE_SURPLUS_WHY_OTHER_AUTH: dict[str, str] = {
+    "Generator": "Use surplus to respond to one clear yes — not a longer to-do list.",
+    "Manifesting Generator": "Channel the charge into one clear yes, then inform before you accelerate.",
+}
+
+
+def _is_emotional_auth(authority: str | None) -> bool:
+    """Match soul_sync._is_emotional spirit — Emotional / Solar Plexus shapes."""
+    if not authority:
+        return False
+    a = authority.lower()
+    return "emotional" in a or "solar plexus" in a
+
+
+def _is_sacral_auth(authority: str | None) -> bool:
+    if not authority:
+        return False
+    return authority.lower().startswith("sacral")
+
+
+def _known_non_sacral_auth(authority: str | None) -> bool:
+    """Splenic / Ego / Self-Projected / Mental / Lunar (and Emotional handled separately)."""
+    if not authority:
+        return False
+    a = authority.lower()
+    if "splenic" in a or a == "spleen":
+        return True
+    if "ego" in a or "heart" in a or "will" in a:
+        return True
+    if "self-projected" in a or "self projected" in a or "self_projected" in a:
+        return True
+    if "mental" in a or "environmental" in a or "environment" in a:
+        return True
+    if "lunar" in a or "moon" in a:
+        return True
+    return False
+
+
+def _authority_why_class(authority: str | None) -> str:
+    """sacral | emotional | other | missing — drives Why this key selection."""
+    if not authority or not str(authority).strip():
+        return "missing"
+    if _is_emotional_auth(authority):
+        return "emotional"
+    if _is_sacral_auth(authority):
+        return "sacral"
+    if _known_non_sacral_auth(authority):
+        return "other"
+    # Unrecognized string: treat as missing (keep type-only Sacral-default keys only
+    # when truly missing; for unknown named authority avoid Sacral wording via other).
+    return "other"
+
 
 def _type_slug(hd_type: str) -> str:
     return TYPE_SLUG.get(hd_type, "generic")
@@ -249,10 +325,37 @@ def compute_main_action(
 
     hd_type, strategy = _type_strategy(natal)
     slug = _type_slug(hd_type)
+    authority = str((natal or {}).get("authority") or "").strip()
+    auth_class = _authority_why_class(authority or None)
     micro = SPACE_MICRO[preferred_space]
     micro_key = f"today.spaceMicro.{preferred_space}"
-    battery = TYPE_BATTERY.get(hd_type, "Protect your energy map today.")
-    battery_key = f"today.battery.{slug}" if hd_type in TYPE_SLUG else "today.battery.generic"
+    # Generator / MG Why this follows natal authority, then Type.
+    if hd_type in ("Generator", "Manifesting Generator") and auth_class == "emotional":
+        battery = TYPE_BATTERY_EMOTIONAL.get(hd_type) or TYPE_BATTERY.get(
+            hd_type, "Protect your energy map today."
+        )
+        battery_key = f"today.battery.{slug}.emotional"
+        recover_map = TYPE_RECOVER_WHY_EMOTIONAL
+        surplus_map = TYPE_SURPLUS_WHY_EMOTIONAL
+        recover_key_suffix = ".emotional"
+        surplus_key_suffix = ".emotional"
+    elif hd_type in ("Generator", "Manifesting Generator") and auth_class == "other":
+        battery = TYPE_BATTERY_OTHER_AUTH.get(hd_type) or TYPE_BATTERY.get(
+            hd_type, "Protect your energy map today."
+        )
+        battery_key = f"today.battery.{slug}.otherAuth"
+        recover_map = TYPE_RECOVER_WHY_OTHER_AUTH
+        surplus_map = TYPE_SURPLUS_WHY_OTHER_AUTH
+        recover_key_suffix = ".otherAuth"
+        surplus_key_suffix = ".otherAuth"
+    else:
+        # Sacral or missing authority: keep today's type-only (Sacral) copy.
+        battery = TYPE_BATTERY.get(hd_type, "Protect your energy map today.")
+        battery_key = f"today.battery.{slug}" if hd_type in TYPE_SLUG else "today.battery.generic"
+        recover_map = TYPE_RECOVER_WHY
+        surplus_map = TYPE_SURPLUS_WHY
+        recover_key_suffix = ""
+        surplus_key_suffix = ""
     why_bits, why_parts = _sky_why_bits(transit, overlay)
 
     def _front(english: str, key: str, **params: Any) -> None:
@@ -268,9 +371,9 @@ def compute_main_action(
         primary = TYPE_RECOVER_TEXT.get(hd_type, GENERIC_RECOVER)
         action_key = f"today.move.recover.{slug}" if hd_type in TYPE_RECOVER_TEXT else "today.move.recover.generic"
         _front(f"Protect and recover — {battery}", "today.why.protectRecover", battery_key=battery_key)
-        recover_mech = TYPE_RECOVER_WHY.get(hd_type)
+        recover_mech = recover_map.get(hd_type)
         if recover_mech:
-            _append(recover_mech, f"today.why.recover.{slug}")
+            _append(recover_mech, f"today.why.recover.{slug}{recover_key_suffix}")
     elif energy_level == 3:
         sky = sky_bullet_one(transit, overlay)
         if sky:
@@ -319,9 +422,9 @@ def compute_main_action(
                 "today.why.surplusBattery",
                 battery_key=battery_key,
             )
-        surplus_mech = TYPE_SURPLUS_WHY.get(hd_type)
+        surplus_mech = surplus_map.get(hd_type)
         if surplus_mech:
-            _append(surplus_mech, f"today.why.surplus.{slug}")
+            _append(surplus_mech, f"today.why.surplus.{slug}{surplus_key_suffix}")
         if strategy and hd_type:
             _append(f"Strategy: {strategy}.", "today.why.strategy", strategy=strategy)
 
