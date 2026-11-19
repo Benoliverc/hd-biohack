@@ -212,3 +212,12 @@ class PasswordResetToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class DataMigration(Base):
+    """One-time data migration ledger so startup upgrades are idempotent."""
+
+    __tablename__ = "data_migrations"
+
+    name: Mapped[str] = mapped_column(String(128), primary_key=True)
+    applied_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

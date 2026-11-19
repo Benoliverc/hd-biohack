@@ -643,29 +643,74 @@ def test_non_admin_still_403_on_usage_stats():
     assert client.get(f"/admin/usage/events?actor_user_id={non.id}&event_type=page_view").status_code == 403
     print("PASS: non-admin 403 on usage (incl page_view filter)")
 
-def test_set_tier_requires_admin_and_self_only():
-    """PATCH /users/{id}/tier: admin + self only; open call rejected."""
+def _auth_headers(username: str, password: str) -> dict[str, str]:
+    r = client.post("/auth/login", json={"username": username, "password": password})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def test_set_tier_requires_admin_and_allows_any_person():
+    """PATCH /users/{id}/tier: admin may change any person; non-admin cannot."""
     admin, non = _ensure_users()
+    admin_h = _auth_headers("Benjamin", "Wolkje")
+    non_h = _auth_headers("Sam", "sam123")
 
     # Missing actor → 422
-    r0 = client.patch(f"/users/{admin.id}/tier?tier=free")
+    r0 = client.patch(f"/users/{admin.id}/tier?tier=free", headers=admin_h)
     assert r0.status_code == 422, r0.text
 
-    # Non-admin actor → 403
+    # Non-admin changing themselves → 403
     r1 = client.patch(
-        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={non.id}"
+        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={non.id}",
+        headers=non_h,
     )
     assert r1.status_code == 403, r1.text
 
-    # Admin changing someone else → 403 (v1 self-only)
-    r2 = client.patch(
-        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}"
+    # Non-admin changing the admin → 403
+    r1b = client.patch(
+        f"/users/{admin.id}/tier?tier=free&actor_user_id={non.id}",
+        headers=non_h,
     )
-    assert r2.status_code == 403, r2.text
+    assert r1b.status_code == 403, r1b.text
 
-    # Admin self Free → Pro
+    # Non-admin cannot spoof actor_user_id as the admin
+    r1c = client.patch(
+        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}",
+        headers=non_h,
+    )
+    assert r1c.status_code == 403, r1c.text
+
+    # Invalid tier → 400
+    r_bad = client.patch(
+        f"/users/{non.id}/tier?tier=enterprise&actor_user_id={admin.id}",
+        headers=admin_h,
+    )
+    assert r_bad.status_code == 400, r_bad.text
+
+    # Admin changing someone else Free → Pro, flag stays in sync
+    r2 = client.patch(
+        f"/users/{non.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}",
+        headers=admin_h,
+    )
+    assert r2.status_code == 200, r2.text
+    body2 = r2.json()
+    assert body2["id"] == non.id
+    assert body2["subscription_tier"] == "biohacker_pro"
+    assert body2["biohacking_enabled"] is True
+
+    r2b = client.patch(
+        f"/users/{non.id}/tier?tier=free&actor_user_id={admin.id}",
+        headers=admin_h,
+    )
+    assert r2b.status_code == 200, r2b.text
+    body2b = r2b.json()
+    assert body2b["subscription_tier"] == "free"
+    assert body2b["biohacking_enabled"] is False
+
+    # Admin self Free → Pro still works
     r3 = client.patch(
-        f"/users/{admin.id}/tier?tier=free&actor_user_id={admin.id}"
+        f"/users/{admin.id}/tier?tier=free&actor_user_id={admin.id}",
+        headers=admin_h,
     )
     assert r3.status_code == 200, r3.text
     body = r3.json()
@@ -673,11 +718,12 @@ def test_set_tier_requires_admin_and_self_only():
     assert body["biohacking_enabled"] is False
 
     r4 = client.patch(
-        f"/users/{admin.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}"
+        f"/users/{admin.id}/tier?tier=biohacker_pro&actor_user_id={admin.id}",
+        headers=admin_h,
     )
     assert r4.status_code == 200, r4.text
     body4 = r4.json()
     assert body4["subscription_tier"] == "biohacker_pro"
     assert body4["biohacking_enabled"] is True
-    print("PASS: set_tier admin+self auth + Free↔Pro")
+    print("PASS: set_tier admin may change any person; non-admin cannot")
 

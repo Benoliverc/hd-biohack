@@ -94,7 +94,7 @@ export const messages = {
   'login.creating': 'Creando cuenta…',
   'login.genericAuthError': 'El email o la contraseña no funcionaron. Inténtalo de nuevo.',
   'login.resetSent': 'Si ese email está en Baseline, enviamos un enlace para restablecer.',
-  'login.betaNote': 'Baseline está en beta. Durante la beta, tienes acceso completo temporal — incluidos Protocols y Soul.',
+  'login.betaNote': 'Baseline está en beta.',
   'login.betaCreateHint': 'Esta es la beta de Baseline. Mientras construimos, todo el mundo tiene acceso completo temporal.',
   'login.passwordTooShort': 'La contraseña debe tener al menos 8 caracteres.',
   'login.passwordLengthHint': 'Al menos 8 caracteres.',

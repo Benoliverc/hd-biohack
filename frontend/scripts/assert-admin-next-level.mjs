@@ -160,4 +160,22 @@ assert.ok(
   "Logbook keeps an All default that does not force literacy into the default query",
 );
 
+
+// People detail has a Free | Pro switch for the selected person; list/detail show only those two plans.
+assert.ok(admin.includes('data-testid="people-plan-switch"'), "People detail has a plan switch");
+assert.ok(
+  admin.includes("setPersonPlan") && admin.includes("api.setTier(detail.id"),
+  "People plan switch changes the selected person",
+);
+assert.ok(admin.includes("admin.planSaving"), "People switch has a saving state");
+assert.ok(admin.includes("admin.planSaved"), "People switch has a saved state");
+assert.ok(admin.includes("admin.planError"), "People switch has an error state");
+assert.ok(admin.includes("loadPeople()") && admin.includes("loadDetail(detail.id)"), "People switch refreshes list and detail");
+assert.ok(!admin.includes("Beta Pro grant"), "People detail drops Beta Pro grant");
+assert.ok(!admin.includes("biohacking flag on"), "People detail drops the biohacking flag line");
+assert.ok(
+  !/row\.beta_full_access \? \([\s\S]*Beta/.test(admin),
+  "People list drops the Beta badge",
+);
+
 console.log("assert:admin-next-level passed");
