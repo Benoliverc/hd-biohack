@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class BirthDataIn(BaseModel):
@@ -220,12 +220,23 @@ class UserOut(BaseModel):
     preferred_locale: str | None = None
     first_name: str | None = None
     is_admin: bool = False
+    # Account created time (DB naive UTC). Shown as unambiguous UTC on the wire.
+    created_at: datetime
     # Effective Pro access (includes BETA_FULL_ACCESS). FE must not invent this.
     biohacking_unlocked: bool = False
     beta_full_access: bool = False
 
     class Config:
         from_attributes = True
+
+    @field_serializer("created_at", when_used="json")
+    def serialize_created_at_utc(self, value: datetime) -> str:
+        """Naive DB values are UTC; always emit Z / +00:00, never a bare local string."""
+        if value.tzinfo is None:
+            aware = value.replace(tzinfo=timezone.utc)
+        else:
+            aware = value.astimezone(timezone.utc)
+        return aware.isoformat().replace("+00:00", "Z")
 
     @classmethod
     def model_validate(cls, obj, *args, **kwargs):  # type: ignore[override]

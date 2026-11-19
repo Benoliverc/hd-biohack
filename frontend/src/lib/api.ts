@@ -74,6 +74,8 @@ export type User = {
   preferred_locale?: string | null;
   first_name?: string | null;
   is_admin?: boolean;
+  /** Account created time as unambiguous UTC (Z or +00:00). Optional for older cached sessions. */
+  created_at?: string | null;
   /** Effective Pro access from API (includes BETA_FULL_ACCESS). */
   biohacking_unlocked?: boolean;
   beta_full_access?: boolean;
