@@ -964,7 +964,9 @@ export default function TodayIndication({
                     ▸
                   </span>
                   <span>{t("today.why")}</span>
-                  <span className="font-normal text-fg-muted">· {t("today.whyHint")}</span>
+                  <span className="font-normal text-fg-muted group-open:hidden">
+                    · {t("today.whyHint")}
+                  </span>
                 </summary>
                 {microText ? (
                   <p

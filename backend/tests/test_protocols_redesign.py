@@ -210,6 +210,131 @@ def test_emotional_auth_may_get_wave_evening_lead():
     print("PASS: Emotional authority may get wave evening lead")
 
 
+
+
+def test_evening_only_magnesium_not_morning_breakfast():
+    """Owned Magnesium must not appear at breakfast AND evening bed time the same day."""
+    natal = _mg_natal()
+    overlay = {
+        "newly_defined_centers": ["Head", "Ajna"],
+        "bridged_channels": [
+            {"gates": [4, 63], "name": "Logic", "centers": ["Head", "Ajna"]}
+        ],
+        "weekly_macro_theme": {
+            "summary": "Sun in Gate 50 Line 4 / Earth in Gate 3 Line 4",
+        },
+    }
+    proto = _proto(natal, overlay, inventory=["Magnesium Glycinate"])
+    morning = proto["daily_plan"]["morning"][0]
+    midday = proto["daily_plan"]["midday"][0]
+    evening = proto["daily_plan"]["evening"][0]
+    kit = proto["daily_plan"]["baseline_kit"]
+
+    def _is_mag(row):
+        return "magnesium" in f"{row.get('item', '')} {row.get('matched_as', '')}".lower()
+
+    rows = [r for r in (morning, midday, evening, *kit) if _is_mag(r)]
+    whens = [str(r.get("when") or "").lower() for r in rows]
+    has_morningish = any(("breakfast" in w) or w.startswith("morning") for w in whens)
+    has_eveningish = any(
+        ("before bed" in w) or ("wind-down" in w) or w == "evening" or "60–90" in w
+        for w in whens
+    )
+    assert not (has_morningish and has_eveningish), f"dual magnesium times: {rows}"
+    # Timed lead + Baseline kit must not both list it
+    timed = [r for r in (morning, midday, evening) if _is_mag(r)]
+    kit_mag = [r for r in kit if _is_mag(r)]
+    if timed:
+        assert not kit_mag, f"timed + baseline kit duplicate: {timed} {kit_mag}"
+    print("PASS: magnesium not at conflicting morning+evening times / not duplicated")
+
+
+
+def test_magnesium_not_duplicated_timed_lead_and_baseline_kit():
+    """A day's plan shows Magnesium at most once (timed lead OR Baseline kit, not both)."""
+    natal = _mg_natal()
+    overlays = [
+        {
+            "newly_defined_centers": ["Head", "Ajna"],
+            "bridged_channels": [
+                {"gates": [4, 63], "name": "Logic", "centers": ["Head", "Ajna"]}
+            ],
+            "weekly_macro_theme": {
+                "summary": "Sun in Gate 50 Line 4 / Earth in Gate 3 Line 4",
+            },
+        },
+        {
+            "newly_defined_centers": ["Spleen"],
+            "bridged_channels": [
+                {"gates": [28, 38], "name": "Struggle", "centers": ["Spleen", "Root"]}
+            ],
+            "weekly_macro_theme": {
+                "summary": "Sun in Gate 28 Line 1 / Earth in Gate 27 Line 1",
+            },
+        },
+        {
+            "newly_defined_centers": ["Root", "Solar_Plexus"],
+            "bridged_channels": [
+                {"gates": [19, 49], "name": "Synthesis", "centers": ["Root", "Solar_Plexus"]}
+            ],
+            "weekly_macro_theme": {
+                "summary": "Sun in Gate 19 Line 2 / Earth in Gate 33 Line 2",
+            },
+        },
+    ]
+    inventory = ["Magnesium Glycinate", "Omega-3", "Zinc"]
+
+    def _is_mag(row: dict | None) -> bool:
+        if not row:
+            return False
+        blob = f"{row.get('item', '')} {row.get('matched_as', '')} {row.get('name', '')}".lower()
+        return "magnesium" in blob
+
+    for overlay in overlays:
+        proto = _proto(natal, overlay, inventory)
+        morning = proto["daily_plan"]["morning"][0]
+        midday = proto["daily_plan"]["midday"][0]
+        evening = proto["daily_plan"]["evening"][0]
+        kit = proto["daily_plan"]["baseline_kit"]
+        timed_mag = [r for r in (morning, midday, evening) if _is_mag(r)]
+        kit_mag = [r for r in kit if _is_mag(r)]
+        assert len(timed_mag) <= 1, f"magnesium in multiple timed slots: {timed_mag}"
+        if timed_mag:
+            assert not kit_mag, (
+                f"magnesium in timed lead and Baseline kit: timed={timed_mag} kit={kit_mag}"
+            )
+        # Dual clock times banned: breakfast/morning label + evening bed time same day
+        all_mag = timed_mag + kit_mag
+        whens = [str(r.get("when") or "").lower() for r in all_mag]
+        has_morningish = any(
+            ("breakfast" in w) or w.startswith("morning") or "on waking" in w
+            for w in whens
+        )
+        has_eveningish = any(
+            ("before bed" in w) or ("wind-down" in w) or w == "evening" or "60–90" in w
+            for w in whens
+        )
+        assert not (has_morningish and has_eveningish), (
+            f"magnesium at two clock times: {all_mag}"
+        )
+    print("PASS: magnesium not duplicated across timed lead + Baseline kit")
+
+
+def test_baseline_kit_keeps_daylight_and_caffeine():
+    natal = _mg_natal()
+    overlay = {
+        "newly_defined_centers": ["Head"],
+        "bridged_channels": [],
+        "weekly_macro_theme": {"summary": "Sun in Gate 1 Line 1 / Earth in Gate 2 Line 1"},
+    }
+    # Evening lead will often take Magnesium when it is the only evening bank hit
+    proto = _proto(natal, overlay, inventory=["Magnesium Glycinate"])
+    kit_items = [x["item"].lower() for x in proto["daily_plan"]["baseline_kit"]]
+    assert any("daylight" in k for k in kit_items)
+    assert any("caffeine" in k for k in kit_items)
+    print("PASS: Baseline kit still has daylight + caffeine rows")
+
+
 if __name__ == "__main__":
     test_sacral_open_sp_evening_not_emotional_authority()
     test_emotional_auth_may_get_wave_evening_lead()
@@ -217,4 +342,7 @@ if __name__ == "__main__":
     test_two_days_different_hero_or_timed_leads()
     test_hero_not_locked_to_daylight_caffeine_magnesium()
     test_indication_embedded_and_matches_derive()
+    test_evening_only_magnesium_not_morning_breakfast()
+    test_magnesium_not_duplicated_timed_lead_and_baseline_kit()
+    test_baseline_kit_keeps_daylight_and_caffeine()
     print("ALL OK")

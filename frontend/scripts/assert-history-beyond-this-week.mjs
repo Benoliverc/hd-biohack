@@ -180,18 +180,21 @@ assert.ok(
   "does not invent the empty middle week",
 );
 
-// --- Evening close is decoded, never raw Type|answer ---
+// --- Evening close is decoded via shared helper, never raw Type|answer ---
 const parsed = parseEveningCloseLabel("Generator|yes");
 assert.equal(parsed?.answer, "yes");
 assert.equal(parseEveningCloseLabel("Projector|rest")?.answer, "rest");
-assert.match(ui, /parseEveningCloseLabel/);
-assert.match(ui, /today\.eveningClose\.label/);
-assert.match(ui, /today\.eveningClose\.yes/);
-assert.match(ui, /today\.eveningClose\.no/);
-assert.match(ui, /today\.eveningClose\.recognized/);
-assert.match(ui, /today\.eveningClose\.rest/);
+assert.match(ui, /eveningCloseDisplay/);
+assert.match(ui, /isEveningCloseCompletion/);
 assert.doesNotMatch(ui, /Generator\|yes/);
 assert.match(ui, /item\.kind === "baseline"/);
+// Shared helper owns the i18n keys (not a local copy in this component)
+const escSrc = read("src/lib/eveningSignatureClose.ts");
+assert.match(escSrc, /today\.eveningClose\.label/);
+assert.match(escSrc, /today\.eveningClose\.yes/);
+assert.match(escSrc, /today\.eveningClose\.no/);
+assert.match(escSrc, /today\.eveningClose\.recognized/);
+assert.match(escSrc, /today\.eveningClose\.rest/);
 
 // --- Fetch is the existing bounded list endpoint ---
 assert.match(ui, /api\.listProtocolCompletions/);

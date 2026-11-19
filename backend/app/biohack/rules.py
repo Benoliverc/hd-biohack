@@ -504,6 +504,41 @@ def _supplement_dedupe_key(row: dict | None) -> str | None:
     return f"name:{name}"
 
 
+
+def _baseline_kit_supplement_covered(
+    kit_row: dict,
+    covered_rows: list[dict | None],
+) -> bool:
+    """True when a timed lead or Today kit pick already uses this bank supplement."""
+    kit_id = str(kit_row.get("kit_supplement_id") or "")
+    kit_name = _bare_supplement_name(
+        str(kit_row.get("matched_as") or kit_row.get("item") or "")
+    )
+    # Baseline kit Magnesium Glycinate may lack kit_supplement_id until matched;
+    # also match by bare name / magnesium family for the hardcoded row.
+    if not kit_name and not kit_id:
+        kit_name = _bare_supplement_name(str(kit_row.get("item") or ""))
+    for row in covered_rows:
+        if not row:
+            continue
+        rid = str(row.get("kit_supplement_id") or "")
+        if kit_id and rid and kit_id == rid:
+            return True
+        rname = _bare_supplement_name(
+            str(row.get("matched_as") or row.get("item") or row.get("name") or "")
+        )
+        if kit_name and rname and (kit_name == rname or kit_name in rname or rname in kit_name):
+            return True
+        # Family: any magnesium timed lead covers Baseline kit Magnesium Glycinate.
+        if "magnesium" in kit_name and "magnesium" in rname:
+            return True
+        if kit_id.startswith("magnesium") and (
+            rid.startswith("magnesium") or "magnesium" in rname
+        ):
+            return True
+    return False
+
+
 def _plan_item(
     when: str,
     item: str,
@@ -1069,8 +1104,10 @@ def _build_actionable_plans(
         avoid_kit_ids=avoid_from_today or None,
     )
 
-    # Demoted always-on hygiene — not the hero lead trio
-    baseline_kit = [
+    # Demoted always-on hygiene — not the hero lead trio.
+    # Bank supplements in Baseline kit appear at most once per day: if a timed
+    # lead or Today's kit pick already covers that supplement, skip the row.
+    baseline_kit: list[dict] = [
         _plan_item(
             "Within 30 min of waking",
             "Daylight + short walk",
@@ -1089,15 +1126,20 @@ def _build_actionable_plans(
             10,
             track_inventory=False,
         ),
-        _plan_item(
-            "60–90 min before bed",
-            "Magnesium Glycinate",
-            "Per label (often evening)",
-            "Baseline kit — prefer what you already own; skip if evening lead already covers it.",
-            owned,
-            10,
-        ),
     ]
+    mag_row = _plan_item(
+        "60–90 min before bed",
+        "Magnesium Glycinate",
+        "Per label (often evening)",
+        "Baseline kit — prefer what you already own; skip if evening lead already covers it.",
+        owned,
+        10,
+    )
+    covered_rows: list[dict | None] = [morning, midday, evening]
+    if today_kit:
+        covered_rows.append(today_kit)
+    if not _baseline_kit_supplement_covered(mag_row, covered_rows):
+        baseline_kit.append(mag_row)
 
     do: list[str] = []
     dont: list[str] = []

@@ -165,6 +165,52 @@ export function parseEveningCloseLabel(
   return { typeKey, answer };
 }
 
+export type EveningAnswerMessageKey =
+  | "today.eveningClose.yes"
+  | "today.eveningClose.no"
+  | "today.eveningClose.recognized"
+  | "today.eveningClose.rest";
+
+/** i18n key for a parsed evening-close answer (shared by history + Completed this week). */
+export function eveningAnswerKey(answer: EveningAnswerKey): EveningAnswerMessageKey {
+  if (answer === "yes") return "today.eveningClose.yes";
+  if (answer === "no") return "today.eveningClose.no";
+  if (answer === "recognized") return "today.eveningClose.recognized";
+  return "today.eveningClose.rest";
+}
+
+export type EveningCloseDisplay = {
+  titleKey: "today.eveningClose.label";
+  answerKey: EveningAnswerMessageKey | null;
+};
+
+/**
+ * Human display for an evening-close completion row.
+ * Never returns the raw Type|answer encoding — fall back to the evening-close
+ * title alone when the label does not parse.
+ */
+export function eveningCloseDisplay(
+  label: string | null | undefined
+): EveningCloseDisplay {
+  const parsed = parseEveningCloseLabel(label);
+  return {
+    titleKey: "today.eveningClose.label",
+    answerKey: parsed ? eveningAnswerKey(parsed.answer) : null,
+  };
+}
+
+/** True when a completion row is the evening Signature Close. */
+export function isEveningCloseCompletion(args: {
+  itemId?: string | null;
+  kind?: string | null;
+}): boolean {
+  const id = String(args.itemId || "");
+  if (id === EVENING_CLOSE_ITEM_ID) return true;
+  return args.kind === "evening";
+}
+
+
+
 export function hourInZone(timeZone: string, now = new Date()): number | null {
   const zone = resolveProtocolsTz(timeZone);
   try {

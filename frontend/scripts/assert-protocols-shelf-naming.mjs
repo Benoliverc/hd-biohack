@@ -148,7 +148,13 @@ assert.match(move, /t\("protocols\.todayKitPick"\)/);
 assert.match(move, /t\("protocols\.fromKit"\)/);
 assert.match(move, /t\("protocols\.baselineKit"\)/);
 assert.match(biohack, /t\("protocols\.fromKit"\)/);
-assert.ok(biohack.includes("From your kit[^.]*"), "still strips a leading From your kit sentence from why text");
+const sanitizeWhySrc = read("src/lib/sanitizeProtocolWhy.ts");
+assert.match(
+  sanitizeWhySrc,
+  /From your kit/,
+  "still strips a From your kit ownership clause from why text",
+);
+assert.match(biohack, /sanitizeProtocolWhy|sanitizeWhy/, "biohack still sanitizes why text");
 assert.equal(valueFor(en, "protocols.fromYourShelf"), "(from your shelf)");
 assert.ok(!/['"]protocols\.fromShelf['"]/.test(en), "do not add a From your shelf badge key");
 

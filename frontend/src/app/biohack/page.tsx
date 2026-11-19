@@ -6,6 +6,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
+import {
+  eveningCloseDisplay,
+  isEveningCloseCompletion,
+} from "@/lib/eveningSignatureClose";
+import { sanitizeProtocolWhy } from "@/lib/sanitizeProtocolWhy";
 import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
@@ -133,18 +138,7 @@ function saveLeadFingerprint(key: string, fingerprint: string, whatsNew?: WhatsN
 type TimedLeadSnap = { id: string; item: string; inInventory?: boolean };
 
 function sanitizeWhy(why: string | undefined, inInventory: boolean | undefined): string | undefined {
-  if (!why) return undefined;
-  // Badge already says "From your kit" — don't restate ownership in why.
-  const cleaned = why
-    .replace(/\s*You already own something like this[^.]*\.\s*/gi, " ")
-    .replace(/\s*[Pp]refer what you already own[^.]*\.?\s*/gi, " ")
-    .replace(/\s*From your kit[^.]*\.\s*/gi, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  if (!cleaned) return undefined;
-  // Behaviors: never claim shelf ownership.
-  if (!inInventory) return cleaned;
-  return cleaned;
+  return sanitizeProtocolWhy(why, inInventory);
 }
 
 function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] {
@@ -1297,14 +1291,26 @@ function WeekSkyCard({
                     {formatWeekDayLabel(day)}
                   </p>
                   <ul className="mt-1.5 space-y-1.5">
-                    {rows.map((r) => (
+                    {rows.map((r) => {
+                      const evening = isEveningCloseCompletion({
+                        itemId: r.id,
+                        kind: r.kind,
+                      });
+                      const display = evening ? eveningCloseDisplay(r.label) : null;
+                      const title = display ? t(display.titleKey) : r.label;
+                      const answer =
+                        display?.answerKey != null ? t(display.answerKey) : null;
+                      return (
                       <li
                         key={`${r.day}:${r.id}`}
                         className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
                       >
                         <span className={r.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
-                          {r.label}
+                          {title}
                         </span>
+                        {answer ? (
+                          <span className="text-fg">{answer}</span>
+                        ) : null}
                         {r.kind === "baseline" && (
                           <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
                             baseline
@@ -1321,7 +1327,8 @@ function WeekSkyCard({
                           </span>
                         )}
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 </li>
               ))}
