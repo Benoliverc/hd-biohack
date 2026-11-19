@@ -20,6 +20,7 @@ import {
   readShowUpDayMemory,
   saveDayCompletions,
   setCompletionNote,
+  showUpStartDayFromCreatedAt,
   toggleCompletion,
   weekDayKeysInZone,
   type DayCompletions,
@@ -90,6 +91,8 @@ type Props = {
   userId?: number | null;
   chartId?: number | null;
   preferredTimezone?: string | null;
+  /** Account created_at (UTC ISO). Drives Show-up startDay; omit keeps legacy scoring. */
+  createdAt?: string | null;
   /** Natal Type of Me only (People never drive Today). */
   natalType?: string | null;
   /** True when the loaded You natal was saved with an unknown birth time. */
@@ -124,6 +127,7 @@ export default function TodayIndication({
   userId = null,
   chartId = null,
   preferredTimezone = null,
+  createdAt = null,
   natalType = null,
   timeUnknown = false,
   protocolsUnlocked = false,
@@ -605,11 +609,13 @@ export default function TodayIndication({
                 todayKey: dayKey,
                 todayMap: completions,
               });
+              const startDay = showUpStartDayFromCreatedAt(createdAt, protocolsTz);
               const { days: showUpDays, hadMiss } = computeMoveShowUpWeek({
                 weekKeys,
                 todayKey: dayKey,
                 completedMoveDays,
                 allowGrace: true,
+                startDay,
               });
               const weekdayLabel = (day: string) => {
                 const [y, m, d] = day.split("-").map(Number);
@@ -631,7 +637,8 @@ export default function TodayIndication({
                 if (status === "empty") {
                   return "border-border bg-elevated";
                 }
-                if (status === "future") {
+                if (status === "future" || status === "beforeStart") {
+                  // beforeStart paints like future: muted, unfilled, not tappable
                   return "border-border/50 bg-transparent opacity-50";
                 }
                 // missed + grace: muted only (not warning colors)

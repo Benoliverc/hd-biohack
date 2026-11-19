@@ -21,6 +21,8 @@ const {
   dayHasDoneLifestyleMove,
   loadMoveCompletedDaysInWeek,
   readShowUpDayMemory,
+  showUpStartDayFromCreatedAt,
+  dayKeyInZone,
 } = mod;
 
 const week = [
@@ -70,6 +72,148 @@ const filledToday = computeMoveShowUpWeek({
   allowGrace: true,
 });
 assert.equal(filledToday.days[4].status, "filled");
+
+// --- first-use startDay (locked brief) ---
+const thuWeek = [
+  "2026-11-16",
+  "2026-11-17",
+  "2026-11-18",
+  "2026-11-19",
+  "2026-11-20",
+  "2026-11-21",
+  "2026-11-22",
+];
+// Today Thursday, startDay Thursday, no completions
+const thuStartEmpty = computeMoveShowUpWeek({
+  weekKeys: thuWeek,
+  todayKey: "2026-11-19",
+  completedMoveDays: new Set(),
+  allowGrace: true,
+  startDay: "2026-11-19",
+});
+assert.equal(thuStartEmpty.days[0].status, "beforeStart"); // Mon
+assert.equal(thuStartEmpty.days[1].status, "beforeStart"); // Tue
+assert.equal(thuStartEmpty.days[2].status, "beforeStart"); // Wed
+assert.equal(thuStartEmpty.days[3].status, "empty"); // Thu today
+assert.equal(thuStartEmpty.days[4].status, "future");
+assert.equal(thuStartEmpty.days[5].status, "future");
+assert.equal(thuStartEmpty.days[6].status, "future");
+assert.equal(thuStartEmpty.hadMiss, false);
+assert.equal(thuStartEmpty.usedGrace, false);
+
+// Same week, Thursday filled — caption must not show (hadMiss false)
+const thuStartFilled = computeMoveShowUpWeek({
+  weekKeys: thuWeek,
+  todayKey: "2026-11-19",
+  completedMoveDays: new Set(["2026-11-19"]),
+  allowGrace: true,
+  startDay: "2026-11-19",
+});
+assert.equal(thuStartFilled.days[0].status, "beforeStart");
+assert.equal(thuStartFilled.days[1].status, "beforeStart");
+assert.equal(thuStartFilled.days[2].status, "beforeStart");
+assert.equal(thuStartFilled.days[3].status, "filled");
+assert.equal(thuStartFilled.hadMiss, false);
+assert.equal(thuStartFilled.usedGrace, false);
+
+// Today Friday, startDay Monday (or omitted), no completions — existing empty-week rule
+const friEmptyOmitted = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: new Set(),
+  allowGrace: true,
+});
+assert.equal(friEmptyOmitted.days[0].status, "grace");
+assert.equal(friEmptyOmitted.days[1].status, "missed");
+assert.equal(friEmptyOmitted.days[2].status, "missed");
+assert.equal(friEmptyOmitted.days[3].status, "missed");
+assert.equal(friEmptyOmitted.days[4].status, "empty");
+assert.equal(friEmptyOmitted.hadMiss, true);
+
+const friEmptyStartMon = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: new Set(),
+  allowGrace: true,
+  startDay: "2026-11-02",
+});
+assert.equal(friEmptyStartMon.days[0].status, "grace");
+assert.equal(friEmptyStartMon.days[1].status, "missed");
+assert.equal(friEmptyStartMon.days[2].status, "missed");
+assert.equal(friEmptyStartMon.days[3].status, "missed");
+assert.equal(friEmptyStartMon.days[4].status, "empty");
+assert.equal(friEmptyStartMon.hadMiss, true);
+
+// Today Friday, startDay Wednesday, no completions
+const friStartWed = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: new Set(),
+  allowGrace: true,
+  startDay: "2026-11-04",
+});
+assert.equal(friStartWed.days[0].status, "beforeStart"); // Mon
+assert.equal(friStartWed.days[1].status, "beforeStart"); // Tue
+assert.equal(friStartWed.days[2].status, "grace"); // Wed
+assert.equal(friStartWed.days[3].status, "missed"); // Thu
+assert.equal(friStartWed.days[4].status, "empty"); // Fri
+assert.equal(friStartWed.hadMiss, true);
+assert.equal(friStartWed.usedGrace, true);
+
+// #133 case unchanged when startDay on/before Monday
+const case133 = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: new Set(["2026-11-02", "2026-11-04"]),
+  allowGrace: true,
+  startDay: "2026-11-02",
+});
+assert.equal(case133.days[0].status, "filled");
+assert.equal(case133.days[1].status, "grace");
+assert.equal(case133.days[2].status, "filled");
+assert.equal(case133.days[3].status, "missed");
+assert.equal(case133.days[4].status, "empty");
+assert.equal(case133.hadMiss, true);
+
+const case133BeforeMon = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: new Set(["2026-11-02", "2026-11-04"]),
+  allowGrace: true,
+  startDay: "2026-10-01",
+});
+assert.equal(case133BeforeMon.days[0].status, "filled");
+assert.equal(case133BeforeMon.days[1].status, "grace");
+assert.equal(case133BeforeMon.days[2].status, "filled");
+assert.equal(case133BeforeMon.days[3].status, "missed");
+assert.equal(case133BeforeMon.days[4].status, "empty");
+
+// Helper: created_at + TZ → startDay
+assert.equal(
+  showUpStartDayFromCreatedAt("2026-11-19T10:00:00.000Z", "Asia/Hong_Kong"),
+  "2026-11-19",
+);
+assert.equal(
+  showUpStartDayFromCreatedAt("2026-11-18T16:30:00.000Z", "Asia/Hong_Kong"),
+  "2026-11-19",
+  "UTC evening can be next calendar day in HKT",
+);
+assert.equal(showUpStartDayFromCreatedAt(null, "Asia/Hong_Kong"), undefined);
+assert.equal(showUpStartDayFromCreatedAt("", "Asia/Hong_Kong"), undefined);
+assert.equal(showUpStartDayFromCreatedAt("not-a-date", "Asia/Hong_Kong"), undefined);
+assert.equal(typeof dayKeyInZone, "function");
+
+// Filled Move on a beforeStart calendar day may still be filled
+const earlyFill = computeMoveShowUpWeek({
+  weekKeys: thuWeek,
+  todayKey: "2026-11-19",
+  completedMoveDays: new Set(["2026-11-17"]),
+  allowGrace: true,
+  startDay: "2026-11-19",
+});
+assert.equal(earlyFill.days[1].status, "filled"); // Tue filled despite before start
+assert.equal(earlyFill.days[0].status, "beforeStart");
+assert.equal(earlyFill.hadMiss, false);
 
 // Shared any-today-move:* predicate (single definition in protocolCompletions)
 assert.equal(isLifestyleMoveItemId("today-move"), true);
@@ -265,5 +409,35 @@ const ny = weekDayKeysInZone("America/New_York", new Date("2026-11-06T04:00:00.0
 const hkt = weekDayKeysInZone(DEFAULT_PROTOCOLS_TZ, new Date("2026-11-06T04:00:00.000Z"));
 assert.equal(ny.length, 7);
 assert.equal(hkt.length, 7);
+
+// beforeStart is not a disclosure opener; caption still gated on hadMiss only
+assert.match(completionsSrc, /"beforeStart"/);
+assert.match(completionsSrc, /showUpStartDayFromCreatedAt/);
+assert.match(todayInd, /showUpStartDayFromCreatedAt/);
+assert.match(todayInd, /startDay/);
+assert.match(todayInd, /beforeStart/);
+assert.match(todayInd, /status === "future" \|\| status === "beforeStart"/);
+assert.doesNotMatch(
+  todayInd.slice(
+    todayInd.indexOf("const isPastShowUpDay"),
+    todayInd.indexOf("const isPastShowUpDay") + 280,
+  ),
+  /beforeStart/,
+  "beforeStart must not be treated as a past tappable memory day",
+);
+// Caption still only when hadMiss; wording key unchanged
+assert.match(todayInd, /\{hadMiss \? \(/);
+assert.match(todayInd, /today\.showUpStill/);
+assert.doesNotMatch(todayInd, /today\.eveningClose\.label\s*=/);
+
+const localesShowUp = ["en", "de", "es", "fr", "nl"].map((id) => ({
+  id,
+  src: read(`src/lib/i18n/messages/${id}.ts`),
+}));
+const enShowUpStill = localesShowUp[0].src.match(/today\.showUpStill': '([^']+)'/)?.[1];
+assert.equal(enShowUpStill, "Still showing up — one quiet day is fine.");
+for (const loc of localesShowUp) {
+  assert.match(loc.src, /today\.showUpStill/);
+}
 
 console.log("assert-kind-show-up PASS");

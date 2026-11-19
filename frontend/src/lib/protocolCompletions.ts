@@ -328,7 +328,7 @@ export function progressPct(done: number, total: number): number {
   return Math.round((done / total) * 100);
 }
 
-export type ShowUpStatus = "filled" | "empty" | "missed" | "grace" | "future";
+export type ShowUpStatus = "filled" | "empty" | "missed" | "grace" | "future" | "beforeStart";
 
 export type ShowUpDay = {
   day: string;
@@ -376,17 +376,36 @@ export function readShowUpDayMemory(map: DayCompletions): ShowUpDayMemory {
 }
 
 /**
+ * Account calendar start day for Show-up (YYYY-MM-DD in protocols TZ).
+ * Uses the same zone as weekDayKeysInZone / dayKeyInZone. Missing/invalid → undefined
+ * so computeMoveShowUpWeek keeps current grace/miss scoring.
+ */
+export function showUpStartDayFromCreatedAt(
+  createdAt: string | Date | null | undefined,
+  timeZone: string,
+): string | undefined {
+  if (createdAt == null || createdAt === "") return undefined;
+  const d = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return undefined;
+  return dayKeyInZone(timeZone, d);
+}
+
+/**
  * Mon-Sun lifestyle-Move show-up for Today.
  * Counts any done lifestyle Move (`today-move` / `today-move:*`) — never kit/baseline/evening.
  * One past miss may be grace; remaining past misses are muted (not danger).
+ * Optional startDay: days strictly before it (unfilled) are beforeStart — no hadMiss / grace.
  */
 export function computeMoveShowUpWeek(args: {
   weekKeys: string[];
   todayKey: string;
   completedMoveDays: ReadonlySet<string>;
   allowGrace?: boolean;
+  /** Account local start day (YYYY-MM-DD). Omit to keep legacy mid-week grace. */
+  startDay?: string | null;
 }): { days: ShowUpDay[]; hadMiss: boolean; usedGrace: boolean } {
   const allowGrace = args.allowGrace !== false;
+  const startDay = args.startDay || null;
   let usedGrace = false;
   let hadMiss = false;
   const days: ShowUpDay[] = [];
@@ -404,6 +423,10 @@ export function computeMoveShowUpWeek(args: {
       continue;
     }
     // Past day, no Move completion
+    if (startDay && day < startDay) {
+      days.push({ day, status: "beforeStart" });
+      continue;
+    }
     hadMiss = true;
     if (allowGrace && !usedGrace) {
       usedGrace = true;

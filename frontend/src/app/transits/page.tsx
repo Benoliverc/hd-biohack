@@ -390,6 +390,7 @@ export default function TransitsPage() {
           userId={user?.id ?? null}
           chartId={youChart?.id ?? null}
           preferredTimezone={user?.preferred_timezone ?? null}
+          createdAt={user?.created_at ?? null}
           natalType={typeFromChart(youChartPayload)}
           timeUnknown={youChart.time_unknown === true}
           protocolsUnlocked={biohackingUnlocked}
