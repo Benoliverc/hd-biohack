@@ -9,15 +9,14 @@ import {
 } from "react";
 import { api, type ProtocolCompletionRow } from "@/lib/api";
 import {
-  parseEveningCloseLabel,
-  type EveningAnswerKey,
+  eveningCloseDisplay,
+  isEveningCloseCompletion,
 } from "@/lib/eveningSignatureClose";
-import { useI18n, type MessageKey } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import {
   filterHistoryRows,
   groupHistoryByWeek,
   historyWeekHeading,
-  isEveningCloseItemId,
   isTodayKitItemId,
   priorHistoryRange,
   type HistoryScope,
@@ -44,13 +43,6 @@ type Props = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
-
-function eveningAnswerKey(answer: EveningAnswerKey): MessageKey {
-  if (answer === "yes") return "today.eveningClose.yes";
-  if (answer === "no") return "today.eveningClose.no";
-  if (answer === "recognized") return "today.eveningClose.recognized";
-  return "today.eveningClose.rest";
-}
 
 function rowsFromDayMap(day: string, map: DayCompletions): HistorySourceRow[] {
   return Object.entries(map).map(([id, item]) => ({
@@ -220,12 +212,14 @@ const EarlierWeeksHistory = forwardRef(function EarlierWeeksHistory(
                 <ul className="mt-1.5 space-y-1.5">
                   {week.days.map((day) =>
                     day.items.map((item) => {
-                      const evening = isEveningCloseItemId(item.id) || item.kind === "evening";
-                      const parsed = evening ? parseEveningCloseLabel(item.label) : null;
-                      const title = evening
-                        ? t("today.eveningClose.label")
-                        : item.label;
-                      const answer = parsed ? t(eveningAnswerKey(parsed.answer)) : null;
+                      const evening = isEveningCloseCompletion({
+                        itemId: item.id,
+                        kind: item.kind,
+                      });
+                      const display = evening ? eveningCloseDisplay(item.label) : null;
+                      const title = display ? t(display.titleKey) : item.label;
+                      const answer =
+                        display?.answerKey != null ? t(display.answerKey) : null;
                       return (
                         <li
                           key={`${day.day}:${item.id}`}
