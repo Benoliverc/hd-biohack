@@ -31,6 +31,20 @@ const NETWORK_HINT =
     ? `Can't reach the API at ${API_BASE}. Check that the Railway service is up, CORS_ORIGINS includes this site, and NEXT_PUBLIC_API_URL has no trailing slash.`
     : "Can't reach the API. Check that the backend is running and that the app uses the Next rewrite (/api/backend), not a direct :8000 URL from a public tunnel.";
 
+/** HTTP failure from req(); status is preserved so callers can tell 401 from network blips. */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export function isApiError(err: unknown): err is ApiError {
+  return err instanceof ApiError || (err instanceof Error && err.name === "ApiError" && typeof (err as ApiError).status === "number");
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
@@ -56,7 +70,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       /* keep raw */
     }
-    throw new Error(msg);
+    throw new ApiError(msg, res.status);
   }
   return res.json();
 }

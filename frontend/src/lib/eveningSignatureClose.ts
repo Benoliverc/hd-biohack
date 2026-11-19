@@ -1,5 +1,6 @@
 /**
- * Evening Signature Close — Type-keyed felt-sense tap at day's end.
+ * Evening Signature Close — natal-authority-first felt-sense tap at day's end.
+ * Falls back to Type-keyed questions when authority is missing/unrecognized.
  * Deterministic copy keys only; no scores, no LLM.
  */
 
@@ -20,6 +21,18 @@ export type EveningClosePayload = {
   typeKey: HdTypeKey;
   answer: EveningAnswerKey;
 };
+
+export type EveningQuestionKey =
+  | "today.eveningClose.q.generator"
+  | "today.eveningClose.q.manifestor"
+  | "today.eveningClose.q.projector"
+  | "today.eveningClose.q.reflector"
+  | "today.eveningClose.q.emotional"
+  | "today.eveningClose.q.splenic"
+  | "today.eveningClose.q.ego"
+  | "today.eveningClose.q.selfProjected"
+  | "today.eveningClose.q.mental"
+  | "today.eveningClose.q.lunar";
 
 /** Stable completion item id for today evening close. */
 export function eveningCloseItemId(): string {
@@ -44,14 +57,55 @@ export function normalizeHdType(raw: string | null | undefined): HdTypeKey | nul
   return null;
 }
 
-/** Question i18n key for a natal Type (Generator + MG share). */
-export function eveningQuestionKey(
-  typeKey: HdTypeKey
+/** Normalize natal authority strings already in use. */
+export function normalizeAuthorityClass(
+  raw: string | null | undefined
 ):
-  | "today.eveningClose.q.generator"
-  | "today.eveningClose.q.manifestor"
-  | "today.eveningClose.q.projector"
-  | "today.eveningClose.q.reflector" {
+  | "sacral"
+  | "emotional"
+  | "splenic"
+  | "ego"
+  | "selfProjected"
+  | "mental"
+  | "lunar"
+  | null {
+  const a = String(raw || "").trim().toLowerCase();
+  if (!a) return null;
+  if (a.startsWith("sacral")) return "sacral";
+  if (a.includes("emotional") || a.includes("solar plexus")) return "emotional";
+  if (a.includes("splenic") || a === "spleen") return "splenic";
+  if (a.includes("ego") || a.includes("heart") || a.includes("will")) return "ego";
+  if (
+    a.includes("self-projected") ||
+    a.includes("self projected") ||
+    a.includes("self_projected")
+  ) {
+    return "selfProjected";
+  }
+  if (a.includes("mental") || a.includes("environmental") || a.includes("environment")) {
+    return "mental";
+  }
+  if (a.includes("lunar") || a.includes("moon")) return "lunar";
+  return null;
+}
+
+/**
+ * Question i18n key — natal authority first, then Type.
+ * Sacral Generator/MG keep the generator question. Emotional uses the Emotional key
+ * (MG+Emotional included). Missing/unrecognized authority keeps Type-keyed questions.
+ */
+export function eveningQuestionKey(
+  typeKey: HdTypeKey,
+  authority?: string | null
+): EveningQuestionKey {
+  const auth = normalizeAuthorityClass(authority);
+  if (auth === "emotional") return "today.eveningClose.q.emotional";
+  if (auth === "splenic") return "today.eveningClose.q.splenic";
+  if (auth === "ego") return "today.eveningClose.q.ego";
+  if (auth === "selfProjected") return "today.eveningClose.q.selfProjected";
+  if (auth === "mental") return "today.eveningClose.q.mental";
+  if (auth === "lunar") return "today.eveningClose.q.lunar";
+  // Sacral or missing/unrecognized → Type-keyed (Generator+MG share Sacral satisfaction).
   if (typeKey === "Generator" || typeKey === "Manifesting Generator") {
     return "today.eveningClose.q.generator";
   }
@@ -63,7 +117,14 @@ export function eveningQuestionKey(
 /** Calm answer choices for the Type question. */
 export function eveningAnswerOptions(
   typeKey: HdTypeKey
-): Array<{ answer: EveningAnswerKey; labelKey: "today.eveningClose.yes" | "today.eveningClose.no" | "today.eveningClose.recognized" | "today.eveningClose.rest" }> {
+): Array<{
+  answer: EveningAnswerKey;
+  labelKey:
+    | "today.eveningClose.yes"
+    | "today.eveningClose.no"
+    | "today.eveningClose.recognized"
+    | "today.eveningClose.rest";
+}> {
   if (typeKey === "Projector") {
     return [
       { answer: "recognized", labelKey: "today.eveningClose.recognized" },

@@ -15,6 +15,7 @@ function read(rel) {
 const mod = await import("../src/lib/eveningSignatureClose.ts");
 const {
   normalizeHdType,
+  normalizeAuthorityClass,
   eveningQuestionKey,
   eveningAnswerOptions,
   encodeEveningCloseLabel,
@@ -41,6 +42,31 @@ assert.equal(
 assert.equal(eveningQuestionKey("Manifestor"), "today.eveningClose.q.manifestor");
 assert.equal(eveningQuestionKey("Projector"), "today.eveningClose.q.projector");
 assert.equal(eveningQuestionKey("Reflector"), "today.eveningClose.q.reflector");
+
+// Sacral Generator / MG still use the generator (satisfaction) question
+assert.equal(
+  eveningQuestionKey("Generator", "Sacral"),
+  "today.eveningClose.q.generator"
+);
+assert.equal(
+  eveningQuestionKey("Manifesting Generator", "Sacral"),
+  "today.eveningClose.q.generator"
+);
+// Emotional MG uses Emotional question — not "Did anything satisfy?"
+assert.equal(normalizeAuthorityClass("Emotional (Solar Plexus)"), "emotional");
+assert.equal(normalizeAuthorityClass("Emotional"), "emotional");
+assert.equal(
+  eveningQuestionKey("Manifesting Generator", "Emotional (Solar Plexus)"),
+  "today.eveningClose.q.emotional"
+);
+assert.equal(
+  eveningQuestionKey("Generator", "Emotional"),
+  "today.eveningClose.q.emotional"
+);
+assert.equal(
+  eveningQuestionKey("Manifesting Generator", "Splenic"),
+  "today.eveningClose.q.splenic"
+);
 
 assert.deepEqual(
   eveningAnswerOptions("Generator").map((o) => o.answer),
@@ -156,6 +182,7 @@ assert.match(routes, /\("move", "baseline", "evening", "kit"\)/);
 
 const en = read("src/lib/i18n/messages/en.ts");
 assert.match(en, /Did anything satisfy\?/);
+assert.match(en, /Did anything feel clear after the feelings moved\?/);
 assert.match(en, /Did you have peace to start/);
 assert.match(en, /Were you recognized, or did you rest\?/);
 assert.match(en, /Did the place feel right\?/);
@@ -163,5 +190,11 @@ assert.doesNotMatch(en, /alignment score|broke your streak/i);
 
 const transits = read("src/app/transits/page.tsx");
 assert.match(transits, /natalType=\{typeFromChart\(youChartPayload\)\}/);
+assert.match(transits, /natalAuthority=\{authorityFromChart\(youChartPayload\)\}/);
+assert.match(transits, /authorityFromChart/);
+
+const todayIndAuth = read("src/components/TodayIndication.tsx");
+assert.match(todayIndAuth, /natalAuthority/);
+assert.match(todayIndAuth, /eveningQuestionKey\(typeKey, natalAuthority\)/);
 
 console.log("assert-evening-signature-close PASS");

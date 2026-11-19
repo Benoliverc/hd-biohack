@@ -406,6 +406,85 @@ def test_offered_move_item_id_stable():
     print("PASS: move_item_id stable today-move:{moment}")
 
 
+
+
+def test_midday_emotional_wave_one_item_magnesium_kit():
+    """Alex case: one-item Magnesium kit must yield live kit_item for midday Move."""
+    from app.checkin.prescription import pick_dominant_moment
+
+    natal = _natal(
+        type="Generator",
+        strategy="To Respond",
+        authority="Sacral",
+        defined_centers=["Sacral", "Root"],
+        undefined_centers=["Head", "Ajna", "Throat", "G", "Heart", "Solar_Plexus", "Spleen"],
+    )
+    # Force emotional_wave (midday) via Solar Plexus weather
+    overlay = {
+        "newly_defined_centers": ["Solar_Plexus"],
+        "bridged_channels": [
+            {"gates": [36, 35], "name": "Transitoriness", "centers": ["Solar_Plexus", "Throat"]}
+        ],
+    }
+    owned = ["Magnesium Glycinate"]
+    notes = {"Magnesium Glycinate": "200 mg evening"}
+    # Direct pick with midday when
+    hit = pick_kit_for_moment(
+        moment="emotional_wave",
+        when="midday",
+        owned_names=owned,
+        inventory_notes=notes,
+        energy_label="Steady",
+        preferred_space="focus",
+        focus_centers=["Solar_Plexus"],
+        day_key="2026-11-19",
+    )
+    assert hit is not None, "one-item Magnesium kit must match via morning/evening fallback"
+    assert "magnesium" in (hit.get("name") or "").lower()
+    assert hit.get("when") in ("morning", "evening")
+    # No invented dose — only the inventory note
+    assert hit.get("dose") == "200 mg evening"
+
+    rx = build_prescription(
+        natal=natal,
+        transit={},
+        overlay=overlay,
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-19",
+        owned_names=owned,
+        inventory_notes=notes,
+        biohacking_unlocked=True,
+    )
+    # If moment landed midday, kit must not be placeholder
+    if rx.get("moment") == "emotional_wave" or rx.get("when_slot") == "midday":
+        assert rx["kit_placeholder"] is False
+        assert rx["kit_item"] is not None
+        assert "magnesium" in (rx["kit_item"]["name"] or "").lower()
+    else:
+        # Still assert the direct helper path (primary AC)
+        assert hit is not None
+    print("PASS: midday + one-item Magnesium yields live kit_item")
+
+
+def test_pick_kit_for_moment_never_invents_dose_multi_item():
+    owned = ["Magnesium Glycinate", "L-Theanine", "Omega-3"]
+    hit = pick_kit_for_moment(
+        moment="emotional_wave",
+        when="midday",
+        owned_names=owned,
+        inventory_notes={},  # no notes → empty dose
+        energy_label="Steady",
+        preferred_space="focus",
+        focus_centers=["Solar_Plexus"],
+        day_key="2026-11-20",
+    )
+    if hit:
+        assert hit.get("dose") in ("", None)
+    print("PASS: multi-item pick never invents dose")
+
+
 if __name__ == "__main__":
     test_move_word_cap_all_templates()
     test_every_moment_has_exactly_five_moves()
@@ -423,6 +502,8 @@ if __name__ == "__main__":
     test_deterministic_full_stack()
     test_protocols_avoids_today_kit_id()
     test_offered_move_item_id_stable()
+    test_midday_emotional_wave_one_item_magnesium_kit()
+    test_pick_kit_for_moment_never_invents_dose_multi_item()
     print("ALL PR1 prescription tests passed")
 
 

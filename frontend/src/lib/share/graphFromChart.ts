@@ -49,3 +49,10 @@ export function strategyFromChart(
 ): string {
   return String(chart?.strategy || "").trim();
 }
+
+export function authorityFromChart(
+  chart: Record<string, unknown> | null | undefined
+): string {
+  return String(chart?.authority || "").trim();
+}
+

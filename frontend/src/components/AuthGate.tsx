@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
-import { readSessionToken, readSessionUserId } from "@/lib/session";
+import { clearSession, readSessionToken, readSessionUserId } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
 
 const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
@@ -12,6 +12,7 @@ const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
  * Soft client gate: no session → /login.
  * /login is always allowed. Waits for sessionReady so we don't bounce while hydrating.
  * A signed-in visit to /login goes to /profile until a You natal is confirmed, then Today.
+ * After sessionReady with no user (e.g. /auth/me 401), /login shows the public form.
  */
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,7 +23,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const signedInOnLogin = Boolean(
     sessionReady && user && pathname === "/login" && readSessionUserId() && readSessionToken()
   );
-  const storedSessionOnLogin = pathname === "/login" && Boolean(readSessionToken());
+  // Cover the form only while hydrating a stored token; once sessionReady && !user, show Sign in.
+  const storedSessionHydrating =
+    pathname === "/login" && Boolean(readSessionToken()) && !sessionReady;
 
   useLayoutEffect(() => {
     if (typeof document === "undefined") return;
@@ -46,6 +49,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [sessionReady, user, pathname, isPublic, router, natalChart, natalBindingLoading]);
 
+  // Dead leftover token after a resolved 401 / sign-out: drop it so /login shows the form.
+  useEffect(() => {
+    if (!sessionReady || user) return;
+    if (pathname !== "/login") return;
+    if (readSessionToken() || readSessionUserId() != null) {
+      clearSession();
+    }
+  }, [sessionReady, user, pathname]);
+
   // Avoid flashing protected UI before we know session state
   if (!sessionReady && !isPublic) {
     return (
@@ -63,7 +75,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (signedInOnLogin || storedSessionOnLogin) {
+  if (signedInOnLogin || storedSessionHydrating) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
         {t("auth.loading")}

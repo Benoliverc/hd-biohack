@@ -319,23 +319,37 @@ def pick_kit_for_moment(
     day_key: str,
     avoid_supplement_ids: set[str] | None = None,
 ) -> dict[str, Any] | None:
-    """One owned-kit item tagged to today's moment. Never invents a dose."""
+    """One owned-kit item tagged to today's moment. Never invents a dose.
+
+    Tries the Move's when-slot first; if the bank has no owned action for that
+    slot, tries morning → evening → midday (skipping the Move slot already tried)
+    so a one-item Magnesium kit can still land for a midday emotional_wave Move.
+    """
     if not owned_names:
         return None
     from ..biohack.kit_variety import pick_kit_lead
 
     # Salt day_key so Today kit rotation is offset from Protocols morning/midday/evening
     # leads that share the same HKT day (they still also avoid via kit_supplement_id).
-    hit = pick_kit_lead(
-        owned_names,
-        slot=when,
-        energy_label=energy_label or "Steady",
-        preferred_space=preferred_space or "focus",
-        focus_centers=list(focus_centers or []),
-        signal_source=None,
-        day_key=f"{day_key}|today",
-        avoid_supplement_ids=avoid_supplement_ids,
-    )
+    slot_order: list[WhenSlot] = [when]
+    for fallback in ("morning", "evening", "midday"):
+        if fallback != when and fallback not in slot_order:
+            slot_order.append(fallback)  # type: ignore[arg-type]
+
+    hit = None
+    for slot in slot_order:
+        hit = pick_kit_lead(
+            owned_names,
+            slot=slot,
+            energy_label=energy_label or "Steady",
+            preferred_space=preferred_space or "focus",
+            focus_centers=list(focus_centers or []),
+            signal_source=None,
+            day_key=f"{day_key}|today",
+            avoid_supplement_ids=avoid_supplement_ids,
+        )
+        if hit:
+            break
     if not hit:
         return None
     matched = str(hit.get("matched_as") or hit.get("item") or "")
