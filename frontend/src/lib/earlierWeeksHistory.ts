@@ -8,10 +8,13 @@
 
 import { EVENING_CLOSE_ITEM_ID } from "@/lib/eveningSignatureClose";
 import {
+  isLifestyleMoveItemId,
   resolveProtocolsTz,
   weekDayKeysInZone,
   type CompletionKind,
 } from "@/lib/protocolCompletions";
+
+export { isLifestyleMoveItemId };
 
 export type HistoryScope = "today" | "protocols";
 
@@ -42,10 +45,6 @@ export type HistoryWeekGroup = {
   weekKeys: string[];
   days: HistoryDayGroup[];
 };
-
-export function isLifestyleMoveItemId(id: string): boolean {
-  return id === "today-move" || id.startsWith("today-move:");
-}
 
 export function isTodayKitItemId(id: string): boolean {
   return id.startsWith("today-kit:");
