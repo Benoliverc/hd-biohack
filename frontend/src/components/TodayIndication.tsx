@@ -17,11 +17,13 @@ import {
   loadDayCompletions,
   loadMoveCompletedDaysInWeek,
   mergeServerCompletions,
+  readShowUpDayMemory,
   saveDayCompletions,
   setCompletionNote,
   toggleCompletion,
   weekDayKeysInZone,
   type DayCompletions,
+  type ShowUpStatus,
 } from "@/lib/protocolCompletions";
 import {
   encodeEveningCloseLabel,
@@ -151,6 +153,8 @@ export default function TodayIndication({
   const upcomingReq = useRef(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const historyRef = useRef<HTMLDetailsElement>(null);
+  const [showUpMemoryDay, setShowUpMemoryDay] = useState<string | null>(null);
+  const showUpRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (userId == null) {
@@ -159,6 +163,32 @@ export default function TodayIndication({
     }
     setKitSetupDismissed(readKitSetupDismissed(userId));
   }, [userId]);
+
+  useEffect(() => {
+    setShowUpMemoryDay(null);
+  }, [dayKey]);
+
+  useEffect(() => {
+    if (!showUpMemoryDay) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowUpMemoryDay(null);
+    };
+    const onPointer = (e: MouseEvent | PointerEvent) => {
+      const root = showUpRef.current;
+      if (!root) return;
+      const target = e.target as Element | null;
+      if (!target) return;
+      if (target.closest?.('[data-testid="today-show-up-memory"]')) return;
+      if (target.closest?.('[data-testid^="today-show-up-open-"]')) return;
+      setShowUpMemoryDay(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointer);
+    };
+  }, [showUpMemoryDay]);
 
   const addKitItem = useCallback(
     async (name: string) => {
@@ -568,11 +598,9 @@ export default function TodayIndication({
             {(() => {
               void showUpRevision; // recompute when completions / week hydrate
               if (!userId || !chartId) return null;
-              const moveId = indication.move_item_id || "today-move";
               const completedMoveDays = loadMoveCompletedDaysInWeek({
                 userId,
                 chartId,
-                moveItemId: moveId,
                 weekKeys,
                 todayKey: dayKey,
                 todayMap: completions,
@@ -596,7 +624,7 @@ export default function TodayIndication({
                   return day.slice(5);
                 }
               };
-              const dotClass = (status: string) => {
+              const dotClass = (status: ShowUpStatus) => {
                 if (status === "filled") {
                   return "border-growth bg-growth";
                 }
@@ -609,8 +637,27 @@ export default function TodayIndication({
                 // missed + grace: muted only (not warning colors)
                 return "border-border bg-fg-muted/30";
               };
+              const isPastShowUpDay = (status: ShowUpStatus, day: string) =>
+                day < dayKey &&
+                (status === "filled" || status === "grace" || status === "missed");
+              const openDay = showUpMemoryDay;
+              const openStatus =
+                openDay != null
+                  ? showUpDays.find((d) => d.day === openDay)?.status ?? null
+                  : null;
+              const openIsPast =
+                openDay != null &&
+                openStatus != null &&
+                isPastShowUpDay(openStatus, openDay);
+              const memory =
+                openIsPast && openDay != null
+                  ? readShowUpDayMemory(loadDayCompletions(userId, chartId, openDay))
+                  : null;
+              const memoryMuted =
+                openStatus === "missed" || openStatus === "grace";
               return (
                 <div
+                  ref={showUpRef}
                   className="mt-3"
                   data-testid="today-show-up"
                   aria-label={t("today.showUpLabel")}
@@ -619,25 +666,51 @@ export default function TodayIndication({
                     {t("today.showUpLabel")}
                   </p>
                   <ol className="flex flex-wrap items-center gap-1.5" data-testid="today-show-up-dots">
-                    {showUpDays.map((d) => (
-                      <li
-                        key={d.day}
-                        className="flex flex-col items-center gap-1"
-                        data-testid={`today-show-up-day-${d.day}`}
-                        data-status={d.status}
-                      >
-                        <span
-                          className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
-                          aria-hidden
-                        />
-                        <span className="type-caption text-fg-secondary">
-                          {weekdayLabel(d.day)}
-                        </span>
-                        <span className="sr-only">
-                          {d.day}: {d.status}
-                        </span>
-                      </li>
-                    ))}
+                    {showUpDays.map((d) => {
+                      const past = isPastShowUpDay(d.status, d.day);
+                      const expanded = past && openDay === d.day;
+                      const cellInner = (
+                        <>
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-full border ${dotClass(d.status)}`}
+                            aria-hidden
+                          />
+                          <span className="type-caption text-fg-secondary">
+                            {weekdayLabel(d.day)}
+                          </span>
+                          <span className="sr-only">
+                            {d.day}: {d.status}
+                          </span>
+                        </>
+                      );
+                      return (
+                        <li
+                          key={d.day}
+                          className="flex min-h-11 min-w-11 flex-col items-center justify-center gap-1"
+                          data-testid={`today-show-up-day-${d.day}`}
+                          data-status={d.status}
+                        >
+                          {past ? (
+                            <button
+                              type="button"
+                              data-testid={`today-show-up-open-${d.day}`}
+                              className="flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                              aria-expanded={expanded}
+                              aria-controls="today-show-up-memory"
+                              onClick={() => {
+                                setShowUpMemoryDay((cur) =>
+                                  cur === d.day ? null : d.day
+                                );
+                              }}
+                            >
+                              {cellInner}
+                            </button>
+                          ) : (
+                            cellInner
+                          )}
+                        </li>
+                      );
+                    })}
                   </ol>
                   {hadMiss ? (
                     <p
@@ -647,10 +720,48 @@ export default function TodayIndication({
                       {t("today.showUpStill")}
                     </p>
                   ) : null}
+                  {openIsPast && openDay && memory ? (
+                    <div
+                      id="today-show-up-memory"
+                      className={`mt-2 rounded-lg border border-border bg-elevated/60 px-3 py-2 ${
+                        memoryMuted ? "text-fg-muted" : "text-fg"
+                      }`}
+                      data-testid="today-show-up-memory"
+                      data-day={openDay}
+                    >
+                      <p className="type-caption text-fg-secondary">
+                        {weekdayLabel(openDay)}
+                      </p>
+                      {memory.moveLabel ? (
+                        <p
+                          className="mt-1 type-body"
+                          data-testid="today-show-up-memory-move"
+                        >
+                          {memory.moveLabel}
+                        </p>
+                      ) : null}
+                      {memory.eveningNoted ? (
+                        <p
+                          className="mt-1 type-caption text-fg-secondary"
+                          data-testid="today-show-up-memory-evening"
+                        >
+                          {t("today.showUpMemory.eveningNoted")}
+                        </p>
+                      ) : null}
+                      <button
+                        type="button"
+                        data-testid="today-show-up-memory-close"
+                        className="mt-2 inline-flex min-h-11 items-center type-caption text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                        onClick={() => setShowUpMemoryDay(null)}
+                      >
+                        {t("literacy.chrome.close")}
+                      </button>
+                    </div>
+                  ) : null}
                   <button
                     type="button"
                     data-testid="today-history-link"
-                    className="mt-2 type-caption text-fg-secondary underline-offset-2 hover:underline"
+                    className="mt-2 inline-flex min-h-11 items-center type-caption text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
                     onClick={() => {
                       setHistoryOpen(true);
                       requestAnimationFrame(() => {

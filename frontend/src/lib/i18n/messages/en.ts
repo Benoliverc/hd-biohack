@@ -363,6 +363,7 @@ export const messages = {
   'today.moveNotePlaceholder': 'One line about how it went…',
   'today.showUpLabel': 'Show-up',
   'today.showUpStill': 'Still showing up — one quiet day is fine.',
+  'today.showUpMemory.eveningNoted': 'Evening close: noted.',
   "today.kitNoun.calm": "calm",
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "recovery",

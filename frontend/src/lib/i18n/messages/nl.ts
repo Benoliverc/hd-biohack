@@ -363,6 +363,7 @@ export const messages = {
   'today.moveNotePlaceholder': 'Eén regel over hoe het ging…',
   'today.showUpLabel': 'Aanwezig',
   'today.showUpStill': 'Nog steeds aanwezig — één stille dag is oké.',
+  'today.showUpMemory.eveningNoted': 'Avondsluiting: genoteerd.',
   "today.kitNoun.calm": "kalmte",
   "today.kitNoun.focus": "focus",
   "today.kitNoun.recovery": "herstel",

@@ -335,9 +335,49 @@ export type ShowUpDay = {
   status: ShowUpStatus;
 };
 
+/** Lifestyle Move ids: exact `today-move` or any `today-move:*` moment. */
+export function isLifestyleMoveItemId(id: string): boolean {
+  return id === "today-move" || id.startsWith("today-move:");
+}
+
+/** True when the day map has any done lifestyle Move (not kit / evening / baseline / seeds). */
+export function dayHasDoneLifestyleMove(map: DayCompletions): boolean {
+  for (const [id, item] of Object.entries(map)) {
+    if (item?.done && isLifestyleMoveItemId(id)) return true;
+  }
+  return false;
+}
+
+export type ShowUpDayMemory = {
+  moveLabel: string | null;
+  eveningNoted: boolean;
+};
+
+/**
+ * Calm this-week memory for one past day.
+ * Move sentence = first done lifestyle Move label in stable item_id order.
+ * Evening noted = done today-evening-close or kind evening. Notes / Type|answer omitted.
+ */
+export function readShowUpDayMemory(map: DayCompletions): ShowUpDayMemory {
+  const moveIds = Object.keys(map)
+    .filter((id) => isLifestyleMoveItemId(id) && map[id]?.done)
+    .sort();
+  const moveLabel =
+    moveIds.length > 0 ? String(map[moveIds[0]]?.label || "").trim() || null : null;
+  let eveningNoted = false;
+  for (const [id, item] of Object.entries(map)) {
+    if (!item?.done) continue;
+    if (id === "today-evening-close" || item.kind === "evening") {
+      eveningNoted = true;
+      break;
+    }
+  }
+  return { moveLabel, eveningNoted };
+}
+
 /**
  * Mon-Sun lifestyle-Move show-up for Today.
- * Counts only `moveItemId` completions — never kit/baseline.
+ * Counts any done lifestyle Move (`today-move` / `today-move:*`) — never kit/baseline/evening.
  * One past miss may be grace; remaining past misses are muted (not danger).
  */
 export function computeMoveShowUpWeek(args: {
@@ -375,11 +415,10 @@ export function computeMoveShowUpWeek(args: {
   return { days, hadMiss, usedGrace };
 }
 
-/** Day keys this week where the lifestyle Move item is done (local cache). */
+/** Day keys this week where any lifestyle Move is done (local cache). */
 export function loadMoveCompletedDaysInWeek(args: {
   userId: number;
   chartId: number;
-  moveItemId: string;
   weekKeys: string[];
   /** Optional overlay for the current day (live React state). */
   todayKey?: string;
@@ -391,7 +430,7 @@ export function loadMoveCompletedDaysInWeek(args: {
       args.todayKey && args.todayMap && day === args.todayKey
         ? args.todayMap
         : loadDayCompletions(args.userId, args.chartId, day);
-    if (map[args.moveItemId]?.done) out.add(day);
+    if (dayHasDoneLifestyleMove(map)) out.add(day);
   }
   return out;
 }

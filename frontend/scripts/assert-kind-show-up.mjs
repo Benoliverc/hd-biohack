@@ -13,7 +13,15 @@ function read(rel) {
 }
 
 const mod = await import("../src/lib/protocolCompletions.ts");
-const { computeMoveShowUpWeek, weekDayKeysInZone, DEFAULT_PROTOCOLS_TZ } = mod;
+const {
+  computeMoveShowUpWeek,
+  weekDayKeysInZone,
+  DEFAULT_PROTOCOLS_TZ,
+  isLifestyleMoveItemId,
+  dayHasDoneLifestyleMove,
+  loadMoveCompletedDaysInWeek,
+  readShowUpDayMemory,
+} = mod;
 
 const week = [
   "2026-11-02",
@@ -63,45 +71,194 @@ const filledToday = computeMoveShowUpWeek({
 });
 assert.equal(filledToday.days[4].status, "filled");
 
+// Shared any-today-move:* predicate (single definition in protocolCompletions)
+assert.equal(isLifestyleMoveItemId("today-move"), true);
+assert.equal(isLifestyleMoveItemId("today-move:surplus"), true);
+assert.equal(isLifestyleMoveItemId("today-move:quiet_sky"), true);
+assert.equal(isLifestyleMoveItemId("today-kit:mag"), false);
+assert.equal(isLifestyleMoveItemId("today-evening-close"), false);
+assert.equal(isLifestyleMoveItemId("baseline"), false);
+assert.equal(isLifestyleMoveItemId("morning"), false);
+
+assert.equal(
+  dayHasDoneLifestyleMove({
+    "today-move:surplus": { done: true, label: "Surplus day", kind: "move" },
+  }),
+  true,
+);
+assert.equal(
+  dayHasDoneLifestyleMove({
+    "today-move:quiet_sky": { done: false, label: "Quiet sky", kind: "move" },
+  }),
+  false,
+  "done=false seed does not count",
+);
+assert.equal(
+  dayHasDoneLifestyleMove({
+    "today-kit:mag": { done: true, label: "Mag", kind: "kit" },
+    "today-evening-close": { done: true, label: "Evening", kind: "evening" },
+  }),
+  false,
+  "kit and evening do not count as Move",
+);
+
+// Pure any-today-move:* rule: different done ids on earlier days fill; seeds/kit/evening do not
+const mapsByDay = {
+  "2026-11-02": {
+    "today-move:surplus": { done: true, label: "Surplus Monday", kind: "move" },
+  },
+  "2026-11-03": {
+    "today-move:quiet_sky": { done: false, label: "Offered seed", kind: "move" },
+  },
+  "2026-11-04": {
+    "today-move:focus": { done: true, label: "Focus Wednesday", kind: "move" },
+    "today-kit:mag": { done: true, label: "Mag", kind: "kit" },
+  },
+  "2026-11-05": {
+    "today-evening-close": { done: true, label: "Yes", kind: "evening" },
+  },
+  "2026-11-06": {
+    "today-move:bridge": { done: false, label: "Today offered", kind: "move" },
+  },
+};
+const filledFromAnyRule = new Set(
+  week.filter((day) => dayHasDoneLifestyleMove(mapsByDay[day] || {})),
+);
+assert.ok(filledFromAnyRule.has("2026-11-02"), "Mon surplus fills under a different today id");
+assert.ok(filledFromAnyRule.has("2026-11-04"), "Wed focus fills under a different today id");
+assert.ok(!filledFromAnyRule.has("2026-11-03"), "done=false seed does not fill");
+assert.ok(!filledFromAnyRule.has("2026-11-05"), "evening-only day does not fill");
+assert.ok(!filledFromAnyRule.has("2026-11-06"), "today done=false does not fill");
+const painted = computeMoveShowUpWeek({
+  weekKeys: week,
+  todayKey: "2026-11-06",
+  completedMoveDays: filledFromAnyRule,
+  allowGrace: true,
+});
+assert.equal(painted.days[0].status, "filled");
+assert.equal(painted.days[2].status, "filled");
+assert.equal(typeof loadMoveCompletedDaysInWeek, "function");
+
+const memoryFilled = readShowUpDayMemory({
+  "today-move:zulu": { done: true, label: "Zulu move", kind: "move" },
+  "today-move:alpha": { done: true, label: "Alpha move", kind: "move" },
+  "today-evening-close": { done: true, label: "Generator|yes", kind: "evening" },
+  "today-kit:mag": { done: true, label: "Mag", kind: "kit" },
+});
+assert.equal(memoryFilled.moveLabel, "Alpha move", "stable item_id order picks first Move");
+assert.equal(memoryFilled.eveningNoted, true);
+assert.doesNotMatch(memoryFilled.moveLabel || "", /Generator\|yes/);
+
+const memoryMiss = readShowUpDayMemory({
+  "today-move:quiet": { done: false, label: "Quiet", kind: "move" },
+});
+assert.equal(memoryMiss.moveLabel, null);
+assert.equal(memoryMiss.eveningNoted, false);
+
 const todayInd = read("src/components/TodayIndication.tsx");
+const completionsSrc = read("src/lib/protocolCompletions.ts");
+const historySrc = read("src/lib/earlierWeeksHistory.ts");
+
 assert.match(todayInd, /data-testid="today-show-up"/);
 assert.match(todayInd, /data-testid="today-show-up-dots"/);
 assert.match(todayInd, /data-testid="today-show-up-kind"/);
 assert.match(todayInd, /computeMoveShowUpWeek/);
 assert.match(todayInd, /loadMoveCompletedDaysInWeek/);
 assert.match(todayInd, /weekDayKeysInZone/);
+assert.match(todayInd, /readShowUpDayMemory/);
 
 const moveIdx = todayInd.indexOf('data-testid="main-action"');
 const showIdx = todayInd.indexOf('data-testid="today-show-up"');
-const headerish = todayInd.indexOf("slim header");
 assert.ok(showIdx > moveIdx, "show-up under Move hero");
 
-// Count only move id — not kit
+// Live Move tick still uses today's move_item_id; Show-up loader does not take moveItemId
 assert.match(todayInd, /move_item_id \|\| "today-move"/);
+const showCallStart = todayInd.indexOf("loadMoveCompletedDaysInWeek({");
+assert.ok(showCallStart > 0, "loader call exists");
+const showCall = todayInd.slice(showCallStart, showCallStart + 280);
+assert.doesNotMatch(showCall, /moveItemId/);
+assert.doesNotMatch(showCall, /move_item_id/);
+assert.match(completionsSrc, /dayHasDoneLifestyleMove\(map\)/);
 assert.doesNotMatch(
-  todayInd.slice(showIdx, showIdx + 800),
+  completionsSrc.slice(
+    completionsSrc.indexOf("export function loadMoveCompletedDaysInWeek"),
+    completionsSrc.indexOf("export function loadMoveCompletedDaysInWeek") + 500,
+  ),
+  /moveItemId/,
+);
+
+assert.doesNotMatch(
+  todayInd.slice(showIdx, showIdx + 2200),
   /kitId|today-kit/
 );
 
-// Missed styling must not use warning/danger tokens (dotClass lives just above the testid)
-const showBlock = todayInd.slice(Math.max(0, showIdx - 900), showIdx + 1800);
+// Missed styling must not use warning/danger tokens
+const showBlock = todayInd.slice(Math.max(0, showIdx - 1200), showIdx + 4200);
 assert.doesNotMatch(showBlock, /--danger|text-danger|bg-danger|border-danger|text-red-|bg-red-|border-red-/);
 assert.match(showBlock, /bg-fg-muted\/30/);
 assert.match(todayInd, /data-status=\{d\.status\}/);
-assert.match(read("src/lib/protocolCompletions.ts"), /status: "missed"/);
+assert.match(completionsSrc, /status: "missed"/);
 
 // Kind copy after miss; no streak shame
 assert.match(todayInd, /today\.showUpStill/);
 assert.doesNotMatch(todayInd, /broke your streak|freeze-out|fire/i);
 assert.doesNotMatch(todayInd, /streakCount|streak-count|numeric streak/i);
 
+// Memory disclosure UI
+assert.match(todayInd, /data-testid=\{`today-show-up-open-\$\{d\.day\}`\}/);
+assert.match(todayInd, /data-testid="today-show-up-memory"/);
+assert.match(todayInd, /data-testid="today-show-up-memory-move"/);
+assert.match(todayInd, /data-testid="today-show-up-memory-evening"/);
+assert.match(todayInd, /data-testid="today-show-up-memory-close"/);
+assert.match(todayInd, /min-h-11 min-w-11/);
+assert.match(todayInd, /aria-expanded=\{expanded\}/);
+assert.match(todayInd, /aria-controls="today-show-up-memory"/);
+assert.match(todayInd, /literacy\.chrome\.close/);
+assert.match(todayInd, /today\.showUpMemory\.eveningNoted/);
+// Today / future are not disclosure openers — open buttons only on past days
+assert.match(todayInd, /isPastShowUpDay/);
+assert.match(todayInd, /day < dayKey/);
+assert.doesNotMatch(todayInd, /today-show-up-open-\$\{dayKey\}/);
+
+// history link under Show-up, 44px target
+assert.match(todayInd, /data-testid="today-history-link"/);
+const linkIdx = todayInd.indexOf('data-testid="today-history-link"');
+assert.ok(linkIdx > showIdx, "history link after show-up");
+const linkSlice = todayInd.slice(linkIdx - 180, linkIdx + 220);
+assert.match(linkSlice, /min-h-11/);
+
 // Move remains tappable regardless of week
 assert.match(todayInd, /data-testid="today-move-done"/);
+
+// Single shared predicate — hoisted + re-exported
+assert.match(completionsSrc, /export function isLifestyleMoveItemId/);
+assert.match(historySrc, /export \{ isLifestyleMoveItemId \}/);
+assert.match(historySrc, /isLifestyleMoveItemId\(id\)/);
+assert.doesNotMatch(
+  historySrc,
+  /function isLifestyleMoveItemId/,
+  "history must not keep a forked predicate body",
+);
 
 const en = read("src/lib/i18n/messages/en.ts");
 assert.match(en, /today\.showUpLabel/);
 assert.match(en, /Still showing up/);
+assert.match(en, /Evening close: noted\./);
 assert.doesNotMatch(en, /broke your streak/i);
+const locales = ["en", "de", "es", "fr", "nl"].map((id) => ({
+  id,
+  src: read(`src/lib/i18n/messages/${id}.ts`),
+}));
+for (const loc of locales) {
+  assert.match(loc.src, /today\.showUpMemory\.eveningNoted/);
+}
+const enEvening = en.match(/today\.showUpMemory\.eveningNoted': '([^']+)'/)?.[1];
+assert.equal(enEvening, "Evening close: noted.");
+for (const loc of locales.filter((l) => l.id !== "en")) {
+  const m = loc.src.match(/today\.showUpMemory\.eveningNoted': '([^']+)'/);
+  assert.ok(m, `${loc.id} has eveningNoted`);
+  assert.notEqual(m[1], "Evening close: noted.", `${loc.id} is not an English copy`);
+}
 
 // Preferred TZ week keys (not novelty HKT retarget)
 const ny = weekDayKeysInZone("America/New_York", new Date("2026-11-06T04:00:00.000Z"));
