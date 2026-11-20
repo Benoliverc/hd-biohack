@@ -398,6 +398,115 @@ def _tag_inventory(items: list[dict], owned: set[str]) -> list[dict]:
     return _prioritize_inventory(out, owned)
 
 
+
+_DAYPART_MORNING = ("morning", "breakfast", "with breakfast", "am ", " wake")
+_DAYPART_MIDDAY = ("midday", "afternoon", "lunch", "noon")
+_DAYPART_EVENING = ("evening", "nightly", "night", "before bed", "wind-down", "wind down", "bedtime")
+
+
+def _natal_rec_implied_slot(text: str) -> str | None:
+    """Best-effort daypart from a natal rec name/note; None if none named."""
+    raw = f' {str(text or "").lower()} '
+    if any(w in raw for w in _DAYPART_EVENING):
+        return "evening"
+    if any(w in raw for w in _DAYPART_MIDDAY):
+        return "midday"
+    if any(w in raw for w in _DAYPART_MORNING):
+        return "morning"
+    return None
+
+
+def _kit_supplement_tokens(kit_item: dict[str, Any]) -> set[str]:
+    """Tokens that identify the kit supplement in natal rec copy."""
+    bits: list[str] = []
+    for key in ("name", "matched_as", "kit_supplement_id"):
+        val = str(kit_item.get(key) or "").strip()
+        if val:
+            bits.append(val)
+    blob = " ".join(bits).lower().replace("_", " ").replace("-", " ")
+    stop = {
+        "with", "food", "if", "your", "label", "allows", "the", "and", "plus",
+        "a", "an", "to", "for", "of", "per", "mg", "iu",
+    }
+    tokens = {t for t in blob.split() if len(t) >= 3 and t not in stop}
+    # Keep compound heads like magnesium / theanine even when display is long.
+    return tokens
+
+
+def _soften_daypart_words(text: str) -> str:
+    """Strip clock-time words from natal copy so it does not fight Today's When."""
+    import re
+
+    out = str(text or "")
+    # Multi-word phrases first
+    out = re.sub(
+        r"(?i)\b(60[–-]90\s*min\s*before\s*bed|before\s*bed|wind-down|wind\s*down|"
+        r"with\s*breakfast|at\s*breakfast)\b",
+        "",
+        out,
+    )
+    out = re.sub(
+        r"(?i)\b(morning|breakfast|midday|afternoon|evening|nightly|nighttime|night|bedtime)\b",
+        "",
+        out,
+    )
+    out = re.sub(r"\s{2,}", " ", out)
+    out = re.sub(r"\s+([,;:.])", r"\1", out)
+    out = re.sub(r"\s*\+\s*", " + ", out)
+    out = re.sub(r"^\s*\+\s*|\s*\+\s*$", "", out)
+    return out.strip(" -·|/") or str(text or "").strip()
+
+
+def _soften_natal_baseline_for_kit_pick(
+    baseline: dict[str, Any],
+    kit_item: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Drop conflicting clock wording on natal rows that name today's kit supplement.
+
+    Natal stays visible; only same-supplement daypart contradictions are softened
+    for that day so Protocols does not advertise two times for one compound.
+    """
+    if not isinstance(baseline, dict) or not isinstance(kit_item, dict):
+        return baseline
+    kit_when = kit_item.get("when")
+    if kit_when not in ("morning", "midday", "evening"):
+        return baseline
+    tokens = _kit_supplement_tokens(kit_item)
+    if not tokens:
+        return baseline
+
+    def overlaps(name: str) -> bool:
+        blob = str(name or "").lower().replace("_", " ").replace("-", " ")
+        return any(tok in blob for tok in tokens)
+
+    out = dict(baseline)
+    for bucket in ("emphasize", "increase", "decrease_or_pause"):
+        rows = out.get(bucket)
+        if not isinstance(rows, list):
+            continue
+        softened: list[dict] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                softened.append(row)
+                continue
+            name = str(row.get("name") or "")
+            note = str(row.get("note") or "")
+            if not overlaps(name):
+                softened.append(row)
+                continue
+            implied = _natal_rec_implied_slot(f"{name} {note}")
+            if implied is None or implied == kit_when:
+                softened.append(row)
+                continue
+            new_row = dict(row)
+            new_row["name"] = _soften_daypart_words(name) or name
+            if note:
+                new_row["note"] = _soften_daypart_words(note) or note
+            softened.append(new_row)
+        out[bucket] = softened
+    return out
+
+
 def build_natal_baseline(
     natal: dict[str, Any],
     inventory_names: list[str] | None = None,
@@ -1327,6 +1436,11 @@ def build_protocol(
 
     if indication is None:
         indication = derive_today_indication(natal, transit or {}, overlay, tz_name=tz_name)
+
+    kit_for_natal = None
+    if isinstance(indication, dict) and isinstance(indication.get("kit_item"), dict):
+        kit_for_natal = indication.get("kit_item")
+    natal_baseline = _soften_natal_baseline_for_kit_pick(natal_baseline, kit_for_natal)
 
     from ..checkin.novelty import hkt_today
     from .kit_variety import empty_kit_fact_cta, pick_kit_fact

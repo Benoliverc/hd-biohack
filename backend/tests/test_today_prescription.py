@@ -561,3 +561,90 @@ def test_live_kit_item_exposes_why_and_when():
     else:
         assert item["when"] is None
     print("PASS: live kit_item exposes why/when from pick_kit_for_moment")
+
+
+def test_glycinate_midday_steady_prefers_evening_over_breakfast():
+    """Day 2 pin (d): midday + Steady must not pick magnesium_glycinate_a4 over evening."""
+    hit = pick_kit_for_moment(
+        moment="emotional_wave",
+        when="midday",
+        owned_names=["Magnesium Glycinate"],
+        inventory_notes={"Magnesium Glycinate": "200 mg"},
+        energy_label="Steady",
+        preferred_space="focus",
+        focus_centers=["Solar_Plexus"],
+        day_key="2026-11-20-day2-top",
+    )
+    assert hit is not None
+    assert hit.get("kit_action_id") != "magnesium_glycinate_a4"
+    assert hit.get("when") == "evening"
+    assert "breakfast" not in str(hit.get("when") or "").lower()
+    # bank when text should be evening-primary
+    raw_when = str(hit.get("moment_chip") or "")
+    assert hit.get("kit_action_id") in (
+        "magnesium_glycinate_a1",
+        "magnesium_glycinate_a2",
+        "magnesium_glycinate_a3",
+    )
+    print("PASS: midday+Steady prefers evening Glycinate over breakfast a4")
+
+
+def test_glycinate_low_may_still_pick_breakfast_when_best():
+    """Low/Drained breakfast exception may still win when it is the best fit."""
+    hit = pick_kit_for_moment(
+        moment="emotional_wave",
+        when="midday",
+        owned_names=["Magnesium Glycinate"],
+        inventory_notes={},
+        energy_label="Drained",
+        preferred_space="focus",
+        focus_centers=["Solar_Plexus"],
+        day_key="2026-11-20-day2-drained",
+    )
+    assert hit is not None
+    # Drained: a4 morning scores higher than evening actions
+    assert hit.get("kit_action_id") == "magnesium_glycinate_a4"
+    assert hit.get("when") == "morning"
+    print("PASS: Drained may still pick breakfast Glycinate when best fit")
+
+
+def test_natal_softens_evening_magnesium_when_kit_is_morning():
+    """Same-page Natal must not keep an evening clock for Magnesium if kit When is morning."""
+    from app.biohack.rules import (
+        build_natal_baseline,
+        _soften_natal_baseline_for_kit_pick,
+    )
+
+    natal = {
+        "type": "Generator",
+        "defined_centers": ["Sacral", "Root"],
+        "undefined_centers": [
+            "Head",
+            "Ajna",
+            "Throat",
+            "G",
+            "Heart",
+            "Solar_Plexus",
+            "Spleen",
+        ],
+    }
+    baseline = build_natal_baseline(natal, ["Magnesium Glycinate", "L-Theanine"])
+    names_before = [r["name"] for r in baseline["emphasize"]]
+    assert any("Magnesium evening" in n for n in names_before)
+
+    softened = _soften_natal_baseline_for_kit_pick(
+        baseline,
+        {
+            "name": "Magnesium Glycinate with food if your label allows",
+            "when": "morning",
+            "kit_supplement_id": "magnesium_glycinate",
+        },
+    )
+    mag_rows = [
+        r for r in softened["emphasize"] if "magnesium" in r["name"].lower()
+    ]
+    assert mag_rows, "Magnesium natal row should remain (softened, not dropped)"
+    for r in mag_rows:
+        assert "evening" not in r["name"].lower()
+        assert "nightly" not in (r.get("note") or "").lower()
+    print("PASS: Natal Magnesium evening softened when kit When is morning")

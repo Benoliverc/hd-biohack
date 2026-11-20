@@ -890,7 +890,7 @@ export default function BiohackPage() {
           dontList={(daily.dont as string[]) || []}
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
-          showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0}
+          showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0 && !todayKitPick}
           rotatedSlot={whatsNew?.rotated_slot || null}
           todayKitPick={todayKitPick}
           highlightTodayKitPick={highlightTodayKitPick}

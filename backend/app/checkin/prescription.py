@@ -321,9 +321,9 @@ def pick_kit_for_moment(
 ) -> dict[str, Any] | None:
     """One owned-kit item tagged to today's moment. Never invents a dose.
 
-    Tries the Move's when-slot first; if the bank has no owned action for that
-    slot, tries morning → evening → midday (skipping the Move slot already tried)
-    so a one-item Magnesium kit can still land for a midday emotional_wave Move.
+    Scores bank actions across the Move slot and other dayparts, then picks the
+    best-fitting action — not the first hit in a morning-first fallback list.
+    A weak morning exception must not beat a stronger evening-primary action.
     """
     if not owned_names:
         return None
@@ -336,9 +336,12 @@ def pick_kit_for_moment(
         if fallback != when and fallback not in slot_order:
             slot_order.append(fallback)  # type: ignore[arg-type]
 
-    hit = None
+    # Tie-break: Move slot first, then evening-primary banks over midday/morning.
+    slot_rank = {when: 4, "evening": 3, "midday": 2, "morning": 1}
+
+    candidates: list[tuple[int, int, WhenSlot, dict[str, Any]]] = []
     for slot in slot_order:
-        hit = pick_kit_lead(
+        hit_slot = pick_kit_lead(
             owned_names,
             slot=slot,
             energy_label=energy_label or "Steady",
@@ -348,10 +351,18 @@ def pick_kit_for_moment(
             day_key=f"{day_key}|today",
             avoid_supplement_ids=avoid_supplement_ids,
         )
-        if hit:
-            break
-    if not hit:
+        if not hit_slot:
+            continue
+        score = int(hit_slot.get("moment_score") or 0)
+        candidates.append((score, int(slot_rank.get(slot, 0)), slot, hit_slot))
+
+    if not candidates:
         return None
+
+    # Prefer any positive moment fit across slots over zero-score slot-legal leftovers.
+    scored = [c for c in candidates if c[0] > 0]
+    pool = scored if scored else candidates
+    _score, _rank, _slot, hit = max(pool, key=lambda c: (c[0], c[1]))
     matched = str(hit.get("matched_as") or hit.get("item") or "")
     notes_map = {k.lower(): v for k, v in (inventory_notes or {}).items()}
     dose = ""
