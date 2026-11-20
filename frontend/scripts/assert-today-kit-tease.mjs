@@ -97,8 +97,9 @@ const heroStart = todayInd.indexOf('data-testid="main-action"');
 const heroEnd = todayInd.indexOf('data-testid="main-action-status"');
 assert.ok(heroStart > 0 && showIdx > heroStart && showIdx < heroEnd, "Show-up inside main-action");
 assert.ok(setupIdx > showIdx && kitLineIdx > showIdx, "kit block after Show-up");
-assert.ok(whenIdx > setupIdx && whyIdx > setupIdx, "kit block before When / Why");
-assert.ok(kitLineIdx < heroEnd && setupIdx < heroEnd, "kit block stays inside main-action");
+assert.ok(whenIdx > kitLineIdx && whyIdx > kitLineIdx, "filled kit line before When / Why");
+assert.ok(kitLineIdx < heroEnd, "filled kit line stays inside main-action");
+assert.ok(setupIdx > whyIdx && setupIdx > whenIdx, "empty starter setup sits after When / Why");
 
 // --- Protocols hosts today-kit row above the trio, not in checkItems / flash ---
 assert.match(moveCard, /data-testid="protocol-today-kit-pick"/);

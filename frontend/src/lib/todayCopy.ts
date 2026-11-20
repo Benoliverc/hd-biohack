@@ -54,9 +54,20 @@ export function localizeMove(indication: TodayIndicationPayload, t: TFn): string
   return resolveKey(t, key, indication.main_action_params, indication.main_action_text);
 }
 
+/** Collapse "acceleration.. Notice" / ". ." produced when a perioded {battery} is re-terminated. */
+export function collapseDuplicateSentencePunctuation(text: string): string {
+  return String(text || "")
+    .replace(/[.]{2,}/g, ".")
+    .replace(/([.!?])\s+[.]/g, "$1 ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export function localizeWhy(indication: TodayIndicationPayload, t: TFn): string {
   const parts = indication.main_action_why_parts;
-  if (!parts?.length) return indication.main_action_why;
+  if (!parts?.length) {
+    return collapseDuplicateSentencePunctuation(indication.main_action_why || "");
+  }
   const sentences = parts
     .map((part) => {
       if (!isMessageKey(part.key)) return "";
@@ -67,7 +78,8 @@ export function localizeWhy(indication: TodayIndicationPayload, t: TFn): string 
       return t(part.key, params);
     })
     .filter(Boolean);
-  return sentences.length ? sentences.join(" ") : indication.main_action_why;
+  const joined = sentences.length ? sentences.join(" ") : indication.main_action_why;
+  return collapseDuplicateSentencePunctuation(joined || "");
 }
 
 export function localizeMicro(indication: TodayIndicationPayload, t: TFn): string {

@@ -38,7 +38,7 @@ assert.doesNotMatch(move, /protocols-move-achieved|protocol-move-achieved|todays
 // "Today's move complete — nice work" still appears when complete
 assert.match(move, /data-testid="protocol-move-complete"/);
 assert.match(move, /protocols\.moveComplete/);
-assert.match(move, /\(completeFlash \|\| moveComplete\) && items\.length > 0/);
+assert.match(move, /\(completeFlash \|\| moveComplete \|\| todayMoveLogged\) && items\.length > 0/);
 
 // Reuse the existing CSS class; do not duplicate it
 const washMatches = globals.match(/\.today-move-achieved\s*\{/g) || [];

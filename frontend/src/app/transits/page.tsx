@@ -26,7 +26,8 @@ import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadCont
 import { youChipLabel } from "@/lib/youChipLabel";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { localizeMove } from "@/lib/todayCopy";
-import { authorityFromChart, graphFromChart, typeFromChart } from "@/lib/share/graphFromChart";
+import { authorityFromChart, graphFromChart, strategyFromChart, typeFromChart } from "@/lib/share/graphFromChart";
+import { formatPlanetLabel } from "@/lib/vsYesterdayDisplay";
 
 function isSelfRow(row: { slot_kind?: string }): boolean {
   return row.slot_kind !== "friend";
@@ -393,6 +394,7 @@ export default function TransitsPage() {
           createdAt={user?.created_at ?? null}
           natalType={typeFromChart(youChartPayload)}
           natalAuthority={authorityFromChart(youChartPayload)}
+          natalStrategy={strategyFromChart(youChartPayload)}
           timeUnknown={youChart.time_unknown === true}
           protocolsUnlocked={biohackingUnlocked}
           inventoryStatus={inventoryStatus}
@@ -548,7 +550,7 @@ export default function TransitsPage() {
                   )}
                   {activations.map((r) => (
                     <tr key={String(r.planet)} className="border-t border-border">
-                      <td className="px-4 py-1.5 text-fg">{String(r.planet)}</td>
+                      <td className="px-4 py-1.5 text-fg">{formatPlanetLabel(String(r.planet))}</td>
                       <td className="px-4 py-1.5 text-energy-ink">
                         {formatGateLine(
                           (r.gate as number | undefined) ?? String(r.label ?? ""),
