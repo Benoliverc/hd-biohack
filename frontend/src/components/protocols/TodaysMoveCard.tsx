@@ -35,6 +35,7 @@ export function TodaysMoveCard({
   baselineKitOpen,
   onToggleBaseline,
   showNoKitFootnote,
+  showUsualApplies,
   rotatedSlot,
   todayKitPick,
   highlightTodayKitPick = false,
@@ -54,6 +55,8 @@ export function TodaysMoveCard({
   baselineKitOpen: boolean;
   onToggleBaseline: () => void;
   showNoKitFootnote?: boolean;
+  /** Quiet line when usual covers the day and no ad-hoc kit pick. */
+  showUsualApplies?: boolean;
   /** Slot id that rotated vs yesterday — badge only, no essay. */
   rotatedSlot?: string | null;
   /** Today's kit pick — distinct row above the trio, not in checkItems / flash. */
@@ -311,11 +314,15 @@ export function TodaysMoveCard({
           );
         })}
       </ul>
-      {showNoKitFootnote && (
+      {showUsualApplies ? (
+        <p className="type-caption text-fg-secondary" data-testid="usual-applies-footnote">
+          {t("protocols.usualStillApplies")}
+        </p>
+      ) : showNoKitFootnote ? (
         <p className="type-caption text-fg-secondary" data-testid="no-kit-match-footnote">
           {t("protocols.noKitMatch")}
         </p>
-      )}
+      ) : null}
 
       {(doList.length > 0 || dontList.length > 0) && (
         <div className="grid gap-3 sm:grid-cols-2">

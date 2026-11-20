@@ -97,6 +97,10 @@ class SupplementInventory(Base):
     name: Mapped[str] = mapped_column(String(255))
     notes: Mapped[str] = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Your usual: personal cadence fact (most days). Never auto-filled from Natal.
+    is_usual: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Optional daypart when they set one: morning | midday | evening.
+    usual_when: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="inventory")
 

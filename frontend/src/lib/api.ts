@@ -296,6 +296,24 @@ export type TodayKitItem = {
   when?: "morning" | "midday" | "evening" | null;
 };
 
+export type UsualWhenSlot = "morning" | "midday" | "evening";
+
+export type UsualDelta = {
+  kind: "ease" | "time_shift";
+  name: string;
+  text?: string;
+  from_when?: UsualWhenSlot;
+  to_when?: UsualWhenSlot;
+};
+
+export type InventoryItem = {
+  id: number;
+  name: string;
+  notes: string;
+  is_usual?: boolean;
+  usual_when?: UsualWhenSlot | null;
+};
+
 export type TodayMomentNoun = "calm" | "focus" | "recovery";
 export type TodayWhenSlot = "morning" | "midday" | "evening";
 
@@ -331,6 +349,9 @@ export type TodayIndicationPayload = {
   move_item_id?: string | null;
   kit_placeholder?: boolean;
   kit_item?: TodayKitItem | null;
+  /** True when a usual list exists and no ad-hoc kit pick matched. */
+  kit_usual_applies?: boolean;
+  usual_delta?: UsualDelta | null;
 };
 
 export type TransitResponse = {
@@ -847,11 +868,26 @@ export const api = {
       }),
     }),
   inventory: (userId: number) =>
-    req<Array<{ id: number; name: string; notes: string }>>(`/inventory/${userId}`),
+    req<InventoryItem[]>(`/inventory/${userId}`),
   addInventory: (userId: number, name: string) =>
-    req<{ id: number; name: string; active: boolean; duplicate?: boolean }>("/inventory", {
+    req<{
+      id: number;
+      name: string;
+      active: boolean;
+      is_usual?: boolean;
+      usual_when?: UsualWhenSlot | null;
+      duplicate?: boolean;
+    }>("/inventory", {
       method: "POST",
       body: JSON.stringify({ user_id: userId, name }),
+    }),
+  patchInventory: (
+    itemId: number,
+    body: { is_usual?: boolean; usual_when?: UsualWhenSlot | "" | null },
+  ) =>
+    req<InventoryItem>(`/inventory/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
     }),
   removeInventory: (userId: number, itemId: number) =>
     req<{ ok: boolean; id: number }>(`/inventory/${itemId}?user_id=${userId}`, {

@@ -803,6 +803,7 @@ export default function TodayIndication({
               (() => {
                 const kit = indication.kit_item;
                 return (
+                  <>
                   <Link
                     href="/biohack#stack"
                     className="mt-3 flex min-h-11 items-start rounded-lg border border-border bg-elevated/80 px-3 py-2 text-fg transition hover:border-growth/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
@@ -826,6 +827,23 @@ export default function TodayIndication({
                       ) : null}
                     </div>
                   </Link>
+                  {indication.usual_delta?.kind === "ease" ? (
+                    <p className="mt-1.5 type-caption text-fg-secondary" data-testid="today-usual-ease">
+                      {t("today.usualEase", { name: indication.usual_delta.name })}
+                    </p>
+                  ) : null}
+                  {indication.usual_delta?.kind === "time_shift" &&
+                  indication.usual_delta.from_when &&
+                  indication.usual_delta.to_when ? (
+                    <p className="mt-1.5 type-caption text-fg-secondary" data-testid="today-usual-time-shift">
+                      {t("today.usualTimeShift", {
+                        name: indication.usual_delta.name,
+                        from: whenLabel(indication.usual_delta.from_when, t),
+                        to: whenLabel(indication.usual_delta.to_when, t),
+                      })}
+                    </p>
+                  ) : null}
+                  </>
                 );
               })()
             ) : !protocolsUnlocked ? (
@@ -930,6 +948,30 @@ export default function TodayIndication({
                 >
                   {t("today.kitSetupSkip")}
                 </button>
+              </div>
+            ) : indication.kit_usual_applies ? (
+              <div
+                className="mt-3 rounded-lg border border-border/70 bg-elevated/60 px-3 py-2"
+                data-testid="today-usual-applies"
+              >
+                <p className="type-chip uppercase tracking-wide text-fg">{t("usual.title")}</p>
+                <p className="mt-1 type-body text-fg">{t("today.usualStillApplies")}</p>
+                {indication.usual_delta?.kind === "ease" ? (
+                  <p className="mt-1 type-caption text-fg-secondary" data-testid="today-usual-ease">
+                    {t("today.usualEase", { name: indication.usual_delta.name })}
+                  </p>
+                ) : null}
+                {indication.usual_delta?.kind === "time_shift" &&
+                indication.usual_delta.from_when &&
+                indication.usual_delta.to_when ? (
+                  <p className="mt-1 type-caption text-fg-secondary" data-testid="today-usual-time-shift">
+                    {t("today.usualTimeShift", {
+                      name: indication.usual_delta.name,
+                      from: whenLabel(indication.usual_delta.from_when, t),
+                      to: whenLabel(indication.usual_delta.to_when, t),
+                    })}
+                  </p>
+                ) : null}
               </div>
             ) : (
               <div
