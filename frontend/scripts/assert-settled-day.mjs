@@ -28,11 +28,12 @@ assert.ok(skyIdx > 0, "today-sky-block present");
 assert.ok(kitPlaceholderIdx > 0, "kit placeholder present");
 assert.ok(kitLineIdx > 0, "kit line present");
 
-// Placement: Close after main-action + kit, before sky
+// Placement: Close after main-action + filled kit line, before sky.
+// Empty starter/placeholder sits after Evening close (not between the log and the next action).
 assert.ok(eveningIdx > moveIdx, "evening after main-action");
 assert.ok(eveningIdx > moveDoneIdx, "evening after move-done");
-assert.ok(eveningIdx > kitPlaceholderIdx, "evening after kit placeholder");
 assert.ok(eveningIdx > kitLineIdx, "evening after kit line");
+assert.ok(kitPlaceholderIdx > eveningIdx, "empty kit placeholder after evening close");
 assert.ok(skyIdx > eveningIdx, "evening before sky block");
 
 // Achieved wash on main-action driven by moveDone

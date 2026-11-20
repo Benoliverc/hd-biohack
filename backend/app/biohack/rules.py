@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from app.checkin.rules import _authority_why_class
+
 
 # Center → transit-weighted stack suggestions (generic informational mapping)
 CENTER_STACKS: dict[str, dict[str, list[dict] | str]] = {
@@ -1259,7 +1261,14 @@ def _build_actionable_plans(
         f"decide with Authority ({authority_cue})."
     )
     if hd_type in ("Generator", "Manifesting Generator"):
-        do.append("Only start work that gets a clear Sacral yes (sounds/body response).")
+        auth_class = _authority_why_class(authority or None)
+        if auth_class == "emotional":
+            do.append("Only start work that gets a clear yes after the feelings have moved.")
+        elif auth_class == "other":
+            do.append("Only start work that gets a clear yes.")
+        else:
+            # Sacral or missing authority keeps the Sacral-yes line.
+            do.append("Only start work that gets a clear Sacral yes (sounds/body response).")
         dont.append("Initiate from FOMO or a mental to-do list before something responds.")
     elif hd_type == "Projector":
         do.append("Protect sleep and wait for recognition before giving heavy advice.")

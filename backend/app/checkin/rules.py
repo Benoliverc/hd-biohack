@@ -88,11 +88,11 @@ TYPE_SLUG = {
 # Other known authorities: type-only lines that name neither Sacral nor Emotional.
 TYPE_BATTERY_EMOTIONAL: dict[str, str] = {
     "Generator": "Your battery fills when a yes is clear after the feelings have moved — not when you push.",
-    "Manifesting Generator": "Your battery needs a yes clear after the feelings have moved — then inform — not constant acceleration.",
+    "Manifesting Generator": "Your battery needs a clear yes after the feelings have moved — then inform — not constant acceleration.",
 }
 TYPE_RECOVER_WHY_EMOTIONAL: dict[str, str] = {
     "Generator": "Protect rest — only respond when a yes is clear after the feelings have moved; skip forced starts.",
-    "Manifesting Generator": "Downshift: one yes clear after feelings moved, inform, then rest between bursts.",
+    "Manifesting Generator": "Downshift: one clear yes after the feelings have moved, inform, then rest between bursts.",
 }
 TYPE_SURPLUS_WHY_EMOTIONAL: dict[str, str] = {
     "Generator": "Use surplus to respond to one clear yes after the feelings have moved — not a longer to-do list.",

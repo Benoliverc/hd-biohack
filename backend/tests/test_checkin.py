@@ -1050,6 +1050,23 @@ def test_emotional_mg_why_this_no_sacral_yes():
     print("PASS: Emotional MG Why this has no Sacral yes")
 
 
+def test_emotional_mg_why_grammar_and_single_period():
+    """Maya Why this: 'a clear yes…', never 'a yes clear', no double period before Notice."""
+    natal = _natal(
+        type="Manifesting Generator",
+        strategy="To Respond then inform",
+        authority="Emotional (Solar Plexus)",
+        defined_centers=["Sacral", "Solar_Plexus", "Throat", "G"],
+        undefined_centers=["Head", "Ajna", "Heart", "Root", "Spleen"],
+    )
+    for energy in (1, 4, 5):
+        action = compute_main_action(energy, "focus", natal=natal)
+        assert "a yes clear" not in action.why, action.why
+        assert "a clear yes after the feelings have moved" in action.why, action.why
+        assert ".." not in action.why, action.why
+    print("PASS: Emotional MG Why this grammar and single periods")
+
+
 def test_missing_authority_keeps_type_only_why():
     natal = _natal(type="Manifesting Generator", strategy="To Respond then inform")
     # no authority key
@@ -1107,5 +1124,6 @@ if __name__ == "__main__":
     test_daily_signal_continuity_day_on_signal()
     test_first_filled_not_inferred_from_ephemeris()
     test_emotional_mg_why_this_no_sacral_yes()
+    test_emotional_mg_why_grammar_and_single_period()
     test_missing_authority_keeps_type_only_why()
     print("ALL indication unit tests passed")

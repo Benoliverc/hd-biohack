@@ -238,9 +238,14 @@ export function hourInZone(timeZone: string, now = new Date()): number | null {
   }
 }
 
+/** Mid-afternoon onward in the device / protocols timezone (14:00 local). */
+export const EVENING_CLOSE_START_HOUR = 14;
+
 /**
- * Show the evening close after 17:00 local (preferred TZ), or when the
- * indication when_slot is already evening. Keep visible if already answered today.
+ * Show the evening close from mid-afternoon (14:00) in the local timezone.
+ * Visibility keys off clock time only — not kit / indication when_slot, and
+ * not Type or Authority. Keep visible if already answered today.
+ * `whenSlot` is accepted for call-site compatibility and ignored.
  */
 export function isEveningCloseVisible(args: {
   timeZone?: string | null;
@@ -249,7 +254,6 @@ export function isEveningCloseVisible(args: {
   alreadyDone?: boolean;
 }): boolean {
   if (args.alreadyDone) return true;
-  if (args.whenSlot === "evening") return true;
   const hour = hourInZone(args.timeZone || DEFAULT_PROTOCOLS_TZ, args.now);
-  return hour != null && hour >= 17;
+  return hour != null && hour >= EVENING_CLOSE_START_HOUR;
 }

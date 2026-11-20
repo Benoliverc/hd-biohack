@@ -170,7 +170,8 @@ const whyIdx = todayInd.indexOf('data-testid="main-action-why-details"');
 assert.ok(showIdx > 0 && setupIdx > showIdx, "setup sits after Show-up");
 assert.ok(placeholderIdx > showIdx, "placeholder sits after Show-up");
 assert.ok(kitLineIdx > showIdx, "kit line sits after Show-up");
-assert.ok(whenIdx > setupIdx && whyIdx > setupIdx, "setup sits before When / Why this");
+assert.ok(whenIdx > 0 && whyIdx > 0 && kitLineIdx < whenIdx && kitLineIdx < whyIdx, "filled kit line sits before When / Why this");
+assert.ok(setupIdx > whyIdx && setupIdx > whenIdx, "empty starter setup sits after When / Why this");
 assert.ok(
   !todayInd.includes("step 1 of 3") && !todayInd.includes("Step 1 of 3"),
   "not a wizard",

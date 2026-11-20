@@ -84,3 +84,12 @@ export function changeLineIsSkyChange(source: string | null | undefined): boolea
   if (!source) return false;
   return SKY_CHANGE_SOURCES.has(source);
 }
+
+/** Planetary gates table: North_Node / South_Node and any leftover underscored tokens. */
+export function formatPlanetLabel(raw: string): string {
+  const s = String(raw || "").trim();
+  if (!s) return s;
+  if (s === "North_Node") return "North Node";
+  if (s === "South_Node") return "South Node";
+  return s.replace(/_/g, " ");
+}

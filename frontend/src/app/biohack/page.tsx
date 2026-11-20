@@ -31,6 +31,7 @@ import {
   type CompletionKind,
   type DayCompletions,
   type WeekCompletedRow,
+  dayHasDoneLifestyleMove,
   dayKeyInZone,
   doneMapFromCompletions,
   formatWeekDayLabel,
@@ -964,6 +965,7 @@ export default function BiohackPage() {
           rotatedSlot={whatsNew?.rotated_slot || null}
           todayKitPick={todayKitPick}
           highlightTodayKitPick={highlightTodayKitPick}
+          todayMoveLogged={dayHasDoneLifestyleMove(completions)}
         />
       )}
 

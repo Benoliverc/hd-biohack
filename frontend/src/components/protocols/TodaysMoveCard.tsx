@@ -39,6 +39,7 @@ export function TodaysMoveCard({
   rotatedSlot,
   todayKitPick,
   highlightTodayKitPick = false,
+  todayMoveLogged = false,
 }: {
   items: CheckItem[];
   baselineItems: CheckItem[];
@@ -62,6 +63,8 @@ export function TodaysMoveCard({
   /** Today's kit pick — distinct row above the trio, not in checkItems / flash. */
   todayKitPick?: CheckItem | null;
   highlightTodayKitPick?: boolean;
+  /** True when Today I-did-it (lifestyle Move) is already logged for this day. */
+  todayMoveLogged?: boolean;
 }) {
   const { t } = useI18n();
   const pct = progressPct(doneCount, items.length);
@@ -83,21 +86,21 @@ export function TodaysMoveCard({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold text-growth-ink">{t("protocols.moveTitle")}</h2>
-        {items.length > 0 && (
+        {items.length > 0 && !(todayMoveLogged && doneCount === 0) && (
           <span className="sr-only" data-testid="protocol-done-count">
             {t("protocols.donePct", { done: doneCount, total: items.length, pct })}
           </span>
         )}
       </div>
 
-      {items.length > 0 && (
+      {items.length > 0 && !(todayMoveLogged && doneCount === 0) && (
         <div
           className="rounded-xl border border-growth/25 bg-sunken/60 px-3 py-2.5"
           data-testid="protocol-progress-strip"
         >
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <span className="type-chip uppercase tracking-wide text-growth-ink">
-              {t("protocols.moveProgress")}
+              {todayMoveLogged ? t("protocols.timedLeadsProgress") : t("protocols.moveProgress")}
             </span>
             <span className="text-xs font-semibold tabular-nums text-fg" data-testid="protocol-done-count-inline">
               {t("protocols.donePct", { done: doneCount, total: items.length, pct })}
@@ -110,7 +113,7 @@ export function TodaysMoveCard({
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={t("protocols.moveProgress")}
+            aria-label={todayMoveLogged ? t("protocols.timedLeadsProgress") : t("protocols.moveProgress")}
           >
             <div
               className="h-full rounded-full bg-growth transition-[width] duration-300 ease-out"
@@ -120,7 +123,7 @@ export function TodaysMoveCard({
         </div>
       )}
 
-      {(completeFlash || moveComplete) && items.length > 0 && (
+      {(completeFlash || moveComplete || todayMoveLogged) && items.length > 0 && (
         <div
           className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 type-body font-medium text-growth-ink ${
             completeFlash ? "animate-pulse" : ""

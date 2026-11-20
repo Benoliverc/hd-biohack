@@ -23,6 +23,7 @@ const {
   isEveningCloseVisible,
   hourInZone,
   EVENING_CLOSE_ITEM_ID,
+  EVENING_CLOSE_START_HOUR,
 } = mod;
 
 assert.equal(normalizeHdType("Generator"), "Generator");
@@ -97,31 +98,56 @@ assert.deepEqual(parseEveningCloseLabel(enc), {
 });
 assert.equal(parseEveningCloseLabel("Generator|maybe"), null);
 
-// Visibility: after 17:00 HKT (UTC+8) — 09:00 UTC = 17:00 HKT
-const at17 = new Date("2026-11-06T09:00:00.000Z");
-assert.equal(hourInZone("Asia/Hong_Kong", at17), 17);
+// Visibility: mid-afternoon onward (14:00 local). Clock only — not kit when_slot.
+assert.equal(EVENING_CLOSE_START_HOUR, 14);
+const at14 = new Date("2026-11-20T06:00:00.000Z"); // 14:00 HKT
+assert.equal(hourInZone("Asia/Hong_Kong", at14), 14);
 assert.equal(
-  isEveningCloseVisible({ timeZone: "Asia/Hong_Kong", now: at17 }),
+  isEveningCloseVisible({ timeZone: "Asia/Hong_Kong", now: at14 }),
   true
 );
-const at16 = new Date("2026-11-06T08:00:00.000Z"); // 16:00 HKT
-assert.equal(hourInZone("Asia/Hong_Kong", at16), 16);
+const at1423 = new Date("2026-11-20T06:23:00.000Z"); // 14:23 HKT mid-afternoon
 assert.equal(
-  isEveningCloseVisible({ timeZone: "Asia/Hong_Kong", now: at16 }),
+  isEveningCloseVisible({
+    timeZone: "Asia/Hong_Kong",
+    now: at1423,
+    whenSlot: "morning",
+  }),
+  true,
+  "empty / morning kit still offered Evening close mid-afternoon"
+);
+assert.equal(
+  isEveningCloseVisible({
+    timeZone: "Asia/Hong_Kong",
+    now: at1423,
+    whenSlot: undefined,
+  }),
+  true
+);
+const at13 = new Date("2026-11-20T05:59:00.000Z"); // 13:59 HKT
+assert.equal(hourInZone("Asia/Hong_Kong", at13), 13);
+assert.equal(
+  isEveningCloseVisible({ timeZone: "Asia/Hong_Kong", now: at13 }),
   false
 );
 assert.equal(
   isEveningCloseVisible({
     timeZone: "Asia/Hong_Kong",
-    now: at16,
+    now: at13,
     whenSlot: "evening",
   }),
+  false,
+  "evening-timed kit must not unlock Evening close before the clock window"
+);
+const at16 = new Date("2026-11-06T08:00:00.000Z"); // 16:00 HKT
+assert.equal(
+  isEveningCloseVisible({ timeZone: "Asia/Hong_Kong", now: at16 }),
   true
 );
 assert.equal(
   isEveningCloseVisible({
     timeZone: "Asia/Hong_Kong",
-    now: at16,
+    now: at13,
     alreadyDone: true,
   }),
   true
@@ -141,11 +167,13 @@ const moveIdx = todayInd.indexOf('data-testid="main-action"');
 const eveningIdx = todayInd.indexOf('data-testid="today-evening-close"');
 const kitIdx = todayInd.indexOf('data-testid="today-kit-placeholder"');
 const kitLineIdx = todayInd.indexOf('data-testid="today-kit-line"');
+const emptyKitIdx = todayInd.indexOf('data-testid="today-empty-kit-slot"');
 const skyIdx = todayInd.indexOf('data-testid="today-sky-block"');
 assert.ok(eveningIdx > moveIdx, "evening close under Move hero");
-// Settled Day: Close is a sibling after the hero (after kit), not between Move and kit
-assert.ok(eveningIdx > kitIdx, "evening close after kit placeholder");
-assert.ok(kitLineIdx > 0 && eveningIdx > kitLineIdx, "evening close after kit line");
+// Filled kit line stays in the hero; empty starter is after the next action (Evening close).
+assert.ok(kitLineIdx > 0 && eveningIdx > kitLineIdx, "evening close after filled kit line");
+assert.ok(emptyKitIdx > eveningIdx, "empty starter kit is not between the log and Evening close");
+assert.ok(kitIdx > eveningIdx, "empty kit placeholder after Evening close");
 assert.ok(skyIdx > eveningIdx, "evening close before sky block");
 
 // Never above Move — evening block must sit after move-done
