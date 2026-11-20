@@ -57,6 +57,11 @@ import {
   localizeWhy,
   termSecondCaption,
 } from "@/lib/todayCopy";
+import {
+  changeLineIsSkyChange,
+  formatVsYesterdayValue,
+  vsYesterdayHasSkyChange,
+} from "@/lib/vsYesterdayDisplay";
 
 type TFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
@@ -64,7 +69,9 @@ function vsPillLabel(d: VsYesterdayDelta, t: TFn): string {
   if (d.field === "moon" && d.from === "same conditioning") {
     return t("today.vs.sameConditioning");
   }
-  const vars = { from: d.from, to: d.to };
+  const from = formatVsYesterdayValue(d.field, d.from);
+  const to = formatVsYesterdayValue(d.field, d.to);
+  const vars = { from, to };
   if (d.field === "moon") return t("vs.moon", vars);
   if (d.field === "sun") return t("vs.sun", vars);
   if (d.field === "hanging_pressure") return t("vs.hanging", vars);
@@ -72,7 +79,7 @@ function vsPillLabel(d: VsYesterdayDelta, t: TFn): string {
   if (d.field === "newly_defined") return t("vs.centers", vars);
   if (d.field === "energy") return t("vs.energy", vars);
   if (d.field === "space") return t("vs.space", vars);
-  return `${d.from} → ${d.to}`;
+  return `${from} → ${to}`;
 }
 
 function upcomingLeadSentence(kind: UpcomingChangeKind, weekday: string, t: TFn): string {
@@ -465,6 +472,11 @@ export default function TodayIndication({
   const microText = localizeMicro(indication, t);
   const driverLines = localizeDrivers(indication, t);
   const changeLine = changeLineLead(indication, t);
+  // Quiet Energy/Space must not claim "same weather" when sky (Moon/Sun/bridges/centers) moved.
+  const skyWeatherChanged =
+    vsYesterdayHasSkyChange(vs) ||
+    (changeLine != null && !changeLine.quiet && changeLineIsSkyChange(changeLine.source));
+  const showSameWeather = !energySpaceHighlight && !skyWeatherChanged;
   const changeTerms = termSecondCaption(daily, t);
   const cueBody = localizeCueBody(daily, t);
   const skyLines = localizeSkyLines(indication, t);
@@ -1043,7 +1055,7 @@ export default function TodayIndication({
             className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-44 sm:flex-col"
             data-testid="main-action-status"
             aria-label={
-              energySpaceHighlight
+              energySpaceHighlight || skyWeatherChanged
                 ? `${t("today.energy")} · ${t("today.space")}`
                 : t("today.weatherSame")
             }
@@ -1075,14 +1087,14 @@ export default function TodayIndication({
                   {weatherMeaning}
                 </p>
               </>
-            ) : (
+            ) : showSameWeather ? (
               <p
                 className="min-w-[9rem] flex-1 text-sm font-normal text-fg sm:flex-none"
                 data-testid="main-action-weather-same"
               >
                 {t("today.weatherSame")}
               </p>
-            )}
+            ) : null}
           </aside>
         </div>
       </div>

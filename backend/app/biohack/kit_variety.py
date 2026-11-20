@@ -347,6 +347,7 @@ def pick_kit_lead(
         "kit_action_id": str(action.get("id") or ""),
         "matched_as": str(supp.get("matched_as") or display),
         "moment_chip": moment_chip,
+        "moment_score": int(score),
     }
 
 

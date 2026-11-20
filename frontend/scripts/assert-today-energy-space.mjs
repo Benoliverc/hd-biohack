@@ -99,13 +99,23 @@ assert.match(aside, /today\.weatherSame/);
 assert.match(aside, /aria-label=\{/);
 assert.match(aside, /t\("today\.weatherSame"\)/);
 const quietStart = aside.indexOf('data-testid="main-action-weather-same"');
-assert.ok(quietStart > 0, "quiet line present");
-// badges are in the highlight branch only, not alongside the quiet line
-const quietBranch = aside.slice(aside.lastIndexOf(") : (", quietStart), asideEnd);
+assert.ok(quietStart > 0, "quiet/same-weather line present in source");
+// badges are in the highlight branch only, not alongside the same-weather line
+const sameWeatherBranchAt = aside.lastIndexOf("showSameWeather ?", quietStart);
+assert.ok(sameWeatherBranchAt > 0, "same-weather gated by showSameWeather");
+const quietBranch = aside.slice(sameWeatherBranchAt, asideEnd);
 assert.doesNotMatch(quietBranch, /BatteryMedium/);
 assert.doesNotMatch(quietBranch, /MapPin/);
 assert.doesNotMatch(quietBranch, /localizeEnergyLabel/);
 assert.doesNotMatch(quietBranch, /energyLabel/);
+
+// --- Quiet + sky change: omit same-weather (do not claim same when Moon/bridges moved) ---
+assert.match(todayInd, /showSameWeather/);
+assert.match(todayInd, /skyWeatherChanged/);
+assert.match(todayInd, /vsYesterdayHasSkyChange/);
+assert.match(todayInd, /changeLineIsSkyChange/);
+assert.match(aside, /showSameWeather \?/);
+assert.match(aside, /skyWeatherChanged/);
 
 // --- Meaning line composed from i18n keys, not Move / SPACE_MICRO / main_action_micro ---
 assert.match(localize, /export function weatherMeaningLine/);
