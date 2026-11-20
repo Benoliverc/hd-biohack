@@ -11,7 +11,17 @@ import {
   isEveningCloseCompletion,
 } from "@/lib/eveningSignatureClose";
 import { sanitizeProtocolWhy } from "@/lib/sanitizeProtocolWhy";
-import { api, type SavedChartRow, type TodayIndicationPayload } from "@/lib/api";
+import {
+  api,
+  type InventoryItem,
+  type SavedChartRow,
+  type TodayIndicationPayload,
+  type UsualWhenSlot,
+} from "@/lib/api";
+import {
+  readUsualConfirmDismissed,
+  writeUsualConfirmDismissed,
+} from "@/lib/usualConfirmDismiss";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp, type NatalChartSummary } from "@/lib/store";
 import { displayCenter } from "@/lib/hdCopy";
@@ -43,7 +53,7 @@ import {
   type CheckItem,
 } from "@/components/protocols";
 
-type InvItem = { id: number; name: string; notes: string };
+type InvItem = InventoryItem;
 
 type PlanItem = {
   when: string;
@@ -232,6 +242,10 @@ export default function BiohackPage() {
   const [focusInvId, setFocusInvId] = useState<number | null>(null);
   const [natalOpen, setNatalOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [usualConfirmOpen, setUsualConfirmOpen] = useState(false);
+  const [usualDraft, setUsualDraft] = useState<Record<number, boolean>>({});
+  const [usualSaving, setUsualSaving] = useState(false);
+  const [patchingUsualId, setPatchingUsualId] = useState<number | null>(null);
   const [baselineKitOpen, setBaselineKitOpen] = useState(false);
   const [completions, setCompletions] = useState<DayCompletions>({});
   const [weekRows, setWeekRows] = useState<WeekCompletedRow[]>([]);
@@ -257,6 +271,38 @@ export default function BiohackPage() {
     const list = await api.inventory(user.id);
     setInventory(list);
   }, [user]);
+
+  // One-time light confirm after cupboard has names; dismiss must not block Today/kit.
+  useEffect(() => {
+    if (!user || inventoryLoading) return;
+    if (inventory.length === 0) return;
+    if (inventory.some((it) => it.is_usual)) return;
+    if (readUsualConfirmDismissed(user.id)) return;
+    setUsualDraft(Object.fromEntries(inventory.map((it) => [it.id, false])));
+    setUsualConfirmOpen(true);
+  }, [user, inventory, inventoryLoading]);
+
+  const dismissUsualConfirm = useCallback(() => {
+    if (user) writeUsualConfirmDismissed(user.id);
+    setUsualConfirmOpen(false);
+  }, [user]);
+
+  const patchUsual = useCallback(
+    async (item: InvItem, next: { is_usual?: boolean; usual_when?: UsualWhenSlot | "" }) => {
+      if (!user) return;
+      setPatchingUsualId(item.id);
+      setError(null);
+      try {
+        await api.patchInventory(item.id, next);
+        await refreshInventory();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setPatchingUsualId(null);
+      }
+    },
+    [user, refreshInventory],
+  );
 
   // Resolve You natal independently of friend sticky.
   useEffect(() => {
@@ -591,6 +637,29 @@ export default function BiohackPage() {
     loadProtocol,
   ]);
 
+  const saveUsualConfirm = useCallback(async () => {
+    if (!user) return;
+    setUsualSaving(true);
+    setError(null);
+    try {
+      for (const it of inventory) {
+        if (usualDraft[it.id]) {
+          await api.patchInventory(it.id, { is_usual: true });
+        }
+      }
+      writeUsualConfirmDismissed(user.id);
+      setUsualConfirmOpen(false);
+      await refreshInventory();
+      if (protocol) {
+        await loadProtocol({ rebuild: true });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setUsualSaving(false);
+    }
+  }, [user, inventory, usualDraft, protocol, refreshInventory, loadProtocol]);
+
   const addInv = async (preset?: string) => {
     if (!user) return;
     const name = (preset ?? invName).trim();
@@ -891,6 +960,7 @@ export default function BiohackPage() {
           baselineKitOpen={baselineKitOpen}
           onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0 && !todayKitPick}
+          showUsualApplies={Boolean(indication?.kit_usual_applies) && inventory.length > 0 && !todayKitPick}
           rotatedSlot={whatsNew?.rotated_slot || null}
           todayKitPick={todayKitPick}
           highlightTodayKitPick={highlightTodayKitPick}
@@ -995,6 +1065,62 @@ export default function BiohackPage() {
         />
       )}
 
+      {usualConfirmOpen && inventory.length > 0 ? (
+        <aside
+          className="rounded-2xl border border-growth/40 bg-growth-soft/40 px-4 py-3"
+          data-testid="usual-confirm"
+        >
+          <p className="text-sm font-semibold text-fg">{t("usual.title")}</p>
+          <p className="mt-1 type-body text-fg">{t("usual.confirmLead")}</p>
+          <p className="mt-1 type-caption text-fg-secondary">{t("usual.confirmHint")}</p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {inventory.map((it) => {
+              const on = Boolean(usualDraft[it.id]);
+              return (
+                <li key={it.id}>
+                  <button
+                    type="button"
+                    data-testid={`usual-confirm-chip-${it.id}`}
+                    aria-pressed={on}
+                    disabled={usualSaving}
+                    onClick={() =>
+                      setUsualDraft((d) => ({ ...d, [it.id]: !d[it.id] }))
+                    }
+                    className={`min-h-10 rounded-full border px-3 py-1.5 text-xs ${
+                      on
+                        ? "border-growth bg-growth-soft text-growth-ink"
+                        : "border-border bg-sunken text-fg"
+                    } disabled:opacity-50`}
+                  >
+                    {it.name}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-testid="usual-confirm-save"
+              disabled={usualSaving}
+              onClick={() => void saveUsualConfirm()}
+              className="min-h-10 rounded-xl border border-growth bg-growth-soft px-3 py-2 text-sm font-medium text-growth-ink disabled:opacity-50"
+            >
+              {t("usual.confirmDone")}
+            </button>
+            <button
+              type="button"
+              data-testid="usual-confirm-skip"
+              disabled={usualSaving}
+              onClick={dismissUsualConfirm}
+              className="min-h-10 rounded-xl border border-border px-3 py-2 text-sm text-fg-secondary disabled:opacity-50"
+            >
+              {t("usual.confirmSkip")}
+            </button>
+          </div>
+        </aside>
+      ) : null}
+
       <div ref={inventoryRef}>
         <InventoryPanel
           open={inventoryOpen}
@@ -1008,9 +1134,11 @@ export default function BiohackPage() {
           removingId={removingId}
           invFeedback={invFeedback}
           focusInvId={focusInvId}
+          patchingUsualId={patchingUsualId}
           user={Boolean(user)}
           addInv={addInv}
           removeInv={removeInv}
+          patchUsual={patchUsual}
         />
       </div>
 
@@ -1459,9 +1587,11 @@ function InventoryPanel({
   removingId,
   invFeedback,
   focusInvId,
+  patchingUsualId,
   user,
   addInv,
   removeInv,
+  patchUsual,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -1474,9 +1604,14 @@ function InventoryPanel({
   removingId: number | null;
   invFeedback: string | null;
   focusInvId: number | null;
+  patchingUsualId: number | null;
   user: boolean;
   addInv: (name?: string) => Promise<unknown>;
   removeInv: (item: InvItem) => Promise<void>;
+  patchUsual: (
+    item: InvItem,
+    next: { is_usual?: boolean; usual_when?: UsualWhenSlot | "" },
+  ) => Promise<void>;
 }) {
   const { t } = useI18n();
   const count = inventory.length;
@@ -1552,28 +1687,82 @@ function InventoryPanel({
           {inventoryLoading || natalBindingLoading ? (
             <p className="text-sm text-fg-muted">{t("protocols.loadingShelf")}</p>
           ) : inventory.length === 0 ? null : (
-            <ul className="flex flex-wrap gap-2">
-              {inventory.map((it) => (
-                <li
-                  key={it.id}
-                  className={`inline-flex items-center gap-1 rounded-full border bg-sunken py-1 pl-3 pr-1 text-xs text-fg ${
-                    focusInvId === it.id
-                      ? "border-growth ring-2 ring-growth/40"
-                      : "border-border"
-                  }`}
-                >
-                  <span>{it.name}</span>
-                  <button
-                    type="button"
-                    aria-label={t("protocols.removeItem", { name: it.name })}
-                    disabled={removingId === it.id || adding}
-                    onClick={() => void removeInv(it)}
-                    className="inline-flex h-6 w-6 min-h-6 items-center justify-center rounded-full text-fg-muted hover:bg-sunken hover:text-danger disabled:opacity-50"
+            <ul className="space-y-2" data-testid="shelf-usual-list">
+              {inventory.map((it) => {
+                const usual = Boolean(it.is_usual);
+                const busy = patchingUsualId === it.id || removingId === it.id || adding;
+                return (
+                  <li
+                    key={it.id}
+                    className={`rounded-xl border bg-sunken px-3 py-2 text-sm text-fg ${
+                      focusInvId === it.id
+                        ? "border-growth ring-2 ring-growth/40"
+                        : "border-border"
+                    }`}
+                    data-testid={`shelf-item-${it.id}`}
                   >
-                    {removingId === it.id ? "…" : "×"}
-                  </button>
-                </li>
-              ))}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="min-w-0 flex-1 font-medium">{it.name}</span>
+                      <button
+                        type="button"
+                        aria-pressed={usual}
+                        disabled={busy}
+                        data-testid={`usual-toggle-${it.id}`}
+                        onClick={() =>
+                          void patchUsual(it, {
+                            is_usual: !usual,
+                            usual_when: !usual ? undefined : "",
+                          })
+                        }
+                        className={`min-h-9 rounded-full border px-2.5 py-1 text-xs ${
+                          usual
+                            ? "border-growth bg-growth-soft text-growth-ink"
+                            : "border-border text-fg-secondary"
+                        } disabled:opacity-50`}
+                      >
+                        {usual ? t("usual.markUsual") : t("usual.notUsual")}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={t("protocols.removeItem", { name: it.name })}
+                        disabled={busy}
+                        onClick={() => void removeInv(it)}
+                        className="inline-flex h-8 w-8 min-h-8 items-center justify-center rounded-full text-fg-muted hover:bg-elevated hover:text-danger disabled:opacity-50"
+                      >
+                        {removingId === it.id ? "…" : "×"}
+                      </button>
+                    </div>
+                    {usual ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5" data-testid={`usual-when-${it.id}`}>
+                        {(["morning", "midday", "evening"] as const).map((slot) => (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={busy}
+                            aria-pressed={it.usual_when === slot}
+                            onClick={() =>
+                              void patchUsual(it, {
+                                usual_when: it.usual_when === slot ? "" : slot,
+                              })
+                            }
+                            className={`min-h-8 rounded-full border px-2 py-0.5 type-caption ${
+                              it.usual_when === slot
+                                ? "border-growth bg-growth-soft text-growth-ink"
+                                : "border-border text-fg-secondary"
+                            } disabled:opacity-50`}
+                          >
+                            {slot === "morning"
+                              ? t("usual.when.morning")
+                              : slot === "midday"
+                                ? t("usual.when.midday")
+                                : t("usual.when.evening")}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

@@ -58,7 +58,8 @@
     "assert:favicon-b": "npx tsx scripts/assert-favicon-b.mjs",
     "assert:login-marketing-first-pass": "npx tsx scripts/assert-login-marketing-first-pass.mjs",
     "assert:day1-next3-labels-kit-disclosure": "npx tsx scripts/assert-day1-next3-labels-kit-disclosure.mjs",
-    "assert:day2-top-weather-kit": "npx tsx scripts/assert-day2-top-weather-kit.mjs"
+    "assert:day2-top-weather-kit": "npx tsx scripts/assert-day2-top-weather-kit.mjs",
+    "assert:your-usual-shelf-cadence": "npx tsx scripts/assert-your-usual-shelf-cadence.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -648,3 +648,141 @@ def test_natal_softens_evening_magnesium_when_kit_is_morning():
         assert "evening" not in r["name"].lower()
         assert "nightly" not in (r.get("note") or "").lower()
     print("PASS: Natal Magnesium evening softened when kit When is morning")
+
+
+def test_usual_defaults_not_marked_and_natal_never_auto():
+    """Pin (a): no usual_names → inventory-only path; Natal does not invent usual."""
+    natal = _natal(undefined_centers=["Head", "Root"])
+    rx = build_prescription(
+        natal=natal,
+        transit={},
+        overlay={},
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-20-a",
+        owned_names=["Magnesium Glycinate"],
+        biohacking_unlocked=True,
+        usual_names=[],  # never auto from Natal
+    )
+    assert rx["kit_usual_applies"] is False
+    assert rx["kit_placeholder"] is False
+    assert rx["kit_item"] is not None
+    print("PASS: (a) defaults not usual; Natal never auto-marks")
+
+
+def test_mixed_cupboard_prefers_adhoc_not_usual():
+    """Pin (b): usual Magnesium + not-usual weather-fit item → highlight not-usual."""
+    rx = build_prescription(
+        natal=_natal(),
+        transit={},
+        overlay={},
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-20-b",
+        owned_names=["Magnesium Glycinate", "Omega-3"],
+        biohacking_unlocked=True,
+        usual_names=["Magnesium Glycinate"],
+    )
+    assert rx["kit_usual_applies"] is False
+    assert rx["kit_placeholder"] is False
+    name = (rx["kit_item"] or {}).get("name") or ""
+    assert "omega" in name.lower() or "Omega" in name
+    assert "magnesium" not in name.lower()
+    print("PASS: (b) mixed cupboard highlights ad-hoc")
+
+
+def test_entirely_usual_cupboard_no_repitch_no_fail_copy():
+    """Pin (c): entirely usual → no today's pick; kit_usual_applies, not no-match failure."""
+    rx = build_prescription(
+        natal=_natal(),
+        transit={},
+        overlay={},
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-20-c",
+        owned_names=["Magnesium Glycinate"],
+        biohacking_unlocked=True,
+        usual_names=["Magnesium Glycinate"],
+    )
+    assert rx["kit_item"] is None
+    assert rx["kit_placeholder"] is True
+    assert rx["kit_usual_applies"] is True
+    print("PASS: (c) entirely usual does not re-pitch; usual_applies")
+
+
+def test_inventory_only_path_unchanged_without_usual_marks():
+    """Pin (d): no usual marks → same live kit pick as inventory-only merge-base path."""
+    notes = {"Magnesium Glycinate": "200 mg"}
+    rx = build_prescription(
+        natal=_natal(),
+        transit={},
+        overlay={},
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-20-d",
+        owned_names=["Magnesium Glycinate"],
+        inventory_notes=notes,
+        biohacking_unlocked=True,
+        usual_names=None,
+    )
+    assert rx["kit_usual_applies"] is False
+    assert rx["kit_placeholder"] is False
+    assert rx["kit_item"] is not None
+    assert "magnesium" in (rx["kit_item"]["name"] or "").lower()
+    assert rx["kit_item"].get("dose") == "200 mg"
+    # best-fit when still present
+    assert rx["kit_item"].get("when") in ("morning", "midday", "evening", None)
+    print("PASS: (d) inventory-only path unchanged")
+
+
+def test_usual_ease_quiet_no_shame():
+    """Pin (e): usual + Low weather → quiet ease delta, never shame copy."""
+    rx = build_prescription(
+        natal=_natal(),
+        transit={},
+        overlay={},
+        energy_level=1,
+        energy_label="Low",
+        preferred_space="alone",
+        day_key="2026-11-20-e",
+        owned_names=["Magnesium Glycinate", "Omega-3"],
+        biohacking_unlocked=True,
+        usual_names=["Magnesium Glycinate"],
+    )
+    delta = rx.get("usual_delta")
+    assert delta is not None
+    assert delta["kind"] == "ease"
+    text = (delta.get("text") or "").lower()
+    assert "stop your medication" not in text
+    assert "streak" not in text
+    assert "missed" not in text
+    print("PASS: (e) quiet ease, no shame")
+
+
+def test_usual_time_shift_when_slot_differs():
+    """Pin (e): usual_when evening + midday moment → quiet time_shift when bank allows."""
+    rx = build_prescription(
+        natal=_natal(),
+        transit={},
+        overlay={"newly_defined_centers": ["Solar_Plexus"]},
+        energy_level=3,
+        energy_label="Steady",
+        preferred_space="focus",
+        day_key="2026-11-20-shift",
+        owned_names=["Omega-3"],
+        biohacking_unlocked=True,
+        usual_names=["Omega-3"],
+        usual_when_by_name={"Omega-3": "evening"},
+    )
+    # Entirely usual → applies; may also carry time_shift if bank legal for moment when
+    assert rx["kit_usual_applies"] is True
+    delta = rx.get("usual_delta")
+    if delta is not None:
+        assert delta["kind"] in ("ease", "time_shift")
+        blob = str(delta).lower()
+        assert "stop your medication" not in blob
+    print("PASS: (e) time-shift/ease path stays quiet")

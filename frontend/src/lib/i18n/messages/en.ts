@@ -830,6 +830,24 @@ export const messages = {
   'protocols.weekRangeHkt': 'Mon–Sun HKT',
   'protocols.weekRangeZone': 'Mon–Sun · {zone}',
   'literacy.chrome.sectionsAria': 'Sections',
+
+  // Your usual — Shelf cadence (new keys only; leave kitSetupNoMatch etc. byte-identical)
+  'usual.title': 'Your usual',
+  'usual.markUsual': 'Usual (most days)',
+  'usual.notUsual': 'Not usual',
+  'usual.when.morning': 'Morning',
+  'usual.when.midday': 'Midday',
+  'usual.when.evening': 'Evening',
+  'usual.when.clear': 'No set time',
+  'usual.confirmLead': 'Which of these do you already take most days?',
+  'usual.confirmHint': 'Optional — you can change this later on Shelf. Skip if you are not sure.',
+  'usual.confirmSkip': 'Not now',
+  'usual.confirmDone': 'Save usual',
+  'usual.suggestedWhen': 'Suggested: {when}',
+  'today.usualStillApplies': 'Your usual still applies.',
+  'today.usualEase': '{name}: ease today if it fits.',
+  'today.usualTimeShift': '{name}: usual is {from}; today {to} also fits.',
+  'protocols.usualStillApplies': 'Your usual still applies.',
   ...todaySoulMessages,
 } as const;
 

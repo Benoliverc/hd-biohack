@@ -69,6 +69,7 @@ from ..schemas import (
     GeocodeOut,
     GeocodeSuggestOut,
     InventoryItemIn,
+    InventoryItemPatch,
     LoginIn,
     ProtocolCompletionIn,
     ProtocolCompletionOut,
@@ -888,6 +889,8 @@ def transits_today(
 
     owned_names: list[str] = []
     inventory_notes: dict[str, str] = {}
+    usual_names: list[str] = []
+    usual_when_by_name: dict[str, str] = {}
     bio_unlocked = False
     history: list[dict] = []
     # Completions stay on the account-TZ calendar day (midnight). Novelty `day` is the 07:00 bucket.
@@ -906,6 +909,15 @@ def transits_today(
         owned_names = [r.name for r in inv_rows]
         inventory_notes = {
             r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
+        }
+        usual_names = [
+            r.name for r in inv_rows if bool(getattr(r, "is_usual", False))
+        ]
+        usual_when_by_name = {
+            r.name: str(r.usual_when)
+            for r in inv_rows
+            if bool(getattr(r, "is_usual", False))
+            and getattr(r, "usual_when", None) in ("morning", "midday", "evening")
         }
         if natal_chart_id:
             hist_from = completion_day - timedelta(days=21)
@@ -951,6 +963,8 @@ def transits_today(
         inventory_notes=inventory_notes,
         biohacking_unlocked=bio_unlocked,
         history=history,
+        usual_names=usual_names if user is not None else None,
+        usual_when_by_name=usual_when_by_name if user is not None else None,
     )
 
     # Seed "offered" Move for the account day (done=False) so Pro down-ranking sees ignored history.
@@ -1052,6 +1066,8 @@ def add_inventory(
             "id": existing.id,
             "name": existing.name,
             "active": existing.active,
+            "is_usual": bool(getattr(existing, "is_usual", False)),
+            "usual_when": getattr(existing, "usual_when", None),
             "duplicate": True,
         }
 
@@ -1076,16 +1092,30 @@ def add_inventory(
             "id": inactive.id,
             "name": inactive.name,
             "active": inactive.active,
+            "is_usual": bool(getattr(inactive, "is_usual", False)),
+            "usual_when": getattr(inactive, "usual_when", None),
             "duplicate": False,
         }
 
     item = SupplementInventory(
-        user_id=owner_id, name=name, notes=body.notes, active=body.active
+        user_id=owner_id,
+        name=name,
+        notes=body.notes,
+        active=body.active,
+        is_usual=False,
+        usual_when=None,
     )
     db.add(item)
     db.commit()
     db.refresh(item)
-    return {"id": item.id, "name": item.name, "active": item.active, "duplicate": False}
+    return {
+        "id": item.id,
+        "name": item.name,
+        "active": item.active,
+        "is_usual": False,
+        "usual_when": None,
+        "duplicate": False,
+    }
 
 
 @router.delete("/inventory/{item_id}")
@@ -1102,6 +1132,49 @@ def delete_inventory(
     return {"ok": True, "id": item_id}
 
 
+@router.patch("/inventory/{item_id}")
+def patch_inventory(
+    item_id: int,
+    body: InventoryItemPatch,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Self-only update for Your usual cadence on a Shelf item."""
+    item = db.get(SupplementInventory, item_id)
+    if not item or item.user_id != current.id or not item.active:
+        raise HTTPException(404, "Inventory item not found")
+    if body.is_usual is not None:
+        item.is_usual = bool(body.is_usual)
+        if not item.is_usual:
+            item.usual_when = None
+    if body.usual_when is not None:
+        raw = str(body.usual_when).strip().lower()
+        if raw == "":
+            item.usual_when = None
+        elif raw in ("morning", "midday", "evening"):
+            item.usual_when = raw
+            # Setting a daypart implies usual.
+            item.is_usual = True
+        else:
+            raise HTTPException(400, "usual_when must be morning, midday, evening, or empty")
+    # Bank when may pre-suggest a daypart when marking usual without one.
+    if item.is_usual and not item.usual_when:
+        from ..biohack.kit_variety import suggest_usual_when
+
+        suggested = suggest_usual_when(item.name)
+        if suggested:
+            item.usual_when = suggested
+    db.commit()
+    db.refresh(item)
+    return {
+        "id": item.id,
+        "name": item.name,
+        "notes": item.notes,
+        "is_usual": bool(item.is_usual),
+        "usual_when": item.usual_when,
+    }
+
+
 @router.get("/inventory/{user_id}")
 def list_inventory(
     user_id: int,
@@ -1113,7 +1186,16 @@ def list_inventory(
         SupplementInventory.user_id == user_id,
         SupplementInventory.active.is_(True),
     ).all()
-    return [{"id": r.id, "name": r.name, "notes": r.notes} for r in rows]
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "notes": r.notes,
+            "is_usual": bool(getattr(r, "is_usual", False)),
+            "usual_when": getattr(r, "usual_when", None),
+        }
+        for r in rows
+    ]
 
 
 @router.post("/biohack/protocol")
@@ -1155,6 +1237,15 @@ def protocol(
     inv_notes = {
         r.name: (r.notes or "") for r in inv_rows if (r.notes or "").strip()
     }
+    usual_names = [
+        r.name for r in inv_rows if bool(getattr(r, "is_usual", False))
+    ]
+    usual_when_by_name = {
+        r.name: str(r.usual_when)
+        for r in inv_rows
+        if bool(getattr(r, "is_usual", False))
+        and getattr(r, "usual_when", None) in ("morning", "midday", "evening")
+    }
     bio_unlocked = _user_has_biohacking(user)
     prev_indication = derive_today_indication(
         natal,
@@ -1177,6 +1268,8 @@ def protocol(
         owned_names=inv,
         inventory_notes=inv_notes,
         biohacking_unlocked=bio_unlocked,
+        usual_names=usual_names,
+        usual_when_by_name=usual_when_by_name,
     )
     # Prefer FE-persisted yesterday fingerprint; else recompute natural leads for D-1
     y_fp = (body.yesterday_lead_fingerprint or "").strip() or None

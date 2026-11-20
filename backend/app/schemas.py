@@ -367,6 +367,16 @@ class InventoryItemIn(BaseModel):
     name: str
     notes: str = ""
     active: bool = True
+    is_usual: bool = False
+    usual_when: str | None = None
+
+
+class InventoryItemPatch(BaseModel):
+    """Self-only Shelf update for Your usual cadence. Omit a field to leave it."""
+
+    is_usual: bool | None = None
+    # morning | midday | evening; empty string clears. Null = leave unchanged.
+    usual_when: str | None = None
 
 
 class ProtocolRequest(BaseModel):

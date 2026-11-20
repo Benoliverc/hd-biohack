@@ -289,6 +289,8 @@ def _with_prescription(
     biohacking_unlocked: bool = False,
     history: list[dict[str, Any]] | None = None,
     avoid_supplement_ids: set[str] | None = None,
+    usual_names: list[str] | None = None,
+    usual_when_by_name: dict[str, str] | None = None,
     tz_name: str | None = None,
 ) -> dict[str, Any]:
     """Attach Move/kit/When. Free path always shows kit placeholder."""
@@ -306,6 +308,8 @@ def _with_prescription(
         biohacking_unlocked=biohacking_unlocked,
         history=history,
         avoid_supplement_ids=avoid_supplement_ids,
+        usual_names=usual_names,
+        usual_when_by_name=usual_when_by_name,
         replace_main_action=True,
     )
 
@@ -417,6 +421,8 @@ def derive_today_indication(
     biohacking_unlocked: bool = False,
     history: list[dict[str, Any]] | None = None,
     avoid_supplement_ids: set[str] | None = None,
+    usual_names: list[str] | None = None,
+    usual_when_by_name: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """
     Pure function: natal × today transit overlay → energy, space, main action,
@@ -514,5 +520,7 @@ def derive_today_indication(
         biohacking_unlocked=biohacking_unlocked,
         history=history,
         avoid_supplement_ids=avoid_supplement_ids,
+        usual_names=usual_names,
+        usual_when_by_name=usual_when_by_name,
         tz_name=tz_name,
     )

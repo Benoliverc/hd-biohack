@@ -214,6 +214,41 @@ def _moment_score(
     return score
 
 
+
+def suggest_usual_when(name: str) -> str | None:
+    """Bank `when` → optional morning/midday/evening pre-suggest for Your usual.
+
+    Returns None when the name is unknown or the bank has no daypart signal.
+    Never marks usual — only suggests a daypart the person can accept or change.
+    """
+    raw = str(name or "").strip()
+    if not raw:
+        return None
+    matched = match_owned_supplements([raw])
+    if not matched:
+        return None
+    supp = matched[0]
+    for action in supp.get("actions") or []:
+        when_text = str(action.get("when") or "").lower()
+        slots = {
+            str(s).lower()
+            for s in ((action.get("moments") or {}).get("slots") or [])
+        }
+        if "evening" in when_text or "bed" in when_text or "night" in when_text:
+            return "evening"
+        if "midday" in when_text or "afternoon" in when_text or "lunch" in when_text:
+            return "midday"
+        if "morning" in when_text or "breakfast" in when_text:
+            return "morning"
+        if "evening" in slots:
+            return "evening"
+        if "midday" in slots:
+            return "midday"
+        if "morning" in slots:
+            return "morning"
+    return None
+
+
 def pick_kit_lead(
     owned_names: list[str] | set[str],
     *,

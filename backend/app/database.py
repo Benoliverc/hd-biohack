@@ -39,6 +39,7 @@ def init_db() -> None:
     _ensure_user_auth_columns()
     _ensure_user_settings_columns()
     _ensure_user_last_login_column()
+    _ensure_inventory_usual_columns()
     upgrade_existing_free_users_to_pro()
 
 
@@ -115,6 +116,32 @@ def _ensure_user_last_login_column() -> None:
         return
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME"))
+
+
+
+def _ensure_inventory_usual_columns() -> None:
+    """SQLite/Postgres-friendly ALTER for is_usual / usual_when on existing DBs."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    if "user_supplement_inventory" not in insp.get_table_names():
+        return
+    cols = {c["name"] for c in insp.get_columns("user_supplement_inventory")}
+    with engine.begin() as conn:
+        if "is_usual" not in cols:
+            conn.execute(
+                text(
+                    "ALTER TABLE user_supplement_inventory "
+                    "ADD COLUMN is_usual BOOLEAN DEFAULT 0"
+                )
+            )
+        if "usual_when" not in cols:
+            conn.execute(
+                text(
+                    "ALTER TABLE user_supplement_inventory "
+                    "ADD COLUMN usual_when VARCHAR(16)"
+                )
+            )
 
 
 FREE_USERS_TO_PRO_MIGRATION = "upgrade_existing_free_users_to_pro_20261119"

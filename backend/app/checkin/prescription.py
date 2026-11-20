@@ -307,6 +307,19 @@ def _slot_from_kit_when(when_text: str | None, fallback: WhenSlot) -> WhenSlot:
     return fallback
 
 
+def _norm_name(s: str) -> str:
+    return " ".join(str(s or "").lower().replace("_", " ").replace("-", " ").split())
+
+
+def _name_in_usual(name: str, usual_norm: set[str]) -> bool:
+    if not usual_norm or not name:
+        return False
+    n = _norm_name(name)
+    if n in usual_norm:
+        return True
+    return any(u in n or n in u for u in usual_norm if len(u) >= 4)
+
+
 def pick_kit_for_moment(
     *,
     moment: Moment,
@@ -324,6 +337,7 @@ def pick_kit_for_moment(
     Scores bank actions across the Move slot and other dayparts, then picks the
     best-fitting action — not the first hit in a morning-first fallback list.
     A weak morning exception must not beat a stronger evening-primary action.
+    Callers that prefer ad-hoc should pass a non-usual owned_names subset.
     """
     if not owned_names:
         return None
@@ -390,6 +404,105 @@ def pick_kit_for_moment(
     }
 
 
+def _usual_norm_set(usual_names: list[str] | None) -> set[str]:
+    return {_norm_name(n) for n in (usual_names or []) if str(n).strip()}
+
+
+def _split_adhoc_owned(
+    owned: list[str], usual_norm: set[str]
+) -> tuple[list[str], list[str]]:
+    """Return (adhoc_owned, usual_owned) preserving order."""
+    if not usual_norm:
+        return owned, []
+    adhoc: list[str] = []
+    usual: list[str] = []
+    for n in owned:
+        if _name_in_usual(n, usual_norm):
+            usual.append(n)
+        else:
+            adhoc.append(n)
+    return adhoc, usual
+
+
+def _build_usual_delta(
+    *,
+    natal: dict[str, Any],
+    energy_label: str,
+    usual_owned: list[str],
+    usual_when_by_name: dict[str, str] | None,
+    moment_when: WhenSlot,
+) -> dict[str, Any] | None:
+    """Quiet ease / time-shift note against usual. Never shame; never invent doses."""
+    if not usual_owned:
+        return None
+    usual_norm = _usual_norm_set(usual_owned)
+    when_map = {
+        _norm_name(k): v
+        for k, v in (usual_when_by_name or {}).items()
+        if v in ("morning", "midday", "evening")
+    }
+
+    # Ease: Natal decrease_or_pause that names a usual compound, or Low/Drained weather.
+    try:
+        from ..biohack.rules import build_natal_baseline
+    except Exception:
+        build_natal_baseline = None  # type: ignore[assignment]
+    if build_natal_baseline is not None:
+        baseline = build_natal_baseline(natal, inventory_names=usual_owned)
+        for row in baseline.get("decrease_or_pause") or []:
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get("name") or "")
+            note = str(row.get("note") or "")
+            if not _name_in_usual(f"{name} {note}", usual_norm):
+                continue
+            # Pick a matching usual display name for the note.
+            display = next(
+                (u for u in usual_owned if _name_in_usual(u, {_norm_name(name)}) or _name_in_usual(name, {_norm_name(u)})),
+                usual_owned[0],
+            )
+            return {
+                "kind": "ease",
+                "name": display,
+                "text": "Quiet day for this usual item — ease if it fits. Not medical advice.",
+            }
+
+    if energy_label in ("Low", "Drained") and usual_owned:
+        return {
+            "kind": "ease",
+            "name": usual_owned[0],
+            "text": "Sky is quieter — easing a usual item is fine today.",
+        }
+
+    # Time-shift: usual_when set and today's Move slot differs, and bank allows the new slot.
+    for u in usual_owned:
+        uw = when_map.get(_norm_name(u))
+        if not uw or uw == moment_when:
+            continue
+        # Confirm bank has a legal action in moment_when for this item.
+        from ..biohack.kit_variety import pick_kit_lead
+
+        hit = pick_kit_lead(
+            [u],
+            slot=moment_when,
+            energy_label=energy_label or "Steady",
+            preferred_space="focus",
+            focus_centers=[],
+            signal_source=None,
+            day_key="usual-shift-probe",
+        )
+        if not hit:
+            continue
+        return {
+            "kind": "time_shift",
+            "name": u,
+            "from_when": uw,
+            "to_when": moment_when,
+            "text": f"Usual is {uw}; today a {moment_when} window also fits.",
+        }
+    return None
+
+
 def build_prescription(
     *,
     natal: dict[str, Any] | None,
@@ -404,12 +517,15 @@ def build_prescription(
     biohacking_unlocked: bool = False,
     history: list[dict[str, Any]] | None = None,
     avoid_supplement_ids: set[str] | None = None,
+    usual_names: list[str] | None = None,
+    usual_when_by_name: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """
     Three-line Today prescription: Move + From your kit + When.
 
     Free / empty kit → kit line is a placeholder (never silently omitted).
     Pro + kit → live rotated item; dose only from inventory notes.
+    When a usual list exists, prefer owned weather-fit items that are not usual.
     """
     natal = natal or {}
     overlay = overlay or {}
@@ -441,25 +557,48 @@ def build_prescription(
     when: WhenSlot = MOMENT_WHEN[moment]
     noun = MOMENT_NOUN[moment]
     owned = [str(n).strip() for n in (owned_names or []) if str(n).strip()]
+    usual_norm = _usual_norm_set(usual_names)
+    has_usual = bool(usual_norm)
+    adhoc_owned, usual_owned = _split_adhoc_owned(owned, usual_norm)
 
     kit_item: dict[str, Any] | None = None
+    kit_usual_applies = False
     show_live_kit = bool(biohacking_unlocked) and bool(owned)
+    focus = list(newly) or list(natal_defined)[:2]
     if show_live_kit:
-        kit_item = pick_kit_for_moment(
-            moment=moment,
-            when=when,
-            owned_names=owned,
-            inventory_notes=inventory_notes,
-            energy_label=energy_label,
-            preferred_space=preferred_space,
-            focus_centers=list(newly) or list(natal_defined)[:2],
-            day_key=day_key,
-            avoid_supplement_ids=avoid_supplement_ids,
-        )
+        # Prefer ad-hoc (not usual) when a usual list exists.
+        pick_pool = adhoc_owned if has_usual else owned
+        if pick_pool:
+            kit_item = pick_kit_for_moment(
+                moment=moment,
+                when=when,
+                owned_names=pick_pool,
+                inventory_notes=inventory_notes,
+                energy_label=energy_label,
+                preferred_space=preferred_space,
+                focus_centers=focus,
+                day_key=day_key,
+                avoid_supplement_ids=avoid_supplement_ids,
+            )
+        if kit_item is None and has_usual:
+            # Do not re-pitch a usual-only cupboard as today's pick.
+            kit_usual_applies = True
+        elif kit_item is None and not has_usual:
+            # Inventory-only path unchanged: try full owned pool (already did).
+            pass
         if kit_item and kit_item.get("when") in ("morning", "midday", "evening"):
             when = kit_item["when"]  # type: ignore[assignment]
 
     placeholder = not show_live_kit or kit_item is None
+    usual_delta = None
+    if show_live_kit and has_usual:
+        usual_delta = _build_usual_delta(
+            natal=natal,
+            energy_label=energy_label,
+            usual_owned=usual_owned or [n for n in owned if _name_in_usual(n, usual_norm)],
+            usual_when_by_name=usual_when_by_name,
+            moment_when=when,
+        )
 
     return {
         "moment": moment,
@@ -470,6 +609,8 @@ def build_prescription(
         "move_key": move_key,
         "move_item_id": f"today-move:{moment}",
         "kit_placeholder": placeholder,
+        "kit_usual_applies": bool(kit_usual_applies),
+        "usual_delta": usual_delta,
         "kit_item": None
         if placeholder
         else {
@@ -497,6 +638,8 @@ def attach_prescription(
     biohacking_unlocked: bool = False,
     history: list[dict[str, Any]] | None = None,
     avoid_supplement_ids: set[str] | None = None,
+    usual_names: list[str] | None = None,
+    usual_when_by_name: dict[str, str] | None = None,
     replace_main_action: bool = True,
 ) -> dict[str, Any]:
     """Merge prescription into an indication payload. Mutates a shallow copy."""
@@ -514,6 +657,8 @@ def attach_prescription(
         biohacking_unlocked=biohacking_unlocked,
         history=history,
         avoid_supplement_ids=avoid_supplement_ids,
+        usual_names=usual_names,
+        usual_when_by_name=usual_when_by_name,
     )
     if replace_main_action and rx.get("move_text"):
         out["main_action_text"] = rx["move_text"]
@@ -526,4 +671,6 @@ def attach_prescription(
     out["move_item_id"] = rx["move_item_id"]
     out["kit_placeholder"] = rx["kit_placeholder"]
     out["kit_item"] = rx["kit_item"]
+    out["kit_usual_applies"] = bool(rx.get("kit_usual_applies"))
+    out["usual_delta"] = rx.get("usual_delta")
     return out
