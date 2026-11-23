@@ -998,7 +998,7 @@ export default function TodayIndication({
               >
                 {t("chart.timeUnknownCaveat")}{" "}
                 <Link
-                  href="/profile"
+                  href="/profile?edit=me#people-form"
                   className="type-body text-fg-secondary underline-offset-2 hover:underline"
                 >
                   {t("chart.timeUnknownEdit")}
