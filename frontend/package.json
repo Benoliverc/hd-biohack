@@ -60,7 +60,8 @@
     "assert:day1-next3-labels-kit-disclosure": "npx tsx scripts/assert-day1-next3-labels-kit-disclosure.mjs",
     "assert:day2-top-weather-kit": "npx tsx scripts/assert-day2-top-weather-kit.mjs",
     "assert:your-usual-shelf-cadence": "npx tsx scripts/assert-your-usual-shelf-cadence.mjs",
-    "assert:day2-afternoon-leftovers": "npx tsx scripts/assert-day2-afternoon-leftovers.mjs"
+    "assert:day2-afternoon-leftovers": "npx tsx scripts/assert-day2-afternoon-leftovers.mjs",
+    "assert:day5-top5-fixes": "npx tsx scripts/assert-day5-top5-fixes.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -50,11 +50,13 @@ assert.ok(
 assert.ok(page.includes('data-testid="soul-empty-me"'));
 assert.ok(page.includes('t("soul.chrome.openChartSaveMe")'), "Open Chart to save Me");
 
-// 2) Person-not-partner discovery: Mark as Partner, no Love content in that branch
-assert.ok(page.includes('data-testid="soul-mark-as-partner"'));
-assert.ok(page.includes('data-testid="soul-mark-partner-reason"'));
-assert.ok(page.includes('t("soul.chrome.markPartner")'), "Mark as Partner");
-assert.ok(page.includes('t("page.soul.markPartnerReasonNamed"') || page.includes("page.soul.markPartnerReason"), "mark reason copy remains");
+// 2) Person-not-partner discovery: quieter Person/Partner toggle like Chart, no Love content in that branch
+assert.ok(page.includes('data-testid="person-role-control"'), "quieter Person/Partner toggle like Chart");
+assert.ok(page.includes('data-testid="person-role-person"'), "Person role button");
+assert.ok(page.includes('data-testid="person-role-partner"'), "Partner role button");
+assert.ok(page.includes('t("chart.people.partnerRole")'), "Partner role label from Chart");
+assert.ok(!page.includes('data-testid="soul-mark-as-partner"'), "no leading Mark as Partner testid");
+assert.ok(!page.includes('t("soul.chrome.markPartner")'), "no leading Mark as Partner label");
 assert.ok(page.includes("api.renameChart"));
 assert.ok(page.includes('"partner"'));
 
@@ -91,14 +93,19 @@ assert.ok(page.includes('t("soul.chrome.addPerson")'), "Add person");
 // 3) Partner-on reason line no longer requires "on Chart"
 assert.ok(page.includes('data-testid="soul-love-guidance-reason"'));
 assert.ok(
-  page.includes('t("soul.chrome.loveGuidanceOn"'),
-  "partner-on reason present",
+  page.includes('t("soul.chrome.loveGuidanceOnNeutral"'),
+  "partner-on reason is attribution-neutral",
+);
+assert.doesNotMatch(
+  page,
+  /t\("soul\.chrome\.loveGuidanceOn"/,
+  "page does not use the 'because you marked' key",
 );
 assert.ok(
   en.includes(
-    "'soul.chrome.loveGuidanceOn': 'Love guidance is on because you marked {name} as Partner.'",
+    "'soul.chrome.loveGuidanceOnNeutral': 'Love guidance is on because {name} is marked as Partner.'",
   ),
-  "partner-on ends at Partner (Open Chart is a separate link)",
+  "partner-on is attribution-neutral (Open Chart is a separate link)",
 );
 const reasonStart = page.indexOf('data-testid="soul-love-guidance-reason"');
 const reasonEnd = page.indexOf("</p>", reasonStart);

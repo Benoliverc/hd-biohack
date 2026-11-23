@@ -199,8 +199,13 @@ assert.ok(
   "Love still gated on partner + partner_overview",
 );
 assert.ok(
-  page.includes('t("soul.chrome.removePartner")') && page.includes('t("soul.chrome.markPartner")'),
-  "Mark / Remove as Partner remain",
+  page.includes('data-testid="person-role-control"') &&
+    page.includes('t("soul.chrome.removePartner")'),
+  "quieter Person/Partner toggle and Remove as Partner remain",
+);
+assert.ok(
+  page.includes('t("soul.chrome.loveGuidanceOnNeutral"'),
+  "partner-on copy is attribution-neutral",
 );
 
 for (const file of [page, overview, chapterCard]) {

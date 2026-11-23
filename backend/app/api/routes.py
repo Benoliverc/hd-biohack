@@ -427,6 +427,54 @@ def _account_today(user: User | None) -> date:
 
     return _dt.now(ZoneInfo(_account_tz_name(user))).date()
 
+
+def _move_selection_context(
+    db: Session,
+    *,
+    user_id: int | None,
+    natal_chart_id: int | None,
+    completion_day: date,
+) -> tuple[list[dict], list[str]]:
+    """This person's earlier offered Moves, plus other accounts' Move labels today."""
+    history: list[dict] = []
+    avoid_move_texts: list[str] = []
+    avoid: list[str] = []
+    if user_id is not None and natal_chart_id is not None:
+        hist_from = completion_day - timedelta(days=21)
+        hist_rows = (
+            db.query(ProtocolCompletion)
+            .filter(
+                ProtocolCompletion.user_id == user_id,
+                ProtocolCompletion.chart_id == natal_chart_id,
+                ProtocolCompletion.day >= hist_from,
+                ProtocolCompletion.day <= completion_day,
+                ProtocolCompletion.item_id.like("today-move:%"),
+            )
+            .all()
+        )
+        history = [
+            {
+                "item_id": r.item_id,
+                "done": bool(r.done),
+                "day": r.day.isoformat(),
+                "label": (r.label or "").strip(),
+            }
+            for r in hist_rows
+        ]
+    if user_id is not None:
+        others = (
+            db.query(ProtocolCompletion)
+            .filter(
+                ProtocolCompletion.day == completion_day,
+                ProtocolCompletion.item_id.like("today-move:%"),
+                ProtocolCompletion.user_id != user_id,
+            )
+            .all()
+        )
+        avoid = [str(r.label or "").strip() for r in others if (r.label or "").strip()]
+    return history, avoid
+
+
 def _validate_first_name(name: str | None) -> str | None:
     """Trim optional first name; empty clears to None. Max 64 (schema-enforced)."""
     if name is None:
@@ -919,27 +967,12 @@ def transits_today(
             if bool(getattr(r, "is_usual", False))
             and getattr(r, "usual_when", None) in ("morning", "midday", "evening")
         }
-        if natal_chart_id:
-            hist_from = completion_day - timedelta(days=21)
-            hist_rows = (
-                db.query(ProtocolCompletion)
-                .filter(
-                    ProtocolCompletion.user_id == user_id,
-                    ProtocolCompletion.chart_id == natal_chart_id,
-                    ProtocolCompletion.day >= hist_from,
-                    ProtocolCompletion.day <= completion_day,
-                    ProtocolCompletion.item_id.like("today-move:%"),
-                )
-                .all()
-            )
-            history = [
-                {
-                    "item_id": r.item_id,
-                    "done": bool(r.done),
-                    "day": r.day.isoformat(),
-                }
-                for r in hist_rows
-            ]
+        history, avoid_move_texts = _move_selection_context(
+            db,
+            user_id=user_id,
+            natal_chart_id=natal_chart_id,
+            completion_day=completion_day,
+        )
 
     prev_indication = None
     if natal is not None:
@@ -965,6 +998,8 @@ def transits_today(
         history=history,
         usual_names=usual_names if user is not None else None,
         usual_when_by_name=usual_when_by_name if user is not None else None,
+        user_key=str(user_id) if user_id is not None else None,
+        avoid_move_texts=avoid_move_texts,
     )
 
     # Seed "offered" Move for the account day (done=False) so Pro down-ranking sees ignored history.
@@ -1247,6 +1282,13 @@ def protocol(
         and getattr(r, "usual_when", None) in ("morning", "midday", "evening")
     }
     bio_unlocked = _user_has_biohacking(user)
+    completion_day = _account_today(user)
+    history, avoid_move_texts = _move_selection_context(
+        db,
+        user_id=owner_id,
+        natal_chart_id=natal_row.id,
+        completion_day=completion_day,
+    )
     prev_indication = derive_today_indication(
         natal,
         prev_transit,
@@ -1268,8 +1310,11 @@ def protocol(
         owned_names=inv,
         inventory_notes=inv_notes,
         biohacking_unlocked=bio_unlocked,
+        history=history,
         usual_names=usual_names,
         usual_when_by_name=usual_when_by_name,
+        user_key=str(owner_id),
+        avoid_move_texts=avoid_move_texts,
     )
     # Prefer FE-persisted yesterday fingerprint; else recompute natural leads for D-1
     y_fp = (body.yesterday_lead_fingerprint or "").strip() or None

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, FlaskConical, LogOut, Settings, Shield, Sparkles, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
+import { readSessionToken } from "@/lib/session";
 import { isAdminUser } from "@/lib/admin";
 import { useI18n } from "@/lib/i18n";
 import { useLiteracyHowToReadOptional } from "@/components/LiteracyHowToReadContext";
@@ -97,6 +98,12 @@ export function Header() {
     );
   const tierBadge = tierIsPro ? t("tier.pro") : t("tier.free");
   const showBetaChrome = Boolean(user && user.beta_full_access === true);
+  const sessionPending = Boolean(
+    !user &&
+      (readSessionToken() ||
+        (typeof document !== "undefined" &&
+          document.documentElement.getAttribute("data-baseline-session-pending") === "1"))
+  );
 
   useEffect(() => {
     const el = headerRef.current;
@@ -193,6 +200,12 @@ export function Header() {
                   <span>{t("nav.signOut")}</span>
                 </button>
               </>
+            ) : sessionPending ? (
+              <span
+                className="inline-flex min-h-11 min-w-11 items-center px-2.5"
+                data-testid="header-session-pending"
+                aria-hidden
+              />
             ) : (
               <Link
                 href="/login"

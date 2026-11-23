@@ -14,6 +14,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { resolveSoulChannelNickname, useSoulCopy } from "@/lib/soulCopy";
 import { useApp } from "@/lib/store";
+import { readSessionToken } from "@/lib/session";
 import { displayCenter } from "@/lib/hdCopy";
 import { ChevronDown } from "lucide-react";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -400,6 +401,8 @@ function SoulUnlockedContent() {
 
   const loadCharts = useCallback(async () => {
     if (!user?.id) {
+      // Stay in loading if a session is still hydrating so we never flash empty Soul.
+      if (!sessionReady || readSessionToken()) return;
       setCharts([]);
       setChartsLoading(false);
       return;
@@ -415,7 +418,7 @@ function SoulUnlockedContent() {
     } finally {
       setChartsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, sessionReady]);
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -469,7 +472,6 @@ function SoulUnlockedContent() {
     [personOptions, friendId]
   );
   const isPartnerSelected = selectedFriend?.role === "partner";
-  const selectedPartnerFirstName = partnerFirstNameFromLabel(selectedFriend?.label);
 
   const handleMarkAsPartner = useCallback(async () => {
     if (!selectedFriend || markingPartner) return;
@@ -596,7 +598,7 @@ function SoulUnlockedContent() {
 
   return (
     <div className="space-y-6" data-testid="soul-unlocked">
-      {!sessionReady || chartsLoading ? (
+      {!sessionReady || chartsLoading || Boolean(!user && readSessionToken()) ? (
         <div
           className="rounded-2xl border border-border bg-elevated p-5"
           data-testid="soul-loading"
@@ -709,81 +711,97 @@ function SoulUnlockedContent() {
             </label>
           </div>
 
-          {isPartnerSelected ? (
-            <div data-testid="soul-partner-reason-row">
-              <p
-                className="type-caption text-fg-secondary"
-                data-testid="soul-love-guidance-reason"
+          <div className="space-y-2" data-testid="soul-person-role-row">
+            <div
+              className="flex gap-1 rounded-xl border border-border bg-sunken/80 p-1 w-fit"
+              data-testid="person-role-control"
+              title={t("chart.people.relationshipLabel")}
+            >
+              <button
+                type="button"
+                disabled={markingPartner || removingPartner || !selectedFriend}
+                onClick={() => {
+                  if (isPartnerSelected) void handleRemoveAsPartner();
+                }}
+                className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                  !isPartnerSelected
+                    ? "bg-elevated text-fg"
+                    : "text-fg-muted"
+                }`}
+                data-testid="person-role-person"
               >
-                {t("soul.chrome.loveGuidanceOn", {
-                  name: partnerFirstNameFromLabel(selectedFriend?.label) || t("soul.chrome.them"),
-                })}{" "}
-                <Link
-                  href="/profile"
-                  className="font-medium text-growth underline-offset-2 hover:underline"
+                {t("chart.people.personFallback")}
+              </button>
+              <button
+                type="button"
+                disabled={markingPartner || removingPartner || !selectedFriend}
+                onClick={() => {
+                  if (!isPartnerSelected) void handleMarkAsPartner();
+                }}
+                className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
+                  isPartnerSelected
+                    ? "bg-elevated text-fg"
+                    : "text-fg-muted"
+                }`}
+                data-testid="person-role-partner"
+              >
+                {isPartnerSelected && removingPartner
+                  ? t("soul.chrome.removing")
+                  : !isPartnerSelected && markingPartner
+                    ? t("soul.chrome.marking")
+                    : t("chart.people.partnerRole")}
+              </button>
+            </div>
+            {isPartnerSelected ? (
+              <div data-testid="soul-partner-reason-row">
+                <p
+                  className="type-caption text-fg-secondary"
+                  data-testid="soul-love-guidance-reason"
                 >
-                  {t("page.today.openChart")}
-                </Link>
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
+                  {t("soul.chrome.loveGuidanceOnNeutral", {
+                    name: partnerFirstNameFromLabel(selectedFriend?.label) || t("soul.chrome.them"),
+                  })}{" "}
+                  <Link
+                    href={selectedFriend ? `/profile?person=${selectedFriend.id}` : "/profile"}
+                    className="font-medium text-growth underline-offset-2 hover:underline"
+                    data-testid="soul-open-chart"
+                  >
+                    {t("page.today.openChart")}
+                  </Link>
+                </p>
                 <button
                   type="button"
                   disabled={removingPartner || !selectedFriend}
                   onClick={() => void handleRemoveAsPartner()}
-                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
                   data-testid="soul-remove-as-partner"
                 >
                   {removingPartner ? t("soul.chrome.removing") : t("soul.chrome.removePartner")}
                 </button>
               </div>
-              {removePartnerError ? (
-                <p
-                  className="mt-2 text-sm text-danger"
-                  data-testid="soul-remove-partner-error"
-                >
-                  {removePartnerError}
-                </p>
-              ) : null}
-            </div>
-          ) : (
+            ) : null}
             <div data-testid="soul-mark-partner-row">
-              <p
-                className="type-caption text-fg-secondary"
-                data-testid="soul-mark-partner-reason"
-              >
-                {selectedPartnerFirstName
-                  ? t("page.soul.markPartnerReasonNamed", {
-                      name: selectedPartnerFirstName,
-                    })
-                  : t("page.soul.markPartnerReason")}
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  disabled={markingPartner || !selectedFriend}
-                  onClick={() => void handleMarkAsPartner()}
-                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
-                  data-testid="soul-mark-as-partner"
-                >
-                  {markingPartner ? t("soul.chrome.marking") : t("soul.chrome.markPartner")}
-                </button>
+              {!isPartnerSelected ? (
                 <Link
-                  href="/profile"
+                  href={selectedFriend ? `/profile?person=${selectedFriend.id}` : "/profile"}
                   className="text-sm font-medium text-growth underline-offset-2 hover:underline"
+                  data-testid="soul-open-chart"
                 >
                   {t("page.today.openChart")}
                 </Link>
-              </div>
-              {markPartnerError ? (
-                <p
-                  className="mt-2 text-sm text-danger"
-                  data-testid="soul-mark-partner-error"
-                >
-                  {markPartnerError}
-                </p>
               ) : null}
             </div>
-          )}
+            {markPartnerError ? (
+              <p className="mt-2 text-sm text-danger" data-testid="soul-mark-partner-error">
+                {markPartnerError}
+              </p>
+            ) : null}
+            {removePartnerError ? (
+              <p className="mt-2 text-sm text-danger" data-testid="soul-remove-partner-error">
+                {removePartnerError}
+              </p>
+            ) : null}
+          </div>
 
           <div data-testid="soul-playbook" className="space-y-6">
           {(apiMissing || schemaLag) && (

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { api, SavedChartRow } from "@/lib/api";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
@@ -240,8 +241,12 @@ function ChartSectionNav({
   );
 }
 
-export default function ProfilePage() {
+function ProfilePage() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const personQueryRaw = Number(searchParams.get("person") || "");
+  const requestedPersonId =
+    Number.isFinite(personQueryRaw) && personQueryRaw > 0 ? personQueryRaw : null;
   const {
     TYPE_COPY,
     TYPE_BATTERY,
@@ -466,7 +471,10 @@ export default function ProfilePage() {
           setHydratedUserId(user.id);
           return;
         }
-        const preferred = pickPreferredRow(rows, natalChartId);
+        const preferred = pickPreferredRow(rows, requestedPersonId ?? natalChartId);
+        if (preferred && requestedPersonId != null && preferred.id === requestedPersonId) {
+          applyRow(preferred, { bindStore: preferred.slot_kind !== "friend" });
+        }
         // No You yet: leave fields empty for first-run. Do not auto-apply a person chart.
         if (preferred && isSelfRow(preferred)) applyRow(preferred);
         setHydratedUserId(user.id);
@@ -488,6 +496,15 @@ export default function ProfilePage() {
     applyRow,
     pickPreferredRow,
   ]);
+
+  useEffect(() => {
+    if (requestedPersonId == null) return;
+    const row = savedPeople.find((r) => r.id === requestedPersonId);
+    if (!row) return;
+    if (editingChartId === row.id && viewMode === "saved") return;
+    const bindStore = row.slot_kind !== "friend" || natalChartId == null;
+    applyRow(row, { bindStore });
+  }, [requestedPersonId, savedPeople, editingChartId, viewMode, natalChartId, applyRow]);
 
   const hasNatalInList =
     natalChartId != null && savedPeople.some((r) => r.id === natalChartId);
@@ -1845,10 +1862,21 @@ export default function ProfilePage() {
               )}
               <div className="rounded-2xl border border-growth/30 bg-growth-soft px-5 py-4">
                 <p className="text-lg font-semibold text-growth-ink">
-                  {t("chart.people.youreAType", {
-                    type: typeKey,
-                    summary: TYPE_COPY[typeKey] ? ` — ${TYPE_COPY[typeKey].summary}` : "",
-                  })}
+                  {selectedSavedRow &&
+                  (selectedSavedRow.slot_kind === "friend" ||
+                    (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
+                    ? t("chart.people.theyreAType", {
+                        name: friendChipLabel(
+                          selectedSavedRow,
+                          t("chart.people.personFallback"),
+                        ),
+                        type: typeKey,
+                        summary: "",
+                      })
+                    : t("chart.people.youreAType", {
+                        type: typeKey,
+                        summary: TYPE_COPY[typeKey] ? ` — ${TYPE_COPY[typeKey].summary}` : "",
+                      })}
                 </p>
                 <p className="mt-2 type-body text-fg">
                   {TYPE_BATTERY[typeKey] ||
@@ -1864,19 +1892,32 @@ export default function ProfilePage() {
                 </div>
                 <div className="rounded-xl border border-border bg-elevated p-4">
                   <div className="type-caption uppercase tracking-wide text-fg-secondary">{t("chart.people.howYouDecide")}</div>
-                  <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
-                  <p className="mt-2 type-body text-fg-secondary">
-                    {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
-                  </p>
-                  <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
-                    {t("chart.people.bodysYes")}
-                  </div>
-                  <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
-                  <p className="mt-2 type-body text-fg-secondary">
-                    {AUTHORITY_PLAIN[authorityStr] ||
-                      AUTHORITY_COPY[authorityStr]?.summary ||
-                      authorityStr}
-                  </p>
+                  {/emotional|solar plexus/i.test(authorityStr) ? (
+                    <>
+                      <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
+                      <p className="mt-2 type-body text-fg-secondary">
+                        {AUTHORITY_PLAIN[authorityStr] ||
+                          AUTHORITY_COPY[authorityStr]?.summary ||
+                          authorityStr}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
+                      <p className="mt-2 type-body text-fg-secondary">
+                        {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
+                      </p>
+                      <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
+                        {t("chart.people.bodysYes")}
+                      </div>
+                      <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
+                      <p className="mt-2 type-body text-fg-secondary">
+                        {AUTHORITY_PLAIN[authorityStr] ||
+                          AUTHORITY_COPY[authorityStr]?.summary ||
+                          authorityStr}
+                      </p>
+                    </>
+                  )}
                   {viewMode === "saved" && savedTimeUnknown ? (
                     <p
                       className="mt-3 type-body text-fg-secondary"
@@ -1949,5 +1990,13 @@ export default function ProfilePage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function ProfilePageRoute() {
+  return (
+    <Suspense fallback={null}>
+      <ProfilePage />
+    </Suspense>
   );
 }

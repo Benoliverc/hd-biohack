@@ -29,8 +29,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useLayoutEffect(() => {
     if (typeof document === "undefined") return;
-    document.documentElement.removeAttribute("data-baseline-session-pending");
-  }, [pathname]);
+    const token = readSessionToken();
+    if (user || (sessionReady && !token)) {
+      document.documentElement.removeAttribute("data-baseline-session-pending");
+    }
+  }, [pathname, user, sessionReady]);
 
   useEffect(() => {
     if (!sessionReady) return;

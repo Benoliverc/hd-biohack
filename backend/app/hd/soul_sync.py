@@ -20,6 +20,26 @@ from .partner_insights import apply_partner_layer
 from .partner_names import first_name_from_label, personalize_type_prose
 from .soul_copy_parts import part
 
+
+def hold_verb(who: str) -> str:
+    """Subject-verb agreement for 'hold' / 'holds' (you/they/we/I hold; a name holds)."""
+    return "hold" if who.strip().lower() in {"you", "they", "we", "i"} else "holds"
+
+
+def possess_channel(poss: str, name: str) -> str:
+    """'Your' + 'The Money Line' → 'Your Money Line' (drop the extra article)."""
+    label = (poss or "").strip()
+    raw = (name or "").strip()
+    if not raw:
+        return label
+    bare = raw
+    for article in ("the ", "el ", "la ", "les ", "los ", "las ", "der ", "die ", "das ", "het "):
+        if bare.lower().startswith(article):
+            bare = bare[len(article):]
+            break
+    return f"{label} {bare}".strip() if label else bare
+
+
 ContextId = Literal["work", "life", "play"]
 
 CONTEXT_LABELS: dict[str, str] = {
@@ -360,7 +380,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Concentration Tuning",
                 (
-                    f"{holder} hold the full Concentration channel (Sacral–Root focus under pressure). "
+                    f"{holder} {hold_verb(holder)} the full Concentration channel (Sacral–Root focus under pressure). "
                     "That means deep-work stamina and the urge to dig into one thing until it is done "
                     f"lives more steadily in you; {other} may only catch the pressure half and feel "
                     "restless or interrupted when you disappear into detail."
@@ -378,7 +398,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Concentration Tuning",
             (
-                f"{holder} hold the full Concentration channel (Sacral–Root focus under pressure). "
+                f"{holder} {hold_verb(holder)} the full Concentration channel (Sacral–Root focus under pressure). "
                 "Deep-work stamina and the urge to dig into one thing until it is done lives more "
                 "steadily in them; you may only catch the pressure half and feel restless, locked "
                 "out, or suddenly 'behind' when they disappear into detail."
@@ -399,7 +419,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Exploration Tuning",
                 (
-                    f"{holder} hold the full Exploration channel (self-directed sacral motion). "
+                    f"{holder} {hold_verb(holder)} the full Exploration channel (self-directed sacral motion). "
                     "Your body wants to follow your own code and try the next path; "
                     f"{other} may only hold a hanging half and feel either pulled into your "
                     "adventures or left watching from the shore."
@@ -418,7 +438,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Exploration Tuning",
             (
-                f"{holder} hold the full Exploration channel (self-directed sacral motion). "
+                f"{holder} {hold_verb(holder)} the full Exploration channel (self-directed sacral motion). "
                 "Their body wants to follow their own code and try the next path; you may only "
                 "hold a hanging half and feel either pulled into their adventures or left watching "
                 "from the shore."
@@ -439,7 +459,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Synthesis Tuning",
                 (
-                    f"{holder} hold the full Synthesis channel (needs, fairness, who is in or out). "
+                    f"{holder} {hold_verb(holder)} the full Synthesis channel (needs, fairness, who is in or out). "
                     "You feel consistent pressure around resources, belonging, and whether the deal "
                     f"is fair; {other} may only hold a hanging gate and feel the mood of inclusion "
                     "or exclusion without the same steady signal."
@@ -458,7 +478,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Synthesis Tuning",
             (
-                f"{holder} hold the full Synthesis channel (needs, fairness, who is in or out). "
+                f"{holder} {hold_verb(holder)} the full Synthesis channel (needs, fairness, who is in or out). "
                 "They feel consistent pressure around resources, belonging, and whether the deal "
                 "is fair; you may only hold a hanging gate and feel the mood of inclusion or "
                 "exclusion without the same steady signal."
@@ -479,7 +499,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Structuring Tuning",
                 (
-                    f"{holder} hold the full Structuring channel (insight that needs the right words). "
+                    f"{holder} {hold_verb(holder)} the full Structuring channel (insight that needs the right words). "
                     "Breakthrough knowing wants to leave your Ajna as a clear frame others can use; "
                     f"{other} may only hold a hanging half and hear genius as weird if the packaging "
                     "is rushed."
@@ -497,7 +517,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Structuring Tuning",
             (
-                f"{holder} hold the full Structuring channel (insight that needs the right words). "
+                f"{holder} {hold_verb(holder)} the full Structuring channel (insight that needs the right words). "
                 "Breakthrough knowing wants to leave their Ajna as a clear frame others can use; "
                 "you may only hold a hanging half and hear genius as weird if the packaging is "
                 "rushed."
@@ -518,7 +538,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Purpose & Tenacity Tuning",
                 (
-                    f"{holder} hold the full Struggle channel (purpose through challenge — also "
+                    f"{holder} {hold_verb(holder)} the full Struggle channel (purpose through challenge — also "
                     "called the channel of Struggle). Stubborn courage and the hunt for what is "
                     f"worth fighting for live more steadily in you; {other} may only hold a hanging "
                     "gate and feel the pressure of a fight without the same sense of meaning."
@@ -536,7 +556,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Purpose & Tenacity Tuning",
             (
-                f"{holder} hold the full Struggle channel (purpose through challenge — also "
+                f"{holder} {hold_verb(holder)} the full Struggle channel (purpose through challenge — also "
                 "called the channel of Struggle). Stubborn courage and the hunt for what is "
                 "worth fighting for live more steadily in them; you may only hold a hanging "
                 "gate and feel the pressure of a fight without the same sense of meaning."
@@ -557,7 +577,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Transformation Tuning",
                 (
-                    f"{holder} hold the full Transformation channel (ambition guided by instinct). "
+                    f"{holder} {hold_verb(holder)} the full Transformation channel (ambition guided by instinct). "
                     "Drive to rise and change material or social position lives more steadily in you, "
                     "tempered by splenic knowing about what will last; "
                     f"{other} may only hold a hanging half and feel the climb without the same "
@@ -576,7 +596,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Transformation Tuning",
             (
-                f"{holder} hold the full Transformation channel (ambition guided by instinct). "
+                f"{holder} {hold_verb(holder)} the full Transformation channel (ambition guided by instinct). "
                 "Drive to rise and change material or social position lives more steadily in them, "
                 "tempered by splenic knowing about what will last; you may only hold a hanging "
                 "half and feel the climb without the same inner 'this will endure' meter."
@@ -597,7 +617,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Community Tuning",
                 (
-                    f"{holder} hold the full Community channel (loyalty, family deals, honest "
+                    f"{holder} {hold_verb(holder)} the full Community channel (loyalty, family deals, honest "
                     "exchange). Emotional clarity and willpower meet in you around who is family, "
                     "who owes what, and whether the bargain feels warm and fair; "
                     f"{other} may only hold a hanging gate and feel the loyalty weather without "
@@ -616,7 +636,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Community Tuning",
             (
-                f"{holder} hold the full Community channel (loyalty, family deals, honest "
+                f"{holder} {hold_verb(holder)} the full Community channel (loyalty, family deals, honest "
                 "exchange). Emotional clarity and willpower meet in them around who is family, "
                 "who owes what, and whether the bargain feels warm and fair; you may only hold a "
                 "hanging gate and feel the loyalty weather without the same deal-making signal."
@@ -637,7 +657,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
             return pack(
                 "Desire & Imagination Tuning",
                 (
-                    f"{holder} hold the full Recognition channel (feeling + hunger for experience). "
+                    f"{holder} {hold_verb(holder)} the full Recognition channel (feeling + hunger for experience). "
                     "Emotional pressure to desire, fantasize, and start new stories lives more "
                     f"steadily in you; {other} may only hold a hanging half and get swept into the "
                     "fantasy without knowing whether it is play or a real launch."
@@ -655,7 +675,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
         return pack(
             "Desire & Imagination Tuning",
             (
-                f"{holder} hold the full Recognition channel (feeling + hunger for experience). "
+                f"{holder} {hold_verb(holder)} the full Recognition channel (feeling + hunger for experience). "
                 "Emotional pressure to desire, fantasize, and start new stories lives more "
                 "steadily in them; you may only hold a hanging half and get swept into the "
                 "fantasy without knowing whether it is play or a real launch."
@@ -674,7 +694,7 @@ def _compromise_tuning_block(ch: dict[str, Any]) -> dict[str, str]:
     return pack(
         f"{name} Tuning",
         (
-            f"{holder} hold the full {name} channel while {other} only holds a hanging gate on "
+            f"{holder} {hold_verb(holder)} the full {name} channel while {other} only {hold_verb(other)} a hanging gate on "
             "the same path. That is a compromise dynamic: one person's set point for this theme "
             "is steadier (the 'thermostat'), and the other adapts more from moment to moment — "
             "not a verdict that one of you is in charge of the relationship."

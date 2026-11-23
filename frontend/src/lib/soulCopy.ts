@@ -67,6 +67,18 @@ function channelIdsFrom(params?: Params): string[] {
     .filter(Boolean);
 }
 
+
+const CHANNEL_ARTICLES = /^(the|el|la|les|los|las|der|die|das|het)\s+/i;
+
+/** "Your" + "The Money Line" → "Your Money Line". */
+export function possessChannel(poss: string, name: string): string {
+  const label = (poss || "").trim();
+  const raw = (name || "").trim();
+  if (!raw) return label;
+  const bare = raw.replace(CHANNEL_ARTICLES, "");
+  return label ? `${label} ${bare}` : bare;
+}
+
 function formatCites(locale: string, params?: Params): string {
   const ids = channelIdsFrom(params);
   if (!ids.length) return params?.cites != null ? String(params.cites) : "";
@@ -80,7 +92,7 @@ function formatCites(locale: string, params?: Params): string {
         const label =
           lookup(locale, holder === "self" ? "soul.read.holder.your" : "soul.read.holder.their") ||
           holderFallback(locale, holder);
-        return `${label} ${name}`;
+        return possessChannel(label, name);
       }
       return gateTxt ? `${name} (${gateTxt})` : name;
     })

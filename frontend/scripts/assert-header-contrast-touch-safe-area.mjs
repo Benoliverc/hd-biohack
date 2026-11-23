@@ -37,7 +37,7 @@ const headerFn = header.slice(headerFnStart);
 
 const navStart = profile.indexOf("function ChartSectionNav");
 assert.ok(navStart >= 0, "ChartSectionNav lives on the chart page");
-const navEnd = profile.indexOf("\nexport default function ProfilePage", navStart);
+const navEnd = profile.indexOf("\nfunction ProfilePage(", navStart);
 assert.ok(navEnd > navStart, "ChartSectionNav ends before ProfilePage");
 const sectionNav = profile.slice(navStart, navEnd);
 

@@ -252,3 +252,18 @@ html[data-baseline-session-pending]::after {
   z-index: 9999;
   pointer-events: none;
 }
+
+
+/* Signed-in sessions must never paint the signed-out header while hydrating. */
+html[data-baseline-session-pending] [data-testid="header-sign-in"] {
+  display: none !important;
+}
+
+/* Disclosure chevrons follow the open attribute, including first paint already expanded. */
+details.disclosure > summary [data-disclosure-chevron] {
+  display: inline-block;
+  transition: transform 150ms ease;
+}
+details.disclosure[open] > summary [data-disclosure-chevron] {
+  transform: rotate(90deg);
+}

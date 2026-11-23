@@ -33,10 +33,10 @@ assert.ok(
   "drop in-session id when the account changes",
 );
 
-// Dual prompt / Mark as Partner / Love-only-when-Partner unchanged
+// Dual prompt / quieter Person/Partner toggle / Love-only-when-Partner unchanged
 assert.ok(page.includes('data-testid="soul-empty"'), "empty state remains");
 assert.ok(page.includes('data-testid="soul-add-person"'), "Add person remains");
-assert.ok(page.includes('data-testid="soul-mark-as-partner"'), "Mark as Partner remains");
+assert.ok(page.includes('data-testid="person-role-control"'), "quieter Person/Partner toggle remains");
 assert.ok(
   page.includes('result.friend?.role === "partner"') &&
     page.includes("result.partner_overview"),
