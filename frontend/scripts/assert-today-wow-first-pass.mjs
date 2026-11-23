@@ -86,7 +86,8 @@ assert.ok(
 );
 assert.doesNotMatch(tickTag, /h-7 w-7/, "tick is no longer h-7 w-7");
 assert.match(tickTag, /rounded-full/, "tick stays a circle");
-assert.match(tickTag, /aria-pressed=\{moveDone\}/, "aria-pressed stays");
+assert.match(todayInd, /\{\s*!moveDone \?\s*\(/, "I did it is hidden when the move is done");
+assert.doesNotMatch(tickTag, /aria-pressed=\{moveDone\}/, "aria-pressed is not bound to moveDone");
 assert.match(tickTag, /aria-label=\{t\("today\.iDidIt"\)\}/, "aria-label stays today.iDidIt");
 assert.match(todayInd, /today-move-achieved/, "settled wash remains");
 assert.match(todayInd, /today-move-closure/, "settled receipt remains");

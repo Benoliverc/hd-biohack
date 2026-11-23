@@ -99,17 +99,35 @@ function stepBlock(region, id) {
   return region.slice(start, next > start ? next : region.length);
 }
 
-// --- Item 6: quiet Partner CTA on a Person ---
-assert.ok(page.includes('data-testid="soul-mark-as-partner"'), "Mark as Partner testid");
-assert.ok(page.includes('t("soul.chrome.markPartner")'), "Mark as Partner label");
+// --- Item 6: quieter Person/Partner toggle like Chart (no leading romance pitch) ---
+assert.ok(page.includes('data-testid="person-role-control"'), "quieter Person/Partner toggle");
+assert.ok(page.includes('data-testid="person-role-person"'), "Person role button");
+assert.ok(page.includes('data-testid="person-role-partner"'), "Partner role button");
+assert.ok(page.includes('t("chart.people.partnerRole")'), "Partner role label from Chart");
 assert.ok(page.includes('t("soul.chrome.marking")'), "Marking busy label");
-assert.ok(page.includes('data-testid="soul-mark-partner-reason"'), "reason testid");
 assert.ok(page.includes('data-testid="soul-mark-partner-row"'), "quiet row testid");
+assert.ok(
+  !page.includes('data-testid="soul-mark-as-partner"'),
+  "leading Mark as Partner testid is gone",
+);
+assert.ok(
+  !page.includes('data-testid="soul-mark-partner-reason"'),
+  "romance-pitch reason testid is gone",
+);
 assert.ok(
   !page.includes('data-testid="soul-mark-partner-prompt"'),
   "featured invitation card testid is gone",
 );
 assert.ok(!page.includes("Want Love guidance with"), "old invitation question is gone");
+assert.ok(!page.includes('t("soul.chrome.markPartner")'), "no leading Mark as Partner label");
+assert.ok(
+  !page.includes('t("page.soul.markPartnerReasonNamed"'),
+  "no leading romance-pitch named caption",
+);
+assert.ok(
+  !page.includes('t("page.soul.markPartnerReason")'),
+  "no leading romance-pitch nameless caption",
+);
 
 assert.ok(
   page.includes('renameChart(selectedFriend.id, selectedFriend.label || "", "partner")'),
@@ -118,15 +136,6 @@ assert.ok(
 assert.ok(
   page.includes("partnerFirstNameFromLabel"),
   "first-name helper remains",
-);
-assert.ok(
-  page.includes("selectedPartnerFirstName"),
-  "Person caption still uses first-name handling",
-);
-assert.ok(
-  page.includes('t("page.soul.markPartnerReasonNamed"') &&
-    page.includes('t("page.soul.markPartnerReason")'),
-  "locked captions come from i18n keys",
 );
 
 const markRow = blockWithTestId(page, "soul-mark-partner-row", "data-testid=\"soul-playbook\"");
@@ -140,14 +149,14 @@ assert.ok(
 );
 assert.ok(
   !/bg-growth\/20/.test(markRow) && !/hover:bg-growth\/30/.test(markRow),
-  "Mark as Partner is not a growth primary",
+  "Partner control is not a growth primary",
 );
 
-const markBtn = openingTagWithTestId(page, "soul-mark-as-partner");
+const roleControl = blockWithTestId(page, "person-role-control", "data-testid=\"soul-partner-reason-row\"");
+assert.ok(roleControl.includes('data-testid="person-role-partner"'), "toggle includes Partner");
 const removeBtn = openingTagWithTestId(page, "soul-remove-as-partner");
 const quietChrome =
   "inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60";
-assert.ok(markBtn.includes(quietChrome), "Mark uses quiet secondary chrome");
 assert.ok(removeBtn.includes(quietChrome), "Remove chrome (unchanged) is the same secondary");
 
 const pickersAt = page.indexOf('data-testid="soul-pickers"');
@@ -173,10 +182,15 @@ const meBlock = page.slice(meStart, meEnd > meStart ? meEnd : meStart + 800);
 assert.ok(!/Mark as Partner/i.test(meBlock), "no Mark as Partner in empty-me");
 assert.ok(!/Love guidance/i.test(meBlock), "no Love guidance pitch in empty-me");
 
-// Partner-on row unchanged
+// Partner-on row is attribution-neutral
 assert.ok(
-  page.includes('t("soul.chrome.loveGuidanceOn"'),
-  "partner-on reason unchanged",
+  page.includes('t("soul.chrome.loveGuidanceOnNeutral"'),
+  "partner-on reason is attribution-neutral",
+);
+assert.doesNotMatch(
+  page,
+  /t\("soul\.chrome\.loveGuidanceOn"/,
+  "page does not use the 'because you marked' key",
 );
 assert.ok(page.includes('t("soul.chrome.removePartner")'), "Remove as Partner remains");
 assert.ok(page.includes('t("soul.chrome.partnerLoveChip")'), "Partner chip remains");

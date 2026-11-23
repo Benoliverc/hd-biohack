@@ -472,7 +472,6 @@ function SoulUnlockedContent() {
     [personOptions, friendId]
   );
   const isPartnerSelected = selectedFriend?.role === "partner";
-  const selectedPartnerFirstName = partnerFirstNameFromLabel(selectedFriend?.label);
 
   const handleMarkAsPartner = useCallback(async () => {
     if (!selectedFriend || markingPartner) return;

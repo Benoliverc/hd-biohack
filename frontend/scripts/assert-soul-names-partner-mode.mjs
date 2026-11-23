@@ -125,18 +125,23 @@ assert.ok(
   "Spectrums is not energy-washed",
 );
 
-// 4) Last-selected / Dual / Mark as Partner paths not broken
+// 4) Last-selected / Dual / quieter Person/Partner toggle paths not broken
 assert.ok(page.includes("writeSoulLastPersonId"), "last-selected write remains");
 assert.ok(page.includes("writeSoulLastPersonId(user.id, next)"), "write keyed by user.id");
-assert.ok(page.includes('data-testid="soul-mark-as-partner"'), "Mark as Partner remains");
-assert.ok(page.includes('data-testid="soul-mark-partner-reason"'), "mark reason testid remains");
+assert.ok(page.includes('data-testid="person-role-control"'), "quieter Person/Partner toggle remains");
+assert.ok(page.includes('data-testid="person-role-partner"'), "Partner role button remains");
 assert.ok(
   page.includes('renameChart(selectedFriend.id, selectedFriend.label || "", "partner")'),
   "Mark still uses renameChart partner",
 );
 assert.ok(
-  page.includes('t("soul.chrome.loveGuidanceOn"'),
-  "partner reason line remains",
+  page.includes('t("soul.chrome.loveGuidanceOnNeutral"'),
+  "partner reason line is attribution-neutral",
+);
+assert.doesNotMatch(
+  page,
+  /t\("soul\.chrome\.loveGuidanceOn"/,
+  "page does not use the 'because you marked' key",
 );
 assert.ok(
   page.includes('result.friend?.role === "partner"') &&
