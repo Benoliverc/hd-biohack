@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.className} min-h-screen bg-canvas text-fg antialiased`}>
         <Script id="baseline-session-presence-boot" strategy="beforeInteractive">
-          {`try{if(location.pathname==="/login"&&localStorage.getItem("hd-biohack:session-token")){document.documentElement.setAttribute("data-baseline-session-pending","1")}}catch(e){}`}
+          {`try{if(localStorage.getItem("hd-biohack:session-token")){document.documentElement.setAttribute("data-baseline-session-pending","1")}}catch(e){}`}
         </Script>
         <AppProvider>
           <LiteracyHowToReadProvider>

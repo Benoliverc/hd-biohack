@@ -32,7 +32,7 @@ function TryLine({ text, testId }: { text?: string | null; testId?: string }) {
   if (!hasText(text)) return null;
   return (
     <p className="mt-2 type-body text-fg max-w-prose" data-testid={testId}>
-      <span className="font-semibold text-fg">{t("soul.partner.try")}</span> {text}
+      <span className="font-semibold text-fg">{t("soul.partner.try")}:</span> {text}
     </p>
   );
 }

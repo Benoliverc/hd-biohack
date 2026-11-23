@@ -152,6 +152,29 @@ function sanitizeWhy(why: string | undefined, inInventory: boolean | undefined):
   return sanitizeProtocolWhy(why, inInventory);
 }
 
+
+function dropShelfItemFromPlan(
+  proto: Record<string, unknown> | null,
+  name: string,
+): Record<string, unknown> | null {
+  if (!proto) return proto;
+  const daily = (proto.daily_plan as Record<string, unknown>) || null;
+  if (!daily) return proto;
+  const nextDaily = { ...daily };
+  let changed = false;
+  const target = name.trim().toLowerCase();
+  for (const slot of ["morning", "midday", "evening"] as const) {
+    const rows = ([...((nextDaily[slot] as PlanItem[]) || [])] as PlanItem[]);
+    const filtered = rows.filter((row) => bareItemName(row.item || "").toLowerCase() !== target);
+    if (filtered.length !== rows.length) {
+      nextDaily[slot] = filtered;
+      changed = true;
+    }
+  }
+  if (!changed) return proto;
+  return { ...proto, daily_plan: nextDaily };
+}
+
 function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] {
   if (!proto) return [];
   const daily = (proto.daily_plan as Record<string, unknown>) || null;
@@ -273,13 +296,26 @@ export default function BiohackPage() {
     setInventory(list);
   }, [user]);
 
-  // One-time light confirm after cupboard has names; dismiss must not block Today/kit.
+  // Snapshot the cupboard on first ready load. Your usual may ask about
+  // items added later in this visit, never about what was already on Shelf.
+  const shelfBaselineRef = useRef<Set<number> | "pending">("pending");
   useEffect(() => {
-    if (!user || inventoryLoading) return;
+    if (!user) {
+      shelfBaselineRef.current = "pending";
+      return;
+    }
+    if (inventoryLoading) return;
+    if (shelfBaselineRef.current === "pending") {
+      shelfBaselineRef.current = new Set(inventory.map((it) => it.id));
+      return;
+    }
     if (inventory.length === 0) return;
     if (inventory.some((it) => it.is_usual)) return;
     if (readUsualConfirmDismissed(user.id)) return;
-    setUsualDraft(Object.fromEntries(inventory.map((it) => [it.id, false])));
+    const known = shelfBaselineRef.current;
+    const newcomers = inventory.filter((it) => !known.has(it.id));
+    if (newcomers.length === 0) return;
+    setUsualDraft(Object.fromEntries(newcomers.map((it) => [it.id, false])));
     setUsualConfirmOpen(true);
   }, [user, inventory, inventoryLoading]);
 
@@ -313,11 +349,11 @@ export default function BiohackPage() {
       return;
     }
     if (natalBindingLoading) {
-      setYouReady(false);
+      if (!youChart) setYouReady(false);
       return;
     }
     let cancelled = false;
-    setYouReady(false);
+    if (!youChart) setYouReady(false);
     api
       .charts(user.id)
       .then((rows) => {
@@ -697,6 +733,13 @@ export default function BiohackPage() {
     setRemovingId(item.id);
     setError(null);
     setKitStatus(null);
+    setInvFeedback((prev) =>
+      prev && item.name && prev.toLowerCase().includes(item.name.toLowerCase())
+        ? null
+        : prev
+    );
+    setInventory((list) => list.filter((row) => row.id !== item.id));
+    setProtocol((prev) => dropShelfItemFromPlan(prev, item.name));
     const before = snapTimedLeads(protocol);
     try {
       await api.removeInventory(user.id, item.id);
@@ -979,19 +1022,29 @@ export default function BiohackPage() {
           ref={shelfRef}
           open={shelfOpen}
           onToggle={(e) => setShelfOpen((e.target as HTMLDetailsElement).open)}
-          className="group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
+          className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
           data-testid="shelf-disclosure"
         >
           <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex flex-wrap items-center gap-2">
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary group-open:rotate-90 transition-transform" aria-hidden />
+              <ChevronRight data-disclosure-chevron className="h-4 w-4 shrink-0 text-fg-secondary group-open:rotate-90 transition-transform" aria-hidden />
               <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
-              <span>{t("page.protocols.shelf")}</span>
+              <span>
+                {inventoryLoading || inventory.length === 0
+                  ? t("page.protocols.shelf")
+                  : inventory.length === 1
+                    ? t("protocols.shelfNamedOne", { name: inventory[0].name })
+                    : t("protocols.shelfNamedMany", {
+                        count: inventory.length,
+                        name: inventory[0].name,
+                      })}
+              </span>
               <span className="text-xs font-normal text-fg-secondary">
-                · {inventoryLoading ? "…" : inventory.length}
                 {!inventoryLoading && inventory.length === 0
                   ? ` · ${t("page.protocols.addWhatYouOwn")}`
-                  : ""}
+                  : inventoryLoading
+                    ? " · …"
+                    : ""}
               </span>
             </span>
           </summary>
@@ -1300,9 +1353,12 @@ function KitFactCallout({
         <p className="type-chip uppercase tracking-wide text-fg-secondary">
           {t("protocols.kitFactToday")}
           {fact.supplement ? (
-            <span className="ml-1.5 rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 type-caption font-medium normal-case tracking-normal text-fg-secondary">
-              {fact.supplement}
-            </span>
+            <>
+              {" · "}
+              <span className="rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 type-caption font-medium normal-case tracking-normal text-fg-secondary">
+                {fact.supplement}
+              </span>
+            </>
           ) : null}
         </p>
         <p className="mt-1 type-body text-fg-secondary line-clamp-2">{body}</p>

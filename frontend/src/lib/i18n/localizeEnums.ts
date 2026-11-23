@@ -71,12 +71,33 @@ const WEATHER_SPACE_KEYS: Record<string, MessageKey> = {
   out: "today.weatherSpace.out",
 };
 
+const TYPE_WEATHER_STANCE: Record<string, Partial<Record<number, MessageKey>>> = {
+  Manifestor: {
+    4: "today.weatherStance.charged.manifestor",
+    5: "today.weatherStance.hyper.manifestor",
+  },
+  Reflector: {
+    4: "today.weatherStance.charged.reflector",
+    5: "today.weatherStance.hyper.reflector",
+  },
+  Projector: {
+    4: "today.weatherStance.charged.projector",
+    5: "today.weatherStance.hyper.projector",
+  },
+};
+
 export function weatherMeaningLine(
   t: TFn,
   energy?: number | null,
-  space?: string | null
+  space?: string | null,
+  hdType?: string | null
 ): string {
-  const stanceKey = energy != null ? WEATHER_STANCE_KEYS[energy] : undefined;
+  const typed =
+    energy != null && hdType
+      ? TYPE_WEATHER_STANCE[hdType.trim()]?.[energy]
+      : undefined;
+  const stanceKey =
+    typed || (energy != null ? WEATHER_STANCE_KEYS[energy] : undefined);
   const spaceKey = space ? WEATHER_SPACE_KEYS[space] : undefined;
   if (!stanceKey || !spaceKey) return "";
   return `${t(stanceKey)}, ${t(spaceKey)}`;

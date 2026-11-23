@@ -154,11 +154,12 @@ export default function TransitsPage() {
       return;
     }
     if (natalBindingLoading) {
-      setYouReady(false);
+      // Keep a resolved You chart; don't start a second "looking up" cycle.
+      if (!youChart) setYouReady(false);
       return;
     }
     let cancelled = false;
-    setYouReady(false);
+    if (!youChart) setYouReady(false);
     api
       .charts(user.id)
       .then((rows) => {
@@ -355,12 +356,6 @@ export default function TransitsPage() {
         ) : null}
       </div>
 
-      {resolvingYou && (
-        <div className="rounded-xl border border-border bg-elevated px-4 py-3">
-          <p className="type-meta">{t("page.today.lookingUp")}</p>
-        </div>
-      )}
-
       {!resolvingYou && !youChart && (
         <div
           className="rounded-2xl border border-dashed border-border bg-elevated/60 px-5 py-8 text-center"
@@ -414,7 +409,7 @@ export default function TransitsPage() {
         <details
           ref={skyDetailsRef}
           id="today-sky-details"
-          className="group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
           data-testid="today-sky-details"
           open={skyDetailsOpen}
           onToggle={(e) => {
@@ -425,7 +420,8 @@ export default function TransitsPage() {
           <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-semibold text-fg transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span
               aria-hidden
-              className="inline-block text-fg-muted transition-transform group-open:rotate-90"
+              data-disclosure-chevron
+              className={`inline-block text-fg-muted transition-transform ${skyDetailsOpen ? "rotate-90" : ""}`}
             >
               ▸
             </span>

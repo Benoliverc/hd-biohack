@@ -469,7 +469,7 @@ export default function TodayIndication({
   const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
   const energySpaceHighlight = indication.energy_space_slot !== "quiet";
-  const weatherMeaning = weatherMeaningLine(t, energy, space);
+  const weatherMeaning = weatherMeaningLine(t, energy, space, natalType);
   const moveText = localizeMove(indication, t);
   const whyText = localizeWhy(indication, t);
   const microText = localizeMicro(indication, t);
@@ -490,6 +490,10 @@ export default function TodayIndication({
   const moveId = indication.move_item_id || "today-move";
   const moveDone = Boolean(completions[moveId]?.done);
   const moveNote = completions[moveId]?.note || "";
+  const showUpStartDay = showUpStartDayFromCreatedAt(createdAt, protocolsTz);
+  const firstShowUpWeek = Boolean(
+    showUpStartDay && weekKeys[0] && showUpStartDay >= weekKeys[0]
+  );
   const hasFilledKitTease = Boolean(indication.kit_item && !indication.kit_placeholder);
   const hasKitStackHandoff =
     hasFilledKitTease ||
@@ -521,23 +525,21 @@ export default function TodayIndication({
               return (
                 <div>
                   <div className="flex items-start gap-3">
+                    {!moveDone ? (
                     <button
                       type="button"
                       disabled={!canTap}
-                      aria-pressed={moveDone}
+                      aria-pressed={false}
                       aria-label={t("today.iDidIt")}
                       data-testid="today-move-done"
                       onClick={() =>
                         persistToggle(moveId, moveText || t("today.move"))
                       }
-                      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 ${
-                        moveDone
-                          ? "border-growth bg-growth text-fg-inverse"
-                          : "border-border bg-elevated text-fg-muted hover:border-growth/50"
-                      } ${!canTap ? "opacity-50" : ""}`}
+                      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 border-border bg-elevated text-fg-muted hover:border-growth/50 ${!canTap ? "opacity-50" : ""}`}
                     >
                       <Check className="h-5 w-5" aria-hidden />
                     </button>
+                    ) : null}
                     <p
                       className="type-title text-fg"
                       data-testid="main-action-text"
@@ -548,7 +550,7 @@ export default function TodayIndication({
 
                   {moveText ? (
                     <div
-                      className="mt-2 min-h-[1.625rem] pl-14"
+                      className={`mt-2 min-h-[1.625rem] ${moveDone ? "" : "pl-14"}`}
                       data-testid="today-change-line"
                       data-change-source={changeLine?.source || "reserved"}
                     >
@@ -804,6 +806,22 @@ export default function TodayIndication({
             })()}
 
 
+            {userId && chartId ? (
+              <div className={historyOpen ? "mb-4" : "hidden"} data-testid="today-earlier-weeks-slot">
+                <EarlierWeeksHistory
+                  ref={historyRef}
+                  testId="today-history"
+                  userId={userId}
+                  chartId={chartId}
+                  timeZone={protocolsTz}
+                  scope="today"
+                  includeEveningClose={Boolean(normalizeHdType(natalType))}
+                  open={historyOpen}
+                  onOpenChange={setHistoryOpen}
+                />
+              </div>
+            ) : null}
+
             {/* Filled kit / usual stay in the hero; empty starter is after the next action. */}
             {indication.kit_item && !indication.kit_placeholder ? (
               (() => {
@@ -912,10 +930,11 @@ export default function TodayIndication({
             ) : null}
 
             {whyText || microText || driverLines.length ? (
-              <details className="mt-2 group" data-testid="main-action-why-details">
+              <details className="disclosure mt-2 group" data-testid="main-action-why-details">
                 <summary className="mt-1 inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-border bg-sunken/70 px-3 py-2 text-xs font-semibold text-fg transition hover:border-growth/40 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 marker:content-none [&::-webkit-details-marker]:hidden">
                   <span
                     aria-hidden
+                    data-disclosure-chevron
                     className="inline-block text-fg-muted transition-transform group-open:rotate-90"
                   >
                     ▸
@@ -1191,7 +1210,7 @@ export default function TodayIndication({
                   </button>
                 ) : null}
               </div>
-            ) : inventoryCount === 0 && userId && !kitSetupDismissed && onAddToKit ? (
+            ) : inventoryCount === 0 && userId && !kitSetupDismissed && onAddToKit && firstShowUpWeek ? (
               <div
                 className="mt-3 rounded-lg border border-border bg-elevated/80 px-3 py-2"
                 data-testid="today-kit-setup"
@@ -1285,22 +1304,6 @@ export default function TodayIndication({
         </div>
       ) : null}
 
-      {userId && chartId ? (
-        <div className={historyOpen ? "mb-4" : "hidden"}>
-          <EarlierWeeksHistory
-            ref={historyRef}
-            testId="today-history"
-            userId={userId}
-            chartId={chartId}
-            timeZone={protocolsTz}
-            scope="today"
-            includeEveningClose={Boolean(normalizeHdType(natalType))}
-            open={historyOpen}
-            onOpenChange={setHistoryOpen}
-          />
-        </div>
-      ) : null}
-
       {/* 2. Sky under the Move: new signal + Sky Story chapter + collapsed vs yesterday */}
       {daily || indication.sky_story ? (
         <div
@@ -1356,10 +1359,11 @@ export default function TodayIndication({
           ) : null}
 
           {vs.length > 0 ? (
-            <details className="mt-3 group" data-testid="vs-yesterday">
+            <details className="disclosure mt-3 group" data-testid="vs-yesterday">
               <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
                 <span
                   aria-hidden
+                  data-disclosure-chevron
                   className="inline-block text-fg-muted transition-transform group-open:rotate-90"
                 >
                   ▸
@@ -1465,7 +1469,7 @@ export default function TodayIndication({
           </div>
         </div>
       ) : vs.length > 0 ? (
-        <details className="mb-3 group" data-testid="vs-yesterday">
+        <details className="disclosure mb-3 group" data-testid="vs-yesterday">
           <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span
               aria-hidden

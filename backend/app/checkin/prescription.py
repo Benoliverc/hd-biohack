@@ -260,39 +260,108 @@ def select_moment_with_history(
     return primary
 
 
+def _norm_move_text(text: str) -> str:
+    return " ".join(_cap_words(text).lower().split())
+
+
+def prior_move_texts(
+    history: list[dict[str, Any]] | None,
+    day_key: str,
+) -> list[str]:
+    """Earlier-day offered Move labels for this person (from completion history)."""
+    out: list[str] = []
+    for row in history or []:
+        if not str(row.get("item_id") or "").startswith("today-move:"):
+            continue
+        day = str(row.get("day") or "")
+        if day and day >= day_key:
+            continue
+        label = str(row.get("label") or "").strip()
+        if label:
+            out.append(label)
+    return out
+
+
+def sky_changed_from_payload(payload: dict[str, Any] | None) -> bool:
+    """True when vs-yesterday / the daily signal shows the sky itself moved."""
+    if not payload:
+        return True
+    sky_fields = {"moon", "sun", "hanging", "bridge", "centers"}
+    vs = payload.get("vs_yesterday") or []
+    if any(isinstance(d, dict) and str(d.get("field") or "") in sky_fields for d in vs):
+        return True
+    daily = payload.get("daily_signal") or {}
+    if isinstance(daily, dict):
+        source = str(daily.get("source") or "")
+        quiet = bool(daily.get("quiet"))
+        if source and source != "continuity" and not quiet:
+            return True
+    return False
+
+
 def select_move_text(
     moment: Moment,
     *,
     history: list[dict[str, Any]] | None,
     pro: bool,
     day_key: str,
+    user_key: str | None = None,
+    avoid_texts: list[str] | None = None,
+    prior_texts: list[str] | None = None,
+    sky_changed: bool = False,
 ) -> tuple[str, str]:
     """Pick a Move line for the moment; Pro may prefer finished lifestyle variants.
 
     Returns (english_text, i18n_key). English wording is unchanged.
+    When user_key is provided, selection is salted per account so the same
+    day+moment does not systematically reprint one sentence to every user.
+    When the sky has changed, prefer lines this person has not already been
+    offered and lines not already used by another account today.
     """
-    options = MOMENT_MOVES[moment]
-    if not pro or len(options) == 1:
-        return _cap_words(options[0]), f"today.move.moment.{moment}.0"
-    rates = _history_rates(history)
-    # Variant index stored as today-move:{moment}:{idx} optional; fall back to day hash.
-    # Prefer variants whose parent moment has higher completion when we have history.
     import hashlib
 
-    digest = int(
-        hashlib.sha256(f"{day_key}|move|{moment}".encode()).hexdigest()[:8], 16
-    )
-    if sum(seen for _, seen in rates.values()) >= HISTORY_WINDOW_DAYS:
-        # Completed moments prefer index 0; ignored moments rotate off index 0.
-        rate = _completion_rate(*rates.get(moment, (0, 0)))
-        if rate >= 0.5:
-            idx = 0
+    options = MOMENT_MOVES[moment]
+    prior = list(prior_texts) if prior_texts is not None else prior_move_texts(history, day_key)
+    others = [t for t in (avoid_texts or []) if t]
+    prior_blocked = {_norm_move_text(t) for t in prior} if sky_changed else set()
+    other_blocked = {_norm_move_text(t) for t in others} if sky_changed else set()
+    blocked = prior_blocked | other_blocked
+    idxs = list(range(len(options)))
+
+    def pool_for(cands: list[int]) -> list[int]:
+        both = [i for i in cands if _norm_move_text(options[i]) not in blocked]
+        if both:
+            return both
+        not_others = [i for i in cands if _norm_move_text(options[i]) not in other_blocked]
+        if not_others:
+            return not_others
+        not_prior = [i for i in cands if _norm_move_text(options[i]) not in prior_blocked]
+        return not_prior or cands
+
+    # Legacy path (no account salt, no avoidance): keep Free default and Pro hash.
+    if not user_key and not blocked:
+        if not pro or len(options) == 1:
+            return _cap_words(options[0]), f"today.move.moment.{moment}.0"
+        rates = _history_rates(history)
+        digest = int(
+            hashlib.sha256(f"{day_key}|move|{moment}".encode()).hexdigest()[:8], 16
+        )
+        if sum(seen for _, seen in rates.values()) >= HISTORY_WINDOW_DAYS:
+            rate = _completion_rate(*rates.get(moment, (0, 0)))
+            if rate >= 0.5:
+                idx = 0
+            else:
+                idx = digest % len(options)
+                if idx == 0 and rate < DOWNRANK_PRIMARY_MAX and len(options) > 1:
+                    idx = 1 + (digest % (len(options) - 1))
         else:
             idx = digest % len(options)
-            if idx == 0 and rate < DOWNRANK_PRIMARY_MAX and len(options) > 1:
-                idx = 1 + (digest % (len(options) - 1))
-    else:
-        idx = digest % len(options)
+        return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
+
+    salt = f"{day_key}|move|{moment}|{user_key or ''}"
+    digest = int(hashlib.sha256(salt.encode()).hexdigest()[:8], 16)
+    pool = pool_for(idxs)
+    idx = pool[digest % len(pool)]
     return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
 
 
@@ -519,6 +588,9 @@ def build_prescription(
     avoid_supplement_ids: set[str] | None = None,
     usual_names: list[str] | None = None,
     usual_when_by_name: dict[str, str] | None = None,
+    user_key: str | None = None,
+    avoid_move_texts: list[str] | None = None,
+    sky_changed: bool = False,
 ) -> dict[str, Any]:
     """
     Three-line Today prescription: Move + From your kit + When.
@@ -553,6 +625,9 @@ def build_prescription(
         history=history,
         pro=bool(biohacking_unlocked),
         day_key=day_key,
+        user_key=user_key,
+        avoid_texts=avoid_move_texts,
+        sky_changed=sky_changed,
     )
     when: WhenSlot = MOMENT_WHEN[moment]
     noun = MOMENT_NOUN[moment]
@@ -641,9 +716,13 @@ def attach_prescription(
     usual_names: list[str] | None = None,
     usual_when_by_name: dict[str, str] | None = None,
     replace_main_action: bool = True,
+    user_key: str | None = None,
+    avoid_move_texts: list[str] | None = None,
+    sky_changed: bool | None = None,
 ) -> dict[str, Any]:
     """Merge prescription into an indication payload. Mutates a shallow copy."""
     out = dict(indication)
+    changed = sky_changed_from_payload(out) if sky_changed is None else sky_changed
     rx = build_prescription(
         natal=natal,
         transit=transit,
@@ -659,6 +738,9 @@ def attach_prescription(
         avoid_supplement_ids=avoid_supplement_ids,
         usual_names=usual_names,
         usual_when_by_name=usual_when_by_name,
+        user_key=user_key,
+        avoid_move_texts=avoid_move_texts,
+        sky_changed=changed,
     )
     if replace_main_action and rx.get("move_text"):
         out["main_action_text"] = rx["move_text"]

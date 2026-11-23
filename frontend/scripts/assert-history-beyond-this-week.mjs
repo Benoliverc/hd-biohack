@@ -233,17 +233,14 @@ const skyIdx = todayInd.indexOf('data-testid="today-sky-block"');
 assert.ok(showIdx > 0 && linkIdx > showIdx, "link sits on the Show-up row");
 assert.ok(setupIdx > linkIdx, "link stays in Show-up, before kit/setup");
 assert.ok(whenIdx > linkIdx && whyIdx > linkIdx, "link is not in When / Why");
-assert.ok(historyIdx > eveningIdx, "today-history after Evening Close");
+assert.ok(historyIdx > linkIdx, "today-history expands under the Show-up control");
+assert.ok(setupIdx < 0 || historyIdx < setupIdx, "today-history is not below the kit-pick / setup card");
 assert.ok(skyIdx > historyIdx, "today-history before the sky block");
-const caveatIdx = todayInd.indexOf('data-testid="today-time-unknown-caveat"');
-if (caveatIdx >= 0) {
-  assert.ok(historyIdx > caveatIdx, "today-history after the item 9 caveat slot");
-}
 const heroStart = todayInd.indexOf('data-testid="main-action"');
 const heroEnd = whenIdx > 0 ? whenIdx : eveningIdx;
 const hero = todayInd.slice(heroStart, heroEnd);
 assert.ok(hero.includes('data-testid="today-history-link"'), "link is in the Move hero");
-assert.ok(!hero.includes('testId="today-history"'), "review is not inside the Move hero");
+assert.ok(hero.includes('testId="today-history"'), "review expands under Show-up in the Move hero");
 assert.match(todayInd, /includeEveningClose=\{Boolean\(normalizeHdType\(natalType\)\)\}/);
 assert.match(todayInd, /scope="today"/);
 
