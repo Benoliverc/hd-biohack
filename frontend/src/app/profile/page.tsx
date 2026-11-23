@@ -247,6 +247,9 @@ function ProfilePage() {
   const personQueryRaw = Number(searchParams.get("person") || "");
   const requestedPersonId =
     Number.isFinite(personQueryRaw) && personQueryRaw > 0 ? personQueryRaw : null;
+  // Open Chart (?person=) wins if both are present.
+  const wantsNewPerson =
+    requestedPersonId == null && searchParams.get("new") === "person";
   const {
     TYPE_COPY,
     TYPE_BATTERY,
@@ -300,8 +303,23 @@ function ProfilePage() {
   /** Imperative selection for async refreshPeopleOnOpen (avoid stale Me overwrite after create). */
   const editingChartIdRef = useRef<number | null>(null);
   const viewModeRef = useRef<ViewMode>(null);
+  /** Latched new-person intent: wins the race with Me hydration and collapse. */
+  const newPersonIntentRef = useRef(false);
+  const appliedNewPersonQueryRef = useRef(false);
+  const personNameInputRef = useRef<HTMLInputElement>(null);
 
   const formReady = Boolean(user && hydratedUserId === user.id && !natalBindingLoading);
+
+  // Latch URL intent before the hydrate effect (same commit, earlier in declaration order).
+  useEffect(() => {
+    if (requestedPersonId != null) {
+      appliedNewPersonQueryRef.current = false;
+      return;
+    }
+    if (searchParams.get("new") === "person") {
+      newPersonIntentRef.current = true;
+    }
+  }, [requestedPersonId, searchParams]);
 
   const refreshPeople = useCallback(async (userId: number) => {
     const rows = await api.charts(userId);
@@ -349,6 +367,7 @@ function ProfilePage() {
 
   const applyRow = useCallback(
     (latest: SavedChartRow, opts?: { bindStore?: boolean }) => {
+      newPersonIntentRef.current = false;
       const c = (latest.chart || {}) as Chart;
       const nextDate = latest.birth_date || "";
       const nextTime = toTimeInputValue(latest.birth_time) || "";
@@ -471,6 +490,13 @@ function ProfilePage() {
           setHydratedUserId(user.id);
           return;
         }
+        // New-person intent wins: keep the saved list, do not apply You / last person.
+        if (newPersonIntentRef.current) {
+          setDemoBirthActive(false);
+          setPersonEditorOpen(true);
+          setHydratedUserId(user.id);
+          return;
+        }
         const preferred = pickPreferredRow(rows, requestedPersonId ?? natalChartId);
         if (preferred && requestedPersonId != null && preferred.id === requestedPersonId) {
           applyRow(preferred, { bindStore: preferred.slot_kind !== "friend" });
@@ -535,7 +561,9 @@ function ProfilePage() {
         const preferred = pickPreferredRow(rows, natalChartId);
         // Only auto-apply when we had no saved selection yet (DEMO / empty).
         // Use ref so a mid-flight create pin is respected across await.
-        if (preferred && editingChartIdRef.current == null) applyRow(preferred);
+        if (preferred && editingChartIdRef.current == null && !newPersonIntentRef.current) {
+          applyRow(preferred);
+        }
       } catch {
         /* keep current UI */
       }
@@ -565,7 +593,11 @@ function ProfilePage() {
       const currentView = viewModeRef.current;
       if (currentId == null || !rows.some((r) => Number(r.id) === Number(currentId))) {
         const preferred = pickPreferredRow(rows, natalChartId ?? currentId);
-        if (preferred && (currentId == null || currentView !== "saved")) {
+        if (
+          preferred &&
+          (currentId == null || currentView !== "saved") &&
+          !newPersonIntentRef.current
+        ) {
           applyRow(preferred);
         }
       }
@@ -575,9 +607,10 @@ function ProfilePage() {
   }, [user, refreshPeople, natalChartId, pickPreferredRow, applyRow]);
 
   // Reading mode: collapse birth tooling once a chart first appears; reopen if cleared.
+  // New-person intent must not be collapsed behind Edit / switch person.
   useEffect(() => {
     if (chart && !hadChartRef.current) {
-      setPersonEditorOpen(false);
+      if (!newPersonIntentRef.current) setPersonEditorOpen(false);
     }
     if (!chart) {
       setPersonEditorOpen(true);
@@ -665,7 +698,18 @@ function ProfilePage() {
     selectedSavedRow?.slot_kind === "friend" ? "friend" : "self";
   const hasSelfSaved = savedPeople.some((r) => isSelfRow(r));
 
-  const startNewPerson = () => {
+  const revealNewPersonForm = useCallback(() => {
+    void (async () => {
+      await waitTwoFrames();
+      await scrollChartSectionIntoView("people-form", "auto", {
+        correctAfterSettle: true,
+      });
+      personNameInputRef.current?.focus();
+    })();
+  }, []);
+
+  const startNewPerson = useCallback(() => {
+    newPersonIntentRef.current = true;
     setEditingChartId(null);
     editingChartIdRef.current = null;
     viewModeRef.current = null;
@@ -686,7 +730,16 @@ function ProfilePage() {
     setSaveAs(biohackingUnlocked && hasSelfSaved ? "friend" : "self");
     setDemoBirthActive(false);
     setPersonEditorOpen(true);
-  };
+    revealNewPersonForm();
+  }, [biohackingUnlocked, hasSelfSaved, revealNewPersonForm]);
+
+  // Deep link /profile?new=person#people-form: run the single new-person path once form is ready.
+  useEffect(() => {
+    if (!wantsNewPerson || !formReady) return;
+    if (appliedNewPersonQueryRef.current) return;
+    appliedNewPersonQueryRef.current = true;
+    startNewPerson();
+  }, [wantsNewPerson, formReady, startNewPerson]);
 
   const mapSaveError = (raw: string): string => {
     const lower = raw.toLowerCase();
@@ -1298,15 +1351,17 @@ function ProfilePage() {
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {canCreatePeople ? (
-              <button
-                type="button"
-                data-testid="add-new-person"
-                disabled={busy}
-                onClick={startNewPerson}
-                className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
-              >
-                {t("chart.people.addNewPerson")}
-              </button>
+              !chart ? (
+                <button
+                  type="button"
+                  data-testid="add-new-person"
+                  disabled={busy}
+                  onClick={startNewPerson}
+                  className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
+                >
+                  {t("chart.people.addNewPerson")}
+                </button>
+              ) : null
             ) : (
               <p className="text-xs text-fg-muted" data-testid="free-people-pro-hint">
                 {t("chart.people.addPeopleWithPro")}
@@ -1451,6 +1506,8 @@ function ProfilePage() {
                       : t("chart.people.displayName")}
               </span>
               <input
+                ref={personNameInputRef}
+                data-testid="person-name-input"
                 className="w-48 rounded-lg border border-border bg-sunken px-3 py-2"
                 placeholder={
                   editingYou || saveAs === "friend" || (isNewPersonUi && hasSelfSaved)
@@ -1806,8 +1863,25 @@ function ProfilePage() {
                   {viewMode === "preview" ? ` · ${t("chart.people.preview")}` : ""}
                 </div>
               </div>
-              <span className="shrink-0 text-xs text-fg-muted group-open:hidden">{t("chart.people.show")}</span>
-              <span className="hidden shrink-0 text-xs text-fg-muted group-open:inline">{t("chart.people.hide")}</span>
+              <div className="flex shrink-0 items-center gap-2">
+                {canCreatePeople ? (
+                  <button
+                    type="button"
+                    data-testid="add-new-person"
+                    disabled={busy}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      startNewPerson();
+                    }}
+                    className="min-h-10 rounded-full border border-border bg-sunken px-3 py-2 text-xs font-medium text-fg hover:border-growth/50 disabled:opacity-60"
+                  >
+                    {t("chart.people.addNewPerson")}
+                  </button>
+                ) : null}
+                <span className="shrink-0 text-xs text-fg-muted group-open:hidden">{t("chart.people.show")}</span>
+                <span className="hidden shrink-0 text-xs text-fg-muted group-open:inline">{t("chart.people.hide")}</span>
+              </div>
             </summary>
             <div className="space-y-4 border-t border-border px-4 py-4">{peopleAndForm}</div>
           </details>

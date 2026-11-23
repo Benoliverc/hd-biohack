@@ -637,7 +637,7 @@ function SoulUnlockedContent() {
             {t("soul.chrome.emptyAddBody")}
           </p>
           <Link
-            href="/profile"
+            href="/profile?new=person#people-form"
             data-soul-cta-add-person="soul-cta-add-person"
             className="inline-flex min-h-11 items-center rounded-xl bg-growth/20 px-4 py-2.5 text-sm font-medium text-growth hover:bg-growth/30"
             data-testid="soul-cta-chart"
@@ -684,7 +684,7 @@ function SoulUnlockedContent() {
                   </span>
                 ) : null}
                 <Link
-                  href="/profile"
+                  href="/profile?new=person#people-form"
                   className="ml-auto text-xs font-medium text-growth underline-offset-2 hover:underline"
                   data-testid="soul-add-person"
                 >
