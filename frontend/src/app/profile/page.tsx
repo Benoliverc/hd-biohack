@@ -250,6 +250,8 @@ function ProfilePage() {
   // Open Chart (?person=) wins if both are present.
   const wantsNewPerson =
     requestedPersonId == null && searchParams.get("new") === "person";
+  const wantsEditYou =
+    requestedPersonId == null && searchParams.get("edit") === "me";
   const {
     TYPE_COPY,
     TYPE_BATTERY,
@@ -307,6 +309,10 @@ function ProfilePage() {
   const newPersonIntentRef = useRef(false);
   const appliedNewPersonQueryRef = useRef(false);
   const personNameInputRef = useRef<HTMLInputElement>(null);
+  /** Latched edit-You intent: wins the same collapse/hydration race. Not new-person. */
+  const editYouIntentRef = useRef(false);
+  const appliedEditYouQueryRef = useRef(false);
+  const timeUnknownInputRef = useRef<HTMLInputElement>(null);
 
   const formReady = Boolean(user && hydratedUserId === user.id && !natalBindingLoading);
 
@@ -314,10 +320,18 @@ function ProfilePage() {
   useEffect(() => {
     if (requestedPersonId != null) {
       appliedNewPersonQueryRef.current = false;
+      appliedEditYouQueryRef.current = false;
+      editYouIntentRef.current = false;
       return;
     }
     if (searchParams.get("new") === "person") {
       newPersonIntentRef.current = true;
+    }
+    if (searchParams.get("edit") === "me") {
+      editYouIntentRef.current = true;
+    } else {
+      editYouIntentRef.current = false;
+      appliedEditYouQueryRef.current = false;
     }
   }, [requestedPersonId, searchParams]);
 
@@ -501,6 +515,14 @@ function ProfilePage() {
         if (preferred && requestedPersonId != null && preferred.id === requestedPersonId) {
           applyRow(preferred, { bindStore: preferred.slot_kind !== "friend" });
         }
+        // Edit-You intent: apply You (not a last-bound person) and keep the editor open.
+        if (editYouIntentRef.current) {
+          const youRow = rows.find((r) => isSelfRow(r));
+          if (youRow) applyRow(youRow);
+          setPersonEditorOpen(true);
+          setHydratedUserId(user.id);
+          return;
+        }
         // No You yet: leave fields empty for first-run. Do not auto-apply a person chart.
         if (preferred && isSelfRow(preferred)) applyRow(preferred);
         setHydratedUserId(user.id);
@@ -562,7 +584,12 @@ function ProfilePage() {
         // Only auto-apply when we had no saved selection yet (DEMO / empty).
         // Use ref so a mid-flight create pin is respected across await.
         if (preferred && editingChartIdRef.current == null && !newPersonIntentRef.current) {
-          applyRow(preferred);
+          if (editYouIntentRef.current) {
+            const youRow = rows.find((r) => isSelfRow(r));
+            if (youRow) applyRow(youRow);
+          } else {
+            applyRow(preferred);
+          }
         }
       } catch {
         /* keep current UI */
@@ -591,6 +618,18 @@ function ProfilePage() {
       // Use refs so a mid-flight create applyRow is not clobbered by stale Me preferred.
       const currentId = editingChartIdRef.current;
       const currentView = viewModeRef.current;
+      if (editYouIntentRef.current) {
+        const youRow = rows.find((r) => isSelfRow(r));
+        if (
+          youRow &&
+          (currentId == null ||
+            currentView !== "saved" ||
+            Number(currentId) !== Number(youRow.id))
+        ) {
+          applyRow(youRow);
+        }
+        return;
+      }
       if (currentId == null || !rows.some((r) => Number(r.id) === Number(currentId))) {
         const preferred = pickPreferredRow(rows, natalChartId ?? currentId);
         if (
@@ -608,9 +647,12 @@ function ProfilePage() {
 
   // Reading mode: collapse birth tooling once a chart first appears; reopen if cleared.
   // New-person intent must not be collapsed behind Edit / switch person.
+  // Edit-You intent (Today "Edit on Chart") must also win this shared collapse root.
   useEffect(() => {
     if (chart && !hadChartRef.current) {
       if (!newPersonIntentRef.current) setPersonEditorOpen(false);
+      // Edit-You must win this shared collapse root (Today "Edit on Chart").
+      if (editYouIntentRef.current) setPersonEditorOpen(true);
     }
     if (!chart) {
       setPersonEditorOpen(true);
@@ -740,6 +782,39 @@ function ProfilePage() {
     appliedNewPersonQueryRef.current = true;
     startNewPerson();
   }, [wantsNewPerson, formReady, startNewPerson]);
+
+  const revealEditYouForm = useCallback(() => {
+    void (async () => {
+      await waitTwoFrames();
+      await scrollChartSectionIntoView("people-form", "auto", {
+        correctAfterSettle: true,
+      });
+      timeUnknownInputRef.current?.focus();
+    })();
+  }, []);
+
+  // Deep link /profile?edit=me#people-form: open the existing You editor once form is ready.
+  // Do not reuse the new-person path — this is an update of You, not a create.
+  useEffect(() => {
+    if (!wantsEditYou || !formReady) return;
+    if (appliedEditYouQueryRef.current) return;
+    const youRow = savedPeople.find((r) => isSelfRow(r));
+    if (!youRow) return;
+    appliedEditYouQueryRef.current = true;
+    if (editingChartId !== youRow.id || viewMode !== "saved") {
+      applyRow(youRow);
+    }
+    setPersonEditorOpen(true);
+    revealEditYouForm();
+  }, [
+    wantsEditYou,
+    formReady,
+    savedPeople,
+    editingChartId,
+    viewMode,
+    applyRow,
+    revealEditYouForm,
+  ]);
 
   const mapSaveError = (raw: string): string => {
     const lower = raw.toLowerCase();
@@ -1467,6 +1542,7 @@ function ProfilePage() {
               type="checkbox"
               className="mt-1 h-4 w-4 shrink-0 rounded border-border"
               data-testid="chart-time-unknown"
+              ref={timeUnknownInputRef}
               checked={timeUnknown}
               onChange={(e) => setTimeUnknown(e.target.checked)}
               disabled={!formReady || busy}
