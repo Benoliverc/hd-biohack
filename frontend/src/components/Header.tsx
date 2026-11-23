@@ -241,6 +241,7 @@ export function Header() {
               <Link
                 key={href}
                 href={href}
+                scroll={false}
                 data-testid={testId}
                 aria-current={active ? "page" : undefined}
                 className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs sm:gap-1.5 sm:px-3 sm:text-sm ${
