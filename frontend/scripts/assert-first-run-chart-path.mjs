@@ -192,7 +192,12 @@ assert.ok(
   !/firstRunYouReveal[\s\S]{0,400}biohack/.test(profile),
   "first-run reveal does not push Protocols",
 );
-assert.ok(profile.includes('t("chart.people.youreAType"'), "existing You're a {Type} snapshot stays");
+// Approved deduplication moves the one Type presentation into #bodygraph.
+const bodygraphModule = read("src/components/ChartBodygraphModule.tsx");
+assert.ok(profile.includes("<ChartBodygraphModule"), "natal Type card stays on Chart");
+assert.ok(profile.includes("actualType={typeKey}"), "Type card receives the actual natal Type");
+assert.match(bodygraphModule, /personName \? "otherLead" : "youLead"/);
+assert.doesNotMatch(profile.slice(profile.indexOf('id="snapshot"')), /TYPE_BATTERY|chart\.people\.youreAType/);
 assert.ok(profile.includes('id="snapshot"'), "snapshot remains in view after save");
 
 // --- 4. Copy keys in all five locale files ---
