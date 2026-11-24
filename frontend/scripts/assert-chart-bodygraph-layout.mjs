@@ -97,6 +97,50 @@ for (const width of [239, 243.2, 254, 274.56, 288, 300]) {
     boxes.push([gate, b]);
   }
 }
+// Actual exclusive center-hit polygons, not the old overlapping12uu slop.
+// Bounding-box44px is a source/model check, not proof of finger usability.
+const hits = Object.keys(EDITORIAL_CENTERS).map((k) => [
+  k,
+  polygon(editorialCenterPath(k, 0, true)),
+]);
+function cross(a, b, c) {
+  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+}
+for (let i = 0; i < hits.length; i++) {
+  const [name, a] = hits[i],
+    xs = a.map((p) => p[0]),
+    ys = a.map((p) => p[1]);
+  assert.ok(
+    (Math.min(
+      Math.max(...xs) - Math.min(...xs),
+      Math.max(...ys) - Math.min(...ys),
+    ) *
+      EDITORIAL_MIN_WIDTH) /
+      240 >=
+      44,
+    name + " center-hit bounds >=44CSSpx at minimum supported width",
+  );
+  for (const [other, b] of hits.slice(i + 1)) {
+    assert.ok(
+      !a.some((p) => inside(p, b)) && !b.some((p) => inside(p, a)),
+      name + "/" + other + " center targets do not contain one another",
+    );
+    for (let ai = 0; ai < a.length; ai++)
+      for (let bi = 0; bi < b.length; bi++) {
+        const p = a[ai],
+          q = a[(ai + 1) % a.length],
+          r = b[bi],
+          t = b[(bi + 1) % b.length];
+        assert.ok(
+          !(
+            cross(p, q, r) * cross(p, q, t) < -1e-9 &&
+            cross(r, t, p) * cross(r, t, q) < -1e-9
+          ),
+          name + "/" + other + " center target edges do not cross",
+        );
+      }
+  }
+}
 // A compact node must not swallow its hanging stroke. Check actual unmasked
 // ink over 45% ARC LENGTH for BOTH directions on ALL36 canonical routes.
 for (const { gates } of CHANNEL_LATTICE) {
