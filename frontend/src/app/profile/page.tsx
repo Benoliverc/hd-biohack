@@ -9,7 +9,9 @@ import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { FirstRunChartForm, type FirstRunBirth } from "@/components/FirstRunChartForm";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
-import { ChartBodygraphModule } from "@/components/ChartBodygraphModule";
+import { BodyGraph } from "@/components/BodyGraph";
+import { ChartTypeBox } from "@/components/ChartTypeBox";
+import { ChartDisclosure } from "@/components/ChartDisclosure";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -1145,7 +1147,7 @@ function ProfilePage() {
     const url = `${window.location.pathname}${window.location.search}#${id}`;
     window.history.replaceState(null, "", url);
     const targetId = DEEP_SECTION_IDS.has(id) ? "deep-dive" : id;
-    return scrollChartSectionIntoView(targetId, "smooth");
+    void scrollChartSectionIntoView(targetId, "smooth");
   };
 
   const personality = (chart?.personality as Array<Record<string, unknown>>) || [];
@@ -1983,17 +1985,20 @@ function ProfilePage() {
           <div className="order-1 sm:order-2 grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div
               id="bodygraph"
-              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-3 py-1"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4"
             >
-              <h2 className="sr-only">{t("chart.people.bodygraph")}</h2>
-              <ChartBodygraphModule
-                key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
-                actualType={typeKey}
-                personName={selectedSavedRow &&
-                  (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
-                    ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
-                    : undefined}
-                onDeepDive={(domain) => jumpToSection(domain, domain)}
+              <h2 className="mb-2 text-sm font-semibold text-fg">{t("chart.people.bodygraph")}</h2>
+              <BodyGraph
+                afterSvg={
+                  <ChartTypeBox
+                    key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
+                    actualType={typeKey}
+                    personName={selectedSavedRow &&
+                      (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
+                        ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
+                        : undefined}
+                  />
+                }
                 definedCenters={defined}
                 channels={channels}
                 activatedGates={activatedGates}
@@ -2015,27 +2020,28 @@ function ProfilePage() {
                   </p>
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="type-caption uppercase tracking-wide text-fg-secondary">{t("chart.people.profile")}</div>
-                  <div className="mt-1 font-semibold text-growth">{profileStr}</div>
-                  <p className="mt-2 type-body text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
-                </div>
-                <div className="rounded-xl border border-border bg-elevated p-4">
-                  <div className="type-caption uppercase tracking-wide text-fg-secondary">{t("chart.people.howYouDecide")}</div>
+              <div className="grid items-start gap-3 sm:grid-cols-2">
+                <ChartDisclosure
+                  testId="snapshot-profile"
+                  value={profileStr}
+                  label={t("chart.people.profile")}
+                >
+                  <p className="type-body text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
+                </ChartDisclosure>
+                <ChartDisclosure
+                  testId="snapshot-how-you-decide"
+                  value={/emotional|solar plexus/i.test(authorityStr) ? authorityStr : strategyStr}
+                  label={t("chart.people.howYouDecide")}
+                >
                   {/emotional|solar plexus/i.test(authorityStr) ? (
-                    <>
-                      <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
-                      <p className="mt-2 type-body text-fg-secondary">
-                        {AUTHORITY_PLAIN[authorityStr] ||
-                          AUTHORITY_COPY[authorityStr]?.summary ||
-                          authorityStr}
-                      </p>
-                    </>
+                    <p className="type-body text-fg-secondary">
+                      {AUTHORITY_PLAIN[authorityStr] ||
+                        AUTHORITY_COPY[authorityStr]?.summary ||
+                        authorityStr}
+                    </p>
                   ) : (
                     <>
-                      <div className="mt-1 font-semibold text-growth">{strategyStr}</div>
-                      <p className="mt-2 type-body text-fg-secondary">
+                      <p className="type-body text-fg-secondary">
                         {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
                       </p>
                       <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
@@ -2057,7 +2063,7 @@ function ProfilePage() {
                       {t("chart.timeUnknownCaveat")}
                     </p>
                   ) : null}
-                </div>
+                </ChartDisclosure>
               </div>
 
               {firstRunYouReveal && (
@@ -2073,11 +2079,13 @@ function ProfilePage() {
               )}
 
               {watch.length > 0 && (
-                <div
+                <ChartDisclosure
                   id="snapshot-centers"
-                  className="rounded-xl border border-border bg-elevated p-4"
+                  testId="snapshot-centers"
+                  openOnHash
+                  value={watch.map((w) => displayCenter(w.center)).join(" · ")}
+                  label={t("chart.people.centersToWatch")}
                 >
-                  <h3 className="text-sm font-semibold text-fg">{t("chart.people.centersToWatch")}</h3>
                   <p className="mb-2 type-caption text-fg-secondary">
                     {t("chart.people.openCentersHelp")}
                   </p>
@@ -2090,7 +2098,7 @@ function ProfilePage() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </ChartDisclosure>
               )}
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

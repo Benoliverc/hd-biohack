@@ -54,13 +54,13 @@ assert.match(profile, /requestedPersonId/);
 
 // (d) Copy about another person is not second-person "You're a…."
 assert.match(en, /chart\.people\.theyreAType/);
-// Approved Chart-module migration: retain both voice branches at the new owner.
-const bodygraphModule = read("src/components/ChartBodygraphModule.tsx");
-assert.match(profile, /<ChartBodygraphModule/);
+// The single Chart Type box keeps both voice branches (collapsible revert pass).
+const typeBox = read("src/components/ChartTypeBox.tsx");
+assert.match(profile, /<ChartTypeBox/);
 assert.match(profile, /personName=\{selectedSavedRow &&/);
 assert.match(profile, /friendChipLabel\(selectedSavedRow, t\("chart\.people\.personFallback"\)\)/);
-assert.match(bodygraphModule, /personName \? "otherLead" : "youLead"/);
-assert.match(bodygraphModule, /personName \? "otherBody" : "youBody"/);
+assert.match(typeBox, /personName \? "otherLead" : "youLead"/);
+assert.match(typeBox, /personName \? "otherBody" : "youBody"/);
 for (const type of ["Generator", "Manifesting Generator", "Manifestor", "Projector", "Reflector"]) {
   assert.ok(en.includes(`chart.bodygraphModule.type.${type}.otherLead`));
   assert.ok(en.includes(`chart.bodygraphModule.type.${type}.otherBody`));

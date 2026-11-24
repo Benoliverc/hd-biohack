@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { displayCenter } from "@/lib/hdCopy";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -51,6 +51,8 @@ export type BodyGraphProps = {
   /** Explicit CSS size for the SVG when compact (defaults to 100% of wrapper). */
   svgWidth?: number | string;
   svgHeight?: number | string;
+  /** Non-compact only: content placed directly under the SVG, before the legend. */
+  afterSvg?: ReactNode;
 };
 
 /** Bodygraph palette — chips/channels pop on every center fill. */
@@ -135,6 +137,7 @@ export function BodyGraph({
   compact = false,
   svgWidth,
   svgHeight,
+  afterSvg,
 }: BodyGraphProps) {
   const { t } = useI18n();
   const defined = new Set(definedCenters.map((c) => norm(c) as string));
@@ -522,6 +525,8 @@ export function BodyGraph({
             : ""}
         </div>
       ) : null}
+
+      {!compact ? afterSvg : null}
 
       {/* Biohacking pill legend — no basalt/terracotta/chalk jargon */}
       {!compact ? (
