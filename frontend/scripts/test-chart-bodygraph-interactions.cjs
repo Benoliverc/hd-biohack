@@ -204,6 +204,29 @@ async function main() {
     });
   });
   const baseSvg = svgData();
+  const disclosure = () => nodes("details")[0];
+  assert.equal(
+    disclosure().props.open,
+    false,
+    "long Type copy starts progressively disclosed",
+  );
+  const order = roots().findAll((node) => typeof node.type === "string");
+  assert.ok(
+    order.indexOf(nodes("svg")[0]) <
+      order.indexOf(
+        roots().findByProps({ "data-testid": "bodygraph-type-card" }),
+      ),
+    "the real graph renders before the single Type presentation",
+  );
+  act(() => disclosure().props.onToggle({ currentTarget: { open: true } }));
+  assert.equal(
+    disclosure().props.open,
+    true,
+    "native toggle is reflected in React state",
+  );
+  act(() => disclosure().props.onToggle({ currentTarget: { open: false } }));
+  assert.equal(disclosure().props.open, false);
+
   const gate = (n) =>
     layer("badges")
       .findAllByType("text")
@@ -262,6 +285,11 @@ async function main() {
     const beforePreviewWrites = historyWrites.length;
     click(button("Preview ⌄"));
     click(button("Projector"));
+    assert.equal(
+      disclosure().props.open,
+      true,
+      "preview opens retained full Type details",
+    );
     assert.equal(window.location.href, beforePreviewUrl);
     assert.equal(
       historyWrites.length,
@@ -284,6 +312,11 @@ async function main() {
       name + " restores actual Type",
     );
     assert.ok(!button("Reflector"), name + " closes preview pills");
+    assert.equal(
+      disclosure().props.open,
+      false,
+      name + " restores compact actual-Type disclosure",
+    );
   }
   const beforeLocalTabs = window.location.href;
   const historyCount = historyWrites.length;
@@ -498,6 +531,15 @@ async function main() {
     );
     assert.ok(!text(roots()).includes("Kenji is a Generator"));
     assert.ok(!text(roots()).includes("chart.bodygraphModule."));
+    assert.ok(
+      !text(nodes("summary")[0]).includes("Type details"),
+      "new progressive-disclosure chrome is translated",
+    );
+    assert.equal(
+      disclosure().props.open,
+      false,
+      "person/locale remount starts compact",
+    );
     const tabs = nodes("button")
       .filter((n) => n.props.role === "tab")
       .map(text);
@@ -564,7 +606,7 @@ async function main() {
     assert.equal(events[event], undefined, "navigation listeners are released");
 
   console.log(
-    "PASS: real React component interactions (synthetic data, no browser): Type-only preview/reset, person remount plus mounted section/hash/query/path/back-forward/BFCache navigation reset, unchanged SVG and no tab history writes, 4 tabs, all hanging data, dedup visuals, hit-target rules, 12px resize state, center+bridge peek, Escape/blank SVG/blank paper focus restore, both awaited Deep dive heading-focus handoffs, tabindex cleanup, no focus steal after unmount, five locales, zero writes.",
+    "PASS: real React component interactions (synthetic data, no browser): graph-first/progressive full-Type preservation, translated disclosure, Type-only preview/reset, person remount plus mounted section/hash/query/path/back-forward/BFCache navigation reset, unchanged SVG and no tab history writes, 4 tabs, all hanging data, dedup visuals, hit-target rules, 12px resize state, center+bridge peek, Escape/blank SVG/blank paper focus restore, both awaited Deep dive heading-focus handoffs, tabindex cleanup, no focus steal after unmount, five locales, zero writes.",
   );
 }
 const guard = setTimeout(() => {

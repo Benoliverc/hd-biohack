@@ -1,93 +1,174 @@
 import {
-  CENTER_GEOM,
   GATE_TO_CENTER,
   gateAnchor,
   latticeGatePair,
   type CenterKey,
-  type CenterGeom,
+  roundedPolygonPath,
 } from "./bodygraphGeometry";
 
-// Chart-only insets: the classic perimeter chips and compact paths are untouched.
+// Chart-only compact layout. Classic/share geometry stays byte-identical.
+// Width/height are explicit so legible in-center gates do not force a tall lattice.
+type EditorialCenter = {
+  kind: "triangle" | "diamond" | "square";
+  cx: number;
+  cy: number;
+  width: number;
+  height: number;
+  tip?: "up" | "down";
+};
+export const EDITORIAL_MIN_WIDTH = 239;
 export const EDITORIAL_CENTERS = {
-  ...CENTER_GEOM,
-  Head: { ...CENTER_GEOM.Head, cy: 12, s: 44 },
-  Ajna: { ...CENTER_GEOM.Ajna, cy: 94, s: 44 },
-  Throat: { ...CENTER_GEOM.Throat, cy: 196, s: 74 },
-  G: { ...CENTER_GEOM.G, cy: 290, s: 44 },
-  Heart: { ...CENTER_GEOM.Heart, cx: 190, cy: 270, s: 44 },
-  Sacral: { ...CENTER_GEOM.Sacral, cy: 382, s: 64 },
-  Root: { ...CENTER_GEOM.Root, cy: 510, s: 64 },
-  Spleen: { ...CENTER_GEOM.Spleen, cx: 49, cy: 418, s: 50 },
-  Solar_Plexus: { ...CENTER_GEOM.Solar_Plexus, cx: 191, cy: 418, s: 50 },
-} satisfies Record<CenterKey, CenterGeom>;
+  Head: { kind: "triangle", cx: 120, cy: 26, width: 86, height: 44, tip: "up" },
+  Ajna: {
+    kind: "triangle",
+    cx: 120,
+    cy: 80,
+    width: 88,
+    height: 58,
+    tip: "down",
+  },
+  Throat: { kind: "square", cx: 120, cy: 140, width: 60, height: 60 },
+  G: { kind: "diamond", cx: 120, cy: 207, width: 106, height: 68 },
+  Heart: {
+    kind: "triangle",
+    cx: 194,
+    cy: 190,
+    width: 80,
+    height: 60,
+    tip: "down",
+  },
+  Sacral: { kind: "square", cx: 120, cy: 274, width: 60, height: 60 },
+  Root: { kind: "square", cx: 120, cy: 337, width: 60, height: 60 },
+  Spleen: {
+    kind: "triangle",
+    cx: 46,
+    cy: 265,
+    width: 84,
+    height: 86,
+    tip: "up",
+  },
+  Solar_Plexus: {
+    kind: "triangle",
+    cx: 194,
+    cy: 265,
+    width: 84,
+    height: 86,
+    tip: "up",
+  },
+} satisfies Record<CenterKey, EditorialCenter>;
 
-// The taller editorial layout makes room for real 12px labels on narrow phones.
-// All glyph bounds (not just anchor points) stay inside their own center.
+export function editorialCenterPath(
+  center: CenterKey,
+  expand = 0,
+  hit = false,
+) {
+  const g: EditorialCenter = EDITORIAL_CENTERS[center];
+  const x = g.cx,
+    y = g.cy;
+  const w = g.width / 2 + expand,
+    h = g.height / 2 + expand;
+  let points: Array<[number, number]>;
+  if (g.kind === "square")
+    points = [
+      [x - w, y - h],
+      [x + w, y - h],
+      [x + w, y + h],
+      [x - w, y + h],
+    ];
+  else if (g.kind === "diamond")
+    points = [
+      [x, y - h],
+      [x + w, y],
+      [x, y + h],
+      [x - w, y],
+    ];
+  else if (g.tip === "down")
+    points = [
+      [x - w, y - h],
+      [x + w, y - h],
+      [x, y + h],
+    ];
+  else if (hit && center === "Head")
+    points = [
+      [x, 0],
+      [x + w, 50],
+      [x - w, 50],
+    ];
+  else
+    points = [
+      [x, y - h],
+      [x + w, y + h],
+      [x - w, y + h],
+    ];
+  return roundedPolygonPath(points, hit ? 0 : 6);
+}
+
+// A compact perimeter/grid packing: all64 gates retained, no smaller type.
 const INSETS: Record<number, [number, number]> = {
-  64: [-17, 15],
-  61: [0, 15],
-  63: [17, 15],
-  47: [-19, -18],
-  24: [0, -18],
-  4: [19, -18],
-  17: [-10, 0],
-  43: [0, 19],
-  11: [10, 0],
-  62: [-20, -26],
-  23: [0, -26],
-  56: [20, -26],
-  16: [-26, -8],
-  20: [-26, 10],
-  33: [-26, 26],
-  31: [-8, 26],
-  8: [9, 26],
-  35: [26, -8],
-  12: [26, 10],
-  45: [26, 26],
-  7: [0, -27],
-  1: [14, -11],
-  13: [-14, -11],
-  10: [-27, 0],
-  15: [-14, 11],
-  2: [0, 27],
-  46: [14, 11],
-  25: [27, 0],
-  21: [5, -17],
-  51: [-17, -17],
-  26: [-9, 2],
-  40: [9, 2],
-  5: [-18, -24],
-  14: [0, -24],
-  29: [18, -24],
-  27: [-22, 8],
-  34: [-22, -8],
-  59: [22, 0],
-  42: [-18, 24],
-  3: [0, 24],
-  9: [18, 24],
-  36: [0, -25],
-  37: [-10, -6],
-  22: [10, -6],
-  6: [-18, 11],
-  30: [-24, 27],
-  55: [-6, 27],
-  49: [13, 27],
-  48: [0, -25],
-  18: [12, 27],
-  57: [10, -6],
-  44: [18, 11],
-  28: [-24, 27],
-  32: [-6, 27],
-  50: [28, 27],
-  53: [-18, -24],
-  60: [0, -24],
-  52: [18, -24],
-  58: [-22, -7],
-  38: [-22, 9],
-  54: [-18, 24],
-  41: [22, -7],
-  39: [22, 9],
-  19: [18, 24],
+  64: [-18, 13],
+  61: [0, 13],
+  63: [18, 13],
+  47: [-18, -21.6],
+  24: [0, -21.6],
+  4: [18, -21.6],
+  17: [-9, -7],
+  11: [9, -7],
+  43: [0, 7.6],
+  62: [-18, -23.2],
+  23: [0, -23.2],
+  56: [18, -23.2],
+  16: [-18, -8.6],
+  35: [18, -8.6],
+  20: [-18, 6],
+  31: [0, 6],
+  12: [18, 6],
+  33: [-18, 20.6],
+  8: [0, 20.6],
+  45: [18, 20.6],
+  7: [0, -22.5],
+  13: [-17, -7.5],
+  1: [0, -7.5],
+  25: [17, -7.5],
+  10: [-17, 7.5],
+  15: [0, 7.5],
+  46: [17, 7.5],
+  2: [0, 22.15],
+  21: [-10, -22.1],
+  51: [10, -22.1],
+  26: [-9, -7.5],
+  40: [9, -7.5],
+  5: [-18, -23.2],
+  14: [0, -23.2],
+  29: [18, -23.2],
+  34: [-18, -8.6],
+  27: [-18, 6],
+  59: [18, 0],
+  42: [-18, 20.6],
+  3: [0, 20.6],
+  9: [18, 20.6],
+  36: [0, -17.5],
+  37: [-9.25, 2],
+  22: [9.25, 2],
+  6: [0, 18],
+  30: [-18, 33],
+  55: [0, 33],
+  49: [18, 33],
+  48: [0, -17.5],
+  57: [-9.25, 2],
+  18: [9.25, 2],
+  44: [0, 18],
+  28: [-18, 33],
+  32: [0, 33],
+  50: [18, 33],
+  53: [-18, -23.2],
+  60: [0, -23.2],
+  52: [18, -23.2],
+  58: [-18, -8.6],
+  38: [-18, 6],
+  41: [18, -8.6],
+  39: [18, 6],
+  54: [-18, 20.6],
+  19: [18, 20.6],
 };
 
 export function editorialGateAnchor(gate: number) {
@@ -114,6 +195,70 @@ export const EDITORIAL_OUTER_LANES: Record<string, number> = {
   "30-41": 220,
 };
 
+// Visible straight bridges are measured edge-to-edge. Including the hidden
+// in-center length would swallow a 45% hanging stroke in the compact layout.
+const outlines = new Map<CenterKey, Array<[number, number]>>();
+function centerOutline(center: CenterKey) {
+  const cached = outlines.get(center);
+  if (cached) return cached;
+  const tokens =
+    editorialCenterPath(center).match(/[MLQZ]|-?\d+(?:\.\d+)?/g) ?? [];
+  const points: Array<[number, number]> = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const command = tokens[i++];
+    if (command === "M" || command === "L")
+      points.push([Number(tokens[i++]), Number(tokens[i++])]);
+    else if (command === "Q") {
+      const start = points[points.length - 1];
+      const cx = Number(tokens[i++]),
+        cy = Number(tokens[i++]);
+      const x = Number(tokens[i++]),
+        y = Number(tokens[i++]);
+      for (let step = 1; step <= 24; step++) {
+        const t = step / 24,
+          u = 1 - t;
+        points.push([
+          u * u * start[0] + 2 * u * t * cx + t * t * x,
+          u * u * start[1] + 2 * u * t * cy + t * t * y,
+        ]);
+      }
+    }
+  }
+  outlines.set(center, points);
+  return points;
+}
+function boundaryPoint(
+  center: CenterKey,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+) {
+  const polygon = centerOutline(center);
+  let low = 0,
+    high = 1;
+  for (let step = 0; step < 24; step++) {
+    const t = (low + high) / 2;
+    const x = start.x + (end.x - start.x) * t,
+      y = start.y + (end.y - start.y) * t;
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const a = polygon[i],
+        b = polygon[j];
+      if (
+        a[1] > y !== b[1] > y &&
+        x < ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]) + a[0]
+      )
+        inside = !inside;
+    }
+    if (inside) low = t;
+    else high = t;
+  }
+  return {
+    x: start.x + (end.x - start.x) * high,
+    y: start.y + (end.y - start.y) * high,
+  };
+}
+
 export function editorialChannelPath(gates: readonly number[]): string {
   const [a, b] = gates;
   const start = editorialGateAnchor(a);
@@ -123,7 +268,9 @@ export function editorialChannelPath(gates: readonly number[]): string {
     const dy = (end.y - start.y) / 4;
     return `M ${start.x} ${start.y} C ${lane} ${start.y + dy}, ${lane} ${end.y - dy}, ${end.x} ${end.y}`;
   }
-  return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+  const from = boundaryPoint(GATE_TO_CENTER[a], start, end);
+  const to = boundaryPoint(GATE_TO_CENTER[b], end, start);
+  return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
 }
 
 export function editorialHangingDash(held: number, missing: number) {

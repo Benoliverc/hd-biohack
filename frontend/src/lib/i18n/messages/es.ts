@@ -6,6 +6,7 @@ export const messages = {
   "chart.bodygraphModule.centers": "Centros",
   "chart.bodygraphModule.bridges": "Puentes",
   "chart.bodygraphModule.hanging": "Puertas colgantes",
+  "chart.bodygraphModule.typeDetails": "Detalles del Tipo",
   "chart.bodygraphModule.preview": "Vista previa",
   "chart.bodygraphModule.previewMine": "Vista previa — no es tu Chart",
   "chart.bodygraphModule.previewOther": "Vista previa — no es su Chart",

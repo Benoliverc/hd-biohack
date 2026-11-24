@@ -1,0 +1,157 @@
+/** Independent rendered-path/font model, NOT an actual browser viewport stamp. */
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import {
+  CHANNEL_LATTICE,
+  GATE_TO_CENTER,
+} from "../src/lib/bodygraphGeometry.ts";
+import {
+  EDITORIAL_CENTERS,
+  EDITORIAL_MIN_WIDTH,
+  editorialCenterPath,
+  editorialGateAnchor,
+  editorialChannelPath,
+  editorialBadgeFontSize,
+} from "../src/lib/editorialBodygraphGeometry.ts";
+const metrics = JSON.parse(
+  readFileSync(
+    new URL("./fixtures/inter600-gate-bounds.json", import.meta.url),
+  ),
+);
+// Parse the emitted outline, independently of the production edge-intersection
+// implementation; sample Q curves more finely and include AA + full underlines.
+function polygon(path) {
+  const points = [];
+  for (const [, command, values] of path.matchAll(/([MLQZ])([^MLQZ]*)/g)) {
+    const v = values.trim().split(/[ ,]+/).map(Number);
+    if (command === "M" || command === "L") points.push(v);
+    if (command === "Q") {
+      const start = points.at(-1);
+      for (let n = 1; n <= 32; n++) {
+        const t = n / 32,
+          u = 1 - t;
+        points.push([
+          u * u * start[0] + 2 * u * t * v[0] + t * t * v[2],
+          u * u * start[1] + 2 * u * t * v[1] + t * t * v[3],
+        ]);
+      }
+    }
+  }
+  return points;
+}
+function inside([x, y], points) {
+  let result = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const [ax, ay] = points[i],
+      [bx, by] = points[j];
+    if (ay > y !== by > y && x < ((bx - ax) * (y - ay)) / (by - ay) + ax)
+      result = !result;
+  }
+  return result;
+}
+const centers = Object.fromEntries(
+  Object.keys(EDITORIAL_CENTERS).map((k) => [
+    k,
+    polygon(editorialCenterPath(k)),
+  ]),
+);
+for (const points of Object.values(centers))
+  for (const [x, y] of points)
+    assert.ok(
+      x >= 0 && x <= 240 && y >= 0 && y <= 375,
+      "full center stays inside compact 240×375 frame",
+    );
+assert.equal(Object.keys(metrics.bounds).length, 64);
+assert.equal(metrics.size, 12);
+assert.equal(
+  EDITORIAL_MIN_WIDTH,
+  239,
+  "font-derived floor cannot silently shrink",
+);
+for (const width of [239, 243.2, 254, 274.56, 288, 300]) {
+  const scale = width / 240,
+    boxes = [];
+  assert.ok(Math.abs(editorialBadgeFontSize(width) * scale - 12) < 1e-9);
+  for (const [gate, bounds] of Object.entries(metrics.bounds)) {
+    const a = editorialGateAnchor(Number(gate));
+    const b = [
+      a.x * scale + bounds[0] - 0.5,
+      a.y * scale + bounds[1] - 0.5,
+      a.x * scale + bounds[2] + 0.5,
+      a.y * scale + bounds[3] + 0.5,
+    ];
+    const inset = Math.max(0.75, scale / 2);
+    for (const x of [b[0] - inset, b[2] + inset])
+      for (const y of [b[1] - inset, b[3] + inset])
+        assert.ok(
+          inside([x / scale, y / scale], centers[GATE_TO_CENTER[gate]]),
+          `12px ink+full active underline+AA+border strictly inside ${gate} at ${width}px`,
+        );
+    for (const [other, c] of boxes) {
+      const gap = Math.max(b[0] - c[2], c[0] - b[2], b[1] - c[3], c[1] - b[3]);
+      assert.ok(
+        gap >= 1,
+        `separated padded badge rectangles ${gate}/${other} at ${width}px (${gap})`,
+      );
+    }
+    boxes.push([gate, b]);
+  }
+}
+// A compact node must not swallow its hanging stroke. Check actual unmasked
+// ink over 45% ARC LENGTH for BOTH directions on ALL36 canonical routes.
+for (const { gates } of CHANNEL_LATTICE) {
+  const d = editorialChannelPath(gates),
+    n = d.match(/-?\d+(?:\.\d+)?/g).map(Number),
+    points = [],
+    dist = [0];
+  for (let i = 0; i <= 1000; i++) {
+    const t = i / 1000,
+      u = 1 - t;
+    const p = d.includes(" C ")
+      ? [
+          u ** 3 * n[0] +
+            3 * u * u * t * n[2] +
+            3 * u * t * t * n[4] +
+            t ** 3 * n[6],
+          u ** 3 * n[1] +
+            3 * u * u * t * n[3] +
+            3 * u * t * t * n[5] +
+            t ** 3 * n[7],
+        ]
+      : [n[0] + (n[2] - n[0]) * t, n[1] + (n[3] - n[1]) * t];
+    points.push(p);
+    if (i)
+      dist.push(
+        dist[i - 1] +
+          Math.hypot(p[0] - points[i - 1][0], p[1] - points[i - 1][1]),
+      );
+  }
+  for (let held = 0; held < 2; held++) {
+    let visible = 0;
+    for (let i = 1; i < points.length; i++) {
+      const fraction = dist[i] / dist.at(-1);
+      if (
+        (held === 0 ? fraction <= 0.45 : fraction >= 0.55) &&
+        !Object.values(centers).some((p) => inside(points[i], p))
+      )
+        visible += dist[i] - dist[i - 1];
+    }
+    assert.ok(
+      (visible * EDITORIAL_MIN_WIDTH) / 240 >= 1,
+      `held ${gates[held]} has >=1CSSpx unmasked ink on ${gates}`,
+    );
+    if (d.includes(" L ")) {
+      const t = held === 0 ? 0.45 : 0.55;
+      assert.ok(
+        !inside(
+          [n[0] + (n[2] - n[0]) * t, n[1] + (n[3] - n[1]) * t],
+          centers[GATE_TO_CENTER[gates[held]]],
+        ),
+        `45% leaves its held center: ${gates[held]}`,
+      );
+    }
+  }
+}
+console.log(
+  "PASS: emitted compact paths,64 true12CSSpx glyph/full-underline bounds and separation,72 hanging directions; browser viewport/physical target usability still require review",
+);
