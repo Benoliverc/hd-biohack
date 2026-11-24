@@ -13,6 +13,7 @@ import {
   editorialChannelPath,
   editorialHangingDash,
   editorialBadgeFontSize,
+  editorialGateInk,
   bridgeKey,
 } from "../src/lib/editorialBodygraphGeometry.ts";
 import { messages as en } from "../src/lib/i18n/messages/en.ts";
@@ -89,7 +90,11 @@ assert.doesNotMatch(hangingPanel, /<button|<a\b|deepLink/);
 assert.match(module, /data-layer="hanging"[^>]*pointerEvents="none"/);
 assert.match(module, /<mask id=\{`\$\{id\}-outside-centers`\}/);
 for (const layer of ["tracks", "bridges", "hanging"]) {
-  assert.match(module, new RegExp(`data-layer="${layer}"[^>]*mask=`), `${layer} remains clipped under dimmed centers`);
+  assert.match(
+    module,
+    new RegExp(`data-layer="${layer}"[^>]*mask=`),
+    `${layer} remains clipped under dimmed centers`,
+  );
 }
 assert.match(module, /data-layer="badges" pointerEvents="none"/);
 const hitboxes = module.slice(
@@ -226,9 +231,53 @@ for (const a of gates)
         `editorial gate spacing ${a}/${b}`,
       );
     }
+// WCAG normal-text contrast, deterministic sRGB palette calculation. Threshold
+// 4.5:1 applies at the normal, fully highlighted Overview/selected state.
+function luminance(hex) {
+  const channels = [1, 3, 5]
+    .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return channels.reduce(
+    (sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i],
+    0,
+  );
+}
+for (const defined of [false, true])
+  for (const motor of [false, true])
+    for (const activated of [false, true]) {
+      const ink = editorialGateInk({ defined, motor, activated });
+      const surface = defined ? (motor ? "#cbad80" : "#4a6b53") : "#f7f6f2";
+      const [low, high] = [luminance(ink), luminance(surface)].sort(
+        (a, b) => a - b,
+      );
+      assert.ok(
+        (high + 0.05) / (low + 0.05) >= 4.5,
+        `${ink} contrasts against ${surface}`,
+      );
+    }
+assert.match(module, /fill=\{editorialGateInk\(/);
+assert.match(
+  module,
+  /textDecoration=\{activated.has\(gate\) \? "underline" : "none"\}/,
+);
+assert.match(module, /chart.bodygraph.originPersonality/);
+assert.match(module, /chart.bodygraph.originDesign/);
+assert.match(module, /chart.bodygraph.originBoth/);
+assert.match(module, /onClick=\{clearSelection\}/);
+assert.match(
+  module,
+  /if \(event.target === event.currentTarget\) clearSelection\(\)/,
+);
+assert.match(module, /await onDeepDive\(domain\)/);
+assert.match(
+  profile,
+  /return scrollChartSectionIntoView\(targetId, "smooth"\)/,
+);
+assert.match(module, /document.querySelector<HTMLElement>\("#deep-dive h2"\)/);
+assert.match(module, /target.focus\(\{ preventScroll: true \}\)/);
 const prefix = "chart.bodygraphModule.";
 const keys = Object.keys(en).filter((key) => key.startsWith(prefix));
-assert.equal(keys.length, 86);
+assert.equal(keys.length, 88);
 const types = [
   "Generator",
   "Manifesting Generator",
@@ -279,6 +328,35 @@ for (const type of ["Generator", "Manifesting Generator"])
     assert.match(body, /first response is not always a final decision/);
     assert.match(body, /time/);
   }
+const localizedTabs = {
+  de: ["Überblick", "Zentren", "Brücken", "Hängende Tore"],
+  es: ["Vista general", "Centros", "Puentes", "Puertas colgantes"],
+  fr: ["Vue d’ensemble", "Centres", "Ponts", "Portes en suspens"],
+  nl: ["Overzicht", "Centra", "Bruggen", "Hangende poorten"],
+};
+for (const [locale, catalog] of Object.entries({ de, es, fr, nl })) {
+  assert.deepEqual(
+    ["overview", "centers", "bridges", "hanging"].map(
+      (key) => catalog[prefix + key],
+    ),
+    localizedTabs[locale],
+  );
+  for (const key of [
+    "deepCenters",
+    "deepBridges",
+    "noCenters",
+    "noBridges",
+    "noHanging",
+    "connections",
+    "centerConnections",
+    "chartLabel",
+  ]) {
+    assert.doesNotMatch(
+      catalog[prefix + key],
+      /Defined Centers|\bCenters\b|\bBridges\b|\bGates\b/,
+    );
+  }
+}
 assert.equal(en[`${prefix}previewMine`], "Preview — not your chart");
 assert.equal(en[`${prefix}resetMine`], "Back to mine");
 assert.equal(en[`${prefix}previewOther`], "Preview — not their chart");

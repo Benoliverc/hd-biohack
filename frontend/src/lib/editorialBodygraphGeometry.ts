@@ -139,3 +139,18 @@ export function editorialHangingDash(held: number, missing: number) {
 export function editorialBadgeFontSize(renderedWidth: number) {
   return (12 * 240) / renderedWidth;
 }
+
+/** Contrast follows the actual center surface, not gate ownership/activation. */
+export function editorialGateInk({
+  defined,
+  motor,
+  activated,
+}: {
+  defined: boolean;
+  motor: boolean;
+  activated: boolean;
+}) {
+  if (defined && !motor) return activated ? "#f7f6f2" : "#e8e4da";
+  if (defined && motor) return "#1c201d";
+  return activated ? "#1c201d" : "#5e645c";
+}

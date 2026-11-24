@@ -20,6 +20,7 @@ import {
   editorialBadgeFontSize,
   editorialChannelPath,
   editorialGateAnchor,
+  editorialGateInk,
   editorialHangingDash,
 } from "@/lib/editorialBodygraphGeometry";
 
@@ -104,7 +105,7 @@ export type ChartBodygraphModuleProps = Pick<
 > & {
   actualType: string;
   personName?: string;
-  onDeepDive: (domain: "centers" | "channels") => void;
+  onDeepDive: (domain: "centers" | "channels") => void | Promise<void>;
 };
 
 export function ChartBodygraphModule({
@@ -229,6 +230,7 @@ export function ChartBodygraphModule({
     return () => observer.disconnect();
   }, []);
   const clearSelection = () => {
+    if (!selection) return;
     setSelection(null);
     selectionTrigger.current?.focus({ preventScroll: true });
   };
@@ -294,11 +296,29 @@ export function ChartBodygraphModule({
     const d = gates.filter((gate) => design.has(gate)).length;
     return p > 0 && p === d ? "integrated" : d > p ? "somatic" : "conscious";
   };
-  const navigate = (domain: "centers" | "channels") => {
+  const navigate = async (domain: "centers" | "channels") => {
     setSelection(null);
     setTypeThemePreview(null);
     setPreviewOpen(false);
-    onDeepDive(domain);
+    await onDeepDive(domain);
+    requestAnimationFrame(() => {
+      if (!svgRef.current) return;
+      const target =
+        document.querySelector<HTMLElement>("#deep-dive h2") ??
+        document.getElementById("deep-dive");
+      if (!target) return;
+      const previousTabIndex = target.getAttribute("tabindex");
+      target.setAttribute("tabindex", "-1");
+      target.addEventListener(
+        "blur",
+        () => {
+          if (previousTabIndex === null) target.removeAttribute("tabindex");
+          else target.setAttribute("tabindex", previousTabIndex);
+        },
+        { once: true },
+      );
+      target.focus({ preventScroll: true });
+    });
   };
   const deepLink = (domain: "centers" | "channels") => (
     <a
@@ -323,7 +343,7 @@ export function ChartBodygraphModule({
       data-testid="chart-bodygraph-module"
       style={selection ? { paddingBottom: "40vh" } : undefined}
       onClick={(event) => {
-        if (event.target === event.currentTarget) setSelection(null);
+        if (event.target === event.currentTarget) clearSelection();
       }}
     >
       <div
@@ -415,7 +435,7 @@ export function ChartBodygraphModule({
         className="block h-auto w-full"
         aria-label={t("chart.bodygraphModule.chartLabel")}
         style={{ fontFamily: svgFontFamily }}
-        onClick={() => setSelection(null)}
+        onClick={clearSelection}
       >
         <defs>
           <mask
@@ -611,7 +631,27 @@ export function ChartBodygraphModule({
                   x={point.x}
                   y={point.y}
                   opacity={opacity}
-                  fill={activated.has(gate) ? "#1c201d" : "#5e645c"}
+                  fill={editorialGateInk({
+                    defined: defined.has(center),
+                    motor: MOTOR_CENTERS.has(center),
+                    activated: activated.has(gate),
+                  })}
+                  textDecoration={activated.has(gate) ? "underline" : "none"}
+                  aria-label={t("chart.bodygraph.gateTitle", {
+                    gate,
+                    center: displayCenter(center),
+                    origin: t(
+                      personality.has(gate) && design.has(gate)
+                        ? "chart.bodygraph.originBoth"
+                        : personality.has(gate)
+                          ? "chart.bodygraph.originPersonality"
+                          : design.has(gate)
+                            ? "chart.bodygraph.originDesign"
+                            : activated.has(gate)
+                              ? "chart.bodygraph.originActivated"
+                              : "chart.bodygraphModule.inactiveGate",
+                    ),
+                  })}
                 >
                   {gate}
                 </text>
@@ -860,6 +900,9 @@ export function ChartBodygraphModule({
             <p className="py-3">{t("chart.bodygraphModule.noHanging")}</p>
           ))}
       </div>
+      <p className="type-caption text-fg-secondary">
+        {t("chart.bodygraphModule.activatedMark")}
+      </p>
       {selection && (
         <div
           ref={peekRef}

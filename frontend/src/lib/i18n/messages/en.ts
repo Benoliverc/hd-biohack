@@ -1,5 +1,7 @@
 import { todaySoulMessages } from "./todaySoul.en";
 export const messages = {
+  "chart.bodygraphModule.inactiveGate": "Not activated",
+  "chart.bodygraphModule.activatedMark": "Underlined: activated gate",
   "chart.bodygraphModule.overview": "Overview",
   "chart.bodygraphModule.centers": "Centers",
   "chart.bodygraphModule.bridges": "Bridges",

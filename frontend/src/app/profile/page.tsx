@@ -1145,7 +1145,7 @@ function ProfilePage() {
     const url = `${window.location.pathname}${window.location.search}#${id}`;
     window.history.replaceState(null, "", url);
     const targetId = DEEP_SECTION_IDS.has(id) ? "deep-dive" : id;
-    void scrollChartSectionIntoView(targetId, "smooth");
+    return scrollChartSectionIntoView(targetId, "smooth");
   };
 
   const personality = (chart?.personality as Array<Record<string, unknown>>) || [];
