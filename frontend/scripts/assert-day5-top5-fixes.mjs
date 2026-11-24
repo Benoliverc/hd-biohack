@@ -54,8 +54,17 @@ assert.match(profile, /requestedPersonId/);
 
 // (d) Copy about another person is not second-person "You're a…."
 assert.match(en, /chart\.people\.theyreAType/);
-assert.match(profile, /chart\.people\.theyreAType/);
-assert.match(profile, /chart\.people\.youreAType/);
+// Approved Chart-module migration: retain both voice branches at the new owner.
+const bodygraphModule = read("src/components/ChartBodygraphModule.tsx");
+assert.match(profile, /<ChartBodygraphModule/);
+assert.match(profile, /personName=\{selectedSavedRow &&/);
+assert.match(profile, /friendChipLabel\(selectedSavedRow, t\("chart\.people\.personFallback"\)\)/);
+assert.match(bodygraphModule, /personName \? "otherLead" : "youLead"/);
+assert.match(bodygraphModule, /personName \? "otherBody" : "youBody"/);
+for (const type of ["Generator", "Manifesting Generator", "Manifestor", "Projector", "Reflector"]) {
+  assert.ok(en.includes(`chart.bodygraphModule.type.${type}.otherLead`));
+  assert.ok(en.includes(`chart.bodygraphModule.type.${type}.otherBody`));
+}
 
 // (e) Grammar / punctuation class: they only hold, Your Money Line, Try: prompt.
 assert.match(soulSync, /def hold_verb/);

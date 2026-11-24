@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "assert:chart-bodygraph-module": "npx tsx scripts/assert-chart-bodygraph-module.mjs",
     "assert:gate-spacing": "npx tsx scripts/assert-gate-spacing.mjs",
     "assert:resets-in-account-tz": "npx tsx scripts/assert-resets-in-account-tz.mjs",
     "assert:device-timezone-follow": "npx tsx scripts/assert-device-timezone-follow.mjs",
