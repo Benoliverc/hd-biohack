@@ -411,6 +411,13 @@ async function main() {
     2,
     "one Integration hanging visual plus gate37; full data retained in list",
   );
+  assert.deepEqual(
+    layer("hanging").findAllByType("path").map((node) => [
+      node.props["data-held-gate"], node.props["data-missing-gate"], node.props["data-channel"],
+    ]),
+    [[10, 57, "10-57"], [37, 40, "37-40"]],
+    "painted paths identify the held direction/canonical pair; never infer identity from array index",
+  );
   const hit = layer("hitboxes");
   assert.equal(
     hit.findAllByType("path").length,

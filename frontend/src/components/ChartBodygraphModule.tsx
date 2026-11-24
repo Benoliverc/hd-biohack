@@ -523,6 +523,9 @@ export function ChartBodygraphModule({
             <path
               key={`${hang.held}-${hang.missing}`}
               d={editorialChannelPath(hang.gates)}
+              data-held-gate={hang.held}
+              data-missing-gate={hang.missing}
+              data-channel={bridgeKey(hang.held, hang.missing)}
               pathLength="100"
               strokeDasharray={hang.dasharray}
               strokeDashoffset={hang.dashoffset}
