@@ -1,5 +1,6 @@
 /** Focused Chart-only contract. Run with tsx; no browser or accounts required. */
 import assert from "node:assert/strict";
+import "./assert-chart-bodygraph-navigation.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import {

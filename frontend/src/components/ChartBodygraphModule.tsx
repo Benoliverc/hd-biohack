@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { observeChartNavigation } from "@/lib/observeChartNavigation";
 import type { BodyGraphProps } from "@/components/BodyGraph";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { displayCenter } from "@/lib/hdCopy";
@@ -132,6 +133,14 @@ export function ChartBodygraphModule({
   const [typeThemePreview, setTypeThemePreview] = useState<TypeName | null>(
     null,
   );
+  useEffect(
+    () =>
+      observeChartNavigation(() => {
+        setTypeThemePreview(null);
+        setPreviewOpen(false);
+      }),
+    [],
+  );
   const actual = typeName(actualType);
   const displayedType = typeThemePreview ?? actual;
   const accent = displayedType ? ACCENTS[displayedType] : ACCENTS.Reflector;
@@ -260,8 +269,8 @@ export function ChartBodygraphModule({
     };
   }, [selection]);
 
-  // Chart keys this module by person/view/query. Preview never survives a route
-  // or person change; neither preview nor tabs write URL, storage or chart data.
+  // Person/view/query changes remount this module; the observer also covers
+  // section/hash/history navigation. Local tabs and preview never write URL or data.
   const centerOpacity = (center: CenterKey) => {
     if (selection)
       return center === selectedCenter || selectedEndpoints.has(center)
