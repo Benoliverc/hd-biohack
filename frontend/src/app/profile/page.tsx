@@ -1983,7 +1983,7 @@ function ProfilePage() {
           <div className="order-1 sm:order-2 grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div
               id="bodygraph"
-              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-3"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-3 py-1"
             >
               <h2 className="sr-only">{t("chart.people.bodygraph")}</h2>
               <ChartBodygraphModule

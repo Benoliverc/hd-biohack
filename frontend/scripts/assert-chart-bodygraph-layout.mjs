@@ -8,6 +8,7 @@ import {
 import {
   EDITORIAL_CENTERS,
   EDITORIAL_MIN_WIDTH,
+  EDITORIAL_FRAME_HEIGHT,
   editorialCenterPath,
   editorialGateAnchor,
   editorialChannelPath,
@@ -58,8 +59,8 @@ const centers = Object.fromEntries(
 for (const points of Object.values(centers))
   for (const [x, y] of points)
     assert.ok(
-      x >= 0 && x <= 240 && y >= 0 && y <= 375,
-      "full center stays inside compact 240×375 frame",
+      x >= 0 && x <= 240 && y >= 0 && y <= EDITORIAL_FRAME_HEIGHT,
+      "full center stays inside compact frame",
     );
 assert.equal(Object.keys(metrics.bounds).length, 64);
 assert.equal(metrics.size, 12);
@@ -68,7 +69,16 @@ assert.equal(
   239,
   "font-derived floor cannot silently shrink",
 );
-for (const width of [239, 243.2, 254, 274.56, 288, 300]) {
+for (const width of [
+  239,
+  243.2,
+  254,
+  264.34,
+  (450 * 240) / EDITORIAL_FRAME_HEIGHT,
+  274.56,
+  288,
+  300,
+]) {
   const scale = width / 240,
     boxes = [];
   assert.ok(Math.abs(editorialBadgeFontSize(width) * scale - 12) < 1e-9);
@@ -199,3 +209,20 @@ for (const { gates } of CHANNEL_LATTICE) {
 console.log(
   "PASS: emitted compact paths,64 true12CSSpx glyph/full-underline bounds and separation,72 hanging directions; browser viewport/physical target usability still require review",
 );
+
+for (const { gates } of CHANNEL_LATTICE) {
+  const n = editorialChannelPath(gates)
+    .match(/-?\d+(?:\.\d+)?/g)
+    .map(Number);
+  for (const [gate, actual] of [
+    [gates[0], n.slice(0, 2)],
+    [gates[1], n.slice(-2)],
+  ]) {
+    const a = editorialGateAnchor(gate);
+    assert.deepEqual(
+      actual,
+      [a.x, a.y],
+      "canonical route preserves its actual held-gate origin/end",
+    );
+  }
+}

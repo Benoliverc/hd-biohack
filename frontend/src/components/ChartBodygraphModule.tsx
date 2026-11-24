@@ -17,6 +17,7 @@ import {
 import {
   EDITORIAL_CENTERS,
   EDITORIAL_MIN_WIDTH,
+  EDITORIAL_FRAME_HEIGHT,
   editorialCenterPath,
   bridgeKey,
   editorialBadgeFontSize,
@@ -241,6 +242,58 @@ export function ChartBodygraphModule({
     observer.observe(svg);
     return () => observer.disconnect();
   }, []);
+  useEffect(() => {
+    if (window.location.hash !== "#bodygraph") return;
+    const card = document.getElementById("bodygraph");
+    if (!card) return;
+    // Direct entry can land before upstream layout/sticky offsets settle. Align
+    // only this initial target to its published margin; never chase user scroll.
+    let live = true;
+    let pending = false;
+    let frame = 0;
+    const align = () => {
+      pending = false;
+      if (!live || window.location.hash !== "#bodygraph") return;
+      const margin = Number.parseFloat(getComputedStyle(card).scrollMarginTop);
+      if (!Number.isFinite(margin) || margin <= 0) return;
+      const delta = card.getBoundingClientRect().top - margin;
+      if (Math.abs(delta) > 0.5)
+        window.scrollBy({ top: delta, behavior: "instant" });
+    };
+    const schedule = () => {
+      if (!live || pending) return;
+      pending = true;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(align);
+      });
+    };
+    const layout = new ResizeObserver(schedule);
+    layout.observe(card);
+    layout.observe(document.body);
+    const offsets = new MutationObserver(schedule);
+    offsets.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    const intent = ["wheel", "touchstart", "pointerdown", "keydown"];
+    let releaseNavigation = () => {};
+    const stop = () => {
+      if (!live) return;
+      live = false;
+      cancelAnimationFrame(frame);
+      layout.disconnect();
+      offsets.disconnect();
+      releaseNavigation();
+      intent.forEach((event) => window.removeEventListener(event, stop));
+    };
+    releaseNavigation = observeChartNavigation(stop);
+    intent.forEach((event) =>
+      window.addEventListener(event, stop, { passive: true }),
+    );
+    schedule();
+    void document.fonts?.ready.then(schedule, () => {});
+    return stop;
+  }, []);
   const clearSelection = () => {
     if (!selection) return;
     setSelection(null);
@@ -360,13 +413,13 @@ export function ChartBodygraphModule({
     >
       <svg
         ref={svgRef}
-        viewBox="0 0 240 375"
-        className="mx-auto block h-auto overflow-visible lg:max-w-[274.56px]"
+        viewBox={`0 0 240 ${EDITORIAL_FRAME_HEIGHT}`}
+        className="mx-auto block h-auto overflow-visible lg:max-w-[264.34px]"
         data-testid="bodygraph-map"
         aria-label={t("chart.bodygraphModule.chartLabel")}
         style={{
           fontFamily: svgFontFamily,
-          width: `min(100%, 288px, max(${EDITORIAL_MIN_WIDTH}px, calc((100svh - var(--chart-scroll-mt, 11rem) - 13px - 1rem) * 0.64)))`,
+          width: `min(100%, ${(450 * 240) / EDITORIAL_FRAME_HEIGHT}px, max(${EDITORIAL_MIN_WIDTH}px, calc((100svh - var(--chart-scroll-mt, 11rem) - 5px - 1rem) * ${240 / EDITORIAL_FRAME_HEIGHT})))`,
         }}
         onClick={clearSelection}
       >
@@ -375,11 +428,17 @@ export function ChartBodygraphModule({
             id={`${id}-outside-centers`}
             maskUnits="userSpaceOnUse"
             x="0"
-            y="-36"
+            y="0"
             width="240"
-            height="375"
+            height={EDITORIAL_FRAME_HEIGHT}
           >
-            <rect x="0" y="0" width="240" height="375" fill="white" />
+            <rect
+              x="0"
+              y="0"
+              width="240"
+              height={EDITORIAL_FRAME_HEIGHT}
+              fill="white"
+            />
             <g fill="black">
               {CENTER_KEYS.map((center) => {
                 return <path key={center} d={editorialCenterPath(center)} />;
@@ -395,7 +454,7 @@ export function ChartBodygraphModule({
           opacity="0.3"
         >
           <path d={TORSO_PATH} strokeWidth="0.6" />
-          <path d="M120 4 V367" strokeWidth="0.4" />
+          <path d="M120 4 V381.5" strokeWidth="0.4" />
         </g>
         <g
           data-layer="tracks"
@@ -698,6 +757,7 @@ export function ChartBodygraphModule({
           onToggle={(event) => setTypeDetailsOpen(event.currentTarget.open)}
         >
           <summary className="min-h-11 cursor-pointer py-2 pr-20 text-sm font-semibold text-fg">
+            {personName && <span>{personName} · </span>}
             {displayedType ?? actualType}
             <span className="ml-2 font-normal text-fg-secondary">
               {t("chart.bodygraphModule.typeDetails")}
