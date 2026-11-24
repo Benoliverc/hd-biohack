@@ -210,6 +210,33 @@ async function main() {
     });
   });
   const baseSvg = svgData();
+  // Compile the REAL rendered utility classes with the app's Tailwind config:
+  //11px is the font,24px is the explicit secondary target exception, not11px tall.
+  const previewTrigger = button("Preview ⌄");
+  const tailwindConfig = require("tailwindcss/loadConfig")(
+    path.join(frontend, "tailwind.config.ts"),
+  );
+  const previewCss = await require("postcss")([
+    require("tailwindcss")({
+      ...tailwindConfig,
+      content: [{ raw: `<button class="${previewTrigger.props.className}">` }],
+    }),
+  ]).process("@tailwind utilities", { from: undefined });
+  const triggerClasses = new Set(previewTrigger.props.className.split(/\s+/));
+  const triggerStyle = {};
+  previewCss.root.walkRules((rule) => {
+    const utility = rule.selector.slice(1).replace(/\\/g, "");
+    if (triggerClasses.has(utility))
+      rule.walkDecls((decl) => (triggerStyle[decl.prop] = decl.value));
+  });
+  assert.equal(previewTrigger.props.type, "button");
+  assert.equal(triggerStyle["font-size"], "11px", "locked quiet11px Preview text");
+  assert.equal(triggerStyle.height, "1.5rem", "24px at the app's16px root; NOT44px or11px tall");
+  assert.equal(triggerStyle["min-width"], "1.5rem", "secondary target at least24px wide");
+  assert.equal(triggerStyle["line-height"], "1rem", "11px glyphs have an unclipped16px line");
+  assert.equal(triggerStyle.color, "var(--fg-secondary)");
+  assert.equal(triggerStyle["background-color"], undefined, "quiet text, no toolbar/pill chrome");
+  assert.equal(triggerStyle["border-width"], undefined);
   const disclosure = () => nodes("details")[0];
   assert.equal(
     disclosure().props.open,

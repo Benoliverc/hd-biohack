@@ -19,8 +19,8 @@ const metrics = JSON.parse(
     new URL("./fixtures/inter600-gate-bounds.json", import.meta.url),
   ),
 );
-// Parse the emitted outline, independently of the production edge-intersection
-// implementation; sample Q curves more finely and include AA + full underlines.
+// Parse emitted outlines independently of path generation; sample Q curves
+// and include actual glyph AA + full underlines.
 function polygon(path) {
   const points = [];
   for (const [, command, values] of path.matchAll(/([MLQZ])([^MLQZ]*)/g)) {
@@ -151,6 +151,28 @@ for (let i = 0; i < hits.length; i++) {
       }
   }
 }
+// Exact line/outline crossings avoid claiming4px from a coarse sample interval.
+function straightVisible(n, from, to) {
+  const [x, y, bx, by] = n, dx = bx - x, dy = by - y;
+  const cuts = [from, to];
+  for (const outline of Object.values(centers))
+    for (let i = 0; i < outline.length; i++) {
+      const [ax, ay] = outline[i], [cx, cy] = outline[(i + 1) % outline.length];
+      const ex = cx - ax, ey = cy - ay, den = dx * ey - dy * ex;
+      if (Math.abs(den) < 1e-12) continue;
+      const t = ((ax - x) * ey - (ay - y) * ex) / den;
+      const u = ((ax - x) * dy - (ay - y) * dx) / den;
+      if (t > from && t < to && u >= 0 && u <= 1) cuts.push(t);
+    }
+  cuts.sort((a, b) => a - b);
+  let length = 0;
+  for (let i = 1; i < cuts.length; i++) {
+    const t = (cuts[i - 1] + cuts[i]) / 2;
+    if (!Object.values(centers).some((p) => inside([x + t * dx, y + t * dy], p)))
+      length += (cuts[i] - cuts[i - 1]) * Math.hypot(dx, dy);
+  }
+  return length;
+}
 // A compact node must not swallow its hanging stroke. Check actual unmasked
 // ink over 45% ARC LENGTH for BOTH directions on ALL36 canonical routes.
 for (const { gates } of CHANNEL_LATTICE) {
@@ -190,9 +212,10 @@ for (const { gates } of CHANNEL_LATTICE) {
       )
         visible += dist[i] - dist[i - 1];
     }
+    if (d.includes(" L ")) visible = straightVisible(n, held ? 0.55 : 0, held ? 1 : 0.45);
     assert.ok(
-      (visible * EDITORIAL_MIN_WIDTH) / 240 >= 1,
-      `held ${gates[held]} has >=1CSSpx unmasked ink on ${gates}`,
+      (visible * EDITORIAL_MIN_WIDTH) / 240 >= 4,
+      `held ${gates[held]} has >=4CSSpx unmasked ink on ${gates}`,
     );
     if (d.includes(" L ")) {
       const t = held === 0 ? 0.45 : 0.55;
@@ -206,10 +229,6 @@ for (const { gates } of CHANNEL_LATTICE) {
     }
   }
 }
-console.log(
-  "PASS: emitted compact paths,64 true12CSSpx glyph/full-underline bounds and separation,72 hanging directions; browser viewport/physical target usability still require review",
-);
-
 for (const { gates } of CHANNEL_LATTICE) {
   const n = editorialChannelPath(gates)
     .match(/-?\d+(?:\.\d+)?/g)
@@ -226,3 +245,5 @@ for (const { gates } of CHANNEL_LATTICE) {
     );
   }
 }
+
+console.log("PASS:64 true12CSSpx inside/separated glyph/full-underline bounds,36 literal gate-origin paths,72 hanging directions each >=4CSSpx exposed; browser readability/viewport/physical target usability still require review");

@@ -742,7 +742,7 @@ export function ChartBodygraphModule({
       >
         <button
           type="button"
-          className="absolute right-0 top-0 min-h-11 min-w-11 px-3 text-[11px] text-fg-secondary"
+          className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center gap-1 px-1 text-[11px] leading-4 text-fg-secondary"
           aria-expanded={previewOpen}
           aria-controls={`${id}-preview`}
           onClick={() => {
