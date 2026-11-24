@@ -1,15 +1,14 @@
 /** Focused Chart-only contract. Run with tsx; no browser or accounts required. */
 import assert from "node:assert/strict";
 import "./assert-chart-bodygraph-navigation.mjs";
+import "./assert-chart-bodygraph-layout.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import {
   CHANNEL_LATTICE,
   GATE_TO_CENTER,
-  MIN_GATE_SPACING,
 } from "../src/lib/bodygraphGeometry.ts";
 import {
-  EDITORIAL_CENTERS,
   editorialGateAnchor,
   editorialChannelPath,
   editorialHangingDash,
@@ -164,76 +163,13 @@ for (const row of CHANNEL_LATTICE) {
     module.includes(`"chart.bodygraphModule.bridge.${bridgeKey(a, b)}"`),
   );
 }
-// A correctly dashed short channel must emerge from beneath its held center.
-// For internal straight routes, 45% arc length is exactly this interpolation.
-for (const row of CHANNEL_LATTICE) {
-  if (!editorialChannelPath(row.gates).includes(" L ")) continue;
-  for (const held of row.gates) {
-    const a = editorialGateAnchor(row.gates[0]),
-      b = editorialGateAnchor(row.gates[1]);
-    const t = held === row.gates[0] ? 0.45 : 0.55;
-    const g = EDITORIAL_CENTERS[GATE_TO_CENTER[held]];
-    const x = Math.abs(a.x + (b.x - a.x) * t - g.cx),
-      y = a.y + (b.y - a.y) * t - g.cy;
-    const hidden =
-      g.kind === "square"
-        ? Math.max(x, Math.abs(y)) <= g.s / 2
-        : g.kind === "diamond"
-          ? x + Math.abs(y) <= g.s
-          : g.tip === "up"
-            ? y <= g.s * 0.7 && x <= ((y + g.s) * 0.9) / 1.7
-            : y >= -g.s * 0.7 && x <= ((g.s - y) * 0.9) / 1.7;
-    assert.ok(
-      !hidden,
-      `held gate ${held} has a visible 45% stroke on ${row.gates}`,
-    );
-  }
-}
 assert.equal(editorialHangingDash(1, 64), null);
-const gates = Object.keys(GATE_TO_CENTER).map(Number);
 for (const width of [224, 240, 256, 286, 320, 343, 375, 640, 768, 1024]) {
-  const font = editorialBadgeFontSize(width);
   assert.ok(
-    Math.abs((font * width) / 240 - 12) < 1e-9,
-    `rendered font at ${width}`,
+    Math.abs((editorialBadgeFontSize(width) * width) / 240 - 12) < 1e-9,
+    `12CSSpx at ${width}`,
   );
-  for (const gate of gates) {
-    const point = editorialGateAnchor(gate),
-      geom = EDITORIAL_CENTERS[GATE_TO_CENTER[gate]];
-    // Conservative 0.64em digits with full em height; all four corners inside.
-    const halfWidth = String(gate).length * font * 0.32,
-      halfHeight = font / 2;
-    for (const dx of [-halfWidth, halfWidth])
-      for (const dy of [-halfHeight, halfHeight]) {
-        const x = Math.abs(point.x + dx - geom.cx),
-          y = point.y + dy - geom.cy;
-        const inside =
-          geom.kind === "square"
-            ? Math.max(x, Math.abs(y)) < geom.s / 2 - 1
-            : geom.kind === "diamond"
-              ? x + Math.abs(y) < geom.s - 1
-              : geom.tip === "up"
-                ? y < geom.s * 0.7 - 1 && x < ((y + geom.s) * 0.9) / 1.7 - 1
-                : y > -geom.s * 0.7 + 1 && x < ((geom.s - y) * 0.9) / 1.7 - 1;
-        assert.ok(
-          inside,
-          `gate ${gate} glyph interior at ${width}px SVG width`,
-        );
-      }
-  }
 }
-for (const a of gates)
-  for (const b of gates)
-    if (a < b) {
-      const p = editorialGateAnchor(a),
-        q = editorialGateAnchor(b);
-      assert.ok(
-        Math.hypot(p.x - q.x, p.y - q.y) >= MIN_GATE_SPACING,
-        `editorial gate spacing ${a}/${b}`,
-      );
-    }
-// WCAG normal-text contrast, deterministic sRGB palette calculation. Threshold
-// 4.5:1 applies at the normal, fully highlighted Overview/selected state.
 function luminance(hex) {
   const channels = [1, 3, 5]
     .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
@@ -278,7 +214,8 @@ assert.match(module, /document.querySelector<HTMLElement>\("#deep-dive h2"\)/);
 assert.match(module, /target.focus\(\{ preventScroll: true \}\)/);
 const prefix = "chart.bodygraphModule.";
 const keys = Object.keys(en).filter((key) => key.startsWith(prefix));
-assert.equal(keys.length, 88);
+assert.equal(keys.length, 89);
+assert.ok(keys.includes(`${prefix}typeDetails`));
 const types = [
   "Generator",
   "Manifesting Generator",
@@ -286,7 +223,29 @@ const types = [
   "Projector",
   "Reflector",
 ];
+const retainedCopyHashes = {
+  en: "1dc60688d5435e079dfcc9fca972b03ec0dc25af7b966cc590ba4938d03e45e6",
+  de: "ee07aa2d0430db3708e0865064a0bd0e430b5f6d8c84ad9d4aa7b506b58ea80a",
+  es: "3dcdcddafcfc9ab6b8c2e28d64eed17acb3df18cecafe03259ec0a4d404617d5",
+  fr: "fd597876ac41d11ff77918bd7ba6a469e30bfdff34097441fc9f16d0acdb628b",
+  nl: "33aceeee924a5d1c65622e1c369d654af893d0bebe9441fa1a6f0b34187a58da",
+};
 for (const [locale, catalog] of Object.entries({ en, de, es, fr, nl })) {
+  const retained = Object.keys(catalog)
+    .filter((k) => k.startsWith(prefix) && k !== prefix + "typeDetails")
+    .sort();
+  assert.equal(
+    retained.length,
+    88,
+    locale + " retains every pre-correction module key",
+  );
+  assert.equal(
+    createHash("sha256")
+      .update(JSON.stringify(retained.map((k) => [k, catalog[k]])))
+      .digest("hex"),
+    retainedCopyHashes[locale],
+    locale + " all88 existing localized strings stay byte-identical",
+  );
   assert.deepEqual(
     Object.keys(catalog)
       .filter((key) => key.startsWith(prefix))
@@ -301,7 +260,7 @@ for (const [locale, catalog] of Object.entries({ en, de, es, fr, nl })) {
       (en[key].match(/\{\w+\}/g) || []).sort(),
       `${locale}:${key} interpolation`,
     );
-    if (locale !== "en" && /type\.|center\.|bridge\./.test(key))
+    if (locale !== "en" && /type\.|center\.|bridge\.|typeDetails/.test(key))
       assert.notEqual(
         catalog[key],
         en[key],

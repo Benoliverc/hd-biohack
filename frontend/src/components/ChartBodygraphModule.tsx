@@ -11,12 +11,14 @@ import {
   INTEGRATION_GATES,
   MOTOR_CENTERS,
   TORSO_PATH,
-  centerPath,
   preferIntegrationHangingMissing,
   type CenterKey,
 } from "@/lib/bodygraphGeometry";
 import {
   EDITORIAL_CENTERS,
+  EDITORIAL_MIN_WIDTH,
+  EDITORIAL_FRAME_HEIGHT,
+  editorialCenterPath,
   bridgeKey,
   editorialBadgeFontSize,
   editorialChannelPath,
@@ -130,6 +132,7 @@ export function ChartBodygraphModule({
   const [tab, setTab] = useState<Tab>("overview");
   const [selection, setSelection] = useState<Selection | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [typeDetailsOpen, setTypeDetailsOpen] = useState(false);
   const [typeThemePreview, setTypeThemePreview] = useState<TypeName | null>(
     null,
   );
@@ -138,6 +141,7 @@ export function ChartBodygraphModule({
       observeChartNavigation(() => {
         setTypeThemePreview(null);
         setPreviewOpen(false);
+        setTypeDetailsOpen(false);
       }),
     [],
   );
@@ -237,6 +241,58 @@ export function ChartBodygraphModule({
     });
     observer.observe(svg);
     return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (window.location.hash !== "#bodygraph") return;
+    const card = document.getElementById("bodygraph");
+    if (!card) return;
+    // Direct entry can land before upstream layout/sticky offsets settle. Align
+    // only this initial target to its published margin; never chase user scroll.
+    let live = true;
+    let pending = false;
+    let frame = 0;
+    const align = () => {
+      pending = false;
+      if (!live || window.location.hash !== "#bodygraph") return;
+      const margin = Number.parseFloat(getComputedStyle(card).scrollMarginTop);
+      if (!Number.isFinite(margin) || margin <= 0) return;
+      const delta = card.getBoundingClientRect().top - margin;
+      if (Math.abs(delta) > 0.5)
+        window.scrollBy({ top: delta, behavior: "instant" });
+    };
+    const schedule = () => {
+      if (!live || pending) return;
+      pending = true;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(align);
+      });
+    };
+    const layout = new ResizeObserver(schedule);
+    layout.observe(card);
+    layout.observe(document.body);
+    const offsets = new MutationObserver(schedule);
+    offsets.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    const intent = ["wheel", "touchstart", "pointerdown", "keydown"];
+    let releaseNavigation = () => {};
+    const stop = () => {
+      if (!live) return;
+      live = false;
+      cancelAnimationFrame(frame);
+      layout.disconnect();
+      offsets.disconnect();
+      releaseNavigation();
+      intent.forEach((event) => window.removeEventListener(event, stop));
+    };
+    releaseNavigation = observeChartNavigation(stop);
+    intent.forEach((event) =>
+      window.addEventListener(event, stop, { passive: true }),
+    );
+    schedule();
+    void document.fonts?.ready.then(schedule, () => {});
+    return stop;
   }, []);
   const clearSelection = () => {
     if (!selection) return;
@@ -348,102 +404,23 @@ export function ChartBodygraphModule({
 
   return (
     <div
-      className="editorial-bodygraph space-y-4"
+      className="editorial-bodygraph space-y-2"
       data-testid="chart-bodygraph-module"
       style={selection ? { paddingBottom: "40vh" } : undefined}
       onClick={(event) => {
         if (event.target === event.currentTarget) clearSelection();
       }}
     >
-      <div
-        className="relative rounded-2xl border bg-elevated p-4 pt-8"
-        data-testid="bodygraph-type-card"
-        style={{
-          borderColor: accent[0],
-          backgroundColor: `color-mix(in srgb, ${accent[1]} 35%, var(--elevated))`,
-        }}
-      >
-        <button
-          type="button"
-          className="absolute right-3 top-2 text-[11px] text-fg-secondary"
-          aria-expanded={previewOpen}
-          aria-controls={`${id}-preview`}
-          onClick={() => {
-            setPreviewOpen(!previewOpen);
-            setTypeThemePreview(null);
-          }}
-        >
-          {t("chart.bodygraphModule.preview")} <span aria-hidden="true">⌄</span>
-        </button>
-        {displayedType ? (
-          <>
-            <h3 className="type-section text-fg">
-              {t(
-                `chart.bodygraphModule.type.${displayedType}.${personName ? "otherLead" : "youLead"}`,
-                { name: personName ?? "" },
-              )}
-            </h3>
-            <p className="mt-3 type-body text-fg-secondary">
-              {t(
-                `chart.bodygraphModule.type.${displayedType}.${personName ? "otherBody" : "youBody"}`,
-                { name: personName ?? "" },
-              )}
-            </p>
-          </>
-        ) : (
-          <h3 className="type-section text-fg">{actualType}</h3>
-        )}
-        <div aria-live="polite">
-          {typeThemePreview && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-border bg-elevated px-2 py-1 type-caption text-fg">
-                {t(
-                  personName
-                    ? "chart.bodygraphModule.previewOther"
-                    : "chart.bodygraphModule.previewMine",
-                )}
-              </span>
-              <button
-                type="button"
-                className="min-h-11 text-sm font-medium text-growth-ink underline underline-offset-4"
-                onClick={() => {
-                  setTypeThemePreview(null);
-                  setPreviewOpen(false);
-                }}
-              >
-                {t(
-                  personName
-                    ? "chart.bodygraphModule.resetOther"
-                    : "chart.bodygraphModule.resetMine",
-                  { name: personName ?? "" },
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-        {previewOpen && (
-          <div id={`${id}-preview`} className="mt-3 flex flex-wrap gap-2">
-            {TYPES.filter((name) => name !== actual).map((name) => (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={typeThemePreview === name}
-                className="min-h-11 rounded-full border border-border bg-elevated px-3 py-2 text-xs text-fg"
-                onClick={() => setTypeThemePreview(name)}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       <svg
         ref={svgRef}
-        viewBox="0 -36 240 594"
-        className="block h-auto w-full"
+        viewBox={`0 0 240 ${EDITORIAL_FRAME_HEIGHT}`}
+        className="mx-auto block h-auto overflow-visible lg:max-w-[264.34px]"
+        data-testid="bodygraph-map"
         aria-label={t("chart.bodygraphModule.chartLabel")}
-        style={{ fontFamily: svgFontFamily }}
+        style={{
+          fontFamily: svgFontFamily,
+          width: `min(100%, ${(450 * 240) / EDITORIAL_FRAME_HEIGHT}px, max(${EDITORIAL_MIN_WIDTH}px, calc((100svh - var(--chart-scroll-mt, 11rem) - 5px - 1rem) * ${240 / EDITORIAL_FRAME_HEIGHT})))`,
+        }}
         onClick={clearSelection}
       >
         <defs>
@@ -451,27 +428,20 @@ export function ChartBodygraphModule({
             id={`${id}-outside-centers`}
             maskUnits="userSpaceOnUse"
             x="0"
-            y="-36"
+            y="0"
             width="240"
-            height="594"
+            height={EDITORIAL_FRAME_HEIGHT}
           >
-            <rect x="0" y="-36" width="240" height="594" fill="white" />
+            <rect
+              x="0"
+              y="0"
+              width="240"
+              height={EDITORIAL_FRAME_HEIGHT}
+              fill="white"
+            />
             <g fill="black">
               {CENTER_KEYS.map((center) => {
-                const geom = EDITORIAL_CENTERS[center];
-                return (
-                  <path
-                    key={center}
-                    d={centerPath(
-                      geom.kind,
-                      geom.cx,
-                      geom.cy,
-                      geom.s,
-                      geom.tip,
-                      6,
-                    )}
-                  />
-                );
+                return <path key={center} d={editorialCenterPath(center)} />;
               })}
             </g>
           </mask>
@@ -483,8 +453,8 @@ export function ChartBodygraphModule({
           stroke="#ddd8ce"
           opacity="0.3"
         >
-          <path d={TORSO_PATH} transform="scale(1 1.5)" strokeWidth="0.6" />
-          <path d="M120 -32 V548" strokeWidth="0.4" />
+          <path d={TORSO_PATH} strokeWidth="0.6" />
+          <path d="M120 4 V381.5" strokeWidth="0.4" />
         </g>
         <g
           data-layer="tracks"
@@ -553,6 +523,9 @@ export function ChartBodygraphModule({
             <path
               key={`${hang.held}-${hang.missing}`}
               d={editorialChannelPath(hang.gates)}
+              data-held-gate={hang.held}
+              data-missing-gate={hang.missing}
+              data-channel={bridgeKey(hang.held, hang.missing)}
               pathLength="100"
               strokeDasharray={hang.dasharray}
               strokeDashoffset={hang.dashoffset}
@@ -566,7 +539,6 @@ export function ChartBodygraphModule({
         </g>
         <g data-layer="centers" pointerEvents="none" strokeWidth="1.5">
           {CENTER_KEYS.map((center) => {
-            const geom = EDITORIAL_CENTERS[center];
             const isDefined = defined.has(center);
             return (
               <g
@@ -577,14 +549,7 @@ export function ChartBodygraphModule({
                 aria-label={`${displayCenter(center)} · ${t(isDefined ? "chart.bodygraphModule.defined" : "chart.bodygraphModule.open")}`}
               >
                 <path
-                  d={centerPath(
-                    geom.kind,
-                    geom.cx,
-                    geom.cy,
-                    geom.s,
-                    geom.tip,
-                    6,
-                  )}
+                  d={editorialCenterPath(center)}
                   fill={
                     isDefined
                       ? MOTOR_CENTERS.has(center)
@@ -597,14 +562,7 @@ export function ChartBodygraphModule({
                 {(selectedCenter === center ||
                   (tab === "bridges" && endpoints.has(center))) && (
                   <path
-                    d={centerPath(
-                      geom.kind,
-                      geom.cx,
-                      geom.cy,
-                      geom.s + 4,
-                      geom.tip,
-                      6,
-                    )}
+                    d={editorialCenterPath(center, 4)}
                     fill="none"
                     stroke="#3a5642"
                     strokeWidth={selectedCenter === center ? 2 : 1}
@@ -751,12 +709,11 @@ export function ChartBodygraphModule({
             />
           ))}
           {definedList.map((center) => {
-            const geom = EDITORIAL_CENTERS[center];
             return (
               <path
                 key={center}
-                d={centerPath(geom.kind, geom.cx, geom.cy, geom.s, geom.tip, 6)}
-                strokeWidth="12"
+                d={editorialCenterPath(center, 0, true)}
+                strokeWidth="0"
                 pointerEvents="all"
                 role="button"
                 tabIndex={0}
@@ -777,6 +734,104 @@ export function ChartBodygraphModule({
           })}
         </g>
       </svg>
+
+      <div
+        className="relative rounded-2xl border bg-elevated p-3"
+        data-testid="bodygraph-type-card"
+        style={{
+          borderColor: accent[0],
+          backgroundColor: `color-mix(in srgb, ${accent[1]} 35%, var(--elevated))`,
+        }}
+      >
+        <button
+          type="button"
+          className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center gap-1 px-1 text-[11px] leading-4 text-fg-secondary"
+          aria-expanded={previewOpen}
+          aria-controls={`${id}-preview`}
+          onClick={() => {
+            setPreviewOpen(!previewOpen);
+            setTypeThemePreview(null);
+          }}
+        >
+          {t("chart.bodygraphModule.preview")} <span aria-hidden="true">⌄</span>
+        </button>
+        <details
+          open={typeDetailsOpen}
+          onToggle={(event) => setTypeDetailsOpen(event.currentTarget.open)}
+        >
+          <summary className="min-h-11 cursor-pointer py-2 pr-20 text-sm font-semibold text-fg">
+            {personName && <span>{personName} · </span>}
+            {displayedType ?? actualType}
+            <span className="ml-2 font-normal text-fg-secondary">
+              {t("chart.bodygraphModule.typeDetails")}
+            </span>
+          </summary>
+          {displayedType ? (
+            <>
+              <h3 className="type-section text-fg">
+                {t(
+                  `chart.bodygraphModule.type.${displayedType}.${personName ? "otherLead" : "youLead"}`,
+                  { name: personName ?? "" },
+                )}
+              </h3>
+              <p className="mt-3 type-body text-fg-secondary">
+                {t(
+                  `chart.bodygraphModule.type.${displayedType}.${personName ? "otherBody" : "youBody"}`,
+                  { name: personName ?? "" },
+                )}
+              </p>
+            </>
+          ) : (
+            <h3 className="type-section text-fg">{actualType}</h3>
+          )}
+        </details>
+        <div aria-live="polite">
+          {typeThemePreview && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-border bg-elevated px-2 py-1 type-caption text-fg">
+                {t(
+                  personName
+                    ? "chart.bodygraphModule.previewOther"
+                    : "chart.bodygraphModule.previewMine",
+                )}
+              </span>
+              <button
+                type="button"
+                className="min-h-11 text-sm font-medium text-growth-ink underline underline-offset-4"
+                onClick={() => {
+                  setTypeThemePreview(null);
+                  setPreviewOpen(false);
+                }}
+              >
+                {t(
+                  personName
+                    ? "chart.bodygraphModule.resetOther"
+                    : "chart.bodygraphModule.resetMine",
+                  { name: personName ?? "" },
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+        {previewOpen && (
+          <div id={`${id}-preview`} className="mt-3 flex flex-wrap gap-2">
+            {TYPES.filter((name) => name !== actual).map((name) => (
+              <button
+                key={name}
+                type="button"
+                aria-pressed={typeThemePreview === name}
+                className="min-h-11 rounded-full border border-border bg-elevated px-3 py-2 text-xs text-fg"
+                onClick={() => {
+                  setTypeThemePreview(name);
+                  setTypeDetailsOpen(true);
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div
         role="tablist"

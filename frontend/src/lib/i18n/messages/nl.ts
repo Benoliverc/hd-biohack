@@ -6,6 +6,7 @@ export const messages = {
   "chart.bodygraphModule.centers": "Centra",
   "chart.bodygraphModule.bridges": "Bruggen",
   "chart.bodygraphModule.hanging": "Hangende poorten",
+  "chart.bodygraphModule.typeDetails": "Type-details",
   "chart.bodygraphModule.preview": "Voorbeeld",
   "chart.bodygraphModule.previewMine": "Voorbeeld — niet jouw Chart",
   "chart.bodygraphModule.previewOther": "Voorbeeld — niet hun Chart",

@@ -39,14 +39,20 @@ global.ResizeObserver = class {
   constructor(cb) {
     this.cb = cb;
     observers.push(this);
+    this.targets = [];
   }
-  observe() {}
-  disconnect() {}
+  observe(target) {
+    this.targets.push(target);
+  }
+  disconnect() {
+    this.disconnected = true;
+  }
 };
 global.getComputedStyle = () => ({ fontFamily: "Inter, sans-serif" });
 global.document = {
   documentElement: { lang: "en" },
-  getElementById() {
+  getElementById(id) {
+    if (id === "bodygraph") return null;
     return { focus() {} };
   },
 };
@@ -204,6 +210,56 @@ async function main() {
     });
   });
   const baseSvg = svgData();
+  // Compile the REAL rendered utility classes with the app's Tailwind config:
+  //11px is the font,24px is the explicit secondary target exception, not11px tall.
+  const previewTrigger = button("Preview ⌄");
+  const tailwindConfig = require("tailwindcss/loadConfig")(
+    path.join(frontend, "tailwind.config.ts"),
+  );
+  const previewCss = await require("postcss")([
+    require("tailwindcss")({
+      ...tailwindConfig,
+      content: [{ raw: `<button class="${previewTrigger.props.className}">` }],
+    }),
+  ]).process("@tailwind utilities", { from: undefined });
+  const triggerClasses = new Set(previewTrigger.props.className.split(/\s+/));
+  const triggerStyle = {};
+  previewCss.root.walkRules((rule) => {
+    const utility = rule.selector.slice(1).replace(/\\/g, "");
+    if (triggerClasses.has(utility))
+      rule.walkDecls((decl) => (triggerStyle[decl.prop] = decl.value));
+  });
+  assert.equal(previewTrigger.props.type, "button");
+  assert.equal(triggerStyle["font-size"], "11px", "locked quiet11px Preview text");
+  assert.equal(triggerStyle.height, "1.5rem", "24px at the app's16px root; NOT44px or11px tall");
+  assert.equal(triggerStyle["min-width"], "1.5rem", "secondary target at least24px wide");
+  assert.equal(triggerStyle["line-height"], "1rem", "11px glyphs have an unclipped16px line");
+  assert.equal(triggerStyle.color, "var(--fg-secondary)");
+  assert.equal(triggerStyle["background-color"], undefined, "quiet text, no toolbar/pill chrome");
+  assert.equal(triggerStyle["border-width"], undefined);
+  const disclosure = () => nodes("details")[0];
+  assert.equal(
+    disclosure().props.open,
+    false,
+    "long Type copy starts progressively disclosed",
+  );
+  const order = roots().findAll((node) => typeof node.type === "string");
+  assert.ok(
+    order.indexOf(nodes("svg")[0]) <
+      order.indexOf(
+        roots().findByProps({ "data-testid": "bodygraph-type-card" }),
+      ),
+    "the real graph renders before the single Type presentation",
+  );
+  act(() => disclosure().props.onToggle({ currentTarget: { open: true } }));
+  assert.equal(
+    disclosure().props.open,
+    true,
+    "native toggle is reflected in React state",
+  );
+  act(() => disclosure().props.onToggle({ currentTarget: { open: false } }));
+  assert.equal(disclosure().props.open, false);
+
   const gate = (n) =>
     layer("badges")
       .findAllByType("text")
@@ -262,6 +318,11 @@ async function main() {
     const beforePreviewWrites = historyWrites.length;
     click(button("Preview ⌄"));
     click(button("Projector"));
+    assert.equal(
+      disclosure().props.open,
+      true,
+      "preview opens retained full Type details",
+    );
     assert.equal(window.location.href, beforePreviewUrl);
     assert.equal(
       historyWrites.length,
@@ -284,6 +345,11 @@ async function main() {
       name + " restores actual Type",
     );
     assert.ok(!button("Reflector"), name + " closes preview pills");
+    assert.equal(
+      disclosure().props.open,
+      false,
+      name + " restores compact actual-Type disclosure",
+    );
   }
   const beforeLocalTabs = window.location.href;
   const historyCount = historyWrites.length;
@@ -344,6 +410,13 @@ async function main() {
     layer("hanging").findAllByType("path").length,
     2,
     "one Integration hanging visual plus gate37; full data retained in list",
+  );
+  assert.deepEqual(
+    layer("hanging").findAllByType("path").map((node) => [
+      node.props["data-held-gate"], node.props["data-missing-gate"], node.props["data-channel"],
+    ]),
+    [[10, 57, "10-57"], [37, 40, "37-40"]],
+    "painted paths identify the held direction/canonical pair; never infer identity from array index",
   );
   const hit = layer("hitboxes");
   assert.equal(
@@ -498,6 +571,19 @@ async function main() {
     );
     assert.ok(!text(roots()).includes("Kenji is a Generator"));
     assert.ok(!text(roots()).includes("chart.bodygraphModule."));
+    assert.ok(
+      text(nodes("summary")[0]).includes("Kenji"),
+      "closed Type summary retains selected-person identity",
+    );
+    assert.ok(
+      !text(nodes("summary")[0]).includes("Type details"),
+      "new progressive-disclosure chrome is translated",
+    );
+    assert.equal(
+      disclosure().props.open,
+      false,
+      "person/locale remount starts compact",
+    );
     const tabs = nodes("button")
       .filter((n) => n.props.role === "tab")
       .map(text);
@@ -563,8 +649,212 @@ async function main() {
   for (const event of ["popstate", "hashchange", "pageshow"])
     assert.equal(events[event], undefined, "navigation listeners are released");
 
+  // Actual hook behavior against measured fresh-load/late-layout fixtures.
+  // This is synthetic DOM geometry, not a replacement browser viewport stamp.
+  const originalGetNode = document.getElementById;
+  const mutations = [];
+  global.MutationObserver = class {
+    constructor(cb) {
+      this.cb = cb;
+      mutations.push(this);
+    }
+    observe() {}
+    disconnect() {
+      this.disconnected = true;
+    }
+  };
+  document.body = {};
+  document.fonts = { ready: Promise.resolve() };
+  for (const intent of [
+    "wheel",
+    "touchstart",
+    "pointerdown",
+    "keydown",
+    "navigation",
+    "unmount",
+  ]) {
+    let cardTop = 213,
+      navTop = 135,
+      margin = 175;
+    const scrolls = [];
+    const card = {
+      getBoundingClientRect() {
+        return { top: cardTop };
+      },
+    };
+    document.getElementById = (id) =>
+      id === "bodygraph" ? card : originalGetNode(id);
+    global.getComputedStyle = (node) => ({
+      fontFamily: "Inter, sans-serif",
+      scrollMarginTop: node === card ? String(margin) + "px" : "0px",
+    });
+    window.scrollBy = (options) => {
+      scrolls.push(options);
+      cardTop -= options.top;
+      navTop = Math.max(113, navTop - options.top);
+    };
+    window.location = new URL("http://localhost/profile#bodygraph");
+    const writesBefore = historyWrites.length;
+    await act(async () => {
+      renderer = create(element());
+      await Promise.resolve();
+    });
+    assert.equal(
+      cardTop,
+      175,
+      "fresh direct-hash target aligns to published sticky margin",
+    );
+    assert.equal(
+      navTop,
+      113,
+      "the38px correction lets the54px nav stick below113px header",
+    );
+    assert.deepEqual(scrolls, [{ top: 38, behavior: "instant" }]);
+    assert.equal(
+      historyWrites.length,
+      writesBefore,
+      "landing never writes route/query/hash",
+    );
+    const svg = nodes("svg")[0],
+      mask = nodes("mask")[0];
+    assert.equal(svg.props.viewBox, "0 0 240 389.5");
+    assert.deepEqual(
+      [mask.props.x, mask.props.y, mask.props.width, mask.props.height],
+      ["0", "0", "240", 389.5],
+      "mask bounds cover the whole real frame, not stale -36..339",
+    );
+    if (intent === "wheel") {
+      // Evaluate the real rendered CSS expression against the independently
+      // captured320px content/sticky budget, not a source-string snapshot.
+      const expression = svg.props.style.width
+        .replace(/var\(--chart-scroll-mt,\s*11rem\)/g, "175")
+        .replace(/100svh/g, "568")
+        .replace(/100%/g, "247")
+        .replace(/([\d.]+)rem/g, (_, n) => String(Number(n) * 16))
+        .replace(/([\d.]+)px/g, "$1")
+        .replace(/calc\(/g, "(")
+        .replace(/\bmin\(/g, "Math.min(")
+        .replace(/\bmax\(/g, "Math.max(");
+      const renderedWidth = Function("return (" + expression + ")")();
+      assert.equal(
+        renderedWidth,
+        239,
+        "critical320width uses smallest verified12px geometry",
+      );
+      const root = layer("centers").find(
+        (n) =>
+          n.props.role === "img" && n.props["aria-label"]?.startsWith("Root"),
+      );
+      const coords = root
+        .findAllByType("path")[0]
+        .props.d.match(/-?\d+(?:\.\d+)?/g)
+        .map(Number);
+      const bottom = Math.max(...coords.filter((_, i) => i % 2 === 1));
+      assert.ok(
+        175 + 5 + ((bottom + 3) * renderedWidth) / 240 <= 568,
+        "generated Root plus conservative browser stroke bounds fit settled320budget; actual-browser recheck still required",
+      );
+    }
+    const paper = mask.findByType("rect");
+    assert.deepEqual(
+      [paper.props.x, paper.props.y, paper.props.width, paper.props.height],
+      ["0", "0", "240", 389.5],
+    );
+    const layout = observers.findLast((o) => o.targets.includes(document.body));
+    const published = mutations.at(-1);
+    cardTop = 213;
+    navTop = 135;
+    act(() => layout.cb([]));
+    assert.equal(
+      cardTop,
+      175,
+      "late upstream layout is corrected, not assumed settled after a timeout",
+    );
+    const settledCount = scrolls.length;
+    act(() => layout.cb([]));
+    assert.equal(
+      scrolls.length,
+      settledCount,
+      "already-aligned layout is idempotent",
+    );
+    margin = 197;
+    act(() => published.cb([]));
+    assert.equal(
+      cardTop,
+      197,
+      "late published sticky height is read, not a fixed175px assumption",
+    );
+    assert.deepEqual(scrolls.at(-1), { top: -22, behavior: "instant" });
+    if (intent === "navigation")
+      await act(async () => {
+        window.history.replaceState(null, "", "#snapshot");
+        await Promise.resolve();
+      });
+    else if (intent === "unmount") act(() => renderer.unmount());
+    else act(() => dispatch(intent));
+    assert.equal(
+      layout.disconnected,
+      true,
+      intent + " ends initial landing observation",
+    );
+    assert.equal(
+      published.disconnected,
+      true,
+      intent + " releases offset observation",
+    );
+    if (intent === "pointerdown") {
+      const actualSvg = svgData();
+      click(button("Preview ⌄"));
+      click(button("Projector"));
+      assert.equal(disclosure().props.open, true);
+      assert.ok(text(roots()).includes("Preview — not your chart"));
+      assert.equal(
+        svgData(),
+        actualSvg,
+        "expanded Preview does not change actual SVG during landing lifecycle",
+      );
+    }
+    const cancelledCount = scrolls.length;
+    cardTop += 40;
+    act(() => {
+      layout.cb([]);
+      published.cb([]);
+    });
+    assert.equal(
+      scrolls.length,
+      cancelledCount,
+      intent + " prevents later scroll/focus theft",
+    );
+    if (intent !== "unmount") act(() => renderer.unmount());
+  }
+  const beforeOtherHash = mutations.length;
+  window.location = new URL("http://localhost/profile#snapshot");
+  act(() => {
+    renderer = create(element());
+  });
+  assert.equal(
+    mutations.length,
+    beforeOtherHash,
+    "other entry targets never start Bodygraph landing correction",
+  );
+  act(() => renderer.unmount());
+  for (const event of [
+    "wheel",
+    "touchstart",
+    "pointerdown",
+    "keydown",
+    "popstate",
+    "hashchange",
+    "pageshow",
+  ])
+    assert.equal(events[event], undefined, event + " fully cleaned up");
+  assert.deepEqual(
+    writes,
+    [],
+    "landing and disclosure never write chart/person/storage data",
+  );
   console.log(
-    "PASS: real React component interactions (synthetic data, no browser): Type-only preview/reset, person remount plus mounted section/hash/query/path/back-forward/BFCache navigation reset, unchanged SVG and no tab history writes, 4 tabs, all hanging data, dedup visuals, hit-target rules, 12px resize state, center+bridge peek, Escape/blank SVG/blank paper focus restore, both awaited Deep dive heading-focus handoffs, tabindex cleanup, no focus steal after unmount, five locales, zero writes.",
+    "PASS: real React component interactions (synthetic data, no browser): graph-first/progressive full-Type preservation, translated disclosure, canonical full-frame mask, measured38px direct-load/late-layout correction, published sticky changes, input/navigation/unmount cancellation, Type-only preview/reset, person remount plus mounted section/hash/query/path/back-forward/BFCache navigation reset, unchanged SVG and no tab history writes, 4 tabs, all hanging data, dedup visuals, hit-target rules, 12px resize state, center+bridge peek, Escape/blank SVG/blank paper focus restore, both awaited Deep dive heading-focus handoffs, tabindex cleanup, no focus steal after unmount, five locales, zero writes.",
   );
 }
 const guard = setTimeout(() => {
