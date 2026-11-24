@@ -366,7 +366,7 @@ export function ChartBodygraphModule({
         aria-label={t("chart.bodygraphModule.chartLabel")}
         style={{
           fontFamily: svgFontFamily,
-          width: `min(100%, 288px, max(${EDITORIAL_MIN_WIDTH}px, calc((100svh - var(--chart-scroll-mt, 11rem) - 13px) * 0.64)))`,
+          width: `min(100%, 288px, max(${EDITORIAL_MIN_WIDTH}px, calc((100svh - var(--chart-scroll-mt, 11rem) - 13px - 1rem) * 0.64)))`,
         }}
         onClick={clearSelection}
       >
