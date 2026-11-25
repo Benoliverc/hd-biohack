@@ -3,7 +3,7 @@
  * fact tiles; Strategy + Definition are collapsed ChartDisclosures; How you decide shows
  * authority when collapsed; locked MG Strategy summary in en/de/es/fr/nl.
  * Updated by the Snapshot clarity pass (brief 2026-11-25, sha 7c5948ca…): Strategy merged into
- * How you decide (four disclosures), label-first titles, Snapshot bodies are the short copy.
+ * How you decide (four disclosures; five with the Environment line), label-first titles, Snapshot bodies are the short copy.
  * Deep dive MG summaries stay pinned here; see assert-chart-snapshot-clarity-pass.mjs.
  * Run: npx tsx scripts/assert-chart-snapshot-strategy-definition.mjs
  */
@@ -62,13 +62,14 @@ const profile = read("src/app/profile/page.tsx");
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 assert.doesNotMatch(snapshot, /\["(Type|Profile|Authority|Strategy|Definition)", chart\./, "no fact tiles");
 assert.doesNotMatch(snapshot, /lg:grid-cols-5/, "fact-tile grid gone");
-// Clarity pass: Strategy merged into How you decide, so four disclosures.
-assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 4);
+// Clarity pass: Strategy merged into How you decide. Environment line (brief 2026-11-25,
+// sha 681c6bae…) adds Environment last, so five disclosures.
+assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 5);
 assert.ok(!snapshot.includes('testId="snapshot-strategy"'), "no separate Strategy box");
-const order = ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition"].map((id) => snapshot.indexOf(`testId="${id}"`));
-assert.ok(order.every((i) => i > 0) && order.every((i, n) => n === 0 || i > order[n - 1]), "Definition after Centers to watch");
+const order = ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition", "snapshot-environment"].map((id) => snapshot.indexOf(`testId="${id}"`));
+assert.ok(order.every((i) => i > 0) && order.every((i, n) => n === 0 || i > order[n - 1]), "Definition after Centers to watch; Environment after Definition");
 const tail = snapshot.slice(snapshot.indexOf('testId="snapshot-centers"'));
-assert.doesNotMatch(tail, /sm:grid-cols-2/, "Definition is full width (no one-sided 2-col row)");
+assert.doesNotMatch(tail, /sm:grid-cols-2/, "Definition and Environment are full width (no one-sided 2-col row)");
 assert.match(snapshot, /testId="snapshot-definition"\s+value=\{definitionStr\}\s+label=\{t\("chart\.people\.definition"\)\}/);
 assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no longer renders summary + learnMore");
 // Default 1 (#147, extended): collapsed How you decide shows authority and strategy, for every authority.
@@ -104,4 +105,4 @@ for (const l of ["en", "de", "es", "fr", "nl"]) {
   assert.match(cat, /'chart\.people\.strategy': 'Strategy',/, `${l} strategy label`);
   assert.match(cat, /'chart\.people\.definition': 'Definition',/, `${l} definition label`);
 }
-console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 4 collapsed disclosures (Strategy merged), authority + strategy on How you decide, locked MG summary ×5 locales, Deep dive markup parity, graph card unchanged.");
+console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 5 collapsed disclosures (Strategy merged, Environment last), authority + strategy on How you decide, locked MG summary ×5 locales, Deep dive markup parity, graph card unchanged.");

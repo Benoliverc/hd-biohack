@@ -92,7 +92,10 @@ const steps = [
 ].map((s) => decide.indexOf(s));
 assert.ok(steps.every((i, n) => i > 0 && (n === 0 || i > steps[n - 1])), "Strategy → Authority → connector → caveat → pointer");
 assert.doesNotMatch(decide, /STRATEGY_COPY|bodysYes/, "Deep dive Strategy summary not repeated on Snapshot");
-const definition = snapshot.slice(snapshot.indexOf('testId="snapshot-definition"'));
+// Environment line (brief 2026-11-25, sha 681c6bae…): Environment follows Definition with no pointer.
+const definition = snapshot.slice(snapshot.indexOf('testId="snapshot-definition"'), snapshot.indexOf('testId="snapshot-environment"'));
+assert.ok(snapshot.indexOf('testId="snapshot-environment"') > snapshot.indexOf('testId="snapshot-definition"'), "Environment after Definition");
+assert.doesNotMatch(snapshot.slice(snapshot.indexOf('testId="snapshot-environment"')), /<SnapshotDeepDivePointer/, "no Deep dive pointer on Environment");
 assert.match(definition, /snapshotDefinitionCopy\(definitionStr, locale\)[\s\S]*<SnapshotDeepDivePointer/, "Definition short copy + pointer");
 assert.equal((snapshot.match(/<SnapshotDeepDivePointer/g) ?? []).length, 2, "pointer on How you decide and Definition only");
 assert.match(profile, /href="#deep-dive"[\s\S]{0,200}onJump\(\)/, "pointer jumps to #deep-dive");

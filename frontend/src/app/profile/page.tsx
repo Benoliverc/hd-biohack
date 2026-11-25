@@ -18,6 +18,12 @@ import {
   snapshotDefinitionCopy,
   snapshotStrategyCopy,
 } from "@/lib/essays/snapshotShortCopy";
+import {
+  SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT,
+  isEnvironmentName,
+  snapshotEnvironmentCopy,
+  snapshotEnvironmentValue,
+} from "@/lib/essays/snapshotEnvironmentCopy";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -298,6 +304,8 @@ function ProfilePage() {
   const [birthTime, setBirthTime] = useState("");
   const [timeUnknown, setTimeUnknown] = useState(false);
   const [savedTimeUnknown, setSavedTimeUnknown] = useState(false);
+  /** time_unknown of the last unsaved preview calculation (drives the Environment approximate mark). */
+  const [previewTimeUnknown, setPreviewTimeUnknown] = useState(false);
   const [birthCity, setBirthCity] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lon, setLon] = useState<number | null>(null);
@@ -1032,6 +1040,7 @@ function ProfilePage() {
         }
       } else {
         setChart(res.chart);
+        setPreviewTimeUnknown(timeUnknown);
         setViewMode("preview");
       }
     } catch (e) {
@@ -1187,6 +1196,10 @@ function ProfilePage() {
   const authorityStr = String(chart?.authority || "");
   const strategyStr = String(chart?.strategy || "");
   const definitionStr = String(chart?.definition || "");
+  // Environment (Color of the Design Nodes) from the API; omitted when the backend could not derive it.
+  const environmentName = isEnvironmentName(chart?.environment) ? chart.environment : null;
+  const environmentApprox =
+    viewMode === "saved" ? savedTimeUnknown : viewMode === "preview" ? previewTimeUnknown : false;
 
   const busy = busyMode !== null;
   const tzBesideTime = formatTimezoneLabel(timezone, birthDate, birthTime);
@@ -2138,6 +2151,26 @@ function ProfilePage() {
                     onJump={() => jumpToSection("deep-dive")}
                   />
               </ChartDisclosure>
+
+              {environmentName && (
+                <ChartDisclosure
+                  testId="snapshot-environment"
+                  value={snapshotEnvironmentValue(environmentName, locale, environmentApprox)}
+                  label={t("chart.people.environment")}
+                >
+                  {environmentApprox ? (
+                    <p
+                      className="mb-2 type-body text-fg-secondary"
+                      data-testid="snapshot-environment-approx-caveat"
+                    >
+                      {SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT[locale]}
+                    </p>
+                  ) : null}
+                  <p className="type-body text-fg-secondary" data-testid="snapshot-environment-copy">
+                    {snapshotEnvironmentCopy(environmentName, locale)}
+                  </p>
+                </ChartDisclosure>
+              )}
             </div>
           </div>
           </div>
