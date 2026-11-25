@@ -53,7 +53,7 @@ En la práctica, esto se ve como pausar antes de presentarte voluntario, postula
 Cuando respondes de forma correcta, el trabajo y las relaciones suelen tener más flujo y menos desgaste — eso es satisfacción. Cuando inicias desde la presión, el querer agradar o una historia de lo que deberías querer, la frustración crece. Usa la frustración como información: probablemente dijiste sí sin un sí sacral, o estás empujando un plan que nadie puso de verdad delante de ti.`,
     },
     "To Respond (then inform)": {
-      summary: 'Siente primero el sí del cuerpo, y luego avisa a las personas a las que va a afectar antes de moverte. (Strategy: To Respond, then inform)',
+      summary: 'Espera un sí del cuerpo, y luego avisa a las personas a las que va a afectar antes de moverte. (Strategy: To Respond, then inform)',
       learnMore: `Sigues esperando a responder antes de moverte. Aparece una persona, una pregunta o una oportunidad, y tu Sacral contesta con un sí, un no o un todavía no. Esa comprobación del cuerpo es la misma que la de un Generator — la velocidad no es una licencia para lanzarte desde la mente. Después de un sí verdadero, di a las personas a las que va a afectar lo que estás a punto de hacer, o que vas a cambiar de rumbo. Informar no es pedir permiso. Es reducir la fricción para que tu energía rápida, que se salta pasos, no deje a los demás improvisando.
 
 Día a día, la secuencia es: espera algo real, siente la respuesta del cuerpo, y luego di el siguiente paso antes de desaparecer en él. Un «voy a tomar esto y soltar aquello» breve a menudo evita la resistencia que se siente como si el mundo pisara el freno. Si el Sacral está callado, no llenes el silencio con un plan solo porque puedes ejecutarlo rápido.

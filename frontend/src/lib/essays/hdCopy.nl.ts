@@ -53,7 +53,7 @@ In de praktijk ziet dit eruit als pauzeren voordat je jezelf aanbiedt, sollicite
 Wanneer je correct antwoordt, hebben werk en relaties meestal meer flow en minder geploeter — dat is voldoening. Wanneer je vanuit druk begint, anderen wilt behagen, of een verhaal volgt over wat je zou moeten willen, bouwt frustratie op. Gebruik frustratie als informatie: je zei waarschijnlijk ja zonder een sacral ja, of je duwt een plan dat niemand écht voor je heeft neergelegd.`,
   },
   "To Respond (then inform)": {
-    summary: "Voel eerst het ja vanuit je buik, en vertel het daarna de mensen die het raakt voordat je beweegt. (Strategy: To Respond, then inform)",
+    summary: "Wacht op een ja vanuit je buik, en vertel het daarna de mensen die het raakt voordat je beweegt. (Strategy: To Respond, then inform)",
     learnMore: `Je wacht nog steeds om te antwoorden voordat je beweegt. Er verschijnt een persoon, een vraag of een kans, en je Sacral antwoordt met een ja, een nee, of een nog-niet. Die check vanuit je buik is dezelfde als die van een Generator — snelheid is geen vrijbrief om vanuit je hoofd te lanceren. Na een echt ja, vertel de mensen die het raakt wat je op het punt staat te doen, of dat je van koers verandert. Informeren is geen toestemming vragen. Het is wrijving verminderen, zodat je snelle, stappen-overslaande energie anderen niet laat rennen.
 
 Van dag tot dag is de volgorde: wacht op iets echts, voel het lichaam antwoorden, en zeg de volgende stap voordat je erin verdwijnt. Een korte "Ik ga dit doen en dat laten vallen" voorkomt vaak de weerstand die voelt alsof de wereld op de rem trapt. Als de Sacral stil is, vul de stilte dan niet met een plan alleen omdat je het snel kunt uitvoeren.

@@ -70,7 +70,7 @@ export const STRATEGY_COPY: Record<
   },
   "To Respond (then inform)": {
     summary:
-      "Feel the gut yes first, then tell the people it'll affect before you move. (Strategy: To Respond, then inform)",
+      "Wait for a gut yes, then tell the people it'll affect before you move. (Strategy: To Respond, then inform)",
     learnMore:
       "You still wait to respond before you move. A person, a question, or an opportunity appears, and your Sacral answers with a yes, a no, or a not yet. That gut check is the same as a Generator's — speed is not a license to launch from the mind. After a true yes, tell the people who will be affected what you are about to do, or that you are changing course. Informing is not asking permission. It is reducing friction so your fast, skipping-steps energy does not leave others scrambling.\n\nDay to day, the sequence is: wait for something real, feel the body answer, then speak the next move before you disappear into it. A short \"I'm going to take this and drop that\" often prevents the resistance that feels like the world is slamming on the brakes. If the Sacral is quiet, do not fill the silence with a plan just because you can execute quickly.\n\nWhen this strategy is working, you get to move at your natural pace without constantly repairing surprise. When you skip the response or forget to inform, frustration and a flash of anger usually follow — either because you committed without a yes, or because people try to control a change they never heard about. Slow down only long enough to respond and inform; then let yourself go fast.",
   },
