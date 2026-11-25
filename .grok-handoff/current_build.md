@@ -49,7 +49,7 @@ Frozen, and byte-identical to 497a750 (pinned in the new assert):
 - `tsc --noEmit`: clean.
 - `next lint`: 0 errors, 6 warnings. Main also has 6 warnings.
 - `next build`: OK.
-- 62 PASS across 61 `assert:*` scripts plus the revert-interactions test.
+- 61 of 62 `assert:*` scripts PASS, and the revert-interactions test PASSes.
   - `today-protocols-ia` is red as expected, with the same failure as main ("transits/page.tsx missing quieter 'Conditioning notes'").
   - `day7-five-fixes` and `chart-snapshot-strategy-definition` are green. The #147 MG Deep dive summaries are still pinned.
 - **Browser** (Playwright, headless): 11 runs × 320/375/390/desktop, plus 375 with reduced motion.
