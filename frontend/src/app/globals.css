@@ -100,7 +100,8 @@ body > * {
 :root {
   --app-header-h: 7rem;
   --chart-section-nav-h: 3.25rem;
-  --chart-scroll-mt: calc(var(--app-header-h) + var(--chart-section-nav-h) + 0.5rem);
+  /* One shared sticky-stack offset for Chart anchors and Snapshot boxes (header + section nav + 0.75rem). */
+  --chart-scroll-mt: calc(var(--app-header-h, 4.5rem) + var(--chart-section-nav-h, 0px) + 0.75rem);
   --soul-scroll-mt: calc(var(--app-header-h) + 0.5rem);
 }
 
@@ -122,6 +123,8 @@ body > * {
 #bodygraph-legend,
 #snapshot,
 #snapshot-centers,
+#snapshot details,
+#chart-type-box,
 #deep-dive,
 #core,
 #centers,
@@ -129,6 +132,12 @@ body > * {
 #activations,
 #planets {
   scroll-margin-top: var(--chart-scroll-mt);
+}
+
+/* Snapshot boxes: no browser scroll anchoring on open/close; ChartDisclosure pins the summary itself. */
+#snapshot,
+#snapshot details {
+  overflow-anchor: none;
 }
 
 /* Soul deep-link offset under sticky app header */
