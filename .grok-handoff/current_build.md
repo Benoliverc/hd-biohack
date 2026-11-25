@@ -1,39 +1,63 @@
-# current_build: Chart Snapshot duplicate-cards cleanup
+# Current build: Chart Snapshot clarity pass
 
 - **Date:** 2026-11-25 (Asia/Bangkok, UTC+7)
-- **Branch:** `feat/chart-snapshot-strategy-definition`
-- **Worktree:** `/workspace/hd-chart-snapshot-cleanup`
-- **Base:** `53ec65fa45b22af8d6203302f59de2262968859d` (main after PR #146)
-- **Brief:** `/workspace/reports/baseline-chart-duplicate-cards-cleanup-build-brief-2026-11-25.md` (sha256 `d42d08d2…8345`)
-- **Approval:** Benjamin's Go (12:01 Bangkok, relayed by Grok Bot) covers the build only. Do not merge or deploy until Benjamin says yes in his own words.
-- **Scope:** frontend only. No backend, env, lockfile, Railway or Share change.
-- **Evidence:** `/workspace/reports/chart-duplicate-cards-cleanup-2026-11-25/` (README.md, snapshot-matrix.md)
-- **Local preview:** `http://127.0.0.1:3161`, started by `/workspace/day7-tools/start-snapshot-cleanup.sh`. It talks to the local API on `127.0.0.1:8159`, which serves invented accounts only.
+- **Brief:** `/workspace/reports/baseline-chart-snapshot-clarity-pass-build-brief-2026-11-25.md`, sha256 `7c5948cac1c523db8c8ca8468ae9a52ceae63db7a309ce6204708d6918374c02` (verified before build)
+- **Go:** Benjamin, 1:51 PM Bangkok, 25 Nov 2026: "Go — build the Snapshot clarity brief against main 497a750." This approves the build only. It is not a merge yes.
+- **Base:** main `497a7506b3ccedcce94e3c2d58d2ff5209dde59b` (origin/main verified after fetch)
+- **Branch:** `feat/chart-snapshot-clarity-pass` (worktree `/workspace/hd-snapshot-clarity`)
+- **Code commit:** `a67ca6622fc937edac799d27a122a0706e966202`. The PR tip is the handoff commit on top of it. Take the exact tip from `gh pr view`.
+- **Ships:** frontend only, Vercel only. No backend, env, schema, lockfile, or Railway changes.
 
-## What changed (/profile #snapshot)
-1. **Fact tiles removed.** The Type / Strategy / Authority / Profile / Definition fact-tile grid is gone.
-   - Profile already has its own box.
-   - Authority now shows in How you decide.
-   - Type lives in the Bodygraph Type box.
-2. **New Strategy and Definition boxes.** They reuse `ChartDisclosure`, sit in a new `sm:grid-cols-2` row after Centers to watch, and are closed by default.
-   - Their bodies render through `ChartSummaryLearnMore`. This is a byte-for-byte mirror of Deep dive's `SummaryLearnMore`; `ChartDeepDive.tsx` is byte-pinned and was not edited.
-   - Labels are the new chrome keys `chart.people.strategy` / `chart.people.definition`. They are English ("Strategy" / "Definition") in all five locales.
-3. **How you decide, collapsed:** always shows the authority string (default 1). The expanded body is unchanged (default 2).
-4. **MG `STRATEGY_COPY` summary:** the brief's exact strings in en / es / nl (bundles), plus de / fr through a one-key overlay (`lib/essays/strategySummaryOverlay.ts`, wired in `resolveHdCopy`).
-   - learnMore, TYPE_BATTERY, the Type box and every other Strategy key are unchanged.
-   - DE / FR learnMore stays on the English fallback.
+## What changed (all on /profile #snapshot)
+1. **Strategy merged into How you decide.** The `snapshot-strategy` box is removed.
+   - Collapsed: `How you decide: {authority} · {strategy}`, with the locale label and English values.
+   - Body, in order:
+     - **Strategy** subhead, then the locked short copy
+     - **Authority** subhead, then `AUTHORITY_PLAIN` (unchanged)
+     - the Emotional + respond connector (default 5 only)
+     - the time-unknown caveat
+     - `Read more in Deep dive`, which jumps to `#deep-dive`
+2. **Label-first titles.** `ChartDisclosure` renders `<label>: <value>`: label semibold, value `font-medium text-growth`. The Type box title is now `Type: Projector`, or `Kenji · Type: Projector` for someone else. The essay, Preview and placement are unchanged.
+3. **Short copy.** The new `frontend/src/lib/essays/snapshotShortCopy.ts` holds 5 strategies × 5 locales, 5 definitions × 5 locales and the connector × 5, taken verbatim from the brief tables. A programmatic check found 0 diffs against the brief, and every string is within 80 words / 500 chars. Snapshot no longer renders `ChartSummaryLearnMore` / `learnMore`.
+4. **Animation.** `ChartDisclosure` opens and closes with a ~220ms Web Animations height and opacity animation. Under `prefers-reduced-motion: reduce` it uses the native instant toggle. The Type box has no animation.
+5. **Layout.** Profile and How you decide stay in the `sm:grid-cols-2` row. Centers to watch is full width. Definition is full width below it, with the short copy and the Deep dive pointer.
+6. **i18n.** New keys `chart.people.authority` ("Authority" in all locales) and `chart.people.readMoreInDeepDive` (the locked pointer strings), so catalog parity holds. `chart.bodygraphModule.typeDetails` is kept but no longer shown. "Type" is a literal English feature name, like the Deep dive `title="Type"`.
 
-## Asserts
-- **New:** `assert:chart-snapshot-strategy-definition`. It fails on 53ec65f at "en MG Strategy summary".
-- **Updated minimally:** `assert-chart-bodygraph-revert.mjs`.
-  - The "Type fact tile kept" lock is replaced by a no-fact-tiles check.
-  - Disclosure count goes from 3 to 5, with the new ids added.
-- **React harness:** `test-chart-bodygraph-revert-interactions.cjs` is extended. Strategy and Definition start closed and toggle independently, and they are not opened by `#snapshot-centers`.
-- **Note:** `assert-language-dutch-readings` checks "Spanish hdCopy unchanged" with `git diff HEAD`. It passes once committed, but it no longer guards against this intended ES summary change.
+## Files
+- `frontend/src/components/ChartDisclosure.tsx`
+- `frontend/src/components/ChartTypeBox.tsx`: title order only
+- `frontend/src/app/profile/page.tsx`: #snapshot only. The #bodygraph card sha `b5a68485…` is unchanged.
+- `frontend/src/lib/essays/snapshotShortCopy.ts` (new)
+- `frontend/src/lib/i18n/messages/{en,de,es,fr,nl}.ts`: +2 keys each
+- `frontend/package.json`: adds the `assert:chart-snapshot-clarity-pass` script only. Lockfile untouched.
+- Asserts:
+  - new: `scripts/assert-chart-snapshot-clarity-pass.mjs`
+  - updated: `assert-chart-snapshot-strategy-definition.mjs`, `assert-chart-bodygraph-revert.mjs`, `test-chart-bodygraph-revert-interactions.cjs`, `assert-day5-top5-fixes.mjs` (item m)
 
-## Checks
-- tsc 0, lint 0 (warnings only), build 0, harness PASS.
-- Asserts: 60 PASS. Only `today-protocols-ia` fails, and it fails identically on base ("transits/page.tsx missing quieter 'Conditioning notes'").
+Frozen, and byte-identical to 497a750 (pinned in the new assert):
+- `hdCopy.ts`, `hdCopy.es.ts`, `hdCopy.nl.ts`
+- `strategySummaryOverlay.ts`
+- `ChartDeepDive.tsx`
+- `ChartSummaryLearnMore.tsx`
+- `BodyGraph.tsx`
+
+## Preview
+- `http://127.0.0.1:3163`, started by `/workspace/day7-tools/start-snapshot-clarity.sh` (log `/workspace/day7-tools/snapshot-clarity-3163.log`). Production build of this branch.
+- It uses the local API on :8159 (day7.sqlite, invented accounts only). :3159 and :3161 are left running.
+
+## Tests
+- `tsc --noEmit`: clean.
+- `next lint`: 0 errors, 6 warnings. Main also has 6 warnings.
+- `next build`: OK.
+- 62 PASS across 61 `assert:*` scripts plus the revert-interactions test.
+  - `today-protocols-ia` is red as expected, with the same failure as main ("transits/page.tsx missing quieter 'Conditioning notes'").
+  - `day7-five-fixes` and `chart-snapshot-strategy-definition` are green. The #147 MG Deep dive summaries are still pinned.
+- **Browser** (Playwright, headless): 11 runs × 320/375/390/desktop, plus 375 with reduced motion.
+  - Charts: Generator/Sacral; Projector/Splenic; MG/Emotional in en/de/fr/es/nl; Manifestor/Emotional; Reflector/Lunar/None; Projector/Emotional (Noor, p9); MG/Sacral (Theo, p10).
+  - `check-captures.mts`: 0 failures. It checks titles, the 44px minimum, overflow, the open/close animation and reduced-motion instant, locked copy equality, connector placement, the pointers, and the pointer jump.
+- Evidence: `/workspace/reports/chart-snapshot-clarity-pass-2026-11-25/` (README.md, snapshot-matrix.md, copy-limits.tsv, screenshots).
 
 ## Open questions
-- **Default 2 overlap:** for non-Emotional charts, the expanded How you decide body still opens with the Strategy summary. Strategy is now its own box, so the two overlap.
+1. `chart.bodygraphModule.typeDetails` is now unused in the UI but kept in all five catalogs, and the bodygraph-revert assert still requires it. Should a later cleanup remove it?
+2. The Snapshot copy has no English fallback. If `chart_json` ever returns a strategy or definition outside the official five, the body shows the raw value (the same fallback pattern as before).
+3. ES "To Respond (then inform)" is 61 words. That is inside the 80-word cap but one over the 35–60 target. It is locked verbatim from the brief.
