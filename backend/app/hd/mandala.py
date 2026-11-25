@@ -17,6 +17,9 @@ MANDALA_GATE_ORDER: list[int] = [
 
 GATE_SPAN = 5.625
 LINE_SPAN = 0.9375
+# Human Design Variables subdivision of the same wheel: each line has six Colors, each Color six Tones.
+COLOR_SPAN = LINE_SPAN / 6  # 0.15625°
+TONE_SPAN = COLOR_SPAN / 6  # 0.0260416…° (= GATE_SPAN / 216)
 MANDALA_START = 302.0  # degrees tropical
 
 
@@ -46,6 +49,23 @@ def longitude_to_gate_line(longitude: float) -> tuple[int, int]:
     if line > 6:
         line = 6
     return MANDALA_GATE_ORDER[gate_index], line
+
+
+def longitude_to_color_tone(longitude: float) -> tuple[int, int]:
+    """Map tropical ecliptic longitude → (color, tone), each 1–6, inside the gate/line above.
+
+    Uses the same within-line offset as longitude_to_gate_line (line clamped to 6), then the
+    next two equal sixths. The exact end of a line/Color clamps to 6 rather than wrapping.
+    """
+    lon = normalize_longitude(longitude)
+    offset = (lon - MANDALA_START) % 360.0
+    within_gate = offset % GATE_SPAN
+    line = min(int(within_gate / LINE_SPAN) + 1, 6)
+    within_line = min(max(within_gate - (line - 1) * LINE_SPAN, 0.0), LINE_SPAN)
+    color = min(int(within_line / COLOR_SPAN) + 1, 6)
+    within_color = min(max(within_line - (color - 1) * COLOR_SPAN, 0.0), COLOR_SPAN)
+    tone = min(int(within_color / TONE_SPAN) + 1, 6)
+    return color, tone
 
 
 def gate_line_start_longitude(gate: int, line: int = 1) -> float:

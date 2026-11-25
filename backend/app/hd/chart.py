@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 
 from .channels import active_channels, defined_centers, hanging_gates
+from .environment import environment_from_node_longitudes
 from .ephemeris import datetime_to_jd, find_design_jd, positions_at
 from .mandala import GateLine, longitude_to_gate_line
 from .type_authority import (
@@ -97,6 +98,11 @@ def calculate_chart(
     sun_p = next(a for a in pers_act if a["planet"] == "Sun")
     sun_d = next(a for a in des_act if a["planet"] == "Sun")
     profile = derive_profile(sun_p["line"], sun_d["line"])
+    # Environment = Color of the Design Nodes (NN, checked against SN). Exact longitudes, not
+    # the rounded activation copies.
+    environment = environment_from_node_longitudes(
+        design["North_Node"].longitude, design["South_Node"].longitude
+    )
 
     # Design datetime for transparency
     design_dt = _jd_to_datetime(design_jd)
@@ -119,6 +125,7 @@ def calculate_chart(
         "authority": authority,
         "definition": definition,
         "profile": profile,
+        **environment,
         "sun_personality": sun_p["label"],
         "sun_design": sun_d["label"],
         "personality_jd": pers_jd,

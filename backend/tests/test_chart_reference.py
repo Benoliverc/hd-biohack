@@ -77,6 +77,17 @@ def test_ra_uru_hu_reference():
     assert chart["sun_design"] == "61.1"
     print("PASS: Ra Uru Hu → Manifestor / 5/1 / Splenic (matches published chart)")
 
+    # Environment = Color of the Design Nodes. Published match:
+    # - Ra Uru Hu, "Radical Transformations – The Four Lectures" (Jovian Archive, 2006),
+    #   Environment lecture, on Shores: "This is mine."
+    # - Maia Mechanics (Jovian-licensed) per thehumandesignsystem.com: the Design Nodes arrow
+    #   ("Seeing: Design") is Tone 2 (Left) at 00:05, 00:14 and 00:20.
+    print(f"  Environment: {chart['environment']} (color {chart['environment_color']}, tone {chart['environment_tone']}, {chart['environment_orientation']})")
+    assert chart["environment_color"] == 6
+    assert chart["environment"] == "Shores"
+    assert chart["environment_tone"] == 2
+    assert chart["environment_orientation"] == "left"
+
 
 def test_einstein_smoke():
     """Smoke test: Einstein Ulm 14 Mar 1879 11:30 — should produce a valid chart."""

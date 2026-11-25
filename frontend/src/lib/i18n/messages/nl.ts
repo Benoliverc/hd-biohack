@@ -664,6 +664,7 @@ export const messages = {
   'chart.people.bodygraph': 'Lichaamsgrafiek',
   'chart.people.profile': 'Profiel',
   'chart.people.howYouDecide': 'Hoe je besluit',
+  'chart.people.environment': 'Environment',
   'chart.people.strategy': 'Strategy',
   'chart.people.definition': 'Definition',
   'chart.people.centersToWatch': 'Centra om in de gaten te houden',

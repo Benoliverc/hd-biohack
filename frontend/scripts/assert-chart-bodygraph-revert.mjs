@@ -115,9 +115,10 @@ assert.doesNotMatch(snapshot, /youreAType|theyreAType|TYPE_BATTERY|ChartTypeBox|
 assert.equal((profile.match(/<ChartTypeBox/g) ?? []).length, 1, "exactly one Type box");
 // Chart Snapshot cleanup (brief 2026-11-25, sha d42d08d2…): Strategy + Definition became disclosures.
 // Snapshot clarity pass (brief 2026-11-25, sha 7c5948ca…): Strategy merged into How you decide.
-assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 4, "Profile, How you decide, Centers to watch, Definition");
+// Environment line (brief 2026-11-25, sha 681c6bae…): Environment is the fifth, last disclosure.
+assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 5, "Profile, How you decide, Centers to watch, Definition, Environment");
 assert.ok(!snapshot.includes('testId="snapshot-strategy"'), "Strategy box merged away");
-for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition"])
+for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition", "snapshot-environment"])
   assert.ok(snapshot.includes(`testId="${id}"`));
 assert.match(snapshot, /<ChartDisclosure\s+id="snapshot-centers"\s+testId="snapshot-centers"\s+openOnHash/);
 assert.match(snapshot, /\{watch\.length > 0 && \(\s*<ChartDisclosure/, "Centers to watch omitted when empty");
@@ -189,4 +190,4 @@ for (const key of ["chart.bodygraphModule.typeDetails", "chart.bodygraphModule.p
     assert.notEqual(catalogs[locale][key], catalogs.en[key], `${locale} ${key} translated`);
 
 await import("./assert-chart-bodygraph-navigation.mjs");
-console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, four neutral collapsed label-first Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");
+console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, five neutral collapsed label-first Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");

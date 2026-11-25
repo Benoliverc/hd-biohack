@@ -14,6 +14,7 @@ from ..checkin.prescription import RECENT_MOVE_WINDOW_DAYS
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
+from ..hd.environment import with_environment
 from ..hd.bridged_windows import annotate_bridged_channel_windows
 from ..hd.soul_sync import CONTEXT_IDS, compute_soul_sync
 from ..models import (
@@ -879,7 +880,8 @@ def get_user_charts(
             "profile": (r.chart_json or {}).get("profile"),
             "authority": (r.chart_json or {}).get("authority"),
             "strategy": (r.chart_json or {}).get("strategy"),
-            "chart": r.chart_json,
+            # Environment derived on read from stored design nodes (no migration).
+            "chart": with_environment(r.chart_json),
         }
         for r in rows
     ]
