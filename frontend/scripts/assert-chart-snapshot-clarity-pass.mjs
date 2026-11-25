@@ -60,11 +60,26 @@ assert.equal(
   "locked Snapshot copy unchanged",
 );
 const POINTER = { en: "Read more in Deep dive", de: "Mehr dazu in Deep dive", es: "Lee más en Deep dive", fr: "Lis-en plus dans Deep dive", nl: "Lees meer in Deep dive" };
+// Scope change 27 Nov 2026 10:06 PM Bangkok (brief 17353706…): the four new Read more
+// aria-labels are en/nl only. de/es/fr catalogs stay at main and omit exactly these keys.
+const EN_NL_ONLY_ARIA = [
+  "chart.people.readMoreAboutTypeInDeepDive",
+  "chart.people.readMoreAboutProfileInDeepDive",
+  "chart.people.readMoreAboutStrategyInDeepDive",
+  "chart.people.readMoreAboutDefinitionInDeepDive",
+];
 for (const l of LOCALES) {
   assert.equal(catalogs[l]["chart.people.readMoreInDeepDive"], POINTER[l], `${l} Deep dive pointer`);
   assert.equal(catalogs[l]["chart.people.authority"], "Authority", `${l} Authority stays English`);
   assert.equal(catalogs[l]["chart.people.strategy"], "Strategy", `${l} Strategy stays English`);
-  assert.equal(Object.keys(catalogs[l]).length, Object.keys(catalogs.en).length, `${l} catalog parity`);
+  const enKeys = Object.keys(catalogs.en);
+  const locKeys = Object.keys(catalogs[l]);
+  if (l === "de" || l === "es" || l === "fr") {
+    const missing = enKeys.filter((k) => !locKeys.includes(k)).sort();
+    assert.deepEqual(missing, [...EN_NL_ONLY_ARIA].sort(), `${l} omits only the en/nl Read more aria-labels`);
+  } else {
+    assert.equal(locKeys.length, enKeys.length, `${l} catalog parity`);
+  }
 }
 
 // --- (b) Default 5 connector: Emotional + respond only ---
@@ -88,18 +103,23 @@ const steps = [
   "AUTHORITY_PLAIN[authorityStr]",
   "needsEmotionalRespondConnector(strategyStr, authorityStr)",
   'data-testid="chart-time-unknown-caveat"',
-  "<SnapshotDeepDivePointer",
+  "<ReadMoreInDeepDive",
 ].map((s) => decide.indexOf(s));
 assert.ok(steps.every((i, n) => i > 0 && (n === 0 || i > steps[n - 1])), "Strategy → Authority → connector → caveat → pointer");
 assert.doesNotMatch(decide, /STRATEGY_COPY|bodysYes/, "Deep dive Strategy summary not repeated on Snapshot");
 // Environment line (brief 2026-11-25, sha 681c6bae…): Environment follows Definition with no pointer.
+// Read more (brief cb9f2727…): Profile, How you decide, and Definition each open a mapped Core row.
 const definition = snapshot.slice(snapshot.indexOf('testId="snapshot-definition"'), snapshot.indexOf('testId="snapshot-environment"'));
 assert.ok(snapshot.indexOf('testId="snapshot-environment"') > snapshot.indexOf('testId="snapshot-definition"'), "Environment after Definition");
-assert.doesNotMatch(snapshot.slice(snapshot.indexOf('testId="snapshot-environment"')), /<SnapshotDeepDivePointer/, "no Deep dive pointer on Environment");
-assert.match(definition, /snapshotDefinitionCopy\(definitionStr, locale\)[\s\S]*<SnapshotDeepDivePointer/, "Definition short copy + pointer");
-assert.equal((snapshot.match(/<SnapshotDeepDivePointer/g) ?? []).length, 2, "pointer on How you decide and Definition only");
-assert.match(profile, /href="#deep-dive"[\s\S]{0,200}onJump\(\)/, "pointer jumps to #deep-dive");
-assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive"\)\}/, "pointer uses the Chart section jump");
+assert.doesNotMatch(snapshot.slice(snapshot.indexOf('testId="snapshot-environment"')), /<ReadMoreInDeepDive/, "no Deep dive pointer on Environment");
+assert.doesNotMatch(snapshot.slice(snapshot.indexOf('testId="snapshot-centers"'), snapshot.indexOf('testId="snapshot-definition"')), /<ReadMoreInDeepDive/, "no pointer on Centers");
+assert.match(definition, /snapshotDefinitionCopy\(definitionStr, locale\)[\s\S]*<ReadMoreInDeepDive/, "Definition short copy + pointer");
+assert.equal((snapshot.match(/<ReadMoreInDeepDive/g) ?? []).length, 3, "pointer on Profile, How you decide, and Definition");
+assert.match(decide, /rowId="deep-dive-strategy"/, "How you decide opens Strategy");
+assert.doesNotMatch(decide, /deep-dive-inner-authority|innerAuthority/, "How you decide does not target Inner Authority");
+assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive-profile"\)\}/, "Profile pointer opens its row");
+assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive-strategy"\)\}/, "How you decide pointer opens Strategy");
+assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive-definition"\)\}/, "Definition pointer opens its row");
 
 // --- (c) Label-first titles (rendered), translated label + colon + English value ---
 const title = (label, value) =>
@@ -123,18 +143,20 @@ assert.match(disclosure, /if \(prefersReducedMotion\(\)\) return; \/\/ native, i
 assert.match(disclosure, /className="min-h-11 /, "44px summary");
 assert.doesNotMatch(read("src/components/ChartTypeBox.tsx"), /animate\(|prefers-reduced-motion/, "no new Type box animation");
 
-// --- (f) Frozen: Deep dive amended by brief 94b01b1a…; essays and graph unchanged ---
+// --- (f) Frozen: essays and graph unchanged. ChartDeepDive is excepted by the Read more brief
+// (row ids, exclusive-open, scroll-margin on every Core row). Sibling assert-snapshot-read-more-deep-dive locks that.
 const FROZEN = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
   "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
   "src/lib/essays/strategySummaryOverlay.ts": "9e00df4d78a5c5db6ea972e8a312ada9da5a70c35cdd936c9a802317180ab7ca",
-  "src/components/ChartDeepDive.tsx": "39f24b4f0262e8d0727aaa535bdd435bc2384326c4d92c85393aa333ba496c68",
   "src/components/ChartSummaryLearnMore.tsx": "c959f936cc72e5528e56d5fb70c1cf983da1ecb9d53f21e85de4e416c90533af",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
 };
 for (const [rel, digest] of Object.entries(FROZEN)) assert.equal(sha(read(rel)), digest, `${rel} byte-identical to 497a750`);
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
+// Brief 17353706…: keep main's v9 structural matches. Drop #152's graph-card sha b5a68485…
+// (v9 already removed that byte pin). Pointer-count and target checks above stay from #152.
 assert.match(card, /<ChartBodygraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box still under the Chart figure");
 assert.match(card, /definedCenters=\{defined\}/);
 assert.match(card, /channels=\{channels\}/);
@@ -145,4 +167,4 @@ for (const l of LOCALES) {
   for (const k of Object.keys(EN.STRATEGY_COPY)) assert.ok(hd.STRATEGY_COPY[k].learnMore.length > 300, `${l} ${k} Deep dive learnMore kept`);
 }
 
-console.log("PASS assert-chart-snapshot-clarity-pass: one How you decide section (authority · strategy), label-first titles ×5 locales, locked short copy within 80w/500c ×5 locales, Emotional-respond connector only, Deep dive pointer ×2, 220ms animation with reduced-motion guard, Deep dive / essays / graph frozen.");
+console.log("PASS assert-chart-snapshot-clarity-pass: one How you decide section (authority · strategy), label-first titles ×5 locales, locked short copy within 80w/500c ×5 locales, Emotional-respond connector only, Read more pointers on Profile / How you decide / Definition, 220ms animation with reduced-motion guard, essays / graph frozen.");

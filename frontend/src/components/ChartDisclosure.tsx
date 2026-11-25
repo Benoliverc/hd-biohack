@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { observeChartNavigation } from "@/lib/observeChartNavigation";
 
 /** Open/close easing for Snapshot boxes (~220ms). Skipped under prefers-reduced-motion: reduce. */
@@ -28,8 +38,39 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+type SnapshotExclusiveGroup = {
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+};
+
+const SnapshotExclusiveContext = createContext<SnapshotExclusiveGroup | null>(null);
+
 /**
- * Snapshot essay card: closed by default, independent of the other boxes.
+ * Snapshot disclosures inside SnapshotExclusiveGroup keep only one box open.
+ * The Type box lives outside the group and is not closed by it.
+ */
+export function SnapshotExclusiveGroup({ children }: { children: ReactNode }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const value = useMemo(() => ({ openId, setOpenId }), [openId]);
+  return <SnapshotExclusiveContext.Provider value={value}>{children}</SnapshotExclusiveContext.Provider>;
+}
+
+/**
+ * After an earlier Snapshot box has collapsed, put this summary just below the sticky stack.
+ * Measures the post-collapse position. Does not use scrollIntoView.
+ */
+function placeSummaryBelowSticky(details: HTMLElement | null, summary: HTMLElement | null) {
+  if (!details || !summary || typeof summary.getBoundingClientRect !== "function") return;
+  const stickyBottom = stickyStackBottom(details);
+  const top = summary.getBoundingClientRect().top;
+  const drift = top - stickyBottom;
+  if (Math.abs(drift) >= 0.5 && typeof window.scrollBy === "function") {
+    window.scrollBy({ top: drift, left: 0, behavior: "instant" as ScrollBehavior });
+  }
+}
+
+/**
+ * Snapshot essay card: closed by default. Inside ChartDisclosureGroup, opening one closes the others.
  * Title is label-first (`Profile: 6/2`). Body expands/collapses smoothly; instant when the
  * user prefers reduced motion.
  */
@@ -49,7 +90,17 @@ export function ChartDisclosure({
   openOnHash?: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const group = useContext(SnapshotExclusiveContext);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = group ? group.openId === testId : localOpen;
+  const setOpen = (next: boolean) => {
+    if (group) {
+      if (next) group.setOpenId(testId);
+      else if (group.openId === testId) group.setOpenId(null);
+      return;
+    }
+    setLocalOpen(next);
+  };
   const bodyRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<Animation | null>(null);
   const closingRef = useRef(false);
@@ -60,14 +111,22 @@ export function ChartDisclosure({
   /** Set by an animated open tap: start height for the expand, applied before first paint. */
   const pendingExpandFromRef = useRef<number | null>(null);
   const pinFrameRef = useRef<number | null>(null);
+  /** Exclusive-open: after siblings collapse, sit the summary just below the sticky stack. */
+  const stickyAnchorRef = useRef(false);
 
   useEffect(() => {
     if (!openOnHash || !id) return;
     const openWhenTargeted = () => {
-      if (window.location.hash === `#${id}`) setOpen(true);
+      if (window.location.hash === `#${id}`) {
+        pinTopRef.current = null;
+        stickyAnchorRef.current = true;
+        setOpen(true);
+      }
     };
     openWhenTargeted();
     return observeChartNavigation(openWhenTargeted);
+    // setOpen reads the group setter from this disclosure's mount. Hash opens only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, openOnHash]);
 
   useEffect(
@@ -84,7 +143,7 @@ export function ChartDisclosure({
    */
   const capturePin = () => {
     const summary = summaryRef.current;
-    if (!summary) return;
+    if (!summary || typeof summary.getBoundingClientRect !== "function") return;
     pinTopRef.current = Math.max(summary.getBoundingClientRect().top, stickyStackBottom(detailsRef.current));
   };
 
@@ -115,8 +174,17 @@ export function ChartDisclosure({
   };
 
   // After React commits `open`: start the expand from 0 in this same frame (no full-height flash),
-  // then put the summary back where it was.
+  // then put the summary back where it was. Exclusive-open measures after siblings collapse.
   useBrowserLayoutEffect(() => {
+    if (!open) {
+      animRef.current?.cancel();
+      animRef.current = null;
+      closingRef.current = false;
+    }
+    if (open && stickyAnchorRef.current) {
+      stickyAnchorRef.current = false;
+      placeSummaryBelowSticky(detailsRef.current, summaryRef.current);
+    }
     const from = pendingExpandFromRef.current;
     const body = bodyRef.current;
     if (open && from !== null && body) {
@@ -126,7 +194,7 @@ export function ChartDisclosure({
     }
     // A finished close releases its pin only once the collapsed layout is committed.
     if (!open && !animRef.current && pinTopRef.current !== null) releasePin();
-    else restorePin();
+    else if (!stickyAnchorRef.current) restorePin();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on open/close commits
   }, [open]);
 
@@ -154,6 +222,12 @@ export function ChartDisclosure({
   const onSummaryClick = (event: MouseEvent<HTMLElement>) => {
     capturePin();
     if (prefersReducedMotion()) return; // native, instant toggle (onToggle restores the pin)
+    // Exclusive-open: do not keep the pre-close viewport Y. The layout effect measures
+    // after the sibling above has collapsed and sits the title under the sticky stack.
+    if (group && !open) {
+      pinTopRef.current = null;
+      stickyAnchorRef.current = true;
+    }
     const body = bodyRef.current;
     if (!body) return;
     event.preventDefault();
@@ -190,7 +264,14 @@ export function ChartDisclosure({
       data-testid={testId}
       open={open}
       onToggle={(event) => {
-        if (!closingRef.current) setOpen(event.currentTarget.open);
+        const next = event.currentTarget.open;
+        // Reduced motion lets the browser toggle, then this syncs the exclusive group.
+        // A sibling closing programmatically must not clear the row that just opened.
+        if (prefersReducedMotion() && group && next) {
+          pinTopRef.current = null;
+          stickyAnchorRef.current = true;
+        }
+        if (!closingRef.current) setOpen(next);
         // Reduced-motion native toggle (or hash open): keep the tapped summary where it was.
         if (pinTopRef.current !== null && !animRef.current) releasePin();
       }}

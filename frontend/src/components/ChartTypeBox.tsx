@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { observeChartNavigation } from "@/lib/observeChartNavigation";
 import { useI18n } from "@/lib/i18n";
+import { ReadMoreInDeepDive } from "@/components/ReadMoreInDeepDive";
 
 const TYPES = [
   "Generator",
@@ -28,10 +29,12 @@ export type ChartTypeBoxProps = {
   actualType: string;
   /** Set when viewing someone else's chart: switches copy to their voice. */
   personName?: string;
+  /** Opens the actual chart Type row in Deep dive. Preview never changes the destination. */
+  onReadMoreInDeepDive?: () => void;
 };
 
 /** The single Chart Type presentation: collapsed details plus presentation-only Preview. */
-export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
+export function ChartTypeBox({ actualType, personName, onReadMoreInDeepDive }: ChartTypeBoxProps) {
   const { t } = useI18n();
   const id = useId();
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -42,6 +45,9 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
   useEffect(
     () =>
       observeChartNavigation(() => {
+        // A Read more jump writes #deep-dive-type. Leave this box open.
+        // Other chart navigation still closes the details, as before.
+        if (window.location.hash === "#deep-dive-type") return;
         setTypeThemePreview(null);
         setPreviewOpen(false);
         setTypeDetailsOpen(false);
@@ -102,6 +108,13 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
         ) : (
           <h3 className="type-section text-fg">{actualType}</h3>
         )}
+        <ReadMoreInDeepDive
+          label={t("chart.people.readMoreInDeepDive")}
+          ariaLabel={t("chart.people.readMoreAboutTypeInDeepDive")}
+          testId="chart-type-deep-dive-pointer"
+          rowId="deep-dive-type"
+          onJump={() => onReadMoreInDeepDive?.()}
+        />
       </details>
       <div aria-live="polite">
         {typeThemePreview && (

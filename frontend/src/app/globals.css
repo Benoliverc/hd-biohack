@@ -130,13 +130,23 @@ body > * {
 #centers,
 #channels,
 #activations,
-#planets {
+#planets,
+#deep-dive details,
+#deep-dive-type,
+#deep-dive-profile,
+#deep-dive-strategy,
+#deep-dive-definition {
   scroll-margin-top: var(--chart-scroll-mt);
 }
 
 /* Snapshot boxes: no browser scroll anchoring on open/close; ChartDisclosure pins the summary itself. */
 #snapshot,
 #snapshot details {
+  overflow-anchor: none;
+}
+
+/* Deep dive rows: same, so a row collapsing above the one just opened does not yank the page. */
+#deep-dive details {
   overflow-anchor: none;
 }
 
