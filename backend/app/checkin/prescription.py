@@ -366,11 +366,12 @@ def select_move_text(
     Account path (user_key set):
     - Same novelty day: keep the headline already served for this moment.
     - Sky changed: lead with this person's already-generated concrete action (the
-      Space line in Why this) unless it was their last headline; otherwise a moment
-      line they have not had lately. Prefer a line no other account was served in the
-      window; if all were, the one others saw longest ago, but never a line another
-      account already has today. With nothing fresh left, the line this person saw
-      longest ago (never yesterday's).
+      Space line in Why this) unless it was their last headline, even when another
+      account has the same accurate action. Otherwise a moment line they have not had
+      lately, preferring one no other account was served in the window; if all were,
+      the one others saw longest ago, but never a generic line another account already
+      has today. With nothing fresh left, the line this person saw longest ago (never
+      yesterday's).
     - Sky unchanged: keep the last headline when it is still a candidate; never
       invent a new sentence for unchanged signals.
     Without a concrete action the moment lines rotate on this person's history.
@@ -441,15 +442,14 @@ def select_move_text(
     concrete_c = cands[0] if cands and cands[0][2] else None
     latest_day = max(served.values()) if served else ""
     yesterday_norms = {n for n, d in served.items() if d == latest_day}
-    # Another account was already handed this line today: never print the same headline twice.
-    today_blocked = {_norm_move_text(t) for t in (avoid_today_texts or []) if t}
-    # The sky moved. Eligible: this person's concrete action (unless it was their last
-    # headline) and moment lines they have not had lately; concrete action first.
-    eligible: list[tuple[str, str, bool]] = []
+    # The sky moved: this person's own concrete action leads unless it was their last
+    # headline. Another account having the same accurate action is not a reason to drop it.
     if concrete_c and _norm_move_text(concrete_c[0]) not in yesterday_norms:
-        eligible.append(concrete_c)
-    eligible.extend(c for c in cands if not c[2] and fresh(c))
-    # Prefer a line no other account was served lately.
+        return concrete_c[0], concrete_c[1]
+    # Generic moment lines only below here. Another account already has this line today.
+    today_blocked = {_norm_move_text(t) for t in (avoid_today_texts or []) if t}
+    eligible = [c for c in cands if not c[2] and fresh(c)]
+    # Prefer a generic line no other account was served lately.
     for c in eligible:
         if _norm_move_text(c[0]) not in other_blocked:
             return c[0], c[1]

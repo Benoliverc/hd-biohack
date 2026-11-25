@@ -70,20 +70,22 @@ def test_unchanged_sky_keeps_last_headline_no_invented_sentence():
     assert text == GENERIC[1]
 
 
-def test_two_people_with_same_action_do_not_share_a_headline():
+def test_two_people_may_share_their_accurate_concrete_action():
     nature = ("Walk outdoors briefly before screens pile up.", "today.spaceMicro.nature")
     a, _ = select_move_text("borrowed_fuel", history=[], pro=True, day_key="2026-11-25",
                             user_key="jules", sky_changed=True, concrete=nature)
     b, _ = select_move_text("borrowed_fuel", history=[], pro=True, day_key="2026-11-25",
-                            user_key="ren", avoid_texts=[a], sky_changed=True, concrete=nature)
-    assert a == nature[0]
-    assert b != a and b in GENERIC
+                            user_key="ren", avoid_texts=[a], avoid_today_texts=[a],
+                            sky_changed=True, concrete=nature)
+    assert a == b == nature[0]
 
 
 def test_all_lines_seen_by_others_takes_oldest_seen():
     nature = ("Walk outdoors briefly before screens pile up.", "today.spaceMicro.nature")
+    # Concrete was yesterday's headline, so a generic line is needed; all were seen by others.
+    history = [_row("2026-11-24", nature[0])]
     others = [GENERIC[1], GENERIC[0], GENERIC[2], GENERIC[3], GENERIC[4], nature[0]]
-    text, _ = select_move_text("borrowed_fuel", history=[], pro=True, day_key="2026-11-25",
+    text, _ = select_move_text("borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
                                user_key="ren", avoid_texts=others, sky_changed=True, concrete=nature)
     assert text == GENERIC[1]
 
@@ -123,14 +125,15 @@ def test_pinned_pick_released_when_removed_from_shelf():
     assert after is None or after["item_id"] != first["item_id"]
 
 
-def test_never_same_headline_as_another_account_today():
-    # Ref has had every moment line this week; Walk outdoors is already someone's headline today.
+def test_concrete_action_leads_even_when_another_account_has_it_today():
+    # Ref has had every moment line this week; Walk outdoors is also someone else's headline
+    # today. Ref's own accurate action still leads: no own generic reprint while it exists.
     nature = ("Walk outdoors briefly before screens pile up.", "today.spaceMicro.nature")
     history = [_row(f"2026-11-{19 + i}", g) for i, g in enumerate(GENERIC)]
-    text, _ = select_move_text(
+    text, key = select_move_text(
         "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
         user_key="ref", avoid_texts=[nature[0]], avoid_today_texts=[nature[0]],
         sky_changed=True, concrete=nature,
     )
-    assert text != nature[0]
-    assert text == GENERIC[0]  # seen longest ago (Nov 19), not yesterday's GENERIC[4]
+    assert (text, key) == nature
+    assert text not in GENERIC
