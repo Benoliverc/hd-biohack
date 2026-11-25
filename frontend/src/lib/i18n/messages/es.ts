@@ -664,6 +664,8 @@ export const messages = {
   'chart.people.bodygraph': 'Gráfico corporal',
   'chart.people.profile': 'Perfil',
   'chart.people.howYouDecide': 'Cómo decides',
+  'chart.people.strategy': 'Strategy',
+  'chart.people.definition': 'Definition',
   'chart.people.centersToWatch': 'Centros a vigilar',
   'chart.people.tryDemo': 'Probar chart de demo',
   'chart.people.deletedNotice': 'Esa persona fue eliminada — elige a alguien más o añade una nueva.',

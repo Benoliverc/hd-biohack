@@ -12,6 +12,7 @@ import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
 import { ChartDisclosure } from "@/components/ChartDisclosure";
+import { ChartSummaryLearnMore } from "@/components/ChartSummaryLearnMore";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -258,6 +259,7 @@ function ProfilePage() {
     STRATEGY_COPY,
     AUTHORITY_PLAIN,
     AUTHORITY_COPY,
+    DEFINITION_COPY,
     centersToWatch,
     profilePlainLine,
   } = useHdCopy();
@@ -1164,6 +1166,7 @@ function ProfilePage() {
   const profileStr = String(chart?.profile || "");
   const authorityStr = String(chart?.authority || "");
   const strategyStr = String(chart?.strategy || "");
+  const definitionStr = String(chart?.definition || "");
 
   const busy = busyMode !== null;
   const tzBesideTime = formatTimezoneLabel(timezone, birthDate, birthTime);
@@ -2030,7 +2033,7 @@ function ProfilePage() {
                 </ChartDisclosure>
                 <ChartDisclosure
                   testId="snapshot-how-you-decide"
-                  value={/emotional|solar plexus/i.test(authorityStr) ? authorityStr : strategyStr}
+                  value={authorityStr}
                   label={t("chart.people.howYouDecide")}
                 >
                   {/emotional|solar plexus/i.test(authorityStr) ? (
@@ -2101,19 +2104,31 @@ function ProfilePage() {
                 </ChartDisclosure>
               )}
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {[
-                  ["Type", chart.type],
-                  ["Profile", chart.profile],
-                  ["Authority", chart.authority],
-                  ["Strategy", chart.strategy],
-                  ["Definition", chart.definition],
-                ].map(([k, v]) => (
-                  <div key={String(k)} className="rounded-xl border border-border bg-elevated p-4">
-                    <div className="type-caption uppercase tracking-wide text-fg-secondary">{String(k)}</div>
-                    <div className="mt-1 font-semibold text-growth">{String(v)}</div>
+              <div className="grid items-start gap-3 sm:grid-cols-2">
+                <ChartDisclosure
+                  testId="snapshot-strategy"
+                  value={strategyStr}
+                  label={t("chart.people.strategy")}
+                >
+                  <div className="type-body text-fg-secondary">
+                    <ChartSummaryLearnMore
+                      info={STRATEGY_COPY[strategyStr]}
+                      fallback={t("chart.deepDive.strategyBlurb")}
+                    />
                   </div>
-                ))}
+                </ChartDisclosure>
+                <ChartDisclosure
+                  testId="snapshot-definition"
+                  value={definitionStr}
+                  label={t("chart.people.definition")}
+                >
+                  <div className="type-body text-fg-secondary">
+                    <ChartSummaryLearnMore
+                      info={DEFINITION_COPY[definitionStr]}
+                      fallback={t("chart.deepDive.definitionBlurb")}
+                    />
+                  </div>
+                </ChartDisclosure>
               </div>
             </div>
           </div>

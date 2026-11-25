@@ -113,14 +113,15 @@ for (const prop of ["definedCenters={defined}", "channels={channels}", "activate
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 assert.doesNotMatch(snapshot, /youreAType|theyreAType|TYPE_BATTERY|ChartTypeBox|bodygraphModule\.preview/, "single Type presentation; no Preview outside Type");
 assert.equal((profile.match(/<ChartTypeBox/g) ?? []).length, 1, "exactly one Type box");
-assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 3, "Profile, How you decide, Centers to watch");
-for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers"])
+// Chart Snapshot cleanup (brief 2026-11-25, sha d42d08d2…): Strategy + Definition became disclosures.
+assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 5, "Profile, How you decide, Centers to watch, Strategy, Definition");
+for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-strategy", "snapshot-definition"])
   assert.ok(snapshot.includes(`testId="${id}"`));
 assert.match(snapshot, /<ChartDisclosure\s+id="snapshot-centers"\s+testId="snapshot-centers"\s+openOnHash/);
 assert.match(snapshot, /\{watch\.length > 0 && \(\s*<ChartDisclosure/, "Centers to watch omitted when empty");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
 assert.match(snapshot, /grid items-start gap-3 sm:grid-cols-2/, "Profile + How you decide keep the 2-col row");
-assert.match(snapshot, /\["Type", chart\.type\]/, "Type fact tile kept");
+assert.doesNotMatch(snapshot, /\["(Type|Profile|Authority|Strategy|Definition)", chart\./, "no Snapshot fact tiles (Type/Profile/Authority removed; Strategy/Definition are disclosures)");
 assert.match(profile, /<LiteracyCoach/);
 assert.match(profile, /<ChartSectionNav onJump=\{jumpToSection\} \/>/);
 
@@ -186,4 +187,4 @@ for (const key of ["chart.bodygraphModule.typeDetails", "chart.bodygraphModule.p
     assert.notEqual(catalogs[locale][key], catalogs.en[key], `${locale} ${key} translated`);
 
 await import("./assert-chart-bodygraph-navigation.mjs");
-console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, three neutral collapsed Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");
+console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, five neutral collapsed Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");

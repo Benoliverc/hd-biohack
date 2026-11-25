@@ -44,6 +44,7 @@ import {
   profileLearnMore as profileLearnMoreNl,
   profilePlainLine as profilePlainLineNl,
 } from "@/lib/essays/hdCopy.nl";
+import { MG_STRATEGY_KEY, MG_STRATEGY_SUMMARY_OVERLAY } from "@/lib/essays/strategySummaryOverlay";
 
 export type HdCopyBundle = {
   TYPE_COPY: typeof TYPE_COPY_EN;
@@ -109,9 +110,25 @@ const NL: HdCopyBundle = {
   channelMeaning: channelMeaningNl,
 };
 
+/** English essays with only the MG Strategy summary localized (de/fr). */
+function withMgStrategySummary(summary: string): HdCopyBundle {
+  return {
+    ...EN,
+    STRATEGY_COPY: {
+      ...STRATEGY_COPY_EN,
+      [MG_STRATEGY_KEY]: { ...STRATEGY_COPY_EN[MG_STRATEGY_KEY], summary },
+    },
+  };
+}
+
+const DE = withMgStrategySummary(MG_STRATEGY_SUMMARY_OVERLAY.de);
+const FR = withMgStrategySummary(MG_STRATEGY_SUMMARY_OVERLAY.fr);
+
 export function resolveHdCopy(locale: Locale): HdCopyBundle {
   if (locale === "nl") return NL;
   if (locale === "es") return ES;
+  if (locale === "de") return DE;
+  if (locale === "fr") return FR;
   return EN;
 }
 

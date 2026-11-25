@@ -59,23 +59,32 @@ async function main() {
       React.createElement(ChartDisclosure, { testId: "snapshot-profile", value: "5/1", label: "Profile" }, "PROFILE BODY"),
       React.createElement(ChartDisclosure, { testId: "snapshot-how-you-decide", value: "Splenic", label: "How you decide" }, "DECIDE BODY"),
       React.createElement(ChartDisclosure, { id: "snapshot-centers", testId: "snapshot-centers", openOnHash: true, value: "Head", label: "Centers to watch" }, "CENTERS BODY"),
+      React.createElement(ChartDisclosure, { testId: "snapshot-strategy", value: "Wait for the Invitation", label: "Strategy" }, "STRATEGY BODY"),
+      React.createElement(ChartDisclosure, { testId: "snapshot-definition", value: "Split", label: "Definition" }, "DEFINITION BODY"),
     );
   await act(async () => { r = create(page()); });
   const details = () => r.root.findAllByType("details");
   const byTest = (id) => details().find((d) => d.props["data-testid"] === id);
   const typeDetails = () => details().find((d) => !d.props["data-testid"]);
   const toggle = (d, open) => act(() => d.props.onToggle({ currentTarget: { open } }));
-  assert.equal(details().length, 4);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, false, false], "all four start collapsed");
+  assert.equal(details().length, 6);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, false, false, false, false], "all six start collapsed");
 
   // Independent: opening one leaves the others as they are.
   toggle(byTest("snapshot-profile"), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, true, false, false]);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, true, false, false, false, false]);
   toggle(byTest("snapshot-how-you-decide"), true);
   toggle(typeDetails(), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, true, false], "no exclusive accordion");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, true, false, false, false], "no exclusive accordion");
   toggle(byTest("snapshot-profile"), false);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false]);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false, false]);
+  // Strategy and Definition open independently of each other and of the boxes above.
+  toggle(byTest("snapshot-strategy"), true);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, true, false], "Strategy opens alone");
+  toggle(byTest("snapshot-definition"), true);
+  toggle(byTest("snapshot-strategy"), false);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false, true], "Definition independent of Strategy");
+  toggle(byTest("snapshot-definition"), false);
 
   // Preview: Type-only, presentation-only.
   const button = (label) => r.root.findAllByType("button").find((b) => text(b).startsWith(label));
@@ -114,6 +123,8 @@ async function main() {
   await act(async () => { r = create(page()); });
   assert.equal(Boolean(byTest("snapshot-centers").props.open), true, "direct #snapshot-centers load opens it");
   assert.equal(Boolean(byTest("snapshot-profile").props.open), false);
+  assert.equal(Boolean(byTest("snapshot-strategy").props.open), false, "hash jump does not open Strategy");
+  assert.equal(Boolean(byTest("snapshot-definition").props.open), false, "hash jump does not open Definition");
   await act(async () => r.unmount());
 
   // Other person's voice.
@@ -127,6 +138,6 @@ async function main() {
   await act(async () => button("Projector").props.onClick());
   assert.ok(text(r.root).includes("Preview — not their chart") && text(r.root).includes("Back to Kenji"));
   await act(async () => r.unmount());
-  console.log("PASS revert interactions: four boxes collapsed, independent toggles, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens via replaceState/hashchange/direct load, other-person voice.");
+  console.log("PASS revert interactions: six boxes collapsed (incl. Strategy, Definition), independent toggles, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens via replaceState/hashchange/direct load, other-person voice.");
 }
 main().catch((e) => { console.error(e); process.exit(1); });
