@@ -67,7 +67,8 @@
     "assert:primary-tab-scroll": "npx tsx scripts/assert-primary-tab-scroll.mjs",
     "assert:today-edit-on-chart": "npx tsx scripts/assert-today-edit-on-chart.mjs",
     "assert:day7-five-fixes": "npx tsx scripts/assert-day7-five-fixes.mjs",
-    "assert:chart-snapshot-strategy-definition": "npx tsx scripts/assert-chart-snapshot-strategy-definition.mjs"
+    "assert:chart-snapshot-strategy-definition": "npx tsx scripts/assert-chart-snapshot-strategy-definition.mjs",
+    "assert:chart-snapshot-clarity-pass": "npx tsx scripts/assert-chart-snapshot-clarity-pass.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

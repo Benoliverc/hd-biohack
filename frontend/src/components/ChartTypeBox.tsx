@@ -80,10 +80,9 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
       >
         <summary className="min-h-11 cursor-pointer py-2 pr-20 text-sm font-semibold text-fg">
           {personName && <span>{personName} · </span>}
-          {displayedType ?? actualType}
-          <span className="ml-2 font-normal text-fg-secondary">
-            {t("chart.bodygraphModule.typeDetails")}
-          </span>
+          {/* Type stays an English feature name in every locale. */}
+          <span>Type:</span>{" "}
+          <span className="font-medium text-growth">{displayedType ?? actualType}</span>
         </summary>
         {displayedType ? (
           <>

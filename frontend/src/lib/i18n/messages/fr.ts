@@ -667,6 +667,8 @@ export const messages = {
   'chart.people.strategy': 'Strategy',
   'chart.people.definition': 'Definition',
   'chart.people.centersToWatch': 'Centres à surveiller',
+  'chart.people.authority': 'Authority',
+  'chart.people.readMoreInDeepDive': 'Lis-en plus dans Deep dive',
   'chart.people.tryDemo': 'Essayer le chart démo',
   'chart.people.deletedNotice': 'Cette personne a été supprimée — choisis quelqu’un d’autre ou ajoute-en une nouvelle.',
   'chart.people.noUserRetry': 'Aucun compte chargé — appuie sur Réessayer l’utilisateur, puis réessaie.',

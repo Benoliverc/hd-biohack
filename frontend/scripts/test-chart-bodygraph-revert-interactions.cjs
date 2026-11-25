@@ -51,15 +51,14 @@ const flush = () => act(async () => { await Promise.resolve(); });
 const text = (n) => (typeof n === "string" ? n : (n.children ?? []).map(text).join(""));
 
 async function main() {
-  // --- Page-like composition: Type box + three disclosures ---
+  // --- Page-like composition: Type box + four disclosures (Strategy merged into How you decide) ---
   let r;
   const page = () =>
     React.createElement(I18nProvider, { accountLocale: "en" },
       React.createElement(ChartTypeBox, { actualType: "Projector" }),
       React.createElement(ChartDisclosure, { testId: "snapshot-profile", value: "5/1", label: "Profile" }, "PROFILE BODY"),
-      React.createElement(ChartDisclosure, { testId: "snapshot-how-you-decide", value: "Splenic", label: "How you decide" }, "DECIDE BODY"),
+      React.createElement(ChartDisclosure, { testId: "snapshot-how-you-decide", value: "Splenic · Wait for the Invitation", label: "How you decide" }, "DECIDE BODY"),
       React.createElement(ChartDisclosure, { id: "snapshot-centers", testId: "snapshot-centers", openOnHash: true, value: "Head", label: "Centers to watch" }, "CENTERS BODY"),
-      React.createElement(ChartDisclosure, { testId: "snapshot-strategy", value: "Wait for the Invitation", label: "Strategy" }, "STRATEGY BODY"),
       React.createElement(ChartDisclosure, { testId: "snapshot-definition", value: "Split", label: "Definition" }, "DEFINITION BODY"),
     );
   await act(async () => { r = create(page()); });
@@ -67,23 +66,24 @@ async function main() {
   const byTest = (id) => details().find((d) => d.props["data-testid"] === id);
   const typeDetails = () => details().find((d) => !d.props["data-testid"]);
   const toggle = (d, open) => act(() => d.props.onToggle({ currentTarget: { open } }));
-  assert.equal(details().length, 6);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, false, false, false, false], "all six start collapsed");
+  assert.equal(details().length, 5);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, false, false, false], "all five start collapsed");
+  assert.ok(text(byTest("snapshot-how-you-decide")).startsWith("How you decide: Splenic · Wait for the Invitation"), "merged label-first summary");
 
   // Independent: opening one leaves the others as they are.
   toggle(byTest("snapshot-profile"), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, true, false, false, false, false]);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, true, false, false, false]);
   toggle(byTest("snapshot-how-you-decide"), true);
   toggle(typeDetails(), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, true, false, false, false], "no exclusive accordion");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, true, false, false], "no exclusive accordion");
   toggle(byTest("snapshot-profile"), false);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false, false]);
-  // Strategy and Definition open independently of each other and of the boxes above.
-  toggle(byTest("snapshot-strategy"), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, true, false], "Strategy opens alone");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false]);
+  // The merged How you decide and Definition open independently of each other and of the boxes above.
+  toggle(byTest("snapshot-how-you-decide"), false);
   toggle(byTest("snapshot-definition"), true);
-  toggle(byTest("snapshot-strategy"), false);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false, true], "Definition independent of Strategy");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, false, false, true], "Definition opens alone");
+  toggle(byTest("snapshot-how-you-decide"), true);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, true], "How you decide independent of Definition");
   toggle(byTest("snapshot-definition"), false);
 
   // Preview: Type-only, presentation-only.
@@ -123,7 +123,7 @@ async function main() {
   await act(async () => { r = create(page()); });
   assert.equal(Boolean(byTest("snapshot-centers").props.open), true, "direct #snapshot-centers load opens it");
   assert.equal(Boolean(byTest("snapshot-profile").props.open), false);
-  assert.equal(Boolean(byTest("snapshot-strategy").props.open), false, "hash jump does not open Strategy");
+  assert.equal(Boolean(byTest("snapshot-how-you-decide").props.open), false, "hash jump does not open How you decide");
   assert.equal(Boolean(byTest("snapshot-definition").props.open), false, "hash jump does not open Definition");
   await act(async () => r.unmount());
 
@@ -132,12 +132,12 @@ async function main() {
     r = create(React.createElement(I18nProvider, { accountLocale: "en" }, React.createElement(ChartTypeBox, { actualType: "Generator", personName: "Kenji" })));
   });
   const card = text(r.root.findByProps({ "data-testid": "bodygraph-type-card" }));
-  assert.ok(card.startsWith("Preview ⌄Kenji · Generator"), card.slice(0, 60));
+  assert.ok(card.startsWith("Preview ⌄Kenji · Type: Generator"), card.slice(0, 60));
   assert.ok(!/You’re a Generator/.test(card));
   await act(async () => button("Preview").props.onClick());
   await act(async () => button("Projector").props.onClick());
   assert.ok(text(r.root).includes("Preview — not their chart") && text(r.root).includes("Back to Kenji"));
   await act(async () => r.unmount());
-  console.log("PASS revert interactions: six boxes collapsed (incl. Strategy, Definition), independent toggles, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens via replaceState/hashchange/direct load, other-person voice.");
+  console.log("PASS revert interactions: five boxes collapsed (Strategy merged into How you decide), independent toggles, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens via replaceState/hashchange/direct load, other-person voice.");
 }
 main().catch((e) => { console.error(e); process.exit(1); });
