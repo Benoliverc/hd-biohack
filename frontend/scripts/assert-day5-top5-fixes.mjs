@@ -121,8 +121,12 @@ assert.doesNotMatch(chargedManifestor, /clear yes/);
 assert.match(en, /spend it on a clear yes/);
 
 // (m) An Emotional chart never gets "Feel the gut yes first…" in How you decide.
-assert.match(profile, /\/emotional\|solar plexus\/i\.test\(authorityStr\)/);
+// Snapshot clarity pass (brief 7c5948ca…): How you decide now uses locked short Strategy copy for
+// every authority; Emotional + respond adds the wave connector instead of the old gut-first line.
+assert.match(profile, /needsEmotionalRespondConnector\(strategyStr, authorityStr\)/);
+assert.match(read("src/lib/essays/snapshotShortCopy.ts"), /\/emotional\|solar plexus\/i\.test\(authority\)/);
 assert.match(profile, /AUTHORITY_PLAIN\[authorityStr\]/);
+assert.doesNotMatch(read("src/lib/essays/snapshotShortCopy.ts"), /Feel the gut yes first/);
 
 // (n) A signed-in session never paints the signed-out header.
 assert.match(layout, /localStorage\.getItem\("hd-biohack:session-token"\)/);

@@ -2,6 +2,9 @@
  * Chart Snapshot cleanup (brief 2026-11-25, sha d42d08d2…): no Type / Profile / Authority
  * fact tiles; Strategy + Definition are collapsed ChartDisclosures; How you decide shows
  * authority when collapsed; locked MG Strategy summary in en/de/es/fr/nl.
+ * Updated by the Snapshot clarity pass (brief 2026-11-25, sha 7c5948ca…): Strategy merged into
+ * How you decide (four disclosures), label-first titles, Snapshot bodies are the short copy.
+ * Deep dive MG summaries stay pinned here; see assert-chart-snapshot-clarity-pass.mjs.
  * Run: npx tsx scripts/assert-chart-snapshot-strategy-definition.mjs
  */
 import assert from "node:assert/strict";
@@ -59,17 +62,17 @@ const profile = read("src/app/profile/page.tsx");
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 assert.doesNotMatch(snapshot, /\["(Type|Profile|Authority|Strategy|Definition)", chart\./, "no fact tiles");
 assert.doesNotMatch(snapshot, /lg:grid-cols-5/, "fact-tile grid gone");
-assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 5);
-const order = ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-strategy", "snapshot-definition"].map((id) => snapshot.indexOf(`testId="${id}"`));
-assert.ok(order.every((i) => i > 0) && order.every((i, n) => n === 0 || i > order[n - 1]), "Strategy + Definition after Centers to watch");
+// Clarity pass: Strategy merged into How you decide, so four disclosures.
+assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 4);
+assert.ok(!snapshot.includes('testId="snapshot-strategy"'), "no separate Strategy box");
+const order = ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition"].map((id) => snapshot.indexOf(`testId="${id}"`));
+assert.ok(order.every((i) => i > 0) && order.every((i, n) => n === 0 || i > order[n - 1]), "Definition after Centers to watch");
 const tail = snapshot.slice(snapshot.indexOf('testId="snapshot-centers"'));
-assert.match(tail, /grid items-start gap-3 sm:grid-cols-2">\s*<ChartDisclosure\s+testId="snapshot-strategy"/, "Strategy + Definition share a 2-col row");
-assert.match(snapshot, /testId="snapshot-strategy"\s+value=\{strategyStr\}\s+label=\{t\("chart\.people\.strategy"\)\}/);
+assert.doesNotMatch(tail, /sm:grid-cols-2/, "Definition is full width (no one-sided 2-col row)");
 assert.match(snapshot, /testId="snapshot-definition"\s+value=\{definitionStr\}\s+label=\{t\("chart\.people\.definition"\)\}/);
-assert.match(snapshot, /info=\{STRATEGY_COPY\[strategyStr\]\}\s+fallback=\{t\("chart\.deepDive\.strategyBlurb"\)\}/);
-assert.match(snapshot, /info=\{DEFINITION_COPY\[definitionStr\]\}\s+fallback=\{t\("chart\.deepDive\.definitionBlurb"\)\}/);
-// Default 1: How you decide shows authority when collapsed, for every authority.
-assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{authorityStr\}/);
+assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no longer renders summary + learnMore");
+// Default 1 (#147, extended): collapsed How you decide shows authority and strategy, for every authority.
+assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{`\$\{authorityStr\} · \$\{strategyStr\}`\}/);
 assert.match(snapshot, /testId="snapshot-profile"\s+value=\{profileStr\}/, "profile value stays on the Profile summary");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
 // Graph + Type box card is byte-identical to 53ec65f.
@@ -91,9 +94,9 @@ for (const [loc, want] of Object.entries(LOCKED)) {
 const def = renderToStaticMarkup(React.createElement(ChartSummaryLearnMore, { info: EN.DEFINITION_COPY.Split }));
 assert.ok(def.includes(EN.DEFINITION_COPY.Split.summary.replace(/'/g, "&#x27;")));
 assert.equal(renderToStaticMarkup(React.createElement(ChartSummaryLearnMore, { fallback: "FB" })), "<p>FB</p>");
-const box = renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "snapshot-strategy", value: "Wait for the Invitation", label: "Strategy" }, "B"));
-assert.match(box, /^<details data-testid="snapshot-strategy" class="rounded-xl border border-border bg-elevated px-3"><summary class="min-h-11 /, "closed, 44px summary");
-assert.match(box, /Wait for the Invitation<span class="ml-2 font-normal text-fg-secondary">Strategy<\/span>/);
+const box = renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "snapshot-definition", value: "Split", label: "Definition" }, "B"));
+assert.match(box, /^<details data-testid="snapshot-definition" class="rounded-xl border border-border bg-elevated px-3"><summary class="min-h-11 /, "closed, 44px summary");
+assert.match(box, /<span class="font-semibold">Definition:<\/span> <span class="font-medium text-growth">Split<\/span>/, "label-first title");
 
 // --- (g) labels: English feature names in all five locales ---
 for (const l of ["en", "de", "es", "fr", "nl"]) {
@@ -101,4 +104,4 @@ for (const l of ["en", "de", "es", "fr", "nl"]) {
   assert.match(cat, /'chart\.people\.strategy': 'Strategy',/, `${l} strategy label`);
   assert.match(cat, /'chart\.people\.definition': 'Definition',/, `${l} definition label`);
 }
-console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 5 collapsed disclosures, authority on How you decide, locked MG summary ×5 locales, Deep dive markup parity, graph card unchanged.");
+console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 4 collapsed disclosures (Strategy merged), authority + strategy on How you decide, locked MG summary ×5 locales, Deep dive markup parity, graph card unchanged.");

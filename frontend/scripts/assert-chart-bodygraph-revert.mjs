@@ -114,8 +114,10 @@ const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf
 assert.doesNotMatch(snapshot, /youreAType|theyreAType|TYPE_BATTERY|ChartTypeBox|bodygraphModule\.preview/, "single Type presentation; no Preview outside Type");
 assert.equal((profile.match(/<ChartTypeBox/g) ?? []).length, 1, "exactly one Type box");
 // Chart Snapshot cleanup (brief 2026-11-25, sha d42d08d2…): Strategy + Definition became disclosures.
-assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 5, "Profile, How you decide, Centers to watch, Strategy, Definition");
-for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-strategy", "snapshot-definition"])
+// Snapshot clarity pass (brief 2026-11-25, sha 7c5948ca…): Strategy merged into How you decide.
+assert.equal((snapshot.match(/<ChartDisclosure/g) ?? []).length, 4, "Profile, How you decide, Centers to watch, Definition");
+assert.ok(!snapshot.includes('testId="snapshot-strategy"'), "Strategy box merged away");
+for (const id of ["snapshot-profile", "snapshot-how-you-decide", "snapshot-centers", "snapshot-definition"])
   assert.ok(snapshot.includes(`testId="${id}"`));
 assert.match(snapshot, /<ChartDisclosure\s+id="snapshot-centers"\s+testId="snapshot-centers"\s+openOnHash/);
 assert.match(snapshot, /\{watch\.length > 0 && \(\s*<ChartDisclosure/, "Centers to watch omitted when empty");
@@ -153,11 +155,11 @@ assert.doesNotMatch(compact({}), /bodygraph-legend|slot-probe/);
 const mine = render(React.createElement(ChartTypeBox, { actualType: "Projector" }));
 assert.match(mine, /data-testid="bodygraph-type-card"/);
 assert.doesNotMatch(mine.slice(mine.indexOf("<details"), mine.indexOf(">", mine.indexOf("<details"))), /open/, "Type closed on first paint");
-assert.match(mine, /<summary class="min-h-11[^"]*">Projector<span[^>]*>Type details<\/span><\/summary>/);
+assert.match(mine, /<summary class="min-h-11[^"]*"><span>Type:<\/span> <span class="font-medium text-growth">Projector<\/span><\/summary>/, "label-first Type title");
 assert.match(mine, /class="absolute right-2 top-2 inline-flex h-6 min-w-6[^"]*text-\[11px\][^"]*"[^>]*>Preview/);
 assert.match(mine, /You’re a Projector/);
 const theirs = render(React.createElement(ChartTypeBox, { actualType: "Projector", personName: "Kenji" }));
-assert.match(theirs, /Kenji · /);
+assert.match(theirs, /<span>Kenji · <\/span><span>Type:<\/span> <span class="font-medium text-growth">Projector<\/span>/, "name-first, then Type: value");
 assert.doesNotMatch(theirs, /You’re a Projector/);
 
 // --- Rendered disclosure: closed, 44px summary, neutral (no Type wash), no Preview ---
@@ -165,7 +167,7 @@ const box = render(
   React.createElement(ChartDisclosure, { id: "snapshot-centers", testId: "snapshot-centers", openOnHash: true, value: "Head · Ajna", label: "Centers to watch" }, "BODY"),
 );
 assert.match(box, /^<details id="snapshot-centers" data-testid="snapshot-centers" class="rounded-xl border border-border bg-elevated px-3">/);
-assert.match(box, /<summary class="min-h-11 [^"]*">Head · Ajna<span class="ml-2 font-normal text-fg-secondary">Centers to watch<\/span><\/summary>/);
+assert.match(box, /<summary class="min-h-11 [^"]*"><span class="font-semibold">Centers to watch:<\/span> <span class="font-medium text-growth">Head · Ajna<\/span><\/summary>/, "label-first Centers title");
 assert.doesNotMatch(box, /color-mix|Preview|style=/);
 
 // --- i18n: Type/Preview kept in all five locales; removed module chrome gone ---
@@ -187,4 +189,4 @@ for (const key of ["chart.bodygraphModule.typeDetails", "chart.bodygraphModule.p
     assert.notEqual(catalogs[locale][key], catalogs.en[key], `${locale} ${key} translated`);
 
 await import("./assert-chart-bodygraph-navigation.mjs");
-console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, five neutral collapsed Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");
+console.log("PASS assert-chart-bodygraph-revert: pre-today BodyGraph (only additive non-compact slot), one collapsed Type box with Preview, four neutral collapsed label-first Snapshot disclosures, #snapshot-centers opener, frozen files, five-locale keys, navigation observer.");

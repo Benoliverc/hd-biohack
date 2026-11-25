@@ -12,7 +12,12 @@ import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
 import { ChartDisclosure } from "@/components/ChartDisclosure";
-import { ChartSummaryLearnMore } from "@/components/ChartSummaryLearnMore";
+import {
+  SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR,
+  needsEmotionalRespondConnector,
+  snapshotDefinitionCopy,
+  snapshotStrategyCopy,
+} from "@/lib/essays/snapshotShortCopy";
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -183,6 +188,23 @@ async function scrollChartSectionIntoView(
   go(behavior);
 }
 
+/** Snapshot → Deep dive jump (default 7): jumps only; Deep dive rows stay as they are. */
+function SnapshotDeepDivePointer({ label, onJump }: { label: string; onJump: () => void }) {
+  return (
+    <a
+      href="#deep-dive"
+      data-testid="snapshot-deep-dive-pointer"
+      onClick={(event) => {
+        event.preventDefault();
+        onJump();
+      }}
+      className="mt-2 inline-flex min-h-11 items-center type-body text-growth underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
+      {label}
+    </a>
+  );
+}
+
 function ChartSectionNav({
   onJump,
 }: {
@@ -245,7 +267,7 @@ function ChartSectionNav({
 }
 
 function ProfilePage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const searchParams = useSearchParams();
   const personQueryRaw = Number(searchParams.get("person") || "");
   const requestedPersonId =
@@ -256,10 +278,8 @@ function ProfilePage() {
   const wantsEditYou =
     requestedPersonId == null && searchParams.get("edit") === "me";
   const {
-    STRATEGY_COPY,
     AUTHORITY_PLAIN,
     AUTHORITY_COPY,
-    DEFINITION_COPY,
     centersToWatch,
     profilePlainLine,
   } = useHdCopy();
@@ -2033,31 +2053,28 @@ function ProfilePage() {
                 </ChartDisclosure>
                 <ChartDisclosure
                   testId="snapshot-how-you-decide"
-                  value={authorityStr}
+                  value={`${authorityStr} · ${strategyStr}`}
                   label={t("chart.people.howYouDecide")}
                 >
-                  {/emotional|solar plexus/i.test(authorityStr) ? (
-                    <p className="type-body text-fg-secondary">
-                      {AUTHORITY_PLAIN[authorityStr] ||
-                        AUTHORITY_COPY[authorityStr]?.summary ||
-                        authorityStr}
+                  <div className="type-caption uppercase tracking-wide text-fg-secondary">
+                    {t("chart.people.strategy")}
+                  </div>
+                  <p className="mt-1 type-body text-fg-secondary" data-testid="snapshot-strategy-copy">
+                    {snapshotStrategyCopy(strategyStr, locale) ?? strategyStr}
+                  </p>
+                  <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
+                    {t("chart.people.authority")}
+                  </div>
+                  <p className="mt-1 type-body text-fg-secondary">
+                    {AUTHORITY_PLAIN[authorityStr] ||
+                      AUTHORITY_COPY[authorityStr]?.summary ||
+                      authorityStr}
+                  </p>
+                  {needsEmotionalRespondConnector(strategyStr, authorityStr) ? (
+                    <p className="mt-2 type-body text-fg-secondary" data-testid="snapshot-emotional-respond-connector">
+                      {SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR[locale]}
                     </p>
-                  ) : (
-                    <>
-                      <p className="type-body text-fg-secondary">
-                        {STRATEGY_COPY[strategyStr]?.summary || strategyStr}
-                      </p>
-                      <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
-                        {t("chart.people.bodysYes")}
-                      </div>
-                      <div className="mt-1 font-semibold text-growth">{authorityStr}</div>
-                      <p className="mt-2 type-body text-fg-secondary">
-                        {AUTHORITY_PLAIN[authorityStr] ||
-                          AUTHORITY_COPY[authorityStr]?.summary ||
-                          authorityStr}
-                      </p>
-                    </>
-                  )}
+                  ) : null}
                   {viewMode === "saved" && savedTimeUnknown ? (
                     <p
                       className="mt-3 type-body text-fg-secondary"
@@ -2066,6 +2083,10 @@ function ProfilePage() {
                       {t("chart.timeUnknownCaveat")}
                     </p>
                   ) : null}
+                  <SnapshotDeepDivePointer
+                    label={t("chart.people.readMoreInDeepDive")}
+                    onJump={() => jumpToSection("deep-dive")}
+                  />
                 </ChartDisclosure>
               </div>
 
@@ -2104,32 +2125,19 @@ function ProfilePage() {
                 </ChartDisclosure>
               )}
 
-              <div className="grid items-start gap-3 sm:grid-cols-2">
-                <ChartDisclosure
-                  testId="snapshot-strategy"
-                  value={strategyStr}
-                  label={t("chart.people.strategy")}
-                >
-                  <div className="type-body text-fg-secondary">
-                    <ChartSummaryLearnMore
-                      info={STRATEGY_COPY[strategyStr]}
-                      fallback={t("chart.deepDive.strategyBlurb")}
-                    />
-                  </div>
-                </ChartDisclosure>
-                <ChartDisclosure
-                  testId="snapshot-definition"
-                  value={definitionStr}
-                  label={t("chart.people.definition")}
-                >
-                  <div className="type-body text-fg-secondary">
-                    <ChartSummaryLearnMore
-                      info={DEFINITION_COPY[definitionStr]}
-                      fallback={t("chart.deepDive.definitionBlurb")}
-                    />
-                  </div>
-                </ChartDisclosure>
-              </div>
+              <ChartDisclosure
+                testId="snapshot-definition"
+                value={definitionStr}
+                label={t("chart.people.definition")}
+              >
+                <p className="type-body text-fg-secondary" data-testid="snapshot-definition-copy">
+                  {snapshotDefinitionCopy(definitionStr, locale) ?? definitionStr}
+                </p>
+                <SnapshotDeepDivePointer
+                    label={t("chart.people.readMoreInDeepDive")}
+                    onJump={() => jumpToSection("deep-dive")}
+                  />
+              </ChartDisclosure>
             </div>
           </div>
           </div>
