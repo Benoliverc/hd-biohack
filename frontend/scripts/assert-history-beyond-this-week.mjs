@@ -219,8 +219,10 @@ assert.match(todayInd, /listProtocolCompletions\(userId, chartId, \{ day: dayKey
 // --- Today placement ---
 assert.match(todayInd, /data-testid="today-history-link"/);
 assert.match(todayInd, /testId="today-history"/);
-assert.match(todayInd, /historyRef\.current\?\.scrollIntoView/);
-assert.match(todayInd, /setHistoryOpen\(true\)/);
+// Day 7 item 5: the same control opens and closes Earlier weeks and is only scrolled
+// (itself, not the list) when it sits under the sticky header.
+assert.match(todayInd, /historyLinkRef/);
+assert.match(todayInd, /setHistoryOpen\(\(v\) => !v\)/);
 
 const showIdx = todayInd.indexOf('data-testid="today-show-up"');
 const linkIdx = todayInd.indexOf('data-testid="today-history-link"');

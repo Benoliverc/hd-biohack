@@ -40,8 +40,13 @@ type Props = {
   timeZone?: string | null;
   scope: HistoryScope;
   includeEveningClose?: boolean;
+  /**
+   * When set, an outer control owns open/closed: the list renders as a plain region
+   * with no inner summary, so one control opens and closes it.
+   */
   open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  /** DOM id for the controlled region (pair with the outer control's aria-controls). */
+  regionId?: string;
 };
 
 function rowsFromDayMap(day: string, map: DayCompletions): HistorySourceRow[] {
@@ -94,9 +99,9 @@ const EarlierWeeksHistory = forwardRef(function EarlierWeeksHistory(
     scope,
     includeEveningClose = true,
     open,
-    onOpenChange,
+    regionId,
   }: Props,
-  ref: Ref<HTMLDetailsElement>
+  ref: Ref<HTMLElement>
 ) {
   const { t } = useI18n();
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -163,106 +168,122 @@ const EarlierWeeksHistory = forwardRef(function EarlierWeeksHistory(
   }, [load]);
 
   const isControlled = open !== undefined;
+  const body = (
+    <div className={isControlled ? "" : "mt-2"}>
+      {status === "loading" && weeks.length === 0 ? (
+        <p className="type-body text-fg-secondary" data-testid={`${testId}-wait`}>
+          {t("history.waiting")}
+        </p>
+      ) : null}
+      {status === "error" ? (
+        <div
+          className="mb-2 flex flex-wrap items-center gap-2"
+          data-testid={`${testId}-error`}
+        >
+          <p className="type-body text-fg-secondary">{t("history.error")}</p>
+          <button
+            type="button"
+            data-testid={`${testId}-retry`}
+            onClick={() => void load()}
+            className="type-caption text-fg underline-offset-2 hover:underline"
+          >
+            {t("history.retry")}
+          </button>
+        </div>
+      ) : null}
+      {status === "ready" && weeks.length === 0 ? (
+        <p className="type-body text-fg-secondary" data-testid={`${testId}-empty`}>
+          {t("history.empty")}
+        </p>
+      ) : null}
+      {weeks.length > 0 ? (
+        <div className="space-y-3" data-testid={`${testId}-list`}>
+          {weeks.map((week) => (
+            <section key={week.weekStart} data-testid={`${testId}-week`} data-week={week.weekStart}>
+              <h3 className="type-caption font-medium text-fg-secondary">
+                {historyWeekHeading(week.weekKeys)}
+              </h3>
+              <ul className="mt-1.5 space-y-1.5">
+                {week.days.map((day) =>
+                  day.items.map((item) => {
+                    const evening = isEveningCloseCompletion({
+                      itemId: item.id,
+                      kind: item.kind,
+                    });
+                    const display = evening ? eveningCloseDisplay(item.label) : null;
+                    const title = display ? t(display.titleKey) : item.label;
+                    const answer =
+                      display?.answerKey != null ? t(display.answerKey) : null;
+                    return (
+                      <li
+                        key={`${day.day}:${item.id}`}
+                        className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
+                        data-testid={`${testId}-item`}
+                        data-day={day.day}
+                        data-item={item.id}
+                        data-kind={item.kind}
+                      >
+                        <span className="shrink-0 type-caption font-medium text-fg-secondary">
+                          {formatWeekDayLabel(day.day)}
+                        </span>
+                        <span className={item.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
+                          {title}
+                        </span>
+                        {answer ? (
+                          <span className="text-fg">{answer}</span>
+                        ) : null}
+                        {item.kind === "baseline" ? (
+                          <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                            baseline
+                          </span>
+                        ) : null}
+                        {item.kind === "kit" || isTodayKitItemId(item.id) ? (
+                          <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
+                            kit
+                          </span>
+                        ) : null}
+                        {item.note ? (
+                          <span className="w-full type-caption italic text-fg-secondary sm:w-auto">
+                            — {item.note}
+                          </span>
+                        ) : null}
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  if (isControlled) {
+    return (
+      <section
+        ref={ref}
+        id={regionId}
+        aria-label={t("history.earlierWeeks")}
+        hidden={!open}
+        className="rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
+        data-testid={testId}
+      >
+        {body}
+      </section>
+    );
+  }
 
   return (
     <details
-      ref={ref}
+      ref={ref as Ref<HTMLDetailsElement>}
       className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
       data-testid={testId}
-      {...(isControlled ? { open } : {})}
-      onToggle={(e) => onOpenChange?.(e.currentTarget.open)}
     >
       <summary className="cursor-pointer list-none type-caption text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="underline-offset-2 hover:underline">{t("history.earlierWeeks")}</span>
       </summary>
-      <div className="mt-2">
-        {status === "loading" && weeks.length === 0 ? (
-          <p className="type-body text-fg-secondary" data-testid={`${testId}-wait`}>
-            {t("history.waiting")}
-          </p>
-        ) : null}
-        {status === "error" ? (
-          <div
-            className="mb-2 flex flex-wrap items-center gap-2"
-            data-testid={`${testId}-error`}
-          >
-            <p className="type-body text-fg-secondary">{t("history.error")}</p>
-            <button
-              type="button"
-              data-testid={`${testId}-retry`}
-              onClick={() => void load()}
-              className="type-caption text-fg underline-offset-2 hover:underline"
-            >
-              {t("history.retry")}
-            </button>
-          </div>
-        ) : null}
-        {status === "ready" && weeks.length === 0 ? (
-          <p className="type-body text-fg-secondary" data-testid={`${testId}-empty`}>
-            {t("history.empty")}
-          </p>
-        ) : null}
-        {weeks.length > 0 ? (
-          <div className="space-y-3" data-testid={`${testId}-list`}>
-            {weeks.map((week) => (
-              <section key={week.weekStart} data-testid={`${testId}-week`} data-week={week.weekStart}>
-                <h3 className="type-caption font-medium text-fg-secondary">
-                  {historyWeekHeading(week.weekKeys)}
-                </h3>
-                <ul className="mt-1.5 space-y-1.5">
-                  {week.days.map((day) =>
-                    day.items.map((item) => {
-                      const evening = isEveningCloseCompletion({
-                        itemId: item.id,
-                        kind: item.kind,
-                      });
-                      const display = evening ? eveningCloseDisplay(item.label) : null;
-                      const title = display ? t(display.titleKey) : item.label;
-                      const answer =
-                        display?.answerKey != null ? t(display.answerKey) : null;
-                      return (
-                        <li
-                          key={`${day.day}:${item.id}`}
-                          className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm text-fg-secondary"
-                          data-testid={`${testId}-item`}
-                          data-day={day.day}
-                          data-item={item.id}
-                          data-kind={item.kind}
-                        >
-                          <span className="shrink-0 type-caption font-medium text-fg-secondary">
-                            {formatWeekDayLabel(day.day)}
-                          </span>
-                          <span className={item.kind === "baseline" ? "text-fg-muted" : "text-fg"}>
-                            {title}
-                          </span>
-                          {answer ? (
-                            <span className="text-fg">{answer}</span>
-                          ) : null}
-                          {item.kind === "baseline" ? (
-                            <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
-                              baseline
-                            </span>
-                          ) : null}
-                          {item.kind === "kit" || isTodayKitItemId(item.id) ? (
-                            <span className="rounded-full bg-sunken px-1.5 py-0.5 type-caption text-fg-secondary">
-                              kit
-                            </span>
-                          ) : null}
-                          {item.note ? (
-                            <span className="w-full type-caption italic text-fg-secondary sm:w-auto">
-                              — {item.note}
-                            </span>
-                          ) : null}
-                        </li>
-                      );
-                    })
-                  )}
-                </ul>
-              </section>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      {body}
     </details>
   );
 });

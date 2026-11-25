@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from ..biohack import build_protocol, maybe_synthesize
 from ..checkin import derive_today_indication
 from ..checkin.novelty import compute_upcoming_horizon, hkt_bucket_instant, hkt_today
+from ..checkin.prescription import RECENT_MOVE_WINDOW_DAYS
 from ..database import get_db
 from ..geocode import geocode_city, suggest_cities, list_seed_cities
 from ..hd.chart import calculate_chart, calculate_transits, overlay_transits
@@ -434,11 +435,16 @@ def _move_selection_context(
     user_id: int | None,
     natal_chart_id: int | None,
     completion_day: date,
-) -> tuple[list[dict], list[str]]:
-    """This person's earlier offered Moves, plus other accounts' Move labels today."""
+) -> tuple[list[dict], list[str], list[str]]:
+    """This person's earlier offered Moves, plus other accounts' recent and today's Move labels.
+
+    Other accounts' labels cover the same recent window the reprint check uses, so a
+    person is not handed a generic line someone else was served in the last few days.
+    """
     history: list[dict] = []
     avoid_move_texts: list[str] = []
     avoid: list[str] = []
+    avoid_today: list[str] = []
     if user_id is not None and natal_chart_id is not None:
         hist_from = completion_day - timedelta(days=21)
         hist_rows = (
@@ -465,14 +471,45 @@ def _move_selection_context(
         others = (
             db.query(ProtocolCompletion)
             .filter(
-                ProtocolCompletion.day == completion_day,
+                ProtocolCompletion.day >= completion_day - timedelta(days=RECENT_MOVE_WINDOW_DAYS),
+                ProtocolCompletion.day <= completion_day,
                 ProtocolCompletion.item_id.like("today-move:%"),
                 ProtocolCompletion.user_id != user_id,
             )
+            .order_by(ProtocolCompletion.day, ProtocolCompletion.id)
             .all()
         )
         avoid = [str(r.label or "").strip() for r in others if (r.label or "").strip()]
-    return history, avoid
+        avoid_today = [
+            str(r.label or "").strip()
+            for r in others
+            if r.day == completion_day and (r.label or "").strip()
+        ]
+    return history, avoid, avoid_today
+
+
+def _done_kit_pick_ids(
+    db: Session,
+    *,
+    user_id: int | None,
+    natal_chart_id: int | None,
+    completion_day: date,
+) -> set[str]:
+    """Today's kit picks this person already ticked (kept as today's pick)."""
+    if user_id is None or natal_chart_id is None:
+        return set()
+    rows = (
+        db.query(ProtocolCompletion.item_id)
+        .filter(
+            ProtocolCompletion.user_id == user_id,
+            ProtocolCompletion.chart_id == natal_chart_id,
+            ProtocolCompletion.day == completion_day,
+            ProtocolCompletion.item_id.like("today-kit:%"),
+            ProtocolCompletion.done.is_(True),
+        )
+        .all()
+    )
+    return {str(r[0]) for r in rows}
 
 
 def _validate_first_name(name: str | None) -> str | None:
@@ -941,6 +978,9 @@ def transits_today(
     usual_when_by_name: dict[str, str] = {}
     bio_unlocked = False
     history: list[dict] = []
+    avoid_move_texts: list[str] = []
+    avoid_move_texts_today: list[str] = []
+    pinned_kit_item_ids: set[str] = set()
     # Completions stay on the account-TZ calendar day (midnight). Novelty `day` is the 07:00 bucket.
     completion_day = day
     if user is not None:
@@ -967,7 +1007,13 @@ def transits_today(
             if bool(getattr(r, "is_usual", False))
             and getattr(r, "usual_when", None) in ("morning", "midday", "evening")
         }
-        history, avoid_move_texts = _move_selection_context(
+        history, avoid_move_texts, avoid_move_texts_today = _move_selection_context(
+            db,
+            user_id=user_id,
+            natal_chart_id=natal_chart_id,
+            completion_day=completion_day,
+        )
+        pinned_kit_item_ids = _done_kit_pick_ids(
             db,
             user_id=user_id,
             natal_chart_id=natal_chart_id,
@@ -1000,6 +1046,8 @@ def transits_today(
         usual_when_by_name=usual_when_by_name if user is not None else None,
         user_key=str(user_id) if user_id is not None else None,
         avoid_move_texts=avoid_move_texts,
+        avoid_move_texts_today=avoid_move_texts_today,
+        pinned_kit_item_ids=pinned_kit_item_ids,
     )
 
     # Seed "offered" Move for the account day (done=False) so Pro down-ranking sees ignored history.
@@ -1283,7 +1331,13 @@ def protocol(
     }
     bio_unlocked = _user_has_biohacking(user)
     completion_day = _account_today(user)
-    history, avoid_move_texts = _move_selection_context(
+    history, avoid_move_texts, avoid_move_texts_today = _move_selection_context(
+        db,
+        user_id=owner_id,
+        natal_chart_id=natal_row.id,
+        completion_day=completion_day,
+    )
+    pinned_kit_item_ids = _done_kit_pick_ids(
         db,
         user_id=owner_id,
         natal_chart_id=natal_row.id,
@@ -1315,6 +1369,8 @@ def protocol(
         usual_when_by_name=usual_when_by_name,
         user_key=str(owner_id),
         avoid_move_texts=avoid_move_texts,
+        avoid_move_texts_today=avoid_move_texts_today,
+        pinned_kit_item_ids=pinned_kit_item_ids,
     )
     # Prefer FE-persisted yesterday fingerprint; else recompute natural leads for D-1
     y_fp = (body.yesterday_lead_fingerprint or "").strip() or None

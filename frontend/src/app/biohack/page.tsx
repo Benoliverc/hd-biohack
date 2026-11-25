@@ -153,6 +153,12 @@ function sanitizeWhy(why: string | undefined, inInventory: boolean | undefined):
 }
 
 
+function namesShelfItem(text: string | null | undefined, name: string): boolean {
+  const a = bareItemName(String(text || "")).toLowerCase();
+  const b = name.trim().toLowerCase();
+  return Boolean(a && b && (a === b || a.startsWith(`${b} `) || a.startsWith(`${b} ·`)));
+}
+
 function dropShelfItemFromPlan(
   proto: Record<string, unknown> | null,
   name: string,
@@ -163,6 +169,13 @@ function dropShelfItemFromPlan(
   const nextDaily = { ...daily };
   let changed = false;
   const target = name.trim().toLowerCase();
+  // A KIT FACT about the removed item must not outlive it while the plan refreshes.
+  const fact = (proto.kit_fact || nextDaily.kit_fact) as KitFact | null | undefined;
+  const dropFact = Boolean(fact && namesShelfItem(fact.supplement, name));
+  if (dropFact) {
+    nextDaily.kit_fact = null;
+    changed = true;
+  }
   for (const slot of ["morning", "midday", "evening"] as const) {
     const rows = ([...((nextDaily[slot] as PlanItem[]) || [])] as PlanItem[]);
     const filtered = rows.filter((row) => bareItemName(row.item || "").toLowerCase() !== target);
@@ -172,7 +185,17 @@ function dropShelfItemFromPlan(
     }
   }
   if (!changed) return proto;
-  return { ...proto, daily_plan: nextDaily };
+  return { ...proto, daily_plan: nextDaily, ...(dropFact ? { kit_fact: null } : {}) };
+}
+
+/** Today's kit pick naming the removed item is cleared until the refreshed pick arrives. */
+function dropShelfItemFromIndication(
+  ind: TodayIndicationPayload | null,
+  name: string,
+): TodayIndicationPayload | null {
+  if (!ind?.kit_item || ind.kit_placeholder) return ind;
+  if (!namesShelfItem(ind.kit_item.name, name)) return ind;
+  return { ...ind, kit_item: null, kit_placeholder: true };
 }
 
 function snapTimedLeads(proto: Record<string, unknown> | null): TimedLeadSnap[] {
@@ -208,27 +231,28 @@ function announceKitChange(
   name: string,
   t: Translate,
 ): string {
-  for (const slot of ["morning", "midday", "evening"]) {
-    const b = before.find((x) => x.id === slot);
-    const a = after.find((x) => x.id === slot);
-    if (!a) continue;
-    const itemChanged = !b || b.item !== a.item;
-    const invChanged = !b || Boolean(b.inInventory) !== Boolean(a.inInventory);
-    if (itemChanged || invChanged) {
-      const uses = t("protocols.planUpdatedUses", {
-        slot: slotTitle(slot, t),
-        name: a.inInventory ? bareItemName(a.item) : a.item,
-      });
-      if (a.inInventory) {
-        return `${uses} ${t("protocols.fromYourShelf")}`;
-      }
-      return uses;
-    }
-  }
+  // Confirmations always name the shelf item that changed — never another shelf row.
   if (kind === "remove") {
     return t("protocols.removedPlanRefreshed", { name });
   }
-  return t("protocols.shelfUpdatedUnchanged");
+  for (const slot of ["morning", "midday", "evening"]) {
+    const b = before.find((x) => x.id === slot);
+    const a = after.find((x) => x.id === slot);
+    if (!a || !a.inInventory || !namesShelfItem(a.item, name)) continue;
+    if (b && b.item === a.item && Boolean(b.inInventory) === Boolean(a.inInventory)) continue;
+    return `${t("protocols.planUpdatedUses", {
+      slot: slotTitle(slot, t),
+      name: bareItemName(a.item),
+    })} ${t("protocols.fromYourShelf")}`;
+  }
+  const planChanged = ["morning", "midday", "evening"].some((slot) => {
+    const b = before.find((x) => x.id === slot);
+    const a = after.find((x) => x.id === slot);
+    return (b?.item ?? null) !== (a?.item ?? null) || Boolean(b?.inInventory) !== Boolean(a?.inInventory);
+  });
+  return planChanged
+    ? t("protocols.addedPlanRefreshed", { name })
+    : t("protocols.shelfUpdatedUnchanged");
 }
 
 
@@ -579,24 +603,36 @@ export default function BiohackPage() {
     [user, dayKey]
   );
 
+  const protocolReq = useRef(0);
   const loadProtocol = useCallback(
     async (opts?: { rebuild?: boolean }) => {
       if (!user || !youChart) return null;
+      // Only the latest request may write state: a late response never repaints old kit.
+      const req = ++protocolReq.current;
       setLoading(true);
       setError(null);
       try {
         const yFp = loadLeadFingerprint(
           leadFpKey(user.id, youChart.id, prevNoveltyDayKey(user?.preferred_timezone))
         );
-        const [protoRes, transitRes] = await Promise.all([
-          api.protocol(user.id, youChart.id, {
-            yesterdayLeadFingerprint: yFp,
-          }),
-          api.transitsToday(youChart.id, { userId: user.id }),
-        ]);
+        // Today's kit pick comes from /transits/today; apply it as soon as it lands so a
+        // slow protocol rebuild cannot leave the pick on a removed or swapped item.
+        let transitIndication: TodayIndicationPayload | null = null;
+        const transitP = api
+          .transitsToday(youChart.id, { userId: user.id })
+          .then((res) => {
+            transitIndication = res.indication ?? null;
+            if (req === protocolReq.current && transitIndication) setIndication(transitIndication);
+          })
+          .catch(() => {});
+        const protoRes = await api.protocol(user.id, youChart.id, {
+          yesterdayLeadFingerprint: yFp,
+        });
+        await transitP;
+        if (req !== protocolReq.current) return null;
         setProtocol(protoRes.protocol);
         // Prefer shared derive from /transits/today for weather strip parity with Today
-        setIndication(transitRes.indication ?? protoRes.indication ?? null);
+        setIndication(transitIndication ?? protoRes.indication ?? null);
         const wn =
           (protoRes.protocol?.whats_new as WhatsNew | undefined) ||
           ((protoRes.protocol?.daily_plan as { whats_new?: WhatsNew } | undefined)
@@ -617,10 +653,10 @@ export default function BiohackPage() {
         }
         return protoRes.protocol as Record<string, unknown>;
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        if (req === protocolReq.current) setError(e instanceof Error ? e.message : String(e));
         return null;
       } finally {
-        setLoading(false);
+        if (req === protocolReq.current) setLoading(false);
       }
     },
     [user, youChart, refreshInventory, noveltyDayKeyNow]
@@ -715,7 +751,7 @@ export default function BiohackPage() {
       setInventoryOpen(true);
       if (protocol) {
         const next = await loadProtocol({ rebuild: true });
-        if (!res.duplicate) {
+        if (!res.duplicate && next) {
           setKitStatus(announceKitChange(before, snapTimedLeads(next), "add", res.name, t));
         }
       } else if (!res.duplicate) {
@@ -740,6 +776,7 @@ export default function BiohackPage() {
     );
     setInventory((list) => list.filter((row) => row.id !== item.id));
     setProtocol((prev) => dropShelfItemFromPlan(prev, item.name));
+    setIndication((prev) => dropShelfItemFromIndication(prev, item.name));
     const before = snapTimedLeads(protocol);
     try {
       await api.removeInventory(user.id, item.id);
@@ -747,7 +784,9 @@ export default function BiohackPage() {
       if (focusInvId === item.id) setFocusInvId(null);
       if (protocol) {
         const next = await loadProtocol({ rebuild: true });
-        setKitStatus(announceKitChange(before, snapTimedLeads(next), "remove", item.name, t));
+        if (next) {
+          setKitStatus(announceKitChange(before, snapTimedLeads(next), "remove", item.name, t));
+        }
       } else {
         setKitStatus(t("protocols.removedPlanRefreshed", { name: item.name }));
       }
