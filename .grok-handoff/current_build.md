@@ -1,49 +1,50 @@
-# Current build: Snapshot Environment line
+# Current build: Chart Snapshot panel fixes
 
 - **Date:** 2026-11-25 (Asia/Bangkok, UTC+7)
-- **Brief:** `/workspace/reports/baseline-snapshot-environment-line-build-brief-2026-11-25.md`, sha256 `681c6bae864ad476b945017166880fd241309afeca5227c07ef452e2bd34e356` (verified before build)
-- **Go:** Benjamin's Go (relayed 25 Nov 2026, 3:10 PM Bangkok) approves the build only. It is not a merge or ship yes.
-- **Base:** main `e3901e385d5d15e88b333a1fa4af040f3de1d193` (merge of #148; origin/main verified after fetch)
-- **Branch:** `feat/snapshot-environment-line` (worktree `/workspace/hd-snapshot-environment`)
-- **Code commit:** `859cfb1`. The PR tip is the handoff commit on top of it. Take the exact tip from `gh pr view`.
-- **Ships (later, after a tip-bound merge yes only):** frontend **and** backend together — Vercel + Railway. A Vercel-only deploy would show no Environment box (the page hides it when the API sends no `environment`), so the brief forbids shipping one side alone. No env, schema, migration or lockfile changes.
+- **Brief:** `/workspace/reports/baseline-chart-snapshot-panel-fixes-build-brief-2026-11-25.md`, sha256 `db2c99baab8f38a314f1f683284158c3f64f3d1a149c6b405a83fc7a83f6397a` (verified before build)
+- **Go:** Benjamin's Go ("Go — build the Snapshot panel fixes brief against main aab6a29.", 5:57 PM Bangkok, relayed by Grok Bot) approves the build only. It is not a merge or ship yes.
+- **Base:** main `aab6a29fd943b81a3dda1bb1e1339adcc0e83c7b` (origin/main verified after fetch)
+- **Branch:** `feat/chart-snapshot-panel-fixes` (worktree `/workspace/hd-snapshot-panel-fixes`)
+- **Code commit:** `6ed6848`. The PR tip is the handoff commit on top of it. Take the exact tip from `gh pr view`.
+- **Ships (later, after a tip-bound merge yes only):** frontend only, Vercel only. No backend, env, schema, migration or lockfile changes.
 
-## What changed
-### Backend
-1. `app/hd/mandala.py`: `COLOR_SPAN = LINE_SPAN/6` (0.15625°), `TONE_SPAN = COLOR_SPAN/6`, `longitude_to_color_tone()` on the same 302° wheel; the exact end of a line/Color clamps to 6.
-2. `app/hd/environment.py` (new): Environment = Color of the Design North Node, asserted equal to the Design South Node (mismatch raises `EnvironmentNodeMismatch`). 1 Caves, 2 Markets, 3 **Workshops** (comment: traditional HD 'Kitchens'), 4 Mountains, 5 Valleys, 6 Shores. Tone 1–3 left, 4–6 right (API only, not shown).
-3. `calculate_chart` adds flat `environment`, `environment_color`, `environment_tone`, `environment_orientation` (from exact node longitudes). `activations[].color` is untouched.
-4. `GET /charts/{user_id}`: `chart` is `with_environment(chart_json)` — derived on read from the stored design-node longitudes, no migration and no write-back. If those longitudes are missing (or the rounded stored NN/SN disagree at a boundary), the keys are omitted and the page omits the box.
+## What changed (frontend only)
+1. **Mobile disclosure scroll** (`ChartDisclosure.tsx`, `globals.css`)
+   - Pin: on tap, the summary's viewport top is recorded, clamped to just below the sticky stack. It is restored after the React commit, on every animation frame, after `onfinish`, and on the reduced-motion native toggle (`onToggle`). Close keeps the pin until the collapsed layout is committed. No `scrollIntoView`.
+   - No flash: the expand starts in a layout effect in the same commit as `open=true` (was: next `requestAnimationFrame`, one frame of full-height layout).
+   - One token: `--chart-scroll-mt` is now `calc(var(--app-header-h, 4.5rem) + var(--chart-section-nav-h, 0px) + 0.75rem)` (was `+ 0.5rem`, no fallbacks). It applies to `#snapshot`, `#snapshot details` (every ChartDisclosure), `#bodygraph`, `#deep-dive`, `#chart-type-box` (added) and the existing Deep dive anchors. The JS clamp reads the same value from the box's computed `scroll-margin-top`.
+   - `overflow-anchor: none` on `#snapshot` and `#snapshot details`.
+2. **Other-person voice** (`page.tsx`, `snapshotShortCopy.ts`, `snapshotEnvironmentCopy.ts`, new `snapshotOtherPersonCopy.ts`)
+   - `snapshotPersonName` uses the Type box gate and `friendChipLabel`. Every Snapshot body switches: Profile, Strategy, Authority, connector, Centers tips, Definition and Environment. Titles are unchanged.
+   - Strategy, Definition, connector and Environment: locked strings ×5 locales.
+   - Profile, Authority and Centers: the EN strings are locked. ES/NL are written with the same meaning, name-forward. DE/FR use the English other-person strings (same coverage as today's you-voice bundles).
+   - `hdCopy*.ts` and `ChartDeepDive.tsx` are untouched (clarity-pass freeze hashes pass).
+3. **Deep dive closer** (`hdProfileCombos.ts` only): the second copy was removed from 2/4, 3/5, 3/6, 4/6, 4/1, 5/1 and 5/2. One copy was appended to 1/3 and 6/2. All twelve now have the closer exactly once, as the last paragraph. The wording is unchanged.
+4. **Valleys:** the you-voice is replaced ×5 locales with the locked copy. Other-person Valleys is in the other-person map.
 
-### Frontend (/profile #snapshot only)
-1. New last disclosure `ChartDisclosure testId="snapshot-environment"`, full width after Definition (outside the 2-col row), collapsed, label-first `Environment: Mountains`. Feature name and values English in every locale.
-2. `time_unknown` true → title `Environment: {Value} ({marker})` (approximate / ungefähr / aproximado / approximatif / ongeveer) and the locked caveat first in the body. Known time (incl. a deliberate noon) and legacy null → no mark, no caveat. The How you decide caveat is unchanged.
-3. Body is the locked short copy (6 Colors × 5 locales, verbatim from the brief, all ≤ 80 words / 500 chars). No Deep dive pointer.
-4. Copy lives in the new `src/lib/essays/snapshotEnvironmentCopy.ts` (reuses the clarity-pass budget constants). The three locked clarity-pass maps are untouched (digest `0f9cf0b7…` still passes).
-5. i18n: `chart.people.environment` = `Environment` ×5 (parity holds).
-6. **Decision:** unsaved previews also carry the mark. A new `previewTimeUnknown` state is set when "Preview without saving" runs, so `environmentApprox = saved ? savedTimeUnknown : preview ? previewTimeUnknown : false`.
+## Files (+645 −48 before this handoff)
+`src/components/ChartDisclosure.tsx`, `src/app/globals.css`, `src/app/profile/page.tsx`, `src/lib/essays/snapshotShortCopy.ts`, `src/lib/essays/snapshotEnvironmentCopy.ts`, `src/lib/essays/snapshotOtherPersonCopy.ts` (new), `src/lib/hdProfileCombos.ts`, `scripts/assert-chart-snapshot-panel-fixes.mjs` (new), `scripts/assert-chart-snapshot-environment-line.mjs` (digest re-pinned for Valleys; new other-person digest), `package.json` (+1 assert script; lockfile untouched).
 
-## Files
-- Backend (+391 −1): `app/hd/mandala.py`, `app/hd/environment.py` (new), `app/hd/chart.py`, `app/api/routes.py`, `tests/test_environment.py` (new), `tests/test_chart_reference.py`
-- Frontend (+279 −12): `src/app/profile/page.tsx`, `src/lib/essays/snapshotEnvironmentCopy.ts` (new), `src/lib/i18n/messages/{en,de,es,fr,nl}.ts` (+1 key each), `package.json` (+1 assert script; lockfile untouched), asserts: new `scripts/assert-chart-snapshot-environment-line.mjs`; updated `assert-chart-snapshot-strategy-definition.mjs`, `assert-chart-bodygraph-revert.mjs`, `assert-chart-snapshot-clarity-pass.mjs` (4 → 5 boxes; pointer count stays 2; frozen-file hashes and copy digest unchanged)
-
-## Reference pins
-- **Ra Uru Hu** (`test_ra_uru_hu_reference`, 9 Apr 1948 00:05 Montreal): Design NN 23.3 → **Shores**, Color 6, Tone 2, left. Published match: Ra's own Environment lecture in "Radical Transformations – The Four Lectures" (Jovian Archive, 2006): on Shores, "This is mine."; Maia Mechanics (Jovian-licensed) per thehumandesignsystem.com founder-chart post: Design Nodes Tone 2.
-- **Obama cross-check** (`test_environment.py`, 4 Aug 1961 19:24 HST Honolulu): Design NN 59.4 → Color 3, Tone 3 → **Workshops** (published "Environment Left 3", traditional Kitchens; omnicharts.app; NN 59.4 also on the humandesignsystem.com chart PDF).
-
-## Preview
-- Frontend `http://127.0.0.1:3165` (`/workspace/day7-tools/start-snapshot-environment.sh`, log `snapshot-environment-3165.log`), production build of this branch with the API rewrite baked in.
-- Local API `http://127.0.0.1:8165` from this worktree's backend (`/workspace/day7-tools/start-env-api.sh`, log `env-api-8165.log`) on its own copy `/workspace/day7-tools/env3165.sqlite`. :8159/day7.sqlite is untouched.
-- Invented local accounts only. Seeded on the copy: mge friends Ines (#11, time unknown → Workshops, approximate) and Lena (#12, known noon → Workshops); Theo (#10) set to legacy `time_unknown = NULL` (Valleys, no mark).
-- :3159, :3161, :3163 left running.
-
-## Tests
-- Backend pytest on clean `git archive` copies: base e3901e3 **25 failed / 259 passed**; PR **25 failed / 293 passed**; identical failing set (+34 new passing tests).
-- `tsc --noEmit` clean; `next lint` 0 errors / 6 warnings (same as main); `next build` OK.
-- 62 of 63 `assert:*` PASS incl. the new `assert:chart-snapshot-environment-line`; `today-protocols-ia` is the expected red (same as main). Revert-interactions test PASS.
-- Browser (Playwright headless, 320/375/390/desktop): all six Colors, time known / unknown / known noon / legacy null / unsaved preview with unknown time, en + de/es/fr/nl. `check-captures.py`: 54 captures, 0 failing.
-- Evidence: `/workspace/reports/snapshot-environment-line-2026-11-25/`
+## Deviations from the brief (please confirm)
+1. **Line 2 Hermit (EN other-person Profile):** the locked string reads "Natural gifts others call out; **Quadruple Split** needs alone time…". "Quadruple Split" looks like a templating slip: it is a Definition value, not in the you-voice source, and it would render on every x/2 or 2/x chart. Shipped as "Natural gifts others call out; needs alone time…" (the you-voice clause, which has no second person to swap). Re-locking verbatim is a one-line change plus a digest update.
+2. **FR other-person Valleys:** the locked string has a stray apostrophe, "peuvent laisser **’à** {name} un sentiment terne". Shipped as "peuvent laisser à {name} un sentiment terne" (one character removed).
+3. **Offset token:** the brief asked for scroll-margin on each element. It is applied through the existing global `--chart-scroll-mt` rule, because `ChartDeepDive.tsx` and the Bodygraph card markup are byte-frozen. ID selectors outrank the old Tailwind `scroll-mt-[…]` classes on `#bodygraph` and `#chart-type-box`, so those classes are now inert. They were left in place so the frozen card hash holds. The token moves from +0.5rem to +0.75rem, so Deep dive hash landings sit 4px lower.
+4. **Acceptance chart:** the local "Ren viewing Jules" equivalent is Remy (invented Reflector 6/3 account) viewing "Juno": Manifestor 1/3, Emotional · To Inform, Single, Workshops. Its Centers to watch come out as Head · Ajna · Sacral, not Head · Sacral · G. No searched birth time gave that exact trio together with the other traits.
 
 ## Open questions
-1. The Ra pin rests on Ra's own lecture statement plus a Jovian-licensed Tone 2 read, not a printed Variables chart (Jovian/Genetic Matrix/myBodygraph Variables need an account). Both agree with Baseline's Shores.
-2. Preview mode (unsaved) also shows the approximate mark via the new `previewTimeUnknown` (the brief only names saved `time_unknown`).
+- The Centers help line ("Open centers — where you can pick up other people’s energy") is a catalog string, still you-voice on other-person charts. It is not in the locked strings, so it was left unchanged.
+- ES/NL Deep dive essays (`hdProfileCombos.es.ts` / `.nl.ts`) are out of scope ("edit only hdProfileCombos.ts"). NL still has the same doubled closer on 2/4, 3/5, 3/6, 4/6, 4/1, 5/1 and 5/2. ES has the closer once but is missing it on 1/3 and 6/2. This could be a small follow-up.
+
+## Tests
+- typecheck `tsc --noEmit`: clean. Lint: 0 errors (6 pre-existing warnings, unchanged). `next build`: OK.
+- Asserts: 63/64 PASS on the branch. The only red is the known `assert:today-protocols-ia`. Base aab6a29 is 62/63 with the same red. New `assert:chart-snapshot-panel-fixes` PASS. `chart-snapshot-clarity-pass` PASS (freeze hashes untouched). `chart-snapshot-environment-line` PASS (re-pinned).
+- Playwright (headless, invented local accounts, :3167 → API :8167):
+  - **Before (main frontend on :3165):** at 320/375/390, opening shifted the summary up by 168–870px. How you decide moved −440px at 390, and neighbour taps moved too. Desktop shift was 0.
+  - **After:** 0px shift at 300ms and 2.5s for all five boxes at 320/375/390/desktop, on both a self chart and an other-person chart. The summary and first body line stay below the sticky stack (stack bottom 167px, clamp 179px), close keeps the summary in place, and neighbour taps hit.
+  - **Clamp case** (title 20px under the stack before the tap): lands at 178.5 against an expected 179.
+  - **Reduced motion** (390 + desktop): 0px.
+- Copy in the UI (all bodies opened): Remy→Juno EN; Mira→Juno DE/ES/FR/NL; Gale self Valleys EN/ES/FR (new you-voice); Remy→Vale other-person Valleys EN. Deep dive closer count is 1 on 2/4, 4/6, 1/3 and 6/2; before, 2/4 and 4/6 showed 2.
+
+## Preview (left running)
+- http://127.0.0.1:3167 (`/workspace/day7-tools/start-snapshot-panel-fixes.sh`) → API :8167 (`/workspace/day7-tools/start-panel-fixes-api.sh`, sqlite `/workspace/day7-tools/env3167.sqlite`, a copy of env3165 + invented charts Juno ×2 / Vale, and Gale's self chart moved to a Valleys birth time). Accounts: `/workspace/day7-tools/accounts.local.json` (gen/mge/ref…).
+- Evidence: `/workspace/reports/snapshot-panel-fixes-2026-11-25/` (scroll JSON before/after, 300ms screenshots, copy JSON + Snapshot screenshots, `evidence.md`).
