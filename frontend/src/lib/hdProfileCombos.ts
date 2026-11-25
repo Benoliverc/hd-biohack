@@ -18,7 +18,10 @@ In practice
 Before big commitments, do your digging — then set a date to test in the real world. Keep a private log of what worked and what did not; your future authority is that archive. In relationships, admit you learn by trying: partners who need perfect first drafts will frustrate you, and you them. Share findings once they are battle-tested; that is when line 1’s foundation becomes a gift rather than a bunker.
 
 Going deeper
-Think of 1/3 as a laboratory with a library attached. The library (line 1) wants shelves that do not wobble; the laboratory (line 3) keeps running experiments that rearrange those shelves. Maturity is learning to label both rooms. When you feel ashamed after a failed trial, walk yourself back to the lab notebook instead of the courtroom. When you feel frozen before starting, give the investigator a minimum viable base and a calendar date for contact with reality. Friends help most when they ask what you are testing and what you already trust. Over years, your voice becomes calm because it is sourced from foundations embarrassed into honesty — dig, try, revise, dig again.`,
+Think of 1/3 as a laboratory with a library attached. The library (line 1) wants shelves that do not wobble; the laboratory (line 3) keeps running experiments that rearrange those shelves. Maturity is learning to label both rooms. When you feel ashamed after a failed trial, walk yourself back to the lab notebook instead of the courtroom. When you feel frozen before starting, give the investigator a minimum viable base and a calendar date for contact with reality. Friends help most when they ask what you are testing and what you already trust. Over years, your voice becomes calm because it is sourced from foundations embarrassed into honesty — dig, try, revise, dig again.
+
+One more anchor
+Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "1/4": `You dig for a sturdy base, then opportunities travel through people you already know. (Profile 1/4 · Investigator / Opportunist)
 
@@ -62,9 +65,6 @@ Schedule solitude like a meeting. Prefer invitations from people who already kno
 
 Going deeper
 The 2/4 nervous system often confuses popularity with correctness. A full inbox is not a true call. Use a two-step filter: Did this invitation come through someone who knows my gift? Does my body feel quiet yes rather than flattered panic? Teach close friends invitation language so they can call you without guessing. Protect one weekly solitude block especially when opportunities spike. Your network distributes; your solitude quality-controls. When those roles reverse, you become busy and empty. Returning to order restores generosity and ease. Over a career, people remember you were hard to drag out and worth it when you came. Send a brief recharge note when you go quiet so line-4 bridges do not invent rejection stories.
-
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
 
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
@@ -113,9 +113,6 @@ Going deeper
 Public learning needs emotional hygiene. After a visible experiment, separate facts (what happened), projections (what people decided it meant), and next tests (what you will try now). Mixing piles creates grandiosity or collapse. Share facts and next tests once steady; let unfair projections age unless a real repair is owed. Publish constraints — works when, fails when — because practical people trust bounded tools. Keep some trials private so not every experiment is a referendum on identity. Alternate public proofs with private play. Keep a simple narrative: you test in real life and share what proves useful. Your long game is a library of findings, not a perfect approval rating.
 
 One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
-
-One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "3/6": `You experiment early, then step back to watch, and later embody what you lived. (Profile 3/6 · Martyr / Role Model)
@@ -137,9 +134,6 @@ After hard trials, schedule integration days — rooftop time. Share stories onc
 
 Going deeper
 Role-model pressure can make line 3 feel illegitimate. Reverse it: bumping is how your example gets evidence. Monthly, name your chapter without marketing spin. In trial, say so to people who matter. On the roof, protect observation from being misread as indifference. When embodying, keep one channel where new experiments are still allowed. Mentorship lands best as companionship through process, not commandments from a pedestal. When someone needs you finished evolving, that is their hunger, not your job description. Mark transitions with small rituals — offline days, witness talks, lists of what you no longer prove. Experiment honestly, integrate fully, embody selectively.
-
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
 
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
@@ -165,9 +159,6 @@ Going deeper
 Because life is relational, friendship boundaries are practice, not bureaucracy. Decide what asks your circle may make in each chapter. Early may mean many rooms; rooftop fewer rooms with more presence; later example may host rather than chase. Tell people when seasons change so loyalty is not confused by a quieter calendar. Invest in relationships that hold ambivalence — friends who celebrate opportunity and your need to mature past old roles. Those friends are infrastructure. Networking without emotional truth feeds you weakly; shared history with integrity feeds you for decades. Ask yearly which bonds help you become more true and which only reward a past persona.
 
 One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
-
-One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "4/1": `Network opens doors, and underneath you still need a foundation solid enough to stand on. (Profile 4/1 · Opportunist / Investigator)
@@ -189,9 +180,6 @@ Pick a craft or principle worth investigating deeply, then let friends be the do
 
 Going deeper
 Steadiness needs maintenance. Quarterly, review your foundation with evidence: what still works, what is tradition without teeth? Invite one loyal challenger so familiarity is not confused with truth. Review your circle: who exchanges clean opportunity and care, who only consumes stability? Prune kindly. When you update a core craft or belief, write a bridge note explaining what changed and what did not — predictable ground can include transparent change. Translate security needs so they are not mistaken for control; you are keeping the floor trustworthy. Your gift in chaos is a floor people can stand on — inspect it, do not merely defend it.
-
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
 
 One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
@@ -217,9 +205,6 @@ Going deeper
 The projection field will try to set your deadlines. Reclaim pacing by naming stages: assessing, researching, testing, ready. Informal stages train people to stop demanding magic by Tuesday. Define “done enough to help” so perfectionism cannot hostage delivery. Define “not my circus” so heretic fame cannot hostage your calendar. Keep artefacts — checklists, guides, principles — that carry solutions when you are unavailable. If anxiety spikes after praise, check whether praise was for a real foundation or a fantasy; let only the first land in identity. Domain clarity is kindness. Let reputation lag slightly behind research.
 
 One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
-
-One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "5/2": `You are cast as the fixer while your gift wants hermit time — visibility and solitude must negotiate. (Profile 5/2 · Heretic / Hermit)
@@ -243,9 +228,6 @@ Going deeper
 Design an on/off architecture you can defend on your worst week. On-mode: specific calls, clear scope, time-boxed help, hard stop. Off-mode: solitude, sensory quiet, no long explanation beyond a boundary sentence. Ambiguous half-modes — resentful half-available messaging — poison both poles. Study what lifestyle keeps a natural gift natural: sleep, fewer inbound channels, body time. Teach collaborators that disappearing is how the next good answer appears. Right people stop taking it personally; wrong people leave; both protect you. Put recovery on the calendar with delivery. The heretic world wants more; the hermit teaches enough.
 
 One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.
-
-One more anchor
 Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "6/2": `You grow through a three-part life process toward living example, with a hermit gift others call out. (Profile 6/2 · Role Model / Hermit)
@@ -266,7 +248,10 @@ In practice
 Protect daily or weekly hermit windows before you schedule teaching, leading, or “being available.” When someone asks for your example, check whether it is a real call to your natural gift or a vague hope that you will fix their life. Prefer demonstrating over explaining when you can — line 6 lands as embodiment. In relationships and work, name your need for retreat early so it is not read as rejection. Over years, trust that the scars of the early experiments become the credibility of the later example; the hermit underneath is what keeps that credibility honest rather than performed.
 
 Going deeper
-Track your chapter without weaponising it. Early needs permission to experiment without performing wisdom. Rooftop needs permission to watch without being accused of apathy. Later needs permission to embody without entertaining perfection fantasies. In all chapters, hermit time keeps the example human. Answer sincere calls to the real gift, then go dark long enough that the next answer is still yours.`,
+Track your chapter without weaponising it. Early needs permission to experiment without performing wisdom. Rooftop needs permission to watch without being accused of apathy. Later needs permission to embody without entertaining perfection fantasies. In all chapters, hermit time keeps the example human. Answer sincere calls to the real gift, then go dark long enough that the next answer is still yours.
+
+One more anchor
+Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
 
   "6/3": `You grow toward living example while still learning by trial — the roof and the experiment share one house. (Profile 6/3 · Role Model / Martyr)
 

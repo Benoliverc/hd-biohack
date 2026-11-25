@@ -61,10 +61,17 @@ for (const [l, s] of userFacing) {
 }
 assert.deepEqual(env.SNAPSHOT_ENVIRONMENT_APPROX_MARKER, { en: "approximate", de: "ungefähr", es: "aproximado", fr: "approximatif", nl: "ongeveer" });
 // Byte pin of the brief's locked Environment strings (copy, caveat, marker).
+// Re-locked 2026-11-25 for the Snapshot panel fixes brief (sha db2c99ba…): Valleys you-voice rewrite only.
 assert.equal(
   sha(JSON.stringify([env.SNAPSHOT_ENVIRONMENT_COPY, env.SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT, env.SNAPSHOT_ENVIRONMENT_APPROX_MARKER])),
-  "76b99e943c1065458685ec315684488bf3d6cc90f44079ef3871b4927edead1f",
+  "26ac33e2b672cf7c192fa8fd221db963ee2c4744585957286a3104eb56270a7a",
   "locked Environment copy unchanged",
+);
+// Other-person Environment map (Snapshot panel fixes): locked, six Colors × five locales.
+assert.equal(
+  sha(JSON.stringify(env.SNAPSHOT_ENVIRONMENT_OTHER_COPY)),
+  "f7940aac236226554deca3eea164bdec9598298ba780d8051839ac0804b56e32",
+  "locked other-person Environment copy unchanged",
 );
 // The clarity-pass locked maps are untouched (same digest as assert-chart-snapshot-clarity-pass).
 assert.equal(

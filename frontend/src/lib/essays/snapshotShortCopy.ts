@@ -109,3 +109,109 @@ export function snapshotStrategyCopy(strategy: string, locale: Locale): string |
 export function snapshotDefinitionCopy(definition: string, locale: Locale): string | undefined {
   return SNAPSHOT_DEFINITION_COPY[definition]?.[locale];
 }
+
+/**
+ * Other-person Snapshot copy (Snapshot panel fixes, 25 Nov 2026). Locked strings from the build brief,
+ * shown when the chart belongs to someone else (same gate as the Type box `personName`).
+ * `{name}` is the person's display name; English uses singular they/them, other locales stay name-forward.
+ * Same 80-word / 500-character budget as the you-voice maps above.
+ */
+export const SNAPSHOT_STRATEGY_OTHER_COPY: Record<string, ByLocale> = {
+  "To Respond": {
+    en: "Something real to answer — a person, a question, or an opportunity — wants to show up before {name} starts. Their body answers with a gut yes or a no. A gut yes beats a clever plan. If it is not a clear yes, it is a no or a not yet.",
+    de: "Etwas Echtes zum Antworten — eine Person, eine Frage oder eine Gelegenheit — darf erscheinen, bevor {name} anfängt. Der Körper von {name} antwortet mit einem Ja aus dem Bauch oder einem Nein. Ein Ja aus dem Bauch schlägt einen klugen Plan. Ist es kein klares Ja, ist es ein Nein oder ein noch nicht.",
+    es: "Algo real a lo que responder — una persona, una pregunta o una oportunidad — conviene que aparezca antes de que {name} empiece. El cuerpo de {name} responde con un sí del cuerpo o un no. Un sí del cuerpo gana a un plan ingenioso. Si no es un sí claro, es un no o un todavía no.",
+    fr: "Quelque chose de réel à quoi répondre — une personne, une question ou une opportunité — a besoin d’apparaître avant que {name} commence. Le corps de {name} répond par un oui du corps ou un non. Un oui du corps l’emporte sur un plan malin. Si ce n’est pas un oui clair, c’est un non ou un pas encore.",
+    nl: "Iets echts om op te antwoorden — een persoon, een vraag of een kans — wil verschijnen voordat {name} begint. Hun lichaam antwoordt met een ja vanuit de buik of een nee. Een ja vanuit de buik wint het van een slim plan. Is het geen duidelijk ja, dan is het een nee of een nog-niet.",
+  },
+  "To Respond (then inform)": {
+    en: "A gut yes wants to come before {name} moves. A person, a question, or an opportunity shows up, and their body answers first. After a real yes, they tell the people it will affect what they are about to do — courtesy, not permission — then go. Speed comes after that sequence, not before.",
+    de: "Ein Ja aus dem Bauch darf kommen, bevor {name} loslegt. Eine Person, eine Frage oder eine Gelegenheit erscheint, und der Körper antwortet zuerst. Nach einem echten Ja sagt {name} den Betroffenen, was als Nächstes kommt — Höflichkeit, keine Erlaubnis — und dann geht es los. Tempo kommt nach dieser Reihenfolge, nicht davor.",
+    es: "Un sí del cuerpo conviene que llegue antes de que {name} se mueva. Aparece una persona, una pregunta o una oportunidad, y el cuerpo de {name} responde primero. Después de un sí de verdad, {name} avisa a las personas a las que va a afectar lo que está a punto de hacer — cortesía, no permiso — y entonces sigue. La velocidad viene después de esa secuencia, no antes.",
+    fr: "Un oui du corps a besoin d’arriver avant que {name} avance. Une personne, une question ou une opportunité apparaît, et le corps de {name} répond d’abord. Après un vrai oui, {name} prévient les personnes concernées de ce qui s’apprête à se faire — courtoisie, pas permission — puis avance. La vitesse vient après cette séquence, pas avant.",
+    nl: "Een ja vanuit de buik wil er zijn voordat {name} beweegt. Er verschijnt een persoon, een vraag of een kans, en hun lichaam antwoordt eerst. Na een echt ja vertelt {name} de mensen die het raakt wat er staat te gebeuren — beleefdheid, geen toestemming — en gaat dan. Snelheid komt na die volgorde, niet ervoor.",
+  },
+  "To Inform": {
+    en: "{name} is designed to start, but to tell the people it will touch before acting. Informing is courtesy, not permission. A short heads-up lowers resistance so their initiation can move. Skipping that step is when the world slams on the brakes.",
+    de: "{name} ist dafür gemacht anzufangen, aber den Betroffenen vorher zu sagen, was kommt. Informieren ist Höflichkeit, keine Erlaubnis. Ein kurzer Hinweis senkt den Widerstand, damit die Initiation laufen kann. Wird dieser Schritt übersprungen, bremst die Welt abrupt.",
+    es: "{name} tiene el diseño de empezar, pero de avisar a las personas a las que va a tocar antes de actuar. Informar es cortesía, no permiso. Un aviso breve baja la resistencia para que la iniciación pueda moverse. Saltar ese paso es cuando el mundo pisa el freno.",
+    fr: "{name} a le design de commencer, mais de prévenir les personnes concernées avant d’agir. Informer est une courtoisie, pas une permission. Un court préavis abaisse la résistance pour que l’initiation puisse avancer. Sauter cette étape, c’est alors que le monde donne un coup de frein.",
+    nl: "{name} is gemaakt om te starten, maar om de mensen die het raakt te vertellen vóór het handelen. Informeren is beleefdheid, geen toestemming. Een korte vooraankondiging verlaagt weerstand zodat hun initiatie kan bewegen. Die stap overslaan is wanneer de wereld op de rem gaat.",
+  },
+  "Wait for the Invitation": {
+    en: "{name}'s guidance belongs where they are recognized and asked in. They are not here to chase or prove. The right invitation lands in the right room; forcing it drains them. The useful pattern is to wait to be asked, then offer what they see.",
+    de: "Die Führung von {name} gehört dorthin, wo {name} erkannt und hineingebeten wird. {name} ist nicht hier, um hinterherzulaufen oder sich zu beweisen. Die richtige Einladung landet im richtigen Raum; sie zu erzwingen, zehrt aus. Das sinnvolle Muster: warten, bis man {name} fragt, und dann anbieten, was {name} sieht.",
+    es: "La guía de {name} encaja donde hay reconocimiento y una invitación a entrar. {name} no está aquí para perseguir o demostrar. La invitación correcta aterriza en la sala correcta; forzarla agota a {name}. El patrón útil es esperar a que se lo pidan, y entonces ofrecer lo que {name} ve.",
+    fr: "Le regard de {name} est à sa place dans les pièces où une reconnaissance et une invitation arrivent. {name} n’est pas là pour courir après ou faire ses preuves. La bonne invitation arrive dans la bonne pièce ; la forcer épuise {name}. Le schéma utile est d’attendre qu’on demande, puis d’offrir ce que {name} voit.",
+    nl: "Het inzicht van {name} hoort daar waar {name} herkend en binnengevraagd wordt. {name} is er niet om achterna te jagen of iets te bewijzen. De juiste uitnodiging landt in de juiste ruimte; het forceren put {name} uit. Het nuttige patroon is wachten tot er gevraagd wordt, en dan aanbieden wat {name} ziet.",
+  },
+  "Wait a Lunar Cycle": {
+    en: "For big choices, {name} does best sampling across about a month so clarity can settle. They take in people and places; rushing a decision often reflects the room they were just in, not them. Important calls need this time before they are locked.",
+    de: "Bei großen Entscheidungen ist {name} am besten, wenn über etwa einen Monat gesampelt wird, damit Klarheit sich setzen kann. {name} nimmt Menschen und Orte auf; eine überstürzte Entscheidung spiegelt oft den Raum, in dem {name} gerade war, nicht {name} selbst. Wichtige Entscheidungen brauchen diese Zeit, bevor sie festgemacht werden.",
+    es: "Para las decisiones grandes, {name} acierta más si prueba a lo largo de un mes, para que la claridad se asiente. {name} toma a las personas y los lugares; precipitarse suele reflejar la sala en la que {name} acaba de estar, no a {name}. Las llamadas importantes necesitan este tiempo antes de fijarse.",
+    fr: "Pour les grands choix, {name} s’en sort mieux en échantillonnant sur environ un mois, pour que la clarté puisse se poser. {name} absorbe les personnes et les lieux ; une décision précipitée reflète souvent la pièce d’où {name} vient, pas {name}. Les appels importants ont besoin de ce temps avant d’être verrouillés.",
+    nl: "Bij grote keuzes doet {name} het het best door ongeveer een maand te proeven, zodat helderheid kan landen. {name} neemt mensen en plekken in zich op; te snel beslissen weerspiegelt vaak de ruimte waar {name} net was, niet {name} zelf. Belangrijke keuzes hebben deze tijd nodig voordat ze worden vastgezet.",
+  },
+};
+
+export const SNAPSHOT_DEFINITION_OTHER_COPY: Record<string, ByLocale> = {
+  "None (Reflector)": {
+    en: "Nothing in {name} stays always-on in the same way. They sample and reflect the people and places around them, so environment matters more than a fixed inner weather. Rooms that feel like them help; that openness is not a missing piece.",
+    de: "In {name} bleibt nichts auf dieselbe Weise immer an. {name} nimmt Menschen und Orte auf und spiegelt sie, darum zählt die Umgebung mehr als ein festes inneres Wetter. Räume, die sich nach {name} anfühlen, helfen; diese Offenheit ist kein fehlendes Stück.",
+    es: "En {name} nada se queda siempre encendido de la misma manera. {name} prueba y refleja a las personas y los lugares de alrededor, así que el entorno importa más que un clima interior fijo. Las salas que se sienten como {name} ayudan; esa apertura no es una pieza que falte.",
+    fr: "Rien chez {name} ne reste toujours allumé de la même façon. {name} échantillonne et reflète les personnes et les lieux autour, donc l’environnement compte plus qu’un climat intérieur fixe. Les pièces qui ressemblent à {name} aident ; cette ouverture n’est pas une pièce manquante.",
+    nl: "In {name} blijft niets op dezelfde manier altijd aan. {name} proeft en weerspiegelt de mensen en plekken eromheen, dus omgeving telt meer dan een vast innerlijk weer. Ruimtes die voelen als {name} helpen; die openheid is geen ontbrekend stuk.",
+  },
+  "Single": {
+    en: "{name}'s always-on themes link as one stream, so they can often think and act without waiting for someone to bridge a gap. That can feel self-contained. Other people still matter — just not as wiring they lack.",
+    de: "Die immer-an Themen von {name} sind als ein Strom verbunden, darum kann {name} oft denken und handeln, ohne auf eine Brücke von außen zu warten. Das kann in sich geschlossen wirken. Andere Menschen zählen trotzdem — nur nicht als fehlende Verdrahtung.",
+    es: "Los temas siempre encendidos de {name} se enlazan en un solo flujo, así que {name} puede pensar y actuar a menudo sin esperar a que alguien cubra un hueco. Eso puede sentirse autónomo. Las otras personas siguen importando — solo que no como un cableado que a {name} le falte.",
+    fr: "Les thèmes toujours allumés de {name} forment un seul flux, donc {name} peut souvent penser et agir sans attendre que quelqu’un comble un écart. Cela peut sembler autonome. Les autres personnes comptent encore — juste pas comme un câblage qui manquerait à {name}.",
+    nl: "De altijd-aan thema's van {name} hangen als één stroom samen, dus {name} kan vaak denken en handelen zonder te wachten tot iemand een gat overbrugt. Dat kan op zichzelf staand voelen. Andere mensen blijven ertoe doen — alleen niet als bedrading die {name} zou missen.",
+  },
+  "Split": {
+    en: "{name} runs in two steady clusters that do not fully connect on their own. Some people or places feel oddly completing — they temporarily bridge the gap. Notice the magnet, then still decide as {name}. They do not have to fuse with every person who bridges them.",
+    de: "{name} läuft in zwei stetigen Clustern, die sich nicht von allein vollständig verbinden. Manche Menschen oder Orte fühlen sich merkwürdig vervollständigend an — sie überbrücken die Lücke vorübergehend. Den Magneten bemerken, und trotzdem als {name} entscheiden. {name} muss nicht mit jeder Person verschmelzen, die eine Brücke baut.",
+    es: "{name} funciona en dos grupos estables que no se conectan del todo por sí solos. Algunas personas o lugares se sienten extrañamente completadores — cubren el hueco un tiempo. Conviene notar el imán, y aun así decidir como {name}. {name} no tiene que fusionarse con cada persona que le hace de puente.",
+    fr: "{name} fonctionne en deux grappes stables qui ne se relient pas complètement toutes seules. Certaines personnes ou certains lieux semblent étrangement compléter — elles comblent l’écart un moment. Repérer l’aimant, puis quand même décider en tant que {name}. {name} n’a pas à fusionner avec chaque personne qui fait le pont.",
+    nl: "{name} loopt in twee vaste clusters die niet vanzelf helemaal verbinden. Sommige mensen of plekken voelen vreemd compleet makend — ze overbruggen het gat tijdelijk. Merk de magneet op, en besluit toch als {name}. {name} hoeft niet samen te smelten met iedereen die een brug slaat.",
+  },
+  "Triple Split": {
+    en: "{name} has three separate clusters that do not all link through their own channels. Varied people and places often help them finish processing. One sealed room is rarely enough. Circulation and a bit of time help the pieces settle.",
+    de: "{name} hat drei getrennte Cluster, die nicht alle über die eigenen Kanäle verbunden sind. Verschiedene Menschen und Orte helfen oft, die Verarbeitung abzuschließen. Ein einziger geschlossener Raum reicht selten. Bewegung und etwas Zeit helfen den Teilen, sich zu setzen.",
+    es: "{name} tiene tres grupos separados que no se enlazan todos por sus propios canales. Personas y lugares variados suelen ayudar a {name} a terminar de procesar. Una sola sala cerrada rara vez basta. Circulación y un poco de tiempo ayudan a que las piezas se asienten.",
+    fr: "{name} a trois grappes séparées qui ne se relient pas toutes par ses propres canaux. Des personnes et des lieux variés aident souvent {name} à finir de traiter. Une seule pièce fermée suffit rarement. De la circulation et un peu de temps aident les morceaux à se poser.",
+    nl: "{name} heeft drie aparte clusters die niet allemaal via de eigen kanalen verbinden. Wisselende mensen en plekken helpen {name} vaak het verwerken af te ronden. Eén afgesloten kamer is zelden genoeg. Circulatie en een beetje tijd helpen de stukken te landen.",
+  },
+  "Quadruple Split": {
+    en: "{name} has four separate clusters, which is uncommon. Feeling whole often depends on environment and timing. Variety is functional, not a flaw. Wholeness measures better across a day or a week than in one frozen moment.",
+    de: "{name} hat vier getrennte Cluster, was ungewöhnlich ist. Sich ganz zu fühlen hängt oft von Umgebung und Timing ab. Vielfalt ist funktional, kein Fehler. Ganzheit misst man besser über einen Tag oder eine Woche als in einem eingefrorenen Moment.",
+    es: "{name} tiene cuatro grupos separados, lo cual es poco frecuente. Sentirse completo suele depender del entorno y del momento. La variedad es funcional, no un defecto. La integridad se mide mejor a lo largo de un día o una semana que en un instante congelado.",
+    fr: "{name} a quatre grappes séparées, ce qui est peu courant. Se sentir entier dépend souvent de l’environnement et du timing. La variété est fonctionnelle, pas un défaut. L’unité se mesure mieux sur un jour ou une semaine que dans un instant figé.",
+    nl: "{name} heeft vier aparte clusters, wat ongewoon is. Heel voelen hangt vaak af van omgeving en timing. Variatie is functioneel, geen fout. Heelheid meet je beter over een dag of een week dan in één bevroren moment.",
+  },
+};
+
+/** Other-person Emotional + respond connector (same gate as the you-voice connector). */
+export const SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER: ByLocale = {
+  en: "A gut yes is only the first signal. The emotional wave needs to settle before a big call is locked.",
+  de: "Ein Ja aus dem Bauch ist nur das erste Signal. Die emotionale Welle muss sich setzen, bevor eine große Entscheidung festgemacht wird.",
+  es: "Un sí del cuerpo es solo la primera señal. La ola emocional necesita asentarse antes de fijar una decisión grande.",
+  fr: "Un oui du corps n’est que le premier signal. La vague émotionnelle a besoin de se poser avant qu’un grand choix soit verrouillé.",
+  nl: "Een ja vanuit de buik is alleen het eerste signaal. De emotionele golf moet landen voordat een grote keuze wordt vastgezet.",
+};
+
+/** Fill `{name}` in an other-person template. */
+export function withPersonName(template: string, name: string): string {
+  return template.replaceAll("{name}", name);
+}
+
+export function snapshotStrategyOtherCopy(strategy: string, locale: Locale, name: string): string | undefined {
+  const template = SNAPSHOT_STRATEGY_OTHER_COPY[strategy]?.[locale];
+  return template === undefined ? undefined : withPersonName(template, name);
+}
+
+export function snapshotDefinitionOtherCopy(definition: string, locale: Locale, name: string): string | undefined {
+  const template = SNAPSHOT_DEFINITION_OTHER_COPY[definition]?.[locale];
+  return template === undefined ? undefined : withPersonName(template, name);
+}

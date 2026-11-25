@@ -14,10 +14,18 @@ import { ChartTypeBox } from "@/components/ChartTypeBox";
 import { ChartDisclosure } from "@/components/ChartDisclosure";
 import {
   SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR,
+  SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER,
   needsEmotionalRespondConnector,
   snapshotDefinitionCopy,
+  snapshotDefinitionOtherCopy,
   snapshotStrategyCopy,
+  snapshotStrategyOtherCopy,
 } from "@/lib/essays/snapshotShortCopy";
+import {
+  snapshotAuthorityOtherPlain,
+  snapshotCenterOtherTip,
+  snapshotProfileOtherLine,
+} from "@/lib/essays/snapshotOtherPersonCopy";
 import {
   SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT,
   isEnvironmentName,
@@ -1191,6 +1199,12 @@ function ProfilePage() {
   const hangingGates =
     (chart?.hanging_gates as Array<{ held?: number; missing?: number; channel?: string }>) || [];
   const watch = centersToWatch(undefinedCenters, 3);
+  // Other-person Snapshot copy uses the Type box gate: a friend slot, or a saved non-self chart.
+  const snapshotPersonName =
+    selectedSavedRow &&
+    (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
+      ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
+      : undefined;
   const typeKey = String(chart?.type || "");
   const profileStr = String(chart?.profile || "");
   const authorityStr = String(chart?.authority || "");
@@ -2062,7 +2076,11 @@ function ProfilePage() {
                   value={profileStr}
                   label={t("chart.people.profile")}
                 >
-                  <p className="type-body text-fg-secondary whitespace-pre-line">{profilePlainLine(profileStr)}</p>
+                  <p className="type-body text-fg-secondary whitespace-pre-line" data-testid="snapshot-profile-copy">
+                    {snapshotPersonName
+                      ? snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)
+                      : profilePlainLine(profileStr)}
+                  </p>
                 </ChartDisclosure>
                 <ChartDisclosure
                   testId="snapshot-how-you-decide"
@@ -2073,19 +2091,24 @@ function ProfilePage() {
                     {t("chart.people.strategy")}
                   </div>
                   <p className="mt-1 type-body text-fg-secondary" data-testid="snapshot-strategy-copy">
-                    {snapshotStrategyCopy(strategyStr, locale) ?? strategyStr}
+                    {(snapshotPersonName
+                      ? snapshotStrategyOtherCopy(strategyStr, locale, snapshotPersonName)
+                      : snapshotStrategyCopy(strategyStr, locale)) ?? strategyStr}
                   </p>
                   <div className="mt-3 type-caption uppercase tracking-wide text-fg-secondary">
                     {t("chart.people.authority")}
                   </div>
-                  <p className="mt-1 type-body text-fg-secondary">
-                    {AUTHORITY_PLAIN[authorityStr] ||
+                  <p className="mt-1 type-body text-fg-secondary" data-testid="snapshot-authority-copy">
+                    {(snapshotPersonName && snapshotAuthorityOtherPlain(authorityStr, locale, snapshotPersonName)) ||
+                      AUTHORITY_PLAIN[authorityStr] ||
                       AUTHORITY_COPY[authorityStr]?.summary ||
                       authorityStr}
                   </p>
                   {needsEmotionalRespondConnector(strategyStr, authorityStr) ? (
                     <p className="mt-2 type-body text-fg-secondary" data-testid="snapshot-emotional-respond-connector">
-                      {SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR[locale]}
+                      {snapshotPersonName
+                        ? SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER[locale]
+                        : SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR[locale]}
                     </p>
                   ) : null}
                   {viewMode === "saved" && savedTimeUnknown ? (
@@ -2131,7 +2154,7 @@ function ProfilePage() {
                       <li key={w.center} className="type-body text-fg-secondary">
                         <span className="font-medium text-fg">{displayCenter(w.center)}</span>
                         {" — "}
-                        {w.tip}
+                        {(snapshotPersonName && snapshotCenterOtherTip(w.center, locale, snapshotPersonName)) || w.tip}
                       </li>
                     ))}
                   </ul>
@@ -2144,7 +2167,9 @@ function ProfilePage() {
                 label={t("chart.people.definition")}
               >
                 <p className="type-body text-fg-secondary" data-testid="snapshot-definition-copy">
-                  {snapshotDefinitionCopy(definitionStr, locale) ?? definitionStr}
+                  {(snapshotPersonName
+                    ? snapshotDefinitionOtherCopy(definitionStr, locale, snapshotPersonName)
+                    : snapshotDefinitionCopy(definitionStr, locale)) ?? definitionStr}
                 </p>
                 <SnapshotDeepDivePointer
                     label={t("chart.people.readMoreInDeepDive")}
@@ -2167,7 +2192,7 @@ function ProfilePage() {
                     </p>
                   ) : null}
                   <p className="type-body text-fg-secondary" data-testid="snapshot-environment-copy">
-                    {snapshotEnvironmentCopy(environmentName, locale)}
+                    {snapshotEnvironmentCopy(environmentName, locale, snapshotPersonName)}
                   </p>
                 </ChartDisclosure>
               )}

@@ -69,7 +69,8 @@
     "assert:day7-five-fixes": "npx tsx scripts/assert-day7-five-fixes.mjs",
     "assert:chart-snapshot-strategy-definition": "npx tsx scripts/assert-chart-snapshot-strategy-definition.mjs",
     "assert:chart-snapshot-clarity-pass": "npx tsx scripts/assert-chart-snapshot-clarity-pass.mjs",
-    "assert:chart-snapshot-environment-line": "npx tsx scripts/assert-chart-snapshot-environment-line.mjs"
+    "assert:chart-snapshot-environment-line": "npx tsx scripts/assert-chart-snapshot-environment-line.mjs",
+    "assert:chart-snapshot-panel-fixes": "npx tsx scripts/assert-chart-snapshot-panel-fixes.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
