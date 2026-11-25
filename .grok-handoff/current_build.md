@@ -1,63 +1,49 @@
-# Current build: Chart Snapshot clarity pass
+# Current build: Snapshot Environment line
 
 - **Date:** 2026-11-25 (Asia/Bangkok, UTC+7)
-- **Brief:** `/workspace/reports/baseline-chart-snapshot-clarity-pass-build-brief-2026-11-25.md`, sha256 `7c5948cac1c523db8c8ca8468ae9a52ceae63db7a309ce6204708d6918374c02` (verified before build)
-- **Go:** Benjamin, 1:51 PM Bangkok, 25 Nov 2026: "Go — build the Snapshot clarity brief against main 497a750." This approves the build only. It is not a merge yes.
-- **Base:** main `497a7506b3ccedcce94e3c2d58d2ff5209dde59b` (origin/main verified after fetch)
-- **Branch:** `feat/chart-snapshot-clarity-pass` (worktree `/workspace/hd-snapshot-clarity`)
-- **Code commit:** `a67ca6622fc937edac799d27a122a0706e966202`. The PR tip is the handoff commit on top of it. Take the exact tip from `gh pr view`.
-- **Ships:** frontend only, Vercel only. No backend, env, schema, lockfile, or Railway changes.
+- **Brief:** `/workspace/reports/baseline-snapshot-environment-line-build-brief-2026-11-25.md`, sha256 `681c6bae864ad476b945017166880fd241309afeca5227c07ef452e2bd34e356` (verified before build)
+- **Go:** Benjamin's Go (relayed 25 Nov 2026, 3:10 PM Bangkok) approves the build only. It is not a merge or ship yes.
+- **Base:** main `e3901e385d5d15e88b333a1fa4af040f3de1d193` (merge of #148; origin/main verified after fetch)
+- **Branch:** `feat/snapshot-environment-line` (worktree `/workspace/hd-snapshot-environment`)
+- **Code commit:** `859cfb1`. The PR tip is the handoff commit on top of it. Take the exact tip from `gh pr view`.
+- **Ships (later, after a tip-bound merge yes only):** frontend **and** backend together — Vercel + Railway. A Vercel-only deploy would show no Environment box (the page hides it when the API sends no `environment`), so the brief forbids shipping one side alone. No env, schema, migration or lockfile changes.
 
-## What changed (all on /profile #snapshot)
-1. **Strategy merged into How you decide.** The `snapshot-strategy` box is removed.
-   - Collapsed: `How you decide: {authority} · {strategy}`, with the locale label and English values.
-   - Body, in order:
-     - **Strategy** subhead, then the locked short copy
-     - **Authority** subhead, then `AUTHORITY_PLAIN` (unchanged)
-     - the Emotional + respond connector (default 5 only)
-     - the time-unknown caveat
-     - `Read more in Deep dive`, which jumps to `#deep-dive`
-2. **Label-first titles.** `ChartDisclosure` renders `<label>: <value>`: label semibold, value `font-medium text-growth`. The Type box title is now `Type: Projector`, or `Kenji · Type: Projector` for someone else. The essay, Preview and placement are unchanged.
-3. **Short copy.** The new `frontend/src/lib/essays/snapshotShortCopy.ts` holds 5 strategies × 5 locales, 5 definitions × 5 locales and the connector × 5, taken verbatim from the brief tables. A programmatic check found 0 diffs against the brief, and every string is within 80 words / 500 chars. Snapshot no longer renders `ChartSummaryLearnMore` / `learnMore`.
-4. **Animation.** `ChartDisclosure` opens and closes with a ~220ms Web Animations height and opacity animation. Under `prefers-reduced-motion: reduce` it uses the native instant toggle. The Type box has no animation.
-5. **Layout.** Profile and How you decide stay in the `sm:grid-cols-2` row. Centers to watch is full width. Definition is full width below it, with the short copy and the Deep dive pointer.
-6. **i18n.** New keys `chart.people.authority` ("Authority" in all locales) and `chart.people.readMoreInDeepDive` (the locked pointer strings), so catalog parity holds. `chart.bodygraphModule.typeDetails` is kept but no longer shown. "Type" is a literal English feature name, like the Deep dive `title="Type"`.
+## What changed
+### Backend
+1. `app/hd/mandala.py`: `COLOR_SPAN = LINE_SPAN/6` (0.15625°), `TONE_SPAN = COLOR_SPAN/6`, `longitude_to_color_tone()` on the same 302° wheel; the exact end of a line/Color clamps to 6.
+2. `app/hd/environment.py` (new): Environment = Color of the Design North Node, asserted equal to the Design South Node (mismatch raises `EnvironmentNodeMismatch`). 1 Caves, 2 Markets, 3 **Workshops** (comment: traditional HD 'Kitchens'), 4 Mountains, 5 Valleys, 6 Shores. Tone 1–3 left, 4–6 right (API only, not shown).
+3. `calculate_chart` adds flat `environment`, `environment_color`, `environment_tone`, `environment_orientation` (from exact node longitudes). `activations[].color` is untouched.
+4. `GET /charts/{user_id}`: `chart` is `with_environment(chart_json)` — derived on read from the stored design-node longitudes, no migration and no write-back. If those longitudes are missing (or the rounded stored NN/SN disagree at a boundary), the keys are omitted and the page omits the box.
+
+### Frontend (/profile #snapshot only)
+1. New last disclosure `ChartDisclosure testId="snapshot-environment"`, full width after Definition (outside the 2-col row), collapsed, label-first `Environment: Mountains`. Feature name and values English in every locale.
+2. `time_unknown` true → title `Environment: {Value} ({marker})` (approximate / ungefähr / aproximado / approximatif / ongeveer) and the locked caveat first in the body. Known time (incl. a deliberate noon) and legacy null → no mark, no caveat. The How you decide caveat is unchanged.
+3. Body is the locked short copy (6 Colors × 5 locales, verbatim from the brief, all ≤ 80 words / 500 chars). No Deep dive pointer.
+4. Copy lives in the new `src/lib/essays/snapshotEnvironmentCopy.ts` (reuses the clarity-pass budget constants). The three locked clarity-pass maps are untouched (digest `0f9cf0b7…` still passes).
+5. i18n: `chart.people.environment` = `Environment` ×5 (parity holds).
+6. **Decision:** unsaved previews also carry the mark. A new `previewTimeUnknown` state is set when "Preview without saving" runs, so `environmentApprox = saved ? savedTimeUnknown : preview ? previewTimeUnknown : false`.
 
 ## Files
-- `frontend/src/components/ChartDisclosure.tsx`
-- `frontend/src/components/ChartTypeBox.tsx`: title order only
-- `frontend/src/app/profile/page.tsx`: #snapshot only. The #bodygraph card sha `b5a68485…` is unchanged.
-- `frontend/src/lib/essays/snapshotShortCopy.ts` (new)
-- `frontend/src/lib/i18n/messages/{en,de,es,fr,nl}.ts`: +2 keys each
-- `frontend/package.json`: adds the `assert:chart-snapshot-clarity-pass` script only. Lockfile untouched.
-- Asserts:
-  - new: `scripts/assert-chart-snapshot-clarity-pass.mjs`
-  - updated: `assert-chart-snapshot-strategy-definition.mjs`, `assert-chart-bodygraph-revert.mjs`, `test-chart-bodygraph-revert-interactions.cjs`, `assert-day5-top5-fixes.mjs` (item m)
+- Backend (+391 −1): `app/hd/mandala.py`, `app/hd/environment.py` (new), `app/hd/chart.py`, `app/api/routes.py`, `tests/test_environment.py` (new), `tests/test_chart_reference.py`
+- Frontend (+279 −12): `src/app/profile/page.tsx`, `src/lib/essays/snapshotEnvironmentCopy.ts` (new), `src/lib/i18n/messages/{en,de,es,fr,nl}.ts` (+1 key each), `package.json` (+1 assert script; lockfile untouched), asserts: new `scripts/assert-chart-snapshot-environment-line.mjs`; updated `assert-chart-snapshot-strategy-definition.mjs`, `assert-chart-bodygraph-revert.mjs`, `assert-chart-snapshot-clarity-pass.mjs` (4 → 5 boxes; pointer count stays 2; frozen-file hashes and copy digest unchanged)
 
-Frozen, and byte-identical to 497a750 (pinned in the new assert):
-- `hdCopy.ts`, `hdCopy.es.ts`, `hdCopy.nl.ts`
-- `strategySummaryOverlay.ts`
-- `ChartDeepDive.tsx`
-- `ChartSummaryLearnMore.tsx`
-- `BodyGraph.tsx`
+## Reference pins
+- **Ra Uru Hu** (`test_ra_uru_hu_reference`, 9 Apr 1948 00:05 Montreal): Design NN 23.3 → **Shores**, Color 6, Tone 2, left. Published match: Ra's own Environment lecture in "Radical Transformations – The Four Lectures" (Jovian Archive, 2006): on Shores, "This is mine."; Maia Mechanics (Jovian-licensed) per thehumandesignsystem.com founder-chart post: Design Nodes Tone 2.
+- **Obama cross-check** (`test_environment.py`, 4 Aug 1961 19:24 HST Honolulu): Design NN 59.4 → Color 3, Tone 3 → **Workshops** (published "Environment Left 3", traditional Kitchens; omnicharts.app; NN 59.4 also on the humandesignsystem.com chart PDF).
 
 ## Preview
-- `http://127.0.0.1:3163`, started by `/workspace/day7-tools/start-snapshot-clarity.sh` (log `/workspace/day7-tools/snapshot-clarity-3163.log`). Production build of this branch.
-- It uses the local API on :8159 (day7.sqlite, invented accounts only). :3159 and :3161 are left running.
+- Frontend `http://127.0.0.1:3165` (`/workspace/day7-tools/start-snapshot-environment.sh`, log `snapshot-environment-3165.log`), production build of this branch with the API rewrite baked in.
+- Local API `http://127.0.0.1:8165` from this worktree's backend (`/workspace/day7-tools/start-env-api.sh`, log `env-api-8165.log`) on its own copy `/workspace/day7-tools/env3165.sqlite`. :8159/day7.sqlite is untouched.
+- Invented local accounts only. Seeded on the copy: mge friends Ines (#11, time unknown → Workshops, approximate) and Lena (#12, known noon → Workshops); Theo (#10) set to legacy `time_unknown = NULL` (Valleys, no mark).
+- :3159, :3161, :3163 left running.
 
 ## Tests
-- `tsc --noEmit`: clean.
-- `next lint`: 0 errors, 6 warnings. Main also has 6 warnings.
-- `next build`: OK.
-- 61 of 62 `assert:*` scripts PASS, and the revert-interactions test PASSes.
-  - `today-protocols-ia` is red as expected, with the same failure as main ("transits/page.tsx missing quieter 'Conditioning notes'").
-  - `day7-five-fixes` and `chart-snapshot-strategy-definition` are green. The #147 MG Deep dive summaries are still pinned.
-- **Browser** (Playwright, headless): 11 runs × 320/375/390/desktop, plus 375 with reduced motion.
-  - Charts: Generator/Sacral; Projector/Splenic; MG/Emotional in en/de/fr/es/nl; Manifestor/Emotional; Reflector/Lunar/None; Projector/Emotional (Noor, p9); MG/Sacral (Theo, p10).
-  - `check-captures.mts`: 0 failures. It checks titles, the 44px minimum, overflow, the open/close animation and reduced-motion instant, locked copy equality, connector placement, the pointers, and the pointer jump.
-- Evidence: `/workspace/reports/chart-snapshot-clarity-pass-2026-11-25/` (README.md, snapshot-matrix.md, copy-limits.tsv, screenshots).
+- Backend pytest on clean `git archive` copies: base e3901e3 **25 failed / 259 passed**; PR **25 failed / 293 passed**; identical failing set (+34 new passing tests).
+- `tsc --noEmit` clean; `next lint` 0 errors / 6 warnings (same as main); `next build` OK.
+- 62 of 63 `assert:*` PASS incl. the new `assert:chart-snapshot-environment-line`; `today-protocols-ia` is the expected red (same as main). Revert-interactions test PASS.
+- Browser (Playwright headless, 320/375/390/desktop): all six Colors, time known / unknown / known noon / legacy null / unsaved preview with unknown time, en + de/es/fr/nl. `check-captures.py`: 54 captures, 0 failing.
+- Evidence: `/workspace/reports/snapshot-environment-line-2026-11-25/`
 
 ## Open questions
-1. `chart.bodygraphModule.typeDetails` is now unused in the UI but kept in all five catalogs, and the bodygraph-revert assert still requires it. Should a later cleanup remove it?
-2. The Snapshot copy has no English fallback. If `chart_json` ever returns a strategy or definition outside the official five, the body shows the raw value (the same fallback pattern as before).
-3. ES "To Respond (then inform)" is 61 words. That is inside the 80-word cap but one over the 35–60 target. It is locked verbatim from the brief.
+1. The Ra pin rests on Ra's own lecture statement plus a Jovian-licensed Tone 2 read, not a printed Variables chart (Jovian/Genetic Matrix/myBodygraph Variables need an account). Both agree with Baseline's Shores.
+2. Preview mode (unsaved) also shows the approximate mark via the new `previewTimeUnknown` (the brief only names saved `time_unknown`).
