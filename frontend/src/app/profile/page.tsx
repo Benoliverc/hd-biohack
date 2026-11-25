@@ -24,6 +24,7 @@ import {
 import {
   snapshotAuthorityOtherPlain,
   snapshotCenterOtherTip,
+  snapshotCentersOtherHelp,
   snapshotProfileOtherLine,
 } from "@/lib/essays/snapshotOtherPersonCopy";
 import {
@@ -2147,7 +2148,9 @@ function ProfilePage() {
                   label={t("chart.people.centersToWatch")}
                 >
                   <p className="mb-2 type-caption text-fg-secondary">
-                    {t("chart.people.openCentersHelp")}
+                    {snapshotPersonName
+                      ? snapshotCentersOtherHelp(locale, snapshotPersonName)
+                      : t("chart.people.openCentersHelp")}
                   </p>
                   <ul className="space-y-2">
                     {watch.map((w) => (

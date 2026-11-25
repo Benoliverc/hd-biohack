@@ -157,3 +157,16 @@ export function snapshotCenterOtherTip(center: string, locale: Locale, name: str
   const template = SNAPSHOT_OPEN_CENTER_WATCH_OTHER[snapshotBundleLocale(locale)][center];
   return template === undefined ? undefined : withPersonName(template, name);
 }
+
+/** Locked Centers caption for other-person charts (official UX B1 amendment, 25 Nov 2026). */
+export const SNAPSHOT_CENTERS_HELP_OTHER: Record<Locale, string> = {
+  en: "Open centers — where {name} can pick up other people’s energy (energy leaks to notice).",
+  de: "Offene Zentren — wo {name} die Energie anderer aufnehmen kann (Energielecks, die es zu bemerken gilt).",
+  es: "Centros abiertos — donde {name} puede recoger la energía de otras personas (fugas de energía a notar).",
+  fr: "Centres ouverts — là où {name} peut prendre l’énergie des autres (fuites d’énergie à remarquer).",
+  nl: "Open centra — waar {name} de energie van anderen kan oppikken (energielekken om op te merken).",
+};
+
+export function snapshotCentersOtherHelp(locale: Locale, name: string): string {
+  return withPersonName(SNAPSHOT_CENTERS_HELP_OTHER[locale], name);
+}

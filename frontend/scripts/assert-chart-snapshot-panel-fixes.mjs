@@ -136,6 +136,44 @@ assert.doesNotMatch(snapshot, /label=\{[^}]*snapshotPersonName/, "titles stay as
 for (const f of ["src/lib/hdCopy.ts", "src/lib/essays/hdCopy.es.ts", "src/lib/essays/hdCopy.nl.ts", "src/components/ChartDeepDive.tsx"])
   assert.doesNotMatch(read(f), /snapshotPersonName|OTHER_COPY/, `${f} not touched by other-person overlays`);
 
+// Official UX B1: locked help ×5 locales, unchanged self caption, person and locale switching.
+const { catalogs } = await import("../src/lib/i18n/messages/index.ts");
+const { resolveHdCopy } = await import("../src/lib/essays/resolveHdCopy.ts");
+const HELP_SELF = {
+  "en": "Open centers — where you can pick up other people’s energy (energy leaks to notice).",
+  "de": "Offene Zentren — wo du die Energie anderer aufnehmen kannst (Energielecks, die es zu bemerken gilt).",
+  "es": "Centros abiertos — donde puedes recoger la energía de otras personas (fugas de energía a notar).",
+  "fr": "Centres ouverts — là où tu peux prendre l’énergie des autres (fuites d’énergie à remarquer).",
+  "nl": "Open centra — waar je de energie van anderen kunt oppikken (energielekken om op te merken)."
+};
+const HELP_OTHER = {
+  "en": "Open centers — where {name} can pick up other people’s energy (energy leaks to notice).",
+  "de": "Offene Zentren — wo {name} die Energie anderer aufnehmen kann (Energielecks, die es zu bemerken gilt).",
+  "es": "Centros abiertos — donde {name} puede recoger la energía de otras personas (fugas de energía a notar).",
+  "fr": "Centres ouverts — là où {name} peut prendre l’énergie des autres (fuites d’énergie à remarquer).",
+  "nl": "Open centra — waar {name} de energie van anderen kan oppikken (energielekken om op te merken)."
+};
+assert.deepEqual(other.SNAPSHOT_CENTERS_HELP_OTHER, HELP_OTHER);
+for (const l of LOCALES) {
+  assert.equal(catalogs[l]["chart.people.openCentersHelp"], HELP_SELF[l], `${l} self unchanged`);
+  assert.equal(other.snapshotCentersOtherHelp(l, "Juno"), HELP_OTHER[l].replace("{name}", "Juno"));
+  assert.doesNotMatch(other.snapshotCentersOtherHelp(l, "Juno"), /\b(you|du|tu|tú|je|vous|Sie|usted|uw)\b/);
+}
+assert.match(snapshot, /snapshotPersonName\s*\? snapshotCentersOtherHelp\(locale, snapshotPersonName\)\s*: t\("chart\.people\.openCentersHelp"\)/, "help shares tips person gate");
+for (const l of ["en", "es", "en"]) {
+  for (const name of ["Juno", "", "Vale", ""]) {
+    const help = name ? other.snapshotCentersOtherHelp(l, name) : catalogs[l]["chart.people.openCentersHelp"];
+    const tip = name ? other.snapshotCenterOtherTip("Sacral", l, name) : resolveHdCopy(l).OPEN_CENTER_WATCH.Sacral;
+    if (name) {
+      assert.ok(help.includes(name) && tip.includes(name));
+      assert.doesNotMatch(help + tip, /\b(you|your|puedes|tienes|tu)\b/i);
+    } else {
+      assert.equal(help, HELP_SELF[l]);
+      assert.doesNotMatch(help + tip, /Juno|Vale/);
+    }
+  }
+}
+
 // --- (3) Deep dive: closer exactly once on all twelve official profiles ---
 const CLOSER =
   "One more anchor\nReturn to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.";
