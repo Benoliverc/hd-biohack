@@ -11,7 +11,7 @@ process.on("exit", () => fs.rmSync(scratch, { recursive: true, force: true }));
 require("esbuild").buildSync({
   stdin: {
     contents:
-      'export {ChartTypeBox} from "./src/components/ChartTypeBox"; export {ChartDisclosure} from "./src/components/ChartDisclosure"; export {I18nProvider} from "./src/lib/i18n";',
+      'export {ChartTypeBox} from "./src/components/ChartTypeBox"; export {ChartDisclosure, SnapshotExclusiveGroup} from "./src/components/ChartDisclosure"; export {I18nProvider} from "./src/lib/i18n";',
     resolveDir: frontend,
   },
   outfile: path.join(scratch, "bundle.cjs"),
@@ -46,7 +46,7 @@ window.history = {
 };
 global.localStorage = { getItem: () => null, setItem: (...a) => storageWrites.push(a) };
 global.document = { documentElement: { lang: "en" } };
-const { ChartTypeBox, ChartDisclosure, I18nProvider } = require(path.join(scratch, "bundle.cjs"));
+const { ChartTypeBox, ChartDisclosure, SnapshotExclusiveGroup, I18nProvider } = require(path.join(scratch, "bundle.cjs"));
 const flush = () => act(async () => { await Promise.resolve(); });
 const text = (n) => (typeof n === "string" ? n : (n.children ?? []).map(text).join(""));
 
@@ -56,10 +56,12 @@ async function main() {
   const page = () =>
     React.createElement(I18nProvider, { accountLocale: "en" },
       React.createElement(ChartTypeBox, { actualType: "Projector" }),
-      React.createElement(ChartDisclosure, { testId: "snapshot-profile", value: "5/1", label: "Profile" }, "PROFILE BODY"),
-      React.createElement(ChartDisclosure, { testId: "snapshot-how-you-decide", value: "Splenic · Wait for the Invitation", label: "How you decide" }, "DECIDE BODY"),
-      React.createElement(ChartDisclosure, { id: "snapshot-centers", testId: "snapshot-centers", openOnHash: true, value: "Head", label: "Centers to watch" }, "CENTERS BODY"),
-      React.createElement(ChartDisclosure, { testId: "snapshot-definition", value: "Split", label: "Definition" }, "DEFINITION BODY"),
+      React.createElement(SnapshotExclusiveGroup, null,
+        React.createElement(ChartDisclosure, { testId: "snapshot-profile", value: "5/1", label: "Profile" }, "PROFILE BODY"),
+        React.createElement(ChartDisclosure, { testId: "snapshot-how-you-decide", value: "Splenic · Wait for the Invitation", label: "How you decide" }, "DECIDE BODY"),
+        React.createElement(ChartDisclosure, { id: "snapshot-centers", testId: "snapshot-centers", openOnHash: true, value: "Head", label: "Centers to watch" }, "CENTERS BODY"),
+        React.createElement(ChartDisclosure, { testId: "snapshot-definition", value: "Split", label: "Definition" }, "DEFINITION BODY"),
+      ),
     );
   await act(async () => { r = create(page()); });
   const details = () => r.root.findAllByType("details");
@@ -70,21 +72,31 @@ async function main() {
   assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, false, false, false], "all five start collapsed");
   assert.ok(text(byTest("snapshot-how-you-decide")).startsWith("How you decide: Splenic · Wait for the Invitation"), "merged label-first summary");
 
-  // Independent: opening one leaves the others as they are.
+  const typePointer = () => r.root.findByProps({ "data-testid": "chart-type-deep-dive-pointer" });
+  assert.equal(typePointer().props.href, "#deep-dive-type");
+  assert.equal(typePointer().props["aria-label"], "Read more about Type in Deep dive");
+  assert.equal(text(typePointer()), "Read more in Deep dive→");
+
+  // Snapshot disclosures are exclusive. The Type box is not in that group.
   toggle(byTest("snapshot-profile"), true);
   assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, true, false, false, false]);
   toggle(byTest("snapshot-how-you-decide"), true);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [false, false, true, false, false], "opening How you decide closes Profile");
   toggle(typeDetails(), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, true, false, false], "no exclusive accordion");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false], "Type box stays open and is not in the Snapshot group");
+  toggle(byTest("snapshot-profile"), true);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, true, false, false, false], "Profile closes How you decide; Type stays");
   toggle(byTest("snapshot-profile"), false);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false]);
-  // The merged How you decide and Definition open independently of each other and of the boxes above.
-  toggle(byTest("snapshot-how-you-decide"), false);
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, false, false, false], "closing the open Snapshot box leaves them collapsed");
   toggle(byTest("snapshot-definition"), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, false, false, true], "Definition opens alone");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, false, false, true], "Definition opens alone among Snapshot boxes");
   toggle(byTest("snapshot-how-you-decide"), true);
-  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, true], "How you decide independent of Definition");
+  assert.deepEqual(details().map((d) => Boolean(d.props.open)), [true, false, true, false, false], "How you decide closes Definition");
   toggle(byTest("snapshot-definition"), false);
+  window.history.replaceState(null, "", "#deep-dive-type");
+  await flush();
+  assert.equal(Boolean(typeDetails().props.open), true, "Read more hash leaves the Type box open");
+  assert.equal(Boolean(byTest("snapshot-how-you-decide").props.open), true, "Read more hash leaves Snapshot open");
 
   // Preview: Type-only, presentation-only.
   const button = (label) => r.root.findAllByType("button").find((b) => text(b).startsWith(label));
@@ -102,7 +114,9 @@ async function main() {
   assert.equal(Boolean(byTest("snapshot-centers").props.open), true, "#snapshot-centers opens Centers to watch");
   assert.equal(Boolean(typeDetails().props.open), false, "Type details close on navigation");
   assert.ok(!text(r.root).includes("Preview — not your chart"), "Preview clears on navigation");
-  assert.equal(Boolean(byTest("snapshot-how-you-decide").props.open), true, "other jumps do not close the Snapshot boxes");
+  assert.equal(Boolean(byTest("snapshot-how-you-decide").props.open), false, "hash-open closes the other Snapshot boxes");
+  assert.equal(Boolean(byTest("snapshot-profile").props.open), false);
+  assert.equal(Boolean(byTest("snapshot-definition").props.open), false);
 
   // Navigation elsewhere does not auto-close Centers.
   window.history.replaceState(null, "", "#deep-dive");
@@ -138,6 +152,6 @@ async function main() {
   await act(async () => button("Projector").props.onClick());
   assert.ok(text(r.root).includes("Preview — not their chart") && text(r.root).includes("Back to Kenji"));
   await act(async () => r.unmount());
-  console.log("PASS revert interactions: five boxes collapsed (Strategy merged into How you decide), independent toggles, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens via replaceState/hashchange/direct load, other-person voice.");
+  console.log("PASS revert interactions: five boxes collapsed (Strategy merged into How you decide), Snapshot exclusive-open, Type independent, Type Read more link, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens and closes the other Snapshot boxes, other-person voice.");
 }
 main().catch((e) => { console.error(e); process.exit(1); });

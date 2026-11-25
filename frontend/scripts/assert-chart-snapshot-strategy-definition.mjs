@@ -76,9 +76,10 @@ assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no lo
 assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{`\$\{authorityStr\} · \$\{strategyStr\}`\}/);
 assert.match(snapshot, /testId="snapshot-profile"\s+value=\{<span[^>]*>\{profilePresentation\(profileStr\)\.value\}/, "brief 94b01b1a: Profile summary includes canonical names");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
-// Graph + Type box card is byte-identical to 53ec65f.
+// Graph card is byte-identical except the Type box Read more callback (brief cb9f2727…).
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
-assert.equal(sha(card), "b5a68485937e0107918c907a7b25bdb760fe40c95038ce77133842f0ad5313b8", "Bodygraph card unchanged");
+const cardWithoutReadMore = card.replace(/\n\s*onReadMoreInDeepDive=\{\(\) => jumpToSection\("deep-dive-type"\)\}/, "");
+assert.equal(sha(cardWithoutReadMore), "b5a68485937e0107918c907a7b25bdb760fe40c95038ce77133842f0ad5313b8", "Bodygraph card unchanged except the Type Read more callback");
 
 // --- (d) Expanded bodies render exactly like the Deep dive accordions ---
 const { ChartSummaryLearnMore } = await import("../src/components/ChartSummaryLearnMore.tsx");

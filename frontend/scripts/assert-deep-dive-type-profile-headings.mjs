@@ -83,14 +83,15 @@ assert.match(dd,/title="Profile" subtitle=\{profilePresentation\(profile\)\.valu
 assert.match(dd,/\{profileLearnMore\(profile\)\}/,'existing combo resolver remains');
 assert.match(dd,/scrollMarginTop: "var\(--chart-scroll-mt\)"/);
 assert.match(dd,/if \(!details.open\) return/);
-assert.match(dd,/top < stickyBottom/);
+assert.match(dd,/top - stickyBottom/);
 assert.match(dd,/<h3 className="font-semibold">\{heading\}<\/h3>/);
 assert.match(dd,/<p className="mt-1 font-normal">\{body\}<\/p>/);
 const page=read('src/app/profile/page.tsx');
 assert.match(page,/<ChartDeepDive\s+personName=\{snapshotPersonName\}/);
 assert.match(page,/value=\{<span className="min-w-0 break-words">\{profilePresentation\(profileStr\)\.value\}/);
 assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
-// Frozen copy and geometry hashes are pinned to the exact approved base. No closer edits.
+// Frozen copy and geometry. ChartTypeBox and the five message catalogs are excepted by the
+// Read more brief (pointer + four aria-labels). Essays, briefs, and Bodygraph stay pinned.
 const frozen = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
@@ -98,15 +99,9 @@ const frozen = {
   "src/lib/hdProfileCombos.ts": "368e3032562c13cdefa1d2d41b0aafd82abe34e77e4c8650a59592e451eddf77",
   "src/lib/essays/hdProfileCombos.es.ts": "d82120dccc295a2e42ee35e5a06e3926fd5d4574fd4e002c396dc5103b4e752f",
   "src/lib/essays/hdProfileCombos.nl.ts": "1a4a15f87e73a685dfe029071d188b39e4a768e32965f740c21b1e154158db9e",
-  "src/components/ChartTypeBox.tsx": "a677803ac66fffaea4b09002b8002ba1914462a924876270fe1f501fd931530d",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
   "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/i18n/messages/en.ts": "6180071eee2bced37f94776cde8e5f25a989df90df9477cc3b87a81ec7d55362",
-  "src/lib/i18n/messages/de.ts": "4b54eca191738a962e450163a0922d21ce865b7487aabb9bc6dcde39042c506e",
-  "src/lib/i18n/messages/es.ts": "445bf4d6fd79ba7056003e6e1996a1c6248ca312a6073bfb3555fd157a1973c6",
-  "src/lib/i18n/messages/fr.ts": "28686e625ea41f5765beefaba53ceb382184c11fc27b21886e1dbada7613cba9",
-  "src/lib/i18n/messages/nl.ts": "a5045a7ef86ee312b71b1bd4264bd45567b4bfec1aa75d919640e3bd3a39d72d"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {
@@ -117,4 +112,4 @@ const essayHashes = {
   "nl": "e092103f91b103b3bec00cf9c8beb6b6d5317c2d595effbe49ee529d94a232af"
 };
 for(const [l,hash] of Object.entries(essayHashes)) assert.equal(sha(read(`src/lib/essays/deepDiveType.${l}.json`)),hash,`${l} locked essays`);
-console.log('PASS: 50 complete Type essays; 12 Profile headings × 5 locales × 2 voices; original briefs/combos/Type box frozen.');
+console.log('PASS: 50 complete Type essays; 12 Profile headings × 5 locales × 2 voices; original briefs/combos frozen.');
