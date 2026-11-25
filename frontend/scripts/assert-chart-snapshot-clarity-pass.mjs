@@ -123,13 +123,13 @@ assert.match(disclosure, /if \(prefersReducedMotion\(\)\) return; \/\/ native, i
 assert.match(disclosure, /className="min-h-11 /, "44px summary");
 assert.doesNotMatch(read("src/components/ChartTypeBox.tsx"), /animate\(|prefers-reduced-motion/, "no new Type box animation");
 
-// --- (f) Frozen: Deep dive, essays, graph ---
+// --- (f) Frozen: Deep dive amended by brief 94b01b1a…; essays and graph unchanged ---
 const FROZEN = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
   "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
   "src/lib/essays/strategySummaryOverlay.ts": "9e00df4d78a5c5db6ea972e8a312ada9da5a70c35cdd936c9a802317180ab7ca",
-  "src/components/ChartDeepDive.tsx": "261d660337e61e0fec094a951d310bdeadff6dcb1272f6f25effeccd6edb5ec5",
+  "src/components/ChartDeepDive.tsx": "39f24b4f0262e8d0727aaa535bdd435bc2384326c4d92c85393aa333ba496c68",
   "src/components/ChartSummaryLearnMore.tsx": "c959f936cc72e5528e56d5fb70c1cf983da1ecb9d53f21e85de4e416c90533af",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
 };

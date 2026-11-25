@@ -58,11 +58,10 @@ assert.match(routes, /def _done_kit_pick_ids\(/);
 assert.match(prescription, /pinned_kit_item_ids/);
 for (const l of locales) assert.ok(msg(l, "protocols.addedPlanRefreshed")?.includes("{name}"), `${l} addedPlanRefreshed`);
 
-// 4. Chart: Type is explained once (Type box under the Bodygraph); Deep dive only points to it.
+// 4. Brief 94b01b1a… replaces the pointer with a full Type row; short Type box unchanged.
 assert.doesNotMatch(deepDive, /TYPE_COPY/);
-assert.doesNotMatch(deepDive, /<Accordion\s+title="Type"/);
-assert.match(deepDive, /data-testid="deep-dive-type-pointer"/);
-assert.match(deepDive, /href="#chart-type-box"/);
+assert.match(deepDive, /<Accordion title="Type" subtitle=\{hdType\} testId="deep-dive-type"/);
+assert.doesNotMatch(deepDive, /deep-dive-type-pointer/);
 assert.match(typeBox, /id="chart-type-box"/);
 for (const l of locales) {
   assert.ok(!msgs[l].includes("chart.deepDive.typeBlurb"), `${l} old typeBlurb`);

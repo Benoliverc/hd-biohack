@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { deepDiveTypeSections } from "@/lib/essays/deepDiveTypeCopy";
+import { profilePresentation } from "@/lib/profilePresentation";
 import { displayCenter, type CenterKey } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 
@@ -37,16 +39,29 @@ function Accordion({
   subtitle,
   children,
   defaultOpen = false,
+  testId,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  testId?: string;
 }) {
   const { t } = useI18n();
   return (
     <details
       open={defaultOpen}
+      data-testid={testId}
+      style={testId === "deep-dive-type" ? { scrollMarginTop: "var(--chart-scroll-mt)" } : undefined}
+      onToggle={testId === "deep-dive-type" ? (event) => {
+        const details = event.currentTarget;
+        if (!details.open) return;
+        const top = details.getBoundingClientRect().top;
+        const stickyBottom = parseFloat(getComputedStyle(details).scrollMarginTop);
+        if (Number.isFinite(stickyBottom) && top < stickyBottom) {
+          window.scrollBy({ top: top - stickyBottom, behavior: "instant" });
+        }
+      } : undefined}
       className="group rounded-xl border border-border bg-elevated open:bg-elevated"
     >
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-left marker:content-none [&::-webkit-details-marker]:hidden">
@@ -273,19 +288,21 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
 
 export function ChartDeepDive({
   chart,
+  personName,
   personality,
   design,
   domain,
   onDomainChange,
 }: {
   chart: Chart;
+  personName?: string;
   personality: Array<Record<string, unknown>>;
   design: Array<Record<string, unknown>>;
   /** Controlled domain tab; falls back to hash / internal state when omitted. */
   domain?: DeepDiveDomain;
   onDomainChange?: (domain: DeepDiveDomain) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const {
     STRATEGY_COPY,
     AUTHORITY_COPY,
@@ -409,14 +426,14 @@ export function ChartDeepDive({
             <p className="text-xs text-fg-muted">
               {t("chart.deepDive.tapToExpand")}
             </p>
-            {/* Type is explained once, in the Chart Type box; Deep dive only points there. */}
-            <a
-              href="#chart-type-box"
-              data-testid="deep-dive-type-pointer"
-              className="flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-3 type-body text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              {t("chart.deepDive.typePointer", { type: hdType })}
-            </a>
+            <Accordion title="Type" subtitle={hdType} testId="deep-dive-type">
+              {deepDiveTypeSections(hdType, locale, personName).map(({ heading, body }, index) => (
+                <section key={heading} className={index ? "mt-3" : undefined}>
+                  <h3 className="font-semibold">{heading}</h3>
+                  <p className="mt-1 font-normal">{body}</p>
+                </section>
+              ))}
+            </Accordion>
             <Accordion title="Strategy" subtitle={strategy}>
               <SummaryLearnMore
                 info={STRATEGY_COPY[strategy]}
@@ -429,7 +446,7 @@ export function ChartDeepDive({
                 fallback={t("chart.deepDive.authorityBlurb")}
               />
             </Accordion>
-            <Accordion title="Profile" subtitle={profile}>
+            <Accordion title="Profile" subtitle={profilePresentation(profile).value}>
               {profileLearnMore(profile)}
             </Accordion>
             <Accordion title="Definition" subtitle={definition}>
