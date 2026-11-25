@@ -7,6 +7,7 @@ Commercial rules (not UI copy):
 """
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Any, Literal
 
 from .rules import MAIN_ACTION_MAX_WORDS, _word_count
@@ -299,6 +300,54 @@ def sky_changed_from_payload(payload: dict[str, Any] | None) -> bool:
     return False
 
 
+RECENT_MOVE_WINDOW_DAYS = 7
+
+
+def _served_move_days(
+    history: list[dict[str, Any]] | None,
+    day_key: str,
+    *,
+    window_days: int = RECENT_MOVE_WINDOW_DAYS,
+) -> dict[str, str]:
+    """Normalized Move headline -> most recent earlier day this person was served it."""
+    try:
+        floor = (date.fromisoformat(day_key) - timedelta(days=window_days)).isoformat()
+    except ValueError:
+        floor = ""
+    out: dict[str, str] = {}
+    for row in history or []:
+        if not str(row.get("item_id") or "").startswith("today-move:"):
+            continue
+        day = str(row.get("day") or "")
+        if not day or day >= day_key or (floor and day < floor):
+            continue
+        label = str(row.get("label") or "").strip()
+        if not label:
+            continue
+        norm = _norm_move_text(label)
+        if day > out.get(norm, ""):
+            out[norm] = day
+    return out
+
+
+def _served_today(
+    history: list[dict[str, Any]] | None,
+    day_key: str,
+    moment: str,
+) -> str | None:
+    """Headline already served for this moment on the current novelty day (same-day stability)."""
+    best_day = ""
+    best: str | None = None
+    for row in history or []:
+        if str(row.get("item_id") or "") != f"today-move:{moment}":
+            continue
+        day = str(row.get("day") or "")
+        label = str(row.get("label") or "").strip()
+        if day and day >= day_key and label and day >= best_day:
+            best_day, best = day, label
+    return best
+
+
 def select_move_text(
     moment: Moment,
     *,
@@ -307,39 +356,37 @@ def select_move_text(
     day_key: str,
     user_key: str | None = None,
     avoid_texts: list[str] | None = None,
+    avoid_today_texts: list[str] | None = None,
     prior_texts: list[str] | None = None,
     sky_changed: bool = False,
+    concrete: tuple[str, str] | None = None,
 ) -> tuple[str, str]:
-    """Pick a Move line for the moment; Pro may prefer finished lifestyle variants.
+    """Pick the Move headline for this person; returns (english_text, i18n_key).
 
-    Returns (english_text, i18n_key). English wording is unchanged.
-    When user_key is provided, selection is salted per account so the same
-    day+moment does not systematically reprint one sentence to every user.
-    When the sky has changed, prefer lines this person has not already been
-    offered and lines not already used by another account today.
+    Account path (user_key set):
+    - Same novelty day: keep the headline already served for this moment.
+    - Sky changed: lead with this person's already-generated concrete action (the
+      Space line in Why this) unless it was their last headline, even when another
+      account has the same accurate action. Otherwise a moment line they have not had
+      lately, preferring one no other account was served in the window; if all were,
+      the one others saw longest ago, but never a generic line another account already
+      has today. With nothing fresh left, the line this person saw longest ago (never
+      yesterday's).
+    - Sky unchanged: keep the last headline when it is still a candidate; never
+      invent a new sentence for unchanged signals.
+    Without a concrete action the moment lines rotate on this person's history.
+    Free / no-salt legacy path is unchanged.
     """
     import hashlib
 
     options = MOMENT_MOVES[moment]
-    prior = list(prior_texts) if prior_texts is not None else prior_move_texts(history, day_key)
     others = [t for t in (avoid_texts or []) if t]
-    prior_blocked = {_norm_move_text(t) for t in prior} if sky_changed else set()
     other_blocked = {_norm_move_text(t) for t in others} if sky_changed else set()
-    blocked = prior_blocked | other_blocked
-    idxs = list(range(len(options)))
-
-    def pool_for(cands: list[int]) -> list[int]:
-        both = [i for i in cands if _norm_move_text(options[i]) not in blocked]
-        if both:
-            return both
-        not_others = [i for i in cands if _norm_move_text(options[i]) not in other_blocked]
-        if not_others:
-            return not_others
-        not_prior = [i for i in cands if _norm_move_text(options[i]) not in prior_blocked]
-        return not_prior or cands
+    # avoid_texts arrive oldest-first; a higher rank means another account saw it more recently.
+    other_rank = {_norm_move_text(t): i for i, t in enumerate(others)} if sky_changed else {}
 
     # Legacy path (no account salt, no avoidance): keep Free default and Pro hash.
-    if not user_key and not blocked:
+    if not user_key and not other_blocked and not (sky_changed and (history or prior_texts)):
         if not pro or len(options) == 1:
             return _cap_words(options[0]), f"today.move.moment.{moment}.0"
         rates = _history_rates(history)
@@ -360,9 +407,66 @@ def select_move_text(
 
     salt = f"{day_key}|move|{moment}|{user_key or ''}"
     digest = int(hashlib.sha256(salt.encode()).hexdigest()[:8], 16)
-    pool = pool_for(idxs)
-    idx = pool[digest % len(pool)]
-    return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
+    # Candidates: concrete action first, then moment lines in this person's salted order.
+    order = [(digest + i) % len(options) for i in range(len(options))]
+    cands: list[tuple[str, str, bool]] = []
+    if concrete and str(concrete[0] or "").strip():
+        cands.append((_cap_words(concrete[0]), str(concrete[1] or ""), True))
+    cands.extend(
+        (_cap_words(options[i]), f"today.move.moment.{moment}.{i}", False) for i in order
+    )
+    by_norm = {_norm_move_text(text): (text, key) for text, key, _ in cands}
+
+    today = _served_today(history, day_key, moment)
+    if today and _norm_move_text(today) in by_norm:
+        return by_norm[_norm_move_text(today)]
+
+    served = _served_move_days(history, day_key)
+    if prior_texts is not None:
+        for text in prior_texts:
+            served.setdefault(_norm_move_text(text), "0000-00-00")
+
+    if not sky_changed:
+        if served:
+            latest = max(served.values())
+            for text, key, _ in cands:
+                if served.get(_norm_move_text(text)) == latest:
+                    return text, key
+        # No earlier headline to keep: this person's salted moment line.
+        idx = order[0]
+        return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
+
+    def fresh(c: tuple[str, str, bool]) -> bool:
+        return _norm_move_text(c[0]) not in served
+
+    concrete_c = cands[0] if cands and cands[0][2] else None
+    latest_day = max(served.values()) if served else ""
+    yesterday_norms = {n for n, d in served.items() if d == latest_day}
+    # The sky moved: this person's own concrete action leads unless it was their last
+    # headline. Another account having the same accurate action is not a reason to drop it.
+    if concrete_c and _norm_move_text(concrete_c[0]) not in yesterday_norms:
+        return concrete_c[0], concrete_c[1]
+    # Generic moment lines only below here. Another account already has this line today.
+    today_blocked = {_norm_move_text(t) for t in (avoid_today_texts or []) if t}
+    eligible = [c for c in cands if not c[2] and fresh(c)]
+    # Prefer a generic line no other account was served lately.
+    for c in eligible:
+        if _norm_move_text(c[0]) not in other_blocked:
+            return c[0], c[1]
+    open_today = [c for c in eligible if _norm_move_text(c[0]) not in today_blocked]
+    if open_today:
+        # Every eligible line was served to someone else lately: take the one seen longest ago.
+        text, key, _ = min(open_today, key=lambda c: other_rank.get(_norm_move_text(c[0]), -1))
+        return text, key
+    # Nothing fresh is free today: the line this person saw longest ago (never yesterday's),
+    # skipping lines another account already has today when possible.
+    pool = [
+        c for c in cands
+        if _norm_move_text(c[0]) not in today_blocked
+        and _norm_move_text(c[0]) not in yesterday_norms
+    ] or [c for c in cands if _norm_move_text(c[0]) not in yesterday_norms] or cands
+    text, key, _ = min(pool, key=lambda c: served.get(_norm_move_text(c[0]), ""))
+    return text, key
 
 
 def _slot_from_kit_when(when_text: str | None, fallback: WhenSlot) -> WhenSlot:
@@ -572,6 +676,10 @@ def _build_usual_delta(
     return None
 
 
+def _kit_item_id(kit_item: dict[str, Any]) -> str:
+    return f"today-kit:{kit_item.get('kit_supplement_id') or kit_item['name']}"
+
+
 def build_prescription(
     *,
     natal: dict[str, Any] | None,
@@ -590,7 +698,10 @@ def build_prescription(
     usual_when_by_name: dict[str, str] | None = None,
     user_key: str | None = None,
     avoid_move_texts: list[str] | None = None,
+    avoid_move_texts_today: list[str] | None = None,
     sky_changed: bool = False,
+    concrete_action: tuple[str, str] | None = None,
+    pinned_kit_item_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """
     Three-line Today prescription: Move + From your kit + When.
@@ -627,7 +738,9 @@ def build_prescription(
         day_key=day_key,
         user_key=user_key,
         avoid_texts=avoid_move_texts,
+        avoid_today_texts=avoid_move_texts_today,
         sky_changed=sky_changed,
+        concrete=concrete_action,
     )
     when: WhenSlot = MOMENT_WHEN[moment]
     noun = MOMENT_NOUN[moment]
@@ -643,7 +756,24 @@ def build_prescription(
     if show_live_kit:
         # Prefer ad-hoc (not usual) when a usual list exists.
         pick_pool = adhoc_owned if has_usual else owned
-        if pick_pool:
+        # Today's pick is pinned once ticked (while it is still on the shelf), so a later
+        # add or remove cannot swap a completed pick out of view.
+        if pinned_kit_item_ids:
+            for name in owned:
+                hit = pick_kit_for_moment(
+                    moment=moment,
+                    when=when,
+                    owned_names=[name],
+                    inventory_notes=inventory_notes,
+                    energy_label=energy_label,
+                    preferred_space=preferred_space,
+                    focus_centers=focus,
+                    day_key=day_key,
+                )
+                if hit and _kit_item_id(hit) in pinned_kit_item_ids:
+                    kit_item = hit
+                    break
+        if pick_pool and kit_item is None:
             kit_item = pick_kit_for_moment(
                 moment=moment,
                 when=when,
@@ -692,7 +822,7 @@ def build_prescription(
             "name": kit_item["name"],
             "dose": kit_item.get("dose") or "",
             "kit_supplement_id": kit_item.get("kit_supplement_id") or "",
-            "item_id": f"today-kit:{kit_item.get('kit_supplement_id') or kit_item['name']}",
+            "item_id": _kit_item_id(kit_item),
             "why": kit_item.get("why") or "",
             "when": kit_item["when"]
             if kit_item.get("when") in ("morning", "midday", "evening")
@@ -718,7 +848,9 @@ def attach_prescription(
     replace_main_action: bool = True,
     user_key: str | None = None,
     avoid_move_texts: list[str] | None = None,
+    avoid_move_texts_today: list[str] | None = None,
     sky_changed: bool | None = None,
+    pinned_kit_item_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Merge prescription into an indication payload. Mutates a shallow copy."""
     out = dict(indication)
@@ -740,7 +872,14 @@ def attach_prescription(
         usual_when_by_name=usual_when_by_name,
         user_key=user_key,
         avoid_move_texts=avoid_move_texts,
+        avoid_move_texts_today=avoid_move_texts_today,
         sky_changed=changed,
+        concrete_action=(
+            (str(out.get("main_action_micro") or ""), str(out.get("main_action_micro_key") or ""))
+            if out.get("main_action_micro")
+            else None
+        ),
+        pinned_kit_item_ids=pinned_kit_item_ids,
     )
     if replace_main_action and rx.get("move_text"):
         out["main_action_text"] = rx["move_text"]

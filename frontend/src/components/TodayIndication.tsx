@@ -169,7 +169,7 @@ export default function TodayIndication({
   const [upcomingPayload, setUpcomingPayload] = useState<UpcomingSkyPayload | null>(null);
   const upcomingReq = useRef(0);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const historyRef = useRef<HTMLDetailsElement>(null);
+  const historyLinkRef = useRef<HTMLButtonElement>(null);
   const [showUpMemoryDay, setShowUpMemoryDay] = useState<string | null>(null);
   const showUpRef = useRef<HTMLDivElement>(null);
 
@@ -472,7 +472,11 @@ export default function TodayIndication({
   const weatherMeaning = weatherMeaningLine(t, energy, space, natalType);
   const moveText = localizeMove(indication, t);
   const whyText = localizeWhy(indication, t);
-  const microText = localizeMicro(indication, t);
+  // When the Space action is already the Move headline, Why this keeps only the rationale.
+  const microText = (() => {
+    const micro = localizeMicro(indication, t);
+    return micro && micro.trim() === moveText.trim() ? "" : micro;
+  })();
   const driverLines = localizeDrivers(indication, t);
   const changeLine = changeLineLead(indication, t);
   // Quiet Energy/Space must not claim "same weather" when sky (Moon/Sun/bridges/centers) moved.
@@ -789,16 +793,32 @@ export default function TodayIndication({
                     </div>
                   ) : null}
                   <button
+                    ref={historyLinkRef}
                     type="button"
                     data-testid="today-history-link"
-                    className="mt-2 inline-flex min-h-11 items-center type-caption text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
+                    aria-expanded={historyOpen}
+                    aria-controls="today-earlier-weeks"
+                    className="mt-2 inline-flex min-h-11 scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] items-center gap-1.5 type-caption text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/30"
                     onClick={() => {
-                      setHistoryOpen(true);
+                      // One control opens and closes the list; never scroll it under the sticky nav.
+                      setHistoryOpen((v) => !v);
                       requestAnimationFrame(() => {
-                        historyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        const el = historyLinkRef.current;
+                        if (!el) return;
+                        const headerH =
+                          document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+                        if (el.getBoundingClientRect().top < headerH) {
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
                       });
                     }}
                   >
+                    <span
+                      aria-hidden
+                      className={`inline-block text-fg-muted transition-transform ${historyOpen ? "rotate-90" : ""}`}
+                    >
+                      ▸
+                    </span>
                     {t("history.earlierWeeks")}
                   </button>
                 </div>
@@ -809,7 +829,6 @@ export default function TodayIndication({
             {userId && chartId ? (
               <div className={historyOpen ? "mb-4" : "hidden"} data-testid="today-earlier-weeks-slot">
                 <EarlierWeeksHistory
-                  ref={historyRef}
                   testId="today-history"
                   userId={userId}
                   chartId={chartId}
@@ -817,7 +836,7 @@ export default function TodayIndication({
                   scope="today"
                   includeEveningClose={Boolean(normalizeHdType(natalType))}
                   open={historyOpen}
-                  onOpenChange={setHistoryOpen}
+                  regionId="today-earlier-weeks"
                 />
               </div>
             ) : null}

@@ -294,6 +294,8 @@ def _with_prescription(
     tz_name: str | None = None,
     user_key: str | None = None,
     avoid_move_texts: list[str] | None = None,
+    avoid_move_texts_today: list[str] | None = None,
+    pinned_kit_item_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Attach Move/kit/When. Free path always shows kit placeholder."""
     from .novelty import hkt_today
@@ -315,6 +317,8 @@ def _with_prescription(
         replace_main_action=True,
         user_key=user_key,
         avoid_move_texts=avoid_move_texts,
+        avoid_move_texts_today=avoid_move_texts_today,
+        pinned_kit_item_ids=pinned_kit_item_ids,
     )
 
 
@@ -429,6 +433,8 @@ def derive_today_indication(
     usual_when_by_name: dict[str, str] | None = None,
     user_key: str | None = None,
     avoid_move_texts: list[str] | None = None,
+    avoid_move_texts_today: list[str] | None = None,
+    pinned_kit_item_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """
     Pure function: natal × today transit overlay → energy, space, main action,
@@ -531,4 +537,6 @@ def derive_today_indication(
         tz_name=tz_name,
         user_key=user_key,
         avoid_move_texts=avoid_move_texts,
+        avoid_move_texts_today=avoid_move_texts_today,
+        pinned_kit_item_ids=pinned_kit_item_ids,
     )

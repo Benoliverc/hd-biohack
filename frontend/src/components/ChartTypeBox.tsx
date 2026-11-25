@@ -54,7 +54,8 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
 
   return (
     <div
-      className="relative w-full rounded-2xl border bg-elevated p-3 text-left"
+      id="chart-type-box"
+      className="relative w-full scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border bg-elevated p-3 text-left"
       data-testid="bodygraph-type-card"
       style={{
         borderColor: accent[0],

@@ -287,7 +287,6 @@ export function ChartDeepDive({
 }) {
   const { t } = useI18n();
   const {
-    TYPE_COPY,
     STRATEGY_COPY,
     AUTHORITY_COPY,
     DEFINITION_COPY,
@@ -322,8 +321,6 @@ export function ChartDeepDive({
   const authority = String(chart.authority || "");
   const profile = String(chart.profile || "");
   const definition = String(chart.definition || "");
-
-  const typeInfo = TYPE_COPY[hdType];
 
   const selectTab = (tab: (typeof DOMAIN_TABS)[number]) => {
     setDomain(tab.id);
@@ -412,12 +409,14 @@ export function ChartDeepDive({
             <p className="text-xs text-fg-muted">
               {t("chart.deepDive.tapToExpand")}
             </p>
-            <Accordion title="Type" subtitle={hdType} defaultOpen>
-              <SummaryLearnMore
-                info={typeInfo}
-                fallback={t("chart.deepDive.typeBlurb")}
-              />
-            </Accordion>
+            {/* Type is explained once, in the Chart Type box; Deep dive only points there. */}
+            <a
+              href="#chart-type-box"
+              data-testid="deep-dive-type-pointer"
+              className="flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-3 type-body text-fg-secondary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              {t("chart.deepDive.typePointer", { type: hdType })}
+            </a>
             <Accordion title="Strategy" subtitle={strategy}>
               <SummaryLearnMore
                 info={STRATEGY_COPY[strategy]}

@@ -364,7 +364,11 @@ function SoulUnlockedContent() {
   const [friendId, setFriendId] = useState<number | null>(null);
   const context = PLAYBOOK_CONTEXT;
 
-  const [result, setResult] = useState<SoulSyncResult | null>(null);
+  // A reading is stored with the person it was requested for; render only when that is
+  // still the selected person so a switch never paints the previous person's reading.
+  const [reading, setReading] = useState<{ friendId: number; data: SoulSyncResult } | null>(
+    null,
+  );
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [apiMissing, setApiMissing] = useState(false);
@@ -512,11 +516,14 @@ function SoulUnlockedContent() {
     }
   }, [selectedFriend, removingPartner, user?.id]);
 
+  const result = reading && reading.friendId === friendId ? reading.data : null;
+
   useEffect(() => {
     if (!user?.id || meId == null || friendId == null || meId === friendId) {
-      setResult(null);
+      setReading(null);
       return;
     }
+    const requestedFor = friendId;
     let cancelled = false;
     setSyncLoading(true);
     setSyncError(null);
@@ -533,10 +540,12 @@ function SoulUnlockedContent() {
         if (cancelled) return;
         if (!isAuraSchema(res)) {
           setSchemaLag(true);
-          setResult(null);
+          setReading(null);
           return;
         }
-        setResult(res);
+        // Drop a payload that names a different person than the one requested.
+        if (res.friend?.id != null && res.friend.id !== requestedFor) return;
+        setReading({ friendId: requestedFor, data: res });
       })
       .catch((e) => {
         if (cancelled) return;
@@ -551,7 +560,7 @@ function SoulUnlockedContent() {
         } else {
           setSyncError(msg);
         }
-        setResult(null);
+        setReading(null);
       })
       .finally(() => {
         if (!cancelled) setSyncLoading(false);
