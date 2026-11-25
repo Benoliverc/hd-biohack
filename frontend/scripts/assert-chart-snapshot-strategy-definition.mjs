@@ -74,7 +74,7 @@ assert.match(snapshot, /testId="snapshot-definition"\s+value=\{definitionStr\}\s
 assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no longer renders summary + learnMore");
 // Default 1 (#147, extended): collapsed How you decide shows authority and strategy, for every authority.
 assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{`\$\{authorityStr\} · \$\{strategyStr\}`\}/);
-assert.match(snapshot, /testId="snapshot-profile"\s+value=\{profileStr\}/, "profile value stays on the Profile summary");
+assert.match(snapshot, /testId="snapshot-profile"\s+value=\{<span[^>]*>\{profilePresentation\(profileStr\)\.value\}/, "brief 94b01b1a: Profile summary includes canonical names");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
 // Graph + Type box card is byte-identical to 53ec65f.
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));

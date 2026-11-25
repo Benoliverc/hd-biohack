@@ -8,6 +8,8 @@ import { useI18n, type MessageKey } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import { CityPicker } from "@/components/CityPicker";
 import { FirstRunChartForm, type FirstRunBirth } from "@/components/FirstRunChartForm";
+import { SnapshotProfileBody } from "@/components/SnapshotProfileBody";
+import { profilePresentation } from "@/lib/profilePresentation";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { BodyGraph } from "@/components/BodyGraph";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
@@ -2074,14 +2076,15 @@ function ProfilePage() {
               <div className="grid items-start gap-3 sm:grid-cols-2">
                 <ChartDisclosure
                   testId="snapshot-profile"
-                  value={profileStr}
+                  value={<span className="min-w-0 break-words">{profilePresentation(profileStr).value}</span>}
                   label={t("chart.people.profile")}
                 >
-                  <p className="type-body text-fg-secondary whitespace-pre-line" data-testid="snapshot-profile-copy">
-                    {snapshotPersonName
+                  <SnapshotProfileBody
+                    profile={profileStr}
+                    copy={snapshotPersonName
                       ? snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)
                       : profilePlainLine(profileStr)}
-                  </p>
+                  />
                 </ChartDisclosure>
                 <ChartDisclosure
                   testId="snapshot-how-you-decide"
@@ -2204,6 +2207,7 @@ function ProfilePage() {
           </div>
 
           <ChartDeepDive
+            personName={snapshotPersonName}
             chart={chart}
             personality={personality}
             design={design}
