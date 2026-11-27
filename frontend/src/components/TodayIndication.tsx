@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Zap, BatteryMedium, MapPin, Check } from "lucide-react";
-import { api, type TodayIndicationPayload, type UpcomingSkyPayload, type VsYesterdayDelta } from "@/lib/api";
+import {
+  api,
+  type BridgedChannel,
+  type TodayIndicationPayload,
+  type UpcomingSkyPayload,
+  type VsYesterdayDelta,
+} from "@/lib/api";
 import { contextualHdFact } from "@/lib/hdFactOfTheDay";
 import { STARTER_SUPPLEMENTS, starterSlug } from "@/components/protocols/constants";
 import {
@@ -62,6 +68,8 @@ import {
   formatVsYesterdayValue,
   vsYesterdayHasSkyChange,
 } from "@/lib/vsYesterdayDisplay";
+import { bridgeChannelSlug, skyCompletesPick, skyCompletesText } from "@/lib/bridgedChannels";
+import { yourWayKeys } from "@/lib/todayYourWay";
 
 type TFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
@@ -121,6 +129,12 @@ type Props = {
   onHowToRead?: (stepId?: string, returnFocus?: HTMLElement | null) => void;
   /** In-page How to read chip, mounted under the Move + Energy/Space hero. */
   literacyCoach?: ReactNode;
+  /** Personal + sky channels already on GET /transits/today. */
+  bridgedChannels?: BridgedChannel[];
+  /** Account 07:00 novelty day. Used to prefer a channel that completes today. */
+  noveltyDay?: string | null;
+  /** Opens Sky details and scrolls to a section (page owns the disclosure). */
+  onOpenSkyDetails?: (targetId: string) => void;
 };
 
 function whenLabel(slot: string | null | undefined, t: TFn): string {
@@ -150,6 +164,9 @@ export default function TodayIndication({
   onRetryInventory,
   onHowToRead,
   literacyCoach,
+  bridgedChannels = [],
+  noveltyDay = null,
+  onOpenSkyDetails,
 }: Props) {
   const { t, locale } = useI18n();
   const dayKey = dayKeyInZone(preferredTimezone || DEFAULT_PROTOCOLS_TZ);
@@ -505,16 +522,18 @@ export default function TodayIndication({
       !hasFilledKitTease &&
       inventoryStatus === "ready" &&
       inventoryCount > 0);
+  const skyPick = skyCompletesPick(bridgedChannels, noveltyDay);
+  const yourWay = yourWayKeys(natalType, natalAuthority);
 
   return (
     <div
-      className="rounded-2xl border border-border bg-elevated p-5 shadow-soft"
+      className="space-y-0"
       data-testid="today-indication"
     >
       {/* 1. Move hero first */}
       <div
-        className={`mb-4 rounded-xl border border-growth/25 p-4 shadow-soft ring-1 ring-growth/10 transition-[background-color,background-image] duration-300 ease-out ${
-          moveDone ? "today-move-achieved" : "bg-canvas"
+        className={`-mx-3 mb-4 rounded-xl px-3 py-3 transition-[background-color,background-image] duration-300 ease-out ${
+          moveDone ? "today-move-achieved" : ""
         }`}
         data-testid="main-action"
         data-achieved={moveDone ? "true" : "false"}
@@ -584,7 +603,7 @@ export default function TodayIndication({
 
                   {moveDone ? (
                     <div
-                      className="mt-3 rounded-xl border border-growth/40 bg-elevated px-3 py-2.5"
+                      className="mt-3"
                       data-testid="today-move-closure"
                       role="status"
                     >
@@ -915,10 +934,19 @@ export default function TodayIndication({
               </div>
             ) : null}
 
-            {(natalType || natalStrategy) ? (
+            {yourWay ? (
               <p
                 className="mt-3 text-sm text-fg"
                 data-testid="today-type-strategy"
+                data-your-way="sentence"
+              >
+                {t(yourWay.typeKey, { authority: yourWay.authorityKey ? ` ${t(yourWay.authorityKey)}` : "" })}
+              </p>
+            ) : natalType || natalStrategy ? (
+              <p
+                className="mt-3 text-sm text-fg"
+                data-testid="today-type-strategy"
+                data-your-way="fallback"
               >
                 {natalType ? (
                   <span data-testid="today-natal-type">
@@ -1118,7 +1146,7 @@ export default function TodayIndication({
         const note = row?.note || "";
         return (
           <div
-            className="mb-4 rounded-xl border border-border bg-sunken/40 px-3 py-2.5"
+            className="mb-4 border-t border-border pt-4"
             data-testid="today-evening-close"
             data-type={typeKey}
             data-answer={saved?.answer || undefined}
@@ -1324,9 +1352,9 @@ export default function TodayIndication({
       ) : null}
 
       {/* 2. Sky under the Move: new signal + Sky Story chapter + collapsed vs yesterday */}
-      {daily || indication.sky_story ? (
+      {daily || indication.sky_story || skyPick ? (
         <div
-          className="mb-3"
+          className="mb-3 border-t border-border pt-4"
           data-testid="today-sky-block"
         >
           {daily ? (
@@ -1355,6 +1383,28 @@ export default function TodayIndication({
                 <p className="mt-1 text-sm text-fg" data-testid="daily-signal-body">
                   {cueBody}
                 </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {skyPick ? (
+            <div
+              className="mt-3"
+              data-testid="today-sky-completes"
+              data-gates={bridgeChannelSlug(skyPick.lead.gates)}
+            >
+              <p className="text-sm text-fg">{skyCompletesText(skyPick.lead, t)}</p>
+              {onOpenSkyDetails ? (
+                <button
+                  type="button"
+                  data-testid="today-sky-completes-open"
+                  onClick={() => onOpenSkyDetails("today-bridged-channels")}
+                  className="inline-flex min-h-11 items-center type-caption text-fg underline-offset-2 hover:underline"
+                >
+                  {skyPick.more > 0
+                    ? t("today.skyCompletes.more", { k: skyPick.more })
+                    : t("today.skyCompletes.open")}
+                </button>
               ) : null}
             </div>
           ) : null}
@@ -1532,7 +1582,7 @@ export default function TodayIndication({
         });
         return (
           <aside
-            className="mb-4 rounded-xl border border-border bg-sunken/50 px-4 py-3"
+            className="mb-4 border-t border-border pt-4"
             data-testid="hd-fact-of-the-day"
             data-day-key={pulse.dayKey}
             data-sky-keyed={pulse.skyKeyed ? "true" : "false"}
