@@ -127,5 +127,38 @@ export function useI18n(): I18nValue {
   return ctx;
 }
 
+export function readDocumentLocale(): Locale {
+  if (typeof document === "undefined") return DEFAULT_LOCALE;
+  return resolveLocale(document.documentElement.lang);
+}
+
+export function I18nLocaleRoot({
+  locale,
+  children,
+}: {
+  locale: Locale;
+  children?: React.ReactNode;
+}) {
+  const resolved = resolveLocale(locale);
+  const t = useCallback(
+    (key: MessageKey, vars?: Vars) => translate(resolved, key, vars),
+    [resolved],
+  );
+  const setLocale = useCallback(() => {
+    /* no-op: an off-screen tree must not change the app locale or storage */
+  }, []);
+  const value = useMemo(
+    () => ({
+      locale: resolved,
+      setLocale,
+      t,
+      locales: LOCALES,
+      labels: LOCALE_NATIVE_LABELS,
+    }),
+    [resolved, setLocale, t],
+  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
 export { LOCALES, LOCALE_NATIVE_LABELS, DEFAULT_LOCALE, resolveLocale };
 export type { Locale, MessageKey };
