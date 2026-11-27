@@ -91,7 +91,7 @@ assert.doesNotMatch(
 
 // --- (b) After Today I did it, Protocols is not Today's Move 0/3 0% ---
 assert.match(moveCard, /todayMoveLogged/);
-assert.match(biohack, /todayMoveLogged=\{dayHasDoneLifestyleMove\(completions\)\}/);
+assert.match(biohack, /todayMoveLogged=\{isTodayMoveDone\(completions, indication\?\.move_item_id\)\}/);
 assert.match(moveCard, /todayMoveLogged && doneCount === 0/);
 assert.match(moveCard, /protocols\.moveComplete/);
 assert.match(moveCard, /protocols\.timedLeadsProgress/);

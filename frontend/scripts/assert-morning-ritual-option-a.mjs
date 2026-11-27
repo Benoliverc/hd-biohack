@@ -21,7 +21,6 @@ const biohack = read("src/app/biohack/page.tsx");
 const move = read("src/components/protocols/TodaysMoveCard.tsx");
 const home = read("src/app/page.tsx");
 const todayInd = read("src/components/TodayIndication.tsx");
-const weather = read("src/components/protocols/WeatherStrip.tsx");
 
 // Move before the single Shelf. Intention is no longer on Protocols.
 const iMove = biohack.indexOf("<TodaysMoveCard");
@@ -75,10 +74,9 @@ const continueStripGrowth =
   /Open Protocols|home\.cta\.openProtocols/.test(home.match(/bg-growth-soft\/40[\s\S]{0,500}/)?.[0] || "");
 if (continueStripGrowth) fail("Home continue strip still has second growth Open Protocols");
 
-// WeatherStrip energy for sky-did chip
-if (/whats-new-chip[\s\S]{0,80}bg-growth-soft/.test(weather)) {
-  fail("whats-new chip should use energy, not growth wash");
+// Protocols has no WeatherStrip
+if (/WeatherStrip|protocols-weather|weather-full-sky-link/.test(biohack)) {
+  fail("Protocols must not render WeatherStrip");
 }
-if (!/Full sky on Today|protocols\.fullSkyOnToday/.test(weather)) fail("WeatherStrip Full sky link missing");
 
 console.log("assert-morning-ritual-option-a PASS");

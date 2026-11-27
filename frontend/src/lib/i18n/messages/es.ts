@@ -165,6 +165,7 @@ export const messages = {
   'protocols.moveProgress': 'Progreso de Today’s Move',
   'protocols.timedLeadsProgress': 'Timed leads',
   'protocols.moveComplete': 'Today’s Move completo — buen trabajo.',
+  'protocols.moveLoggedOnToday': 'Registrado en Hoy. Los Timed leads de abajo son un extra.',
   'protocols.donePct': '{done}/{total} hechos · {pct}%',
   'protocols.fullSkyOnToday': 'Cielo completo en Hoy',
   'protocols.openProtocols': 'Abrir Protocolos',

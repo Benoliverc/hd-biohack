@@ -31,7 +31,7 @@ import {
   type CompletionKind,
   type DayCompletions,
   type WeekCompletedRow,
-  dayHasDoneLifestyleMove,
+  isTodayMoveDone,
   dayKeyInZone,
   doneMapFromCompletions,
   formatWeekDayLabel,
@@ -46,7 +46,6 @@ import {
   weekRangeLabelPart,
 } from "@/lib/protocolCompletions";
 import {
-  WeatherStrip,
   TodaysMoveCard,
   BaselineKitCard,
   STARTER_SUPPLEMENTS,
@@ -631,7 +630,7 @@ export default function BiohackPage() {
         await transitP;
         if (req !== protocolReq.current) return null;
         setProtocol(protoRes.protocol);
-        // Prefer shared derive from /transits/today for weather strip parity with Today
+        // Prefer the shared /transits/today indication so Protocols matches Today
         setIndication(transitIndication ?? protoRes.indication ?? null);
         const wn =
           (protoRes.protocol?.whats_new as WhatsNew | undefined) ||
@@ -1032,10 +1031,6 @@ export default function BiohackPage() {
         </div>
       )}
 
-      {protocol && indication && (
-        <WeatherStrip indication={indication} whatsNew={whatsNew} />
-      )}
-
       {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
@@ -1051,7 +1046,7 @@ export default function BiohackPage() {
           rotatedSlot={whatsNew?.rotated_slot || null}
           todayKitPick={todayKitPick}
           highlightTodayKitPick={highlightTodayKitPick}
-          todayMoveLogged={dayHasDoneLifestyleMove(completions)}
+          todayMoveLogged={isTodayMoveDone(completions, indication?.move_item_id)}
         />
       )}
 

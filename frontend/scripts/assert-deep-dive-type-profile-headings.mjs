@@ -91,7 +91,8 @@ assert.match(page,/<ChartDeepDive\s+personName=\{snapshotPersonName\}/);
 assert.match(page,/value=\{<span className="min-w-0 break-words">\{profilePresentation\(profileStr\)\.value\}/);
 assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
 // Frozen copy and geometry hashes are pinned to the exact approved base. No closer edits.
-// Catalog hashes moved once for the Shelf day-view strings. Essay JSON hashes below stay put.
+// Catalog hashes moved for Shelf day-view strings, then for protocols.moveLoggedOnToday.
+// Essay JSON hashes below stay put.
 const frozen = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
@@ -103,11 +104,11 @@ const frozen = {
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
   "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/i18n/messages/en.ts": "1e079139e1858c0093657bdb452114325eea80547e901de47655070396c085a9",
-  "src/lib/i18n/messages/de.ts": "a4aab792129765d9a8abb88ea2b68c2950cf1b2c870c487e0b9963789285eed1",
-  "src/lib/i18n/messages/es.ts": "6d84668104b894f87fe353f8ffb67373400fff8050455cb7cb3c831ff6cbd944",
-  "src/lib/i18n/messages/fr.ts": "0a794293d6bac5c708ca3289a94ab19a6791d01c64c682ca7e590d0e03f6ecf9",
-  "src/lib/i18n/messages/nl.ts": "316e0cf0e5939d22b5563470713ce079a93c5816978b3d1ac32300fd0deac95b"
+  "src/lib/i18n/messages/en.ts": "7eb98453baa59845769d0d2bfbd1e39ec50ad80eac22608b62f47e469cff2f7f",
+  "src/lib/i18n/messages/de.ts": "5e97fabed069f7d409f19e93647487c68385b3427d23a489262688ad4d503b1b",
+  "src/lib/i18n/messages/es.ts": "aaad111efc68cea7aa67bffe57141ebb23aeb78010018a7912e45752147300a6",
+  "src/lib/i18n/messages/fr.ts": "697f1dc28a6d88712a89c08ac9bbbbd88f3c6d16b80f3f1ba4b9d15784177652",
+  "src/lib/i18n/messages/nl.ts": "6bbe4e8a4be44bd47a0b28f85834e6d1d320fb36bed995ff3dc0614284f6c3df"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {

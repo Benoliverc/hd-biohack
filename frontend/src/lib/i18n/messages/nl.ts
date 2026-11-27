@@ -165,6 +165,7 @@ export const messages = {
   'protocols.moveProgress': 'Voortgang Today’s Move',
   'protocols.timedLeadsProgress': 'Timed leads',
   'protocols.moveComplete': 'Today’s Move afgerond — goed gedaan.',
+  'protocols.moveLoggedOnToday': 'Gelogd op Vandaag. De Timed leads hieronder zijn extra.',
   'protocols.donePct': '{done}/{total} klaar · {pct}%',
   'protocols.fullSkyOnToday': 'Volledige hemel op Today',
   'protocols.openProtocols': 'Protocols openen',

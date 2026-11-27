@@ -29,7 +29,7 @@ function valueOf(src, key) {
 }
 
 const todayInd = read("src/components/TodayIndication.tsx");
-const weather = read("src/components/protocols/WeatherStrip.tsx");
+const biohack = read("src/app/biohack/page.tsx");
 const localize = read("src/lib/i18n/localizeEnums.ts");
 const api = read("src/lib/api.ts");
 const css = read("src/app/globals.css");
@@ -141,22 +141,11 @@ assert.match(aside, /<span className="inline-flex items-center rounded-md/);
 assert.match(aside, /min-w-\[9rem\]/);
 assert.match(aside, /flex-row flex-wrap/);
 
-// --- WeatherStrip gates chips on energy_space_slot, keeps Full sky, no vs_yesterday ---
-assert.match(weather, /energy_space_slot/);
-assert.match(weather, /energy_space_slot !== "quiet"/);
-assert.match(weather, /weather-full-sky-link/);
-assert.match(weather, /protocols\.fullSkyOnToday|Full sky on Today/);
-assert.match(weather, /whats-new-chip/);
-assert.doesNotMatch(weather, /protocols-vs-yesterday/);
-assert.doesNotMatch(weather, /indication\.vs_yesterday/);
-assert.doesNotMatch(weather, /vsYesterday/);
-assert.doesNotMatch(weather, /main-action-weather-meaning/);
-assert.doesNotMatch(weather, /main-action-weather-same/);
-assert.doesNotMatch(weather, /today\.weatherSame/);
-// energy/space chips are inside the highlight (showEnergySpace) branch
-const showAt = weather.indexOf("showEnergySpace");
-assert.ok(showAt >= 0, "WeatherStrip names the slot gate");
-assert.match(weather, /showEnergySpace \?/);
+// --- Protocols has no WeatherStrip; Energy/Space stay on Today ---
+assert.doesNotMatch(biohack, /WeatherStrip/);
+assert.doesNotMatch(biohack, /protocols-weather/);
+assert.doesNotMatch(biohack, /weather-full-sky-link/);
+assert.doesNotMatch(biohack, /<WeatherStrip/);
 
 // --- Payload field present on the frontend type ---
 assert.match(api, /energy_space_slot\??:\s*"highlight"\s*\|\s*"quiet"/);

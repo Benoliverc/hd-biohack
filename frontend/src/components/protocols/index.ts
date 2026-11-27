@@ -1,4 +1,3 @@
-export { WeatherStrip } from "./WeatherStrip";
 export { TodaysMoveCard } from "./TodaysMoveCard";
 export { BaselineKitCard } from "./BaselineKitCard";
 export { KitStrip } from "./KitStrip";

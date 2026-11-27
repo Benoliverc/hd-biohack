@@ -14,7 +14,7 @@ function read(rel) {
 
 const todayInd = read("src/components/TodayIndication.tsx");
 const api = read("src/lib/api.ts");
-const weather = read("src/components/protocols/WeatherStrip.tsx");
+const biohack = read("src/app/biohack/page.tsx");
 
 assert.match(todayInd, /data-testid="sky-story"/);
 assert.match(todayInd, /data-testid="sky-story-tomorrow"/);
@@ -37,7 +37,7 @@ assert.match(vsBlock, /<details/);
 
 // No always-visible week-ahead strip in the Move hero; this fold lives in the sky block.
 assert.doesNotMatch(todayInd, /week-ahead|WeatherStrip|weekAhead/i);
-assert.doesNotMatch(weather, /data-testid="sky-story"/);
+assert.doesNotMatch(biohack, /WeatherStrip|protocols-weather|weather-full-sky-link/);
 assert.match(todayInd, /data-testid="today-upcoming-toggle"/);
 assert.match(todayInd, /data-testid="today-upcoming"/);
 const skyBlockIdx = todayInd.indexOf('data-testid="today-sky-block"');
