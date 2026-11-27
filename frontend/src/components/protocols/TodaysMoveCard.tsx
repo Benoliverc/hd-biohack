@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import type { DayCompletions } from "@/lib/protocolCompletions";
-import { progressPct } from "@/lib/protocolCompletions";
+import { progressPct, protocolsMoveCardState } from "@/lib/protocolCompletions";
 import type { CheckItem } from "./types";
 import { useI18n } from "@/lib/i18n";
 import { Sunrise, Sun, Moon } from "lucide-react";
@@ -17,7 +17,7 @@ function SlotGlyph({ slot }: { slot?: "morning" | "midday" | "evening" }) {
 
 /**
  * Prove-it checklist for Protocols. Keeps "Today's Move" naming.
- * What's-new narrative lives once on WeatherStrip — not nested here.
+ * What's-new narrative is not nested here.
  */
 export function TodaysMoveCard({
   items,
@@ -56,6 +56,12 @@ export function TodaysMoveCard({
 }) {
   const { t } = useI18n();
   const pct = progressPct(doneCount, items.length);
+  const state = protocolsMoveCardState({
+    itemCount: items.length,
+    doneCount,
+    todayMoveLogged,
+    completeFlash,
+  });
   const pickRef = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
@@ -110,7 +116,7 @@ export function TodaysMoveCard({
         </div>
       )}
 
-      {(completeFlash || moveComplete || todayMoveLogged) && items.length > 0 && (
+      {state === "complete" && (
         <div
           className={`rounded-xl border border-growth/50 bg-elevated px-3 py-2 type-body font-medium text-growth-ink ${
             completeFlash ? "animate-pulse" : ""
@@ -120,6 +126,12 @@ export function TodaysMoveCard({
         >
           {t("protocols.moveComplete")}
         </div>
+      )}
+
+      {state === "loggedOnToday" && (
+        <p className="type-caption text-fg-secondary" data-testid="protocol-move-logged-on-today">
+          {t("protocols.moveLoggedOnToday")}
+        </p>
       )}
 
       {todayKitPick ? (

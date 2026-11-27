@@ -16,7 +16,6 @@ const todayInd = read("src/components/TodayIndication.tsx");
 const transits = read("src/app/transits/page.tsx");
 const api = read("src/lib/api.ts");
 const lib = read("src/lib/upcomingSky.ts");
-const weather = read("src/components/protocols/WeatherStrip.tsx");
 const biohack = read("src/app/biohack/page.tsx");
 const pkg = read("package.json");
 const skyAssert = read("scripts/assert-sky-story.mjs");
@@ -161,11 +160,11 @@ for (const { id, src } of locales) {
   );
 }
 
-// Protocols week theme / WeatherStrip stay the door to Today; no forecast module there
-assert.doesNotMatch(weather, /today-upcoming|transitsUpcoming|upcoming-sky/);
+// Protocols has no WeatherStrip and no forecast module
+assert.doesNotMatch(biohack, /WeatherStrip/);
+assert.doesNotMatch(biohack, /protocols-weather/);
+assert.doesNotMatch(biohack, /weather-full-sky-link/);
 assert.doesNotMatch(biohack, /today-upcoming|transitsUpcoming/);
-assert.match(weather, /protocols\.fullSkyOnToday/);
-assert.match(weather, /data-testid="weather-full-sky-link"/);
 
 // sky-story assert still exists and allows this fold
 assert.match(skyAssert, /today-upcoming-toggle/);

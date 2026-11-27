@@ -457,3 +457,25 @@ export function loadMoveCompletedDaysInWeek(args: {
   }
   return out;
 }
+
+export type MoveCardState = "complete" | "loggedOnToday" | "progress" | "empty";
+
+/** Protocols Today's Move card: all timed leads vs Today's exact logged Move. */
+export function protocolsMoveCardState(args: {
+  itemCount: number;
+  doneCount: number;
+  todayMoveLogged: boolean;
+  completeFlash: boolean;
+}): MoveCardState {
+  // Flash is only a pulse on a card that is already all-ticked. An untick
+  // during the 3.2s flash must not keep "complete", so completeFlash is ignored.
+  if (args.itemCount === 0) return "empty";
+  if (args.doneCount === args.itemCount) return "complete";
+  if (args.todayMoveLogged) return "loggedOnToday";
+  return "progress";
+}
+
+/** Same rule Today uses: the exact current move id, or `today-move` when none is set. */
+export function isTodayMoveDone(map: DayCompletions, moveItemId?: string | null): boolean {
+  return Boolean(map[moveItemId || "today-move"]?.done);
+}

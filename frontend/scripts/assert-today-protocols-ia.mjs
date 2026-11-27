@@ -19,7 +19,6 @@ function read(rel) {
 
 const transits = read("src/app/transits/page.tsx");
 const biohack = read("src/app/biohack/page.tsx");
-const weather = read("src/components/protocols/WeatherStrip.tsx");
 const move = read("src/components/protocols/TodaysMoveCard.tsx");
 const todayInd = read("src/components/TodayIndication.tsx");
 
@@ -50,15 +49,12 @@ if (!/prove today/.test(biohack)) {
   fail("biohack header missing blueprint subtitle");
 }
 
-// WeatherStrip chips + link only
-if (/protocols-vs-yesterday/.test(weather) || /protocols-vs-yesterday/.test(biohack)) {
+// Protocols has no WeatherStrip
+if (/WeatherStrip|protocols-weather|weather-full-sky-link/.test(biohack)) {
+  fail("Protocols still renders WeatherStrip");
+}
+if (/protocols-vs-yesterday/.test(biohack)) {
   fail("vs_yesterday pill row still present on Protocols");
-}
-if (!/Full sky on Today/.test(weather)) {
-  fail("WeatherStrip missing 'Full sky on Today' link");
-}
-if (!/whats-new-chip/.test(weather)) {
-  fail("WeatherStrip missing optional what's-new chip");
 }
 
 // ≤1 what's-new narrative on Protocols (chip ok; nested essay not)
