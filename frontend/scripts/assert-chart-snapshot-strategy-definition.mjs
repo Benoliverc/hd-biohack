@@ -76,9 +76,12 @@ assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no lo
 assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{`\$\{authorityStr\} · \$\{strategyStr\}`\}/);
 assert.match(snapshot, /testId="snapshot-profile"\s+value=\{<span[^>]*>\{profilePresentation\(profileStr\)\.value\}/, "brief 94b01b1a: Profile summary includes canonical names");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
-// Graph + Type box card is byte-identical to 53ec65f.
+// v9 replaces the classic Chart mount. Type box and the data props stay; the card is no longer byte-pinned.
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
-assert.equal(sha(card), "b5a68485937e0107918c907a7b25bdb760fe40c95038ce77133842f0ad5313b8", "Bodygraph card unchanged");
+assert.match(card, /<ChartBodygraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box still under the Chart figure");
+assert.match(card, /definedCenters=\{defined\}/);
+assert.match(card, /channels=\{channels\}/);
+assert.doesNotMatch(card, /<BodyGraph|max-w-\[300px\]|compact/, "v9 visual may widen; classic BodyGraph stays off this card");
 
 // --- (d) Expanded bodies render exactly like the Deep dive accordions ---
 const { ChartSummaryLearnMore } = await import("../src/components/ChartSummaryLearnMore.tsx");
@@ -105,4 +108,4 @@ for (const l of ["en", "de", "es", "fr", "nl"]) {
   assert.match(cat, /'chart\.people\.strategy': 'Strategy',/, `${l} strategy label`);
   assert.match(cat, /'chart\.people\.definition': 'Definition',/, `${l} definition label`);
 }
-console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 5 collapsed disclosures (Strategy merged, Environment last), authority + strategy on How you decide, locked MG summary ×5 locales, Deep dive markup parity, graph card unchanged.");
+console.log("PASS assert-chart-snapshot-strategy-definition: tiles gone, 5 collapsed disclosures (Strategy merged, Environment last), authority + strategy on How you decide, locked MG summary ×5 locales, Deep dive markup parity, Type box still under the Chart figure.");

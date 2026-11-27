@@ -135,7 +135,10 @@ const FROZEN = {
 };
 for (const [rel, digest] of Object.entries(FROZEN)) assert.equal(sha(read(rel)), digest, `${rel} byte-identical to 497a750`);
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
-assert.equal(sha(card), "b5a68485937e0107918c907a7b25bdb760fe40c95038ce77133842f0ad5313b8", "Bodygraph card unchanged");
+assert.match(card, /<ChartBodygraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box still under the Chart figure");
+assert.match(card, /definedCenters=\{defined\}/);
+assert.match(card, /channels=\{channels\}/);
+assert.doesNotMatch(card, /<BodyGraph|max-w-\[300px\]|compact/, "v9 visual may widen; classic BodyGraph stays off this card");
 // Deep dive keeps the long essays (summary + learnMore) in every locale.
 for (const l of LOCALES) {
   const hd = resolveHdCopy(l);

@@ -11,7 +11,7 @@ import { FirstRunChartForm, type FirstRunBirth } from "@/components/FirstRunChar
 import { SnapshotProfileBody } from "@/components/SnapshotProfileBody";
 import { profilePresentation } from "@/lib/profilePresentation";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
-import { BodyGraph } from "@/components/BodyGraph";
+import { ChartBodygraph } from "@/components/ChartBodygraph";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
 import { ChartDisclosure } from "@/components/ChartDisclosure";
 import {
@@ -2035,13 +2035,12 @@ function ProfilePage() {
           />
           </div>
 
-          <div className="order-1 sm:order-2 grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
+          <div className="order-1 sm:order-2 grid gap-6 lg:grid-cols-[minmax(0,640px)_minmax(0,1fr)]">
             <div
               id="bodygraph"
-              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
             >
-              <h2 className="mb-2 text-sm font-semibold text-fg">{t("chart.people.bodygraph")}</h2>
-              <BodyGraph
+              <ChartBodygraph
                 afterSvg={
                   <ChartTypeBox
                     key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
@@ -2062,6 +2061,15 @@ function ProfilePage() {
                 designGates={design
                   .map((a) => Number(a.gate))
                   .filter((g) => Number.isFinite(g) && g > 0)}
+                personality={personality}
+                design={design}
+                typeName={typeKey}
+                profile={profileStr}
+                authority={authorityStr}
+                definition={definitionStr}
+                ownerName={
+                  snapshotPersonName || (user?.first_name || "").trim() || undefined
+                }
               />
             </div>
 
