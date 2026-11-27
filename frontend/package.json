@@ -51,6 +51,7 @@
     "assert:protocols-shelf-naming": "npx tsx scripts/assert-protocols-shelf-naming.mjs",
     "assert:protocols-this-week-natal-prominence": "npx tsx scripts/assert-protocols-this-week-natal-prominence.mjs",
     "assert:protocols-layout-rethink": "npx tsx scripts/assert-protocols-layout-rethink.mjs",
+    "assert:protocols-shelf-day-view-remove-do-dont": "npx tsx scripts/assert-protocols-shelf-day-view-remove-do-dont.mjs",
     "assert:login-page-first-pass": "npx tsx scripts/assert-login-page-first-pass.mjs",
     "assert:login-editorial-paper": "npx tsx scripts/assert-login-editorial-paper.mjs",
     "assert:login-editorial-paper-next-pass": "npx tsx scripts/assert-login-editorial-paper-next-pass.mjs",

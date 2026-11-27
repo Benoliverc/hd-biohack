@@ -32,11 +32,13 @@ if (biohack.includes('data-testid="intention-disclosure"')) {
   fail("Intention disclosure must not return to Protocols");
 }
 
-// Single empty-kit ask: no KitFact empty CTA payload
+// Single empty-kit ask: no KitFact CTA and no kit-fact callout render
 if (/cta=\{\s*inventory\.length === 0/.test(biohack)) {
   fail("KitFact empty twin CTA still wired");
 }
-if (!/cta=\{null\}/.test(biohack)) fail("KitFact must pass cta={null}");
+if (/KitFactCallout|kit-fact-callout|kit-fact-empty-cta|kit-fact-open-kit|cta=\{null\}/.test(biohack)) {
+  fail("no KitFact CTA and no kit-fact callout render");
+}
 if (!/shelf-disclosure/.test(biohack)) fail("missing shelf-disclosure");
 
 // Tick rows strip (consider adding)

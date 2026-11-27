@@ -253,8 +253,8 @@ assert.ok(
 );
 assert.ok(biohack.includes("scrollIntoView"), "#shelf scrolls Shelf into view");
 assert.ok(
-  /cta=\{null\}/.test(biohack),
-  "KitFact CTA stays null",
+  !/KitFactCallout|kit-fact-callout|kit-fact-empty-cta|kit-fact-open-kit|cta=\{null\}/.test(biohack),
+  "no KitFact CTA and no kit-fact callout render",
 );
 assert.ok(
   /const \[shelfOpen, setShelfOpen\] = useState\(false\)/.test(biohack),

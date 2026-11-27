@@ -312,7 +312,6 @@ assert.doesNotMatch(deepDive, />Learn more</);
 assert.doesNotMatch(deepDive, />Defined — consistent</);
 
 for (const key of [
-  "protocols.kitFact",
   "protocols.decreaseOrPause",
   "protocols.noNatalBaseline",
   "protocols.checklistSlots",

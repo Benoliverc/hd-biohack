@@ -85,9 +85,10 @@ assert.match(soulPage, /readSessionToken\(\)/);
 assert.match(soulPage, /chartsLoading \|\| Boolean\(!user && readSessionToken\(\)\)/);
 assert.doesNotMatch(soulPage, /api\.deleteChart/);
 
-// (g) Kit-fact label separates today marker from the supplement name.
-assert.match(biohack, /\{\s*" · "\s*\}/);
-assert.match(biohack, /protocols\.kitFactToday/);
+// (g) Kit-fact callout is absent from Protocols.
+assert.doesNotMatch(biohack, /KitFactCallout/);
+assert.doesNotMatch(biohack, /kit-fact-callout/);
+assert.doesNotMatch(biohack, /protocols\.kitFactToday/);
 
 // (h) Your usual does not ask about items already on Shelf.
 assert.match(biohack, /shelfBaselineRef/);
@@ -99,9 +100,14 @@ assert.match(biohack, /dropShelfItemFromPlan/);
 assert.match(biohack, /setInvFeedback/);
 assert.match(biohack, /setInventory\(\(list\) => list\.filter/);
 
-// (j) Mid-page Shelf names the on-shelf item.
-assert.match(biohack, /protocols\.shelfNamedOne/);
-assert.match(biohack, /protocols\.shelfNamedMany/);
+// (j) Mid-page Shelf names the on-shelf items in the caption, without headlining one.
+assert.match(biohack, /data-testid="shelf-caption"/);
+assert.match(biohack, /page\.protocols\.shelf/);
+assert.match(biohack, /inventory\.slice\(0,\s*3\)/);
+assert.match(biohack, /protocols\.shelfCaptionMore/);
+assert.match(biohack, /page\.protocols\.addWhatYouOwn/);
+assert.doesNotMatch(biohack, /protocols\.shelfNamedOne/);
+assert.doesNotMatch(biohack, /protocols\.shelfNamedMany/);
 
 // (k) Returning Today with no kit does not put a large empty starter on the core loop.
 assert.match(todayInd, /firstShowUpWeek/);

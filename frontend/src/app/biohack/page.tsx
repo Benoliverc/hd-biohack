@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight, Package } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import EarlierWeeksHistory from "@/components/EarlierWeeksHistory";
@@ -53,6 +53,7 @@ import {
   type WhatsNew,
   type CheckItem,
 } from "@/components/protocols";
+import { ShelfDayView } from "@/components/protocols/ShelfDayView";
 
 type InvItem = InventoryItem;
 
@@ -271,6 +272,16 @@ function stackDeepLinkRequested(): boolean {
   return hash === "stack" || qs.get("stack") === "1";
 }
 
+type ShelfView = "day" | "edit";
+
+function shelfSummaryCaption(inventory: InvItem[], inventoryLoading: boolean, t: Translate): string {
+  if (inventoryLoading) return "…";
+  if (inventory.length === 0) return t("page.protocols.addWhatYouOwn");
+  const names = inventory.slice(0, 3).map((item) => item.name).join(", ");
+  if (inventory.length <= 3) return names;
+  return t("protocols.shelfCaptionMore", { names, count: inventory.length - 3 });
+}
+
 export default function BiohackPage() {
   const { t } = useI18n();
   const { user, natalChartId, natalBindingLoading, biohackingUnlocked, setNatalChart } = useApp();
@@ -299,7 +310,9 @@ export default function BiohackPage() {
   const [weekRows, setWeekRows] = useState<WeekCompletedRow[]>([]);
   const [completeFlash, setCompleteFlash] = useState(false);
   const shelfRef = useRef<HTMLDetailsElement | null>(null);
+  const shelfAddInputRef = useRef<HTMLInputElement | null>(null);
   const [shelfOpen, setShelfOpen] = useState(false);
+  const [shelfView, setShelfView] = useState<ShelfView>("edit");
   const shelfDefaultApplied = useRef(false);
   const [highlightTodayKitPick, setHighlightTodayKitPick] = useState(false);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -418,13 +431,19 @@ export default function BiohackPage() {
     setRemovingId(null);
     if (!user) {
       setInventoryLoading(false);
+      setShelfView("edit");
       return;
     }
     setInventoryLoading(true);
     (async () => {
       try {
         const list = await api.inventory(user.id);
-        if (!cancelled) setInventory(list);
+        if (!cancelled) {
+          setInventory(list);
+          const deep = shelfDeepLinkRequested();
+          const hasUsual = list.some((item) => item.is_usual === true);
+          setShelfView(!deep && list.length > 0 && hasUsual ? "day" : "edit");
+        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -451,8 +470,10 @@ export default function BiohackPage() {
       shelfDefaultApplied.current = true;
       // #stack must not open Shelf; empty-shelf auto-open still applies on ordinary arrivals.
       setShelfOpen(!stackDeep && (deep || inventory.length === 0));
+      if (deep) setShelfView("edit");
     } else if (deep && !stackDeep) {
       setShelfOpen(true);
+      setShelfView("edit");
     }
     if (deep && !stackDeep) {
       requestAnimationFrame(() => {
@@ -465,6 +486,7 @@ export default function BiohackPage() {
     const onHash = () => {
       if (!shelfDeepLinkRequested()) return;
       setShelfOpen(true);
+      setShelfView("edit");
       requestAnimationFrame(() => {
         shelfRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -776,6 +798,7 @@ export default function BiohackPage() {
   };
 
   const openInventory = () => {
+    setShelfView("edit");
     setShelfOpen(true);
     if (shelfRef.current && !shelfRef.current.open) {
       shelfRef.current.open = true;
@@ -924,6 +947,7 @@ export default function BiohackPage() {
 
   const jumpToProtocolsSection = useCallback((targetId: string) => {
     if (targetId === "shelf" || targetId === "shelf-disclosure") {
+      setShelfView("edit");
       setShelfOpen(true);
       if (shelfRef.current && !shelfRef.current.open) {
         shelfRef.current.open = true;
@@ -1022,8 +1046,6 @@ export default function BiohackPage() {
           doneCount={doneCount}
           moveComplete={moveComplete}
           completeFlash={completeFlash}
-          doList={(daily.do as string[]) || []}
-          dontList={(daily.dont as string[]) || []}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0 && !todayKitPick}
           showUsualApplies={Boolean(indication?.kit_usual_applies) && inventory.length > 0 && !todayKitPick}
           rotatedSlot={whatsNew?.rotated_slot || null}
@@ -1061,64 +1083,93 @@ export default function BiohackPage() {
       )}
 
       {(protocol || youChart) && (
-        <details
-          id="shelf"
-          ref={shelfRef}
-          open={shelfOpen}
-          onToggle={(e) => setShelfOpen((e.target as HTMLDetailsElement).open)}
-          className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
-          data-testid="shelf-disclosure"
-        >
-          <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
-            <span className="inline-flex flex-wrap items-center gap-2">
-              <ChevronRight data-disclosure-chevron className="h-4 w-4 shrink-0 text-fg-secondary group-open:rotate-90 transition-transform" aria-hidden />
-              <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
-              <span>
-                {inventoryLoading || inventory.length === 0
-                  ? t("page.protocols.shelf")
-                  : inventory.length === 1
-                    ? t("protocols.shelfNamedOne", { name: inventory[0].name })
-                    : t("protocols.shelfNamedMany", {
-                        count: inventory.length,
-                        name: inventory[0].name,
-                      })}
+        <div className="relative">
+          <details
+            id="shelf"
+            ref={shelfRef}
+            open={shelfOpen}
+            onToggle={(e) => setShelfOpen((e.target as HTMLDetailsElement).open)}
+            className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
+            data-testid="shelf-disclosure"
+          >
+            <summary className="cursor-pointer list-none marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="flex min-h-11 items-center gap-2 pr-36">
+                <ChevronRight data-disclosure-chevron className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
+                <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
+                <span className="min-w-0 text-sm font-semibold text-fg">{t("page.protocols.shelf")}</span>
               </span>
-              <span className="text-xs font-normal text-fg-secondary">
-                {!inventoryLoading && inventory.length === 0
-                  ? ` · ${t("page.protocols.addWhatYouOwn")}`
-                  : inventoryLoading
-                    ? " · …"
-                    : ""}
+              <span className="mt-1 block pl-12 type-caption text-fg-secondary" data-testid="shelf-caption">
+                {shelfSummaryCaption(inventory, inventoryLoading, t)}
               </span>
-            </span>
-          </summary>
-          <div className="mt-3 space-y-3">
-            <InventoryPanel
-              inventory={inventory}
-              inventoryLoading={inventoryLoading}
-              natalBindingLoading={resolvingYou}
-              invName={invName}
-              setInvName={setInvName}
-              adding={adding}
-              removingId={removingId}
-              invFeedback={invFeedback}
-              focusInvId={focusInvId}
-              patchingUsualId={patchingUsualId}
-              user={Boolean(user)}
-              addInv={addInv}
-              removeInv={removeInv}
-              patchUsual={patchUsual}
-            />
-            <KitFactCallout
-              fact={
-                ((protocol?.kit_fact as KitFact | null | undefined) ||
-                  ((daily as { kit_fact?: KitFact | null } | null)?.kit_fact ?? null)) ?? null
-              }
-              cta={null}
-              onOpenKit={openInventory}
-            />
-          </div>
-        </details>
+            </summary>
+            <div className="mt-3 space-y-3">
+              {!inventoryLoading && inventory.length > 0 ? (
+                <div role="group" aria-label={t("page.protocols.shelf")} className="flex rounded-2xl bg-sunken p-1">
+                  <button
+                    type="button"
+                    data-testid="shelf-view-day"
+                    aria-pressed={shelfView === "day"}
+                    onClick={() => setShelfView("day")}
+                    className={`min-h-11 flex-1 rounded-xl px-2 text-center text-sm leading-tight ${
+                      shelfView === "day" ? "bg-elevated font-medium text-fg shadow-soft" : "text-fg-secondary"
+                    }`}
+                  >
+                    {t("protocols.shelfViewDay")}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="shelf-view-edit"
+                    aria-pressed={shelfView === "edit"}
+                    aria-label={t("protocols.editShelf")}
+                    onClick={() => setShelfView("edit")}
+                    className={`min-h-11 flex-1 rounded-xl px-2 text-center text-sm leading-tight ${
+                      shelfView === "edit" ? "bg-elevated font-medium text-fg shadow-soft" : "text-fg-secondary"
+                    }`}
+                  >
+                    {t("protocols.shelfViewEdit")}
+                  </button>
+                </div>
+              ) : null}
+              {inventoryLoading || inventory.length === 0 || shelfView === "edit" ? (
+                <InventoryPanel
+                  inventory={inventory}
+                  inventoryLoading={inventoryLoading}
+                  natalBindingLoading={resolvingYou}
+                  invName={invName}
+                  setInvName={setInvName}
+                  adding={adding}
+                  removingId={removingId}
+                  invFeedback={invFeedback}
+                  focusInvId={focusInvId}
+                  patchingUsualId={patchingUsualId}
+                  user={Boolean(user)}
+                  addInv={addInv}
+                  removeInv={removeInv}
+                  patchUsual={patchUsual}
+                  addInputRef={shelfAddInputRef}
+                />
+              ) : (
+                <ShelfDayView inventory={inventory} onEdit={() => setShelfView("edit")} />
+              )}
+            </div>
+          </details>
+          <button
+            type="button"
+            data-testid="shelf-add-header"
+            onClick={() => {
+              setShelfView("edit");
+              openInventory();
+              requestAnimationFrame(() => {
+                shelfAddInputRef.current?.focus();
+              });
+            }}
+            disabled={!user || adding || inventoryLoading || resolvingYou}
+            aria-label={t("protocols.addToShelf")}
+            className="absolute right-3 top-2.5 z-10 inline-flex min-h-11 items-center rounded-full border border-growth/40 bg-growth-soft px-3 text-sm font-medium text-growth-ink disabled:opacity-50"
+          >
+            {t("protocols.shelfAdd")}
+          </button>
+        </div>
       )}
 
       {usualConfirmOpen && inventory.length > 0 ? (
@@ -1270,66 +1321,6 @@ function ProtocolsHeader({
       )}
     </header>
   );
-}
-
-/* ─── Kit fact (inside Shelf disclosure; no empty twin CTA) ─────────────── */
-
-function KitFactCallout({
-  fact,
-  cta,
-  onOpenKit,
-}: {
-  fact: KitFact | null;
-  cta: string | null;
-  onOpenKit: () => void;
-}) {
-  const { t } = useI18n();
-  if (fact?.body) {
-    const body =
-      fact.body.length > 140 ? `${fact.body.slice(0, 137).replace(/\s+\S*$/, "")}…` : fact.body;
-    return (
-      <aside
-        className="rounded-xl border border-border/70 bg-elevated/60 px-3 py-2"
-        data-testid="kit-fact-callout"
-        aria-label={t("protocols.kitFact")}
-      >
-        <p className="type-chip uppercase tracking-wide text-fg-secondary">
-          {t("protocols.kitFactToday")}
-          {fact.supplement ? (
-            <>
-              {" · "}
-              <span className="rounded-full border border-border/60 bg-sunken px-1.5 py-0.5 type-caption font-medium normal-case tracking-normal text-fg-secondary">
-                {fact.supplement}
-              </span>
-            </>
-          ) : null}
-        </p>
-        <p className="mt-1 type-body text-fg-secondary line-clamp-2">{body}</p>
-        <p className="mt-1 type-caption text-fg-secondary">
-          {fact.foot || t("protocols.informationalNotMedical")}
-        </p>
-      </aside>
-    );
-  }
-  if (cta) {
-    return (
-      <aside
-        className="rounded-xl border border-dashed border-border bg-elevated/40 px-3 py-2"
-        data-testid="kit-fact-empty-cta"
-      >
-        <p className="text-sm text-fg-secondary">{cta}</p>
-        <button
-          type="button"
-          onClick={onOpenKit}
-          className="mt-1 text-xs font-medium text-growth underline-offset-2 hover:underline"
-          data-testid="kit-fact-open-kit"
-        >
-          {t("protocols.editShelf")}
-        </button>
-      </aside>
-    );
-  }
-  return null;
 }
 
 /* ─── Week: theme + sky + completed ─────────────────────────────────────── */
@@ -1612,6 +1603,7 @@ function InventoryPanel({
   addInv,
   removeInv,
   patchUsual,
+  addInputRef,
 }: {
   inventory: InvItem[];
   inventoryLoading: boolean;
@@ -1630,6 +1622,7 @@ function InventoryPanel({
     item: InvItem,
     next: { is_usual?: boolean; usual_when?: UsualWhenSlot | "" },
   ) => Promise<void>;
+  addInputRef: Ref<HTMLInputElement>;
 }) {
   const { t } = useI18n();
   return (
@@ -1639,6 +1632,8 @@ function InventoryPanel({
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             <input
+              ref={addInputRef}
+              data-testid="shelf-add-input"
               className="min-h-11 min-w-[12rem] flex-1 rounded-lg border border-border bg-sunken px-3 py-2 text-sm"
               placeholder={t("protocols.addSupplementPlaceholder")}
               value={invName}
