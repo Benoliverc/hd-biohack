@@ -399,6 +399,9 @@ export default function TransitsPage() {
           onHowToRead={(stepId, returnFocus) =>
             howToRead?.open({ stepId, returnFocus })
           }
+          bridgedChannels={bridgedChannels}
+          noveltyDay={noveltyDay}
+          onOpenSkyDetails={jumpToTodaySection}
           literacyCoach={
             <LiteracyCoach variant="today" onJump={jumpToTodaySection} />
           }
@@ -409,7 +412,7 @@ export default function TransitsPage() {
         <details
           ref={skyDetailsRef}
           id="today-sky-details"
-          className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+          className="disclosure group scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] border-t border-border pt-4"
           data-testid="today-sky-details"
           open={skyDetailsOpen}
           onToggle={(e) => {
@@ -431,7 +434,7 @@ export default function TransitsPage() {
           <div className="mt-4 space-y-4">
             <div
               id="today-sun-earth"
-              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-energy/40 bg-energy/10 p-5"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
             >
               <h2 className="mb-1 text-sm uppercase tracking-wide text-energy-ink">
                 {t("page.today.sunEarth")}
@@ -455,10 +458,10 @@ export default function TransitsPage() {
               ) : null}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-6 border-t border-border pt-4 md:grid-cols-2">
               <div
                 id="today-bridged-channels"
-                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
               >
                 <h2 className="mb-2 font-semibold text-fg">{t("page.today.bridgedChannels")}</h2>
                 <p className="mb-2 text-sm text-fg">{t("page.today.bridgesLead")}</p>
@@ -490,7 +493,7 @@ export default function TransitsPage() {
               </div>
               <div
                 id="today-newly-defined"
-                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-border bg-elevated p-4 shadow-soft"
+                className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"
               >
                 <h2 className="mb-2 inline-flex items-center gap-1.5 font-semibold text-fg">
                   <Hexagon className="h-4 w-4 shrink-0 text-energy-ink" aria-hidden />
@@ -516,38 +519,38 @@ export default function TransitsPage() {
 
             <div
               id="today-planetary-gates"
-              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] overflow-hidden rounded-2xl border border-border"
+              className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] border-t border-border pt-4"
             >
-              <div className="border-b border-border bg-elevated px-4 py-2 text-sm font-semibold text-fg">
+              <div className="pb-1 text-sm font-semibold text-fg">
                 {t("page.today.planetaryGates")}
               </div>
-              <p className="bg-elevated px-4 pt-2 text-sm text-fg">{t("page.today.gatesLead")}</p>
+              <p className="pb-2 text-sm text-fg">{t("page.today.gatesLead")}</p>
               <table className="w-full text-left text-sm">
                 <thead className="text-xs text-fg-muted">
                   <tr>
-                    <th className="px-4 py-2">{t("page.today.gatesPlanet")}</th>
-                    <th className="px-4 py-2">{t("page.today.gatesGateLine")}</th>
+                    <th className="pr-4 py-2">{t("page.today.gatesPlanet")}</th>
+                    <th className="pr-4 py-2">{t("page.today.gatesGateLine")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading && activations.length === 0 && (
                     <tr>
-                      <td colSpan={2} className="px-4 py-6 text-sm text-fg">
+                      <td colSpan={2} className="pr-4 py-6 text-sm text-fg">
                         {t("page.today.gatesLoading")}
                       </td>
                     </tr>
                   )}
                   {!loading && activations.length === 0 && !error && (
                     <tr>
-                      <td colSpan={2} className="px-4 py-6 text-sm text-fg">
+                      <td colSpan={2} className="pr-4 py-6 text-sm text-fg">
                         {t("page.today.gatesEmpty")}
                       </td>
                     </tr>
                   )}
                   {activations.map((r) => (
                     <tr key={String(r.planet)} className="border-t border-border">
-                      <td className="px-4 py-1.5 text-fg">{formatPlanetLabel(String(r.planet))}</td>
-                      <td className="px-4 py-1.5 text-energy-ink">
+                      <td className="pr-4 py-1.5 text-fg">{formatPlanetLabel(String(r.planet))}</td>
+                      <td className="pr-4 py-1.5 text-energy-ink">
                         {formatGateLine(
                           (r.gate as number | undefined) ?? String(r.label ?? ""),
                           r.line as number | undefined,

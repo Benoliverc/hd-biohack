@@ -1,4 +1,5 @@
 import type { BridgedChannel, TransitPlanet } from "@/lib/api";
+import { displayCenter } from "@/lib/hdCopy";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -204,4 +205,42 @@ export function bridgeWindowCaption(
   if (channel.window_start === noveltyDay) return t("page.today.bridgeCompletesToday");
   if (channel.window_end === noveltyDay) return t("page.today.bridgeLastDay");
   return null;
+}
+
+/** Personal completion: you hold one gate, the sky brings the other, two centers. */
+function isPersonalSkyCompletion(channel: BridgedChannel): boolean {
+  if (channel.kind === "transit_transit") return false;
+  if (channel.natal_gates?.[0] == null || channel.transit_gates?.[0] == null) return false;
+  return (channel.centers?.length ?? 0) === 2;
+}
+
+/**
+ * Lead personal channel for the sky-completes sentence.
+ * Prefers the first eligible channel that completes on noveltyDay; otherwise payload order.
+ * `more` is the rest of the eligible set.
+ */
+export function skyCompletesPick(
+  channels: BridgedChannel[] | null | undefined,
+  noveltyDay: string | null | undefined
+): { lead: BridgedChannel; more: number } | null {
+  const eligible = (channels || []).filter(isPersonalSkyCompletion);
+  if (eligible.length === 0) return null;
+  const completesToday =
+    typeof noveltyDay === "string" && noveltyDay.length > 0
+      ? eligible.find((channel) => channel.window_start === noveltyDay)
+      : undefined;
+  return { lead: completesToday ?? eligible[0], more: eligible.length - 1 };
+}
+
+/** One personal sentence: the sky's gate completes a channel you already hold. */
+export function skyCompletesText(channel: BridgedChannel, t: TFn): string {
+  const [a, b] = sortedGatePair(channel.gates);
+  return t("today.skyCompletes.line", {
+    m: channel.transit_gates?.[0] ?? "",
+    a: a ?? "",
+    b: b ?? "",
+    name: channel.name,
+    centerA: displayCenter(channel.centers?.[0] ?? ""),
+    centerB: displayCenter(channel.centers?.[1] ?? ""),
+  });
 }
