@@ -73,13 +73,13 @@ for (const rel of [
 const profile = read("src/app/profile/page.tsx");
 assert.doesNotMatch(profile, /ChartBodygraphModule|editorialBodygraph|bodygraph-peek|role="tablist"/);
 const bodygraphCard = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
-assert.match(bodygraphCard, /rounded-2xl border border-border bg-elevated p-4"/, "pre-today p-4 card");
-assert.match(bodygraphCard, /<h2 className="mb-2 text-sm font-semibold text-fg">\{t\("chart\.people\.bodygraph"\)\}<\/h2>/, "visible Bodygraph heading");
+assert.match(profile, /lg:grid-cols-\[minmax\(0,640px\)_minmax\(0,1fr\)\]/, "Chart column is wide enough for the v9 bell");
 assert.doesNotMatch(bodygraphCard, /sr-only/);
-assert.match(bodygraphCard, /<BodyGraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box rides in the non-compact slot under the SVG");
-assert.doesNotMatch(bodygraphCard, /compact/, "Chart uses the full BodyGraph");
+assert.match(bodygraphCard, /<ChartBodygraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box sits under the v9 figure");
+assert.doesNotMatch(bodygraphCard, /<BodyGraph/, "Chart no longer mounts compact-capable BodyGraph");
+assert.doesNotMatch(bodygraphCard, /compact|max-w-\[300px\]/, "Chart uses the full v9 visual, not the 300px cap");
 for (const prop of ["definedCenters={defined}", "channels={channels}", "activatedGates={activatedGates}", "hangingGates={hangingGates}", "personalityGates={personality", "designGates={design"])
-  assert.ok(bodygraphCard.includes(prop), `f0d542d BodyGraph prop ${prop}`);
+  assert.ok(bodygraphCard.includes(prop), `Chart visual still receives ${prop}`);
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 assert.doesNotMatch(snapshot, /youreAType|theyreAType|TYPE_BATTERY|ChartTypeBox|bodygraphModule\.preview/, "single Type presentation; no Preview outside Type");
 assert.equal((profile.match(/<ChartTypeBox/g) ?? []).length, 1, "exactly one Type box");
