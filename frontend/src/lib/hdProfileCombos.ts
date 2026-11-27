@@ -1,6 +1,6 @@
 /** Dedicated Deep Dive profile combo essays (en-GB, educational HD). */
 export const PROFILE_COMBO_ESSAYS: Record<string, string> = {
-  "1/3": `You dig for solid ground, then learn by trying — foundations built through contact with reality. (Profile 1/3 · Investigator / Martyr — Martyr here means trial-and-error learner, not victim.)
+  "1/3": `You dig for solid ground, then learn by trying — foundations built through contact with reality. Martyr here means a trial-and-error learner, not a victim.
 
 Conscious line 1 — Investigator
 Line 1 needs a base: facts, frameworks, skills, and proof that the ground will hold. Anxiety often shows when the foundation feels thin — more study, more prep, more “not yet.” Authority grows when you have investigated enough to stand without pretending. You are here to know the base so thoroughly that others can lean on what you have checked.
@@ -18,12 +18,9 @@ In practice
 Before big commitments, do your digging — then set a date to test in the real world. Keep a private log of what worked and what did not; your future authority is that archive. In relationships, admit you learn by trying: partners who need perfect first drafts will frustrate you, and you them. Share findings once they are battle-tested; that is when line 1’s foundation becomes a gift rather than a bunker.
 
 Going deeper
-Think of 1/3 as a laboratory with a library attached. The library (line 1) wants shelves that do not wobble; the laboratory (line 3) keeps running experiments that rearrange those shelves. Maturity is learning to label both rooms. When you feel ashamed after a failed trial, walk yourself back to the lab notebook instead of the courtroom. When you feel frozen before starting, give the investigator a minimum viable base and a calendar date for contact with reality. Friends help most when they ask what you are testing and what you already trust. Over years, your voice becomes calm because it is sourced from foundations embarrassed into honesty — dig, try, revise, dig again.
+Think of 1/3 as a laboratory with a library attached. The library (line 1) wants shelves that do not wobble; the laboratory (line 3) keeps running experiments that rearrange those shelves. Maturity is learning to label both rooms. When you feel ashamed after a failed trial, walk yourself back to the lab notebook instead of the courtroom. When you feel frozen before starting, give the investigator a minimum viable base and a calendar date for contact with reality. Friends help most when they ask what you are testing and what you already trust. Over years, your voice becomes calm because it is sourced from foundations embarrassed into honesty — dig, try, revise, dig again.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "1/4": `You dig for a sturdy base, then opportunities travel through people you already know. (Profile 1/4 · Investigator / Opportunist)
+  "1/4": `You dig for a sturdy base, then opportunities travel through people you already know.
 
 Conscious line 1 — Investigator
 You need to feel the base under your feet: study, skill, and evidence. Until the foundation feels real, promoting yourself or changing worlds feels shaky. Once it is solid, you can offer what you know with quiet confidence.
@@ -41,12 +38,9 @@ In practice
 Master one clear base others can rely on, then tell friends what you are exploring — not as a sales pitch, but as honest sharing. Say yes to opportunities that arrive through people who know your integrity. Be cautious of shiny cold outreach that bypasses your natural path. Keep a small circle warm; for you, that circle is infrastructure.
 
 Going deeper
-1/4 often underestimates invisible prep before a “lucky” introduction. The luck is usually a friend who watched you be solid for a long time. Treat your network like a garden that needs water even while you research underground. A short honest update to key people keeps opportunity aligned with readiness. If stuck, check both sides: thin foundation or cold circle? Fix the thin side first. Braid study and network rather than choosing one. When success comes through people, thank the bridge publicly. When you change a foundation, narrate the update so loyalty has somewhere true to stand. Warm handoffs are your native distribution system — honour them with delivery that makes introducers look wise.
+1/4 often underestimates invisible prep before a “lucky” introduction. The luck is usually a friend who watched you be solid for a long time. Treat your network like a garden that needs water even while you research underground. A short honest update to key people keeps opportunity aligned with readiness. If stuck, check both sides: thin foundation or cold circle? Fix the thin side first. Braid study and network rather than choosing one. When success comes through people, thank the bridge publicly. When you change a foundation, narrate the update so loyalty has somewhere true to stand. Warm handoffs are your native distribution system — honour them with delivery that makes introducers look wise.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "2/4": `Natural gift meets network — others call out what you do without trying, and life often advances through friends once you step out of retreat. (Profile 2/4 · Hermit / Opportunist)
+  "2/4": `Natural gift meets network — others call out what you do without trying, and life often advances through friends once you step out of retreat.
 
 Conscious line 2 — Hermit
 You carry talent that can feel effortless from outside and oddly unclaimed inside. Alone-time keeps the gift clear. Being pushed to perform on demand drains you; being sincerely called invites the hermit out with less friction.
@@ -64,12 +58,9 @@ In practice
 Schedule solitude like a meeting. Prefer invitations from people who already know your gift over anonymous pressure. Tell close friends how to call you well — clear asks help more than vague “we should hang.” Let opportunities ripen in familiar soil before you transplant them to strangers.
 
 Going deeper
-The 2/4 nervous system often confuses popularity with correctness. A full inbox is not a true call. Use a two-step filter: Did this invitation come through someone who knows my gift? Does my body feel quiet yes rather than flattered panic? Teach close friends invitation language so they can call you without guessing. Protect one weekly solitude block especially when opportunities spike. Your network distributes; your solitude quality-controls. When those roles reverse, you become busy and empty. Returning to order restores generosity and ease. Over a career, people remember you were hard to drag out and worth it when you came. Send a brief recharge note when you go quiet so line-4 bridges do not invent rejection stories.
+The 2/4 nervous system often confuses popularity with correctness. A full inbox is not a true call. Use a two-step filter: Did this invitation come through someone who knows my gift? Does my body feel quiet yes rather than flattered panic? Teach close friends invitation language so they can call you without guessing. Protect one weekly solitude block especially when opportunities spike. Your network distributes; your solitude quality-controls. When those roles reverse, you become busy and empty. Returning to order restores generosity and ease. Over a career, people remember you were hard to drag out and worth it when you came. Send a brief recharge note when you go quiet so line-4 bridges do not invent rejection stories.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "2/5": `A natural gift wrapped in projection — people cast you as the practical fixer while you privately need retreat to keep the gift real. (Profile 2/5 · Hermit / Heretic — Heretic here means projected problem-solver.)
+  "2/5": `A natural gift wrapped in projection — people cast you as the practical fixer while you privately need retreat to keep the gift real. Heretic here means a projected problem-solver.
 
 Conscious line 2 — Hermit
 Talent others spot; solitude you need. You are not designed to be endlessly available. The call matters: forced exposure muddies what is natural; right invitation lets the gift flow.
@@ -87,12 +78,9 @@ In practice
 Before saying yes to a fix-it role, ask: do I actually have this solution, or are they casting me? Keep a retreat practice after public or high-projection days. Offer clear scope (“I can help with X, not Y”). Friends who call the hermit kindly and do not dump every crisis on the heretic are gold — invest in them.
 
 Going deeper
-Projection is sticky because it is often half-true: you have a gift; people inflate it into omniscience. Resize the story to the actual gift. Reuse a private sentence: “I can help with X; I am not the person for Y.” Then leave. Hermit recovery is how the medicine stays non-toxic; skip it and even correct help carries resentment. Normalise retreat with silent mornings, device-light evenings, and friends who do not punish disappearance after you have given. Schedule stage and cabin with equal respect. Clean exits teach the field how to treat you. Package tools so practical help can travel without your permanent presence. Measure weeks by whether the gift still feels like yours.
+Projection is sticky because it is often half-true: you have a gift; people inflate it into omniscience. Resize the story to the actual gift. Reuse a private sentence: “I can help with X; I am not the person for Y.” Then leave. Hermit recovery is how the medicine stays non-toxic; skip it and even correct help carries resentment. Normalise retreat with silent mornings, device-light evenings, and friends who do not punish disappearance after you have given. Schedule stage and cabin with equal respect. Clean exits teach the field how to treat you. Package tools so practical help can travel without your permanent presence. Measure weeks by whether the gift still feels like yours.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "3/5": `You learn by bumping into life, then others project that you have the practical fix. (Profile 3/5 · Martyr / Heretic — trial-and-error meeting projected problem-solver.)
+  "3/5": `You learn by bumping into life, then others project that you have the practical fix. Martyr here means a trial-and-error learner; Heretic means a projected problem-solver.
 
 Conscious line 3 — Martyr
 You are built to bump into life, test, break, and revise. Resilience is the curriculum. Perfect first attempts are not the point; honest data from contact is.
@@ -110,12 +98,9 @@ In practice
 Keep a short list of what your experiments have proven — that list is your heretic toolkit. Decline crises that are pure projection. In relationships, warn people you learn by trying; ask them not to cast you as finished expert mid-experiment. Celebrate revised maps; they are your product.
 
 Going deeper
-Public learning needs emotional hygiene. After a visible experiment, separate facts (what happened), projections (what people decided it meant), and next tests (what you will try now). Mixing piles creates grandiosity or collapse. Share facts and next tests once steady; let unfair projections age unless a real repair is owed. Publish constraints — works when, fails when — because practical people trust bounded tools. Keep some trials private so not every experiment is a referendum on identity. Alternate public proofs with private play. Keep a simple narrative: you test in real life and share what proves useful. Your long game is a library of findings, not a perfect approval rating.
+Public learning needs emotional hygiene. After a visible experiment, separate facts (what happened), projections (what people decided it meant), and next tests (what you will try now). Mixing piles creates grandiosity or collapse. Share facts and next tests once steady; let unfair projections age unless a real repair is owed. Publish constraints — works when, fails when — because practical people trust bounded tools. Keep some trials private so not every experiment is a referendum on identity. Alternate public proofs with private play. Keep a simple narrative: you test in real life and share what proves useful. Your long game is a library of findings, not a perfect approval rating.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "3/6": `You experiment early, then step back to watch, and later embody what you lived. (Profile 3/6 · Martyr / Role Model)
+  "3/6": `You experiment early, then step back to watch, and later embody what you lived.
 
 Conscious line 3 — Martyr
 You meet the world through trial. Bonds, jobs, and ideas get stress-tested. Mistakes refine the compass when you stay curious instead of condemned.
@@ -133,12 +118,9 @@ In practice
 After hard trials, schedule integration days — rooftop time. Share stories once the emotional charge has settled enough to teach without dumping. Mentoring works best when rooted in what you survived, not in theories you wish were true. Patience with your own arc is part of the profile’s maturity.
 
 Going deeper
-Role-model pressure can make line 3 feel illegitimate. Reverse it: bumping is how your example gets evidence. Monthly, name your chapter without marketing spin. In trial, say so to people who matter. On the roof, protect observation from being misread as indifference. When embodying, keep one channel where new experiments are still allowed. Mentorship lands best as companionship through process, not commandments from a pedestal. When someone needs you finished evolving, that is their hunger, not your job description. Mark transitions with small rituals — offline days, witness talks, lists of what you no longer prove. Experiment honestly, integrate fully, embody selectively.
+Role-model pressure can make line 3 feel illegitimate. Reverse it: bumping is how your example gets evidence. Monthly, name your chapter without marketing spin. In trial, say so to people who matter. On the roof, protect observation from being misread as indifference. When embodying, keep one channel where new experiments are still allowed. Mentorship lands best as companionship through process, not commandments from a pedestal. When someone needs you finished evolving, that is their hunger, not your job description. Mark transitions with small rituals — offline days, witness talks, lists of what you no longer prove. Experiment honestly, integrate fully, embody selectively.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "4/6": `Opportunities arrive through known people, while a longer arc turns you into a living example. (Profile 4/6 · Opportunist / Role Model)
+  "4/6": `Opportunities arrive through known people, while a longer arc turns you into a living example.
 
 Conscious line 4 — Opportunist
 Opportunities travel through friendship and familiar circles. Warmth, loyalty, and reputation in the tribe open doors that cold ambition cannot. Your people are your path.
@@ -156,12 +138,9 @@ In practice
 Choose depth over endless weak ties. Let opportunities from trusted people lead, especially when they match the person you are becoming. Be visible enough in your circles that the role-model arc has witnesses; be honest enough that the example stays real. Periodic retreats with close friends beat constant broadcasting to acquaintances.
 
 Going deeper
-Because life is relational, friendship boundaries are practice, not bureaucracy. Decide what asks your circle may make in each chapter. Early may mean many rooms; rooftop fewer rooms with more presence; later example may host rather than chase. Tell people when seasons change so loyalty is not confused by a quieter calendar. Invest in relationships that hold ambivalence — friends who celebrate opportunity and your need to mature past old roles. Those friends are infrastructure. Networking without emotional truth feeds you weakly; shared history with integrity feeds you for decades. Ask yearly which bonds help you become more true and which only reward a past persona.
+Because life is relational, friendship boundaries are practice, not bureaucracy. Decide what asks your circle may make in each chapter. Early may mean many rooms; rooftop fewer rooms with more presence; later example may host rather than chase. Tell people when seasons change so loyalty is not confused by a quieter calendar. Invest in relationships that hold ambivalence — friends who celebrate opportunity and your need to mature past old roles. Those friends are infrastructure. Networking without emotional truth feeds you weakly; shared history with integrity feeds you for decades. Ask yearly which bonds help you become more true and which only reward a past persona.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "4/1": `Network opens doors, and underneath you still need a foundation solid enough to stand on. (Profile 4/1 · Opportunist / Investigator)
+  "4/1": `Network opens doors, and underneath you still need a foundation solid enough to stand on.
 
 Conscious line 4 — Opportunist
 You thrive where you are known. Influence and opportunity move along friendship lines. Investing in community is strategic, not merely social.
@@ -179,12 +158,9 @@ In practice
 Pick a craft or principle worth investigating deeply, then let friends be the doorway for that work. Be cautious of trendy pivots that abandon a good foundation. When you do change, research thoroughly and communicate clearly to your circle so trust survives the update. Your steadiness is valuable in chaotic times — offer it where it is wanted.
 
 Going deeper
-Steadiness needs maintenance. Quarterly, review your foundation with evidence: what still works, what is tradition without teeth? Invite one loyal challenger so familiarity is not confused with truth. Review your circle: who exchanges clean opportunity and care, who only consumes stability? Prune kindly. When you update a core craft or belief, write a bridge note explaining what changed and what did not — predictable ground can include transparent change. Translate security needs so they are not mistaken for control; you are keeping the floor trustworthy. Your gift in chaos is a floor people can stand on — inspect it, do not merely defend it.
+Steadiness needs maintenance. Quarterly, review your foundation with evidence: what still works, what is tradition without teeth? Invite one loyal challenger so familiarity is not confused with truth. Review your circle: who exchanges clean opportunity and care, who only consumes stability? Prune kindly. When you update a core craft or belief, write a bridge note explaining what changed and what did not — predictable ground can include transparent change. Translate security needs so they are not mistaken for control; you are keeping the floor trustworthy. Your gift in chaos is a floor people can stand on — inspect it, do not merely defend it.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "5/1": `People project practical solutions onto you, and you need a researched base before you carry that projection. (Profile 5/1 · Heretic / Investigator — projected fixer over foundation-builder.)
+  "5/1": `People project practical solutions onto you, and you need a researched base before you carry that projection. Heretic here means a projected problem-solver.
 
 Conscious line 5 — Heretic
 Others cast you in the fixer role. Universal, practical solutions are your best offerings; vague rescuing is a trap. Managing projection is daily hygiene.
@@ -202,12 +178,9 @@ In practice
 Keep a clear “I help with this” domain rooted in study you trust. When strangers or colleagues dump crises, pause: foundation ready? If not, say not yet. After public fixing, return to investigation — that cycle keeps the heretic honest. Document what works; your notes become the universal tool others already believe you have.
 
 Going deeper
-The projection field will try to set your deadlines. Reclaim pacing by naming stages: assessing, researching, testing, ready. Informal stages train people to stop demanding magic by Tuesday. Define “done enough to help” so perfectionism cannot hostage delivery. Define “not my circus” so heretic fame cannot hostage your calendar. Keep artefacts — checklists, guides, principles — that carry solutions when you are unavailable. If anxiety spikes after praise, check whether praise was for a real foundation or a fantasy; let only the first land in identity. Domain clarity is kindness. Let reputation lag slightly behind research.
+The projection field will try to set your deadlines. Reclaim pacing by naming stages: assessing, researching, testing, ready. Informal stages train people to stop demanding magic by Tuesday. Define “done enough to help” so perfectionism cannot hostage delivery. Define “not my circus” so heretic fame cannot hostage your calendar. Keep artefacts — checklists, guides, principles — that carry solutions when you are unavailable. If anxiety spikes after praise, check whether praise was for a real foundation or a fantasy; let only the first land in identity. Domain clarity is kindness. Let reputation lag slightly behind research.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "5/2": `You are cast as the fixer while your gift wants hermit time — visibility and solitude must negotiate. (Profile 5/2 · Heretic / Hermit)
+  "5/2": `You are cast as the fixer while your gift wants hermit time — visibility and solitude must negotiate.
 
 Conscious line 5 — Heretic
 Projections arrive: fix this, save us, make it practical. You can be extraordinarily effective with universal solutions — and exhausted when you wear every story people throw.
@@ -225,12 +198,9 @@ In practice
 Build recovery rituals after high-projection days. Practise short, clear no’s. Let a few trusted people know how to invite the hermit without triggering the saviour reflex. Offer practical tools that do not require your permanent presence — that is heretic kindness that still protects line 2.
 
 Going deeper
-Design an on/off architecture you can defend on your worst week. On-mode: specific calls, clear scope, time-boxed help, hard stop. Off-mode: solitude, sensory quiet, no long explanation beyond a boundary sentence. Ambiguous half-modes — resentful half-available messaging — poison both poles. Study what lifestyle keeps a natural gift natural: sleep, fewer inbound channels, body time. Teach collaborators that disappearing is how the next good answer appears. Right people stop taking it personally; wrong people leave; both protect you. Put recovery on the calendar with delivery. The heretic world wants more; the hermit teaches enough.
+Design an on/off architecture you can defend on your worst week. On-mode: specific calls, clear scope, time-boxed help, hard stop. Off-mode: solitude, sensory quiet, no long explanation beyond a boundary sentence. Ambiguous half-modes — resentful half-available messaging — poison both poles. Study what lifestyle keeps a natural gift natural: sleep, fewer inbound channels, body time. Teach collaborators that disappearing is how the next good answer appears. Right people stop taking it personally; wrong people leave; both protect you. Put recovery on the calendar with delivery. The heretic world wants more; the hermit teaches enough.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "6/2": `You grow through a three-part life process toward living example, with a hermit gift others call out. (Profile 6/2 · Role Model / Hermit)
+  "6/2": `You grow through a three-part life process toward living example, with a hermit gift others call out.
 
 Conscious line 6 — Role Model
 Line 6 is a three-part process across a lifetime. The early chapter often feels like trial and error: bonds form and break, experiments pile up, and you may wonder why life will not stay tidy. A middle chapter tends toward the rooftop — watching, integrating, less eager to dive into every fight. Later, the invitation is to step down as a living example: not lecturing theory, but showing what you have actually lived. You do not need to force the timeline; noticing which chapter you are in already softens shame about “not being there yet.”
@@ -248,12 +218,9 @@ In practice
 Protect daily or weekly hermit windows before you schedule teaching, leading, or “being available.” When someone asks for your example, check whether it is a real call to your natural gift or a vague hope that you will fix their life. Prefer demonstrating over explaining when you can — line 6 lands as embodiment. In relationships and work, name your need for retreat early so it is not read as rejection. Over years, trust that the scars of the early experiments become the credibility of the later example; the hermit underneath is what keeps that credibility honest rather than performed.
 
 Going deeper
-Track your chapter without weaponising it. Early needs permission to experiment without performing wisdom. Rooftop needs permission to watch without being accused of apathy. Later needs permission to embody without entertaining perfection fantasies. In all chapters, hermit time keeps the example human. Answer sincere calls to the real gift, then go dark long enough that the next answer is still yours.
+Track your chapter without weaponising it. Early needs permission to experiment without performing wisdom. Rooftop needs permission to watch without being accused of apathy. Later needs permission to embody without entertaining perfection fantasies. In all chapters, hermit time keeps the example human. Answer sincere calls to the real gift, then go dark long enough that the next answer is still yours.`,
 
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
-
-  "6/3": `You grow toward living example while still learning by trial — the roof and the experiment share one house. (Profile 6/3 · Role Model / Martyr)
+  "6/3": `You grow toward living example while still learning by trial — the roof and the experiment share one house.
 
 Conscious line 6 — Role Model
 The three-part process shapes how you meet the world: early experiments, rooftop observation, later living example. People may cast you as “the one who should have it figured out” even while you are mid-chapter.
@@ -271,9 +238,6 @@ In practice
 After each significant trial, ask what example it is forging — not how it disqualifies you. Share process as well as conclusions. Keep one trusted witness for the messy middle so the public example does not become a lie. Your credibility is resilience plus reflection, not a spotless record.
 
 Going deeper
-Leadership from 6/3 should include version numbers: what you embody today, what you are still testing. That sentence prevents pedestals and keeps line 3 welcome. After a trial, before teaching, ask: enough time to speak without dumping? Does the lesson hold outside private drama? If no, wait on the roof. If yes, teach with scars visible and self-pity absent. Keep a witness who knows unpolished chapters so you avoid a double life. People need scratch marks as much as polish. Offer what you can embody today; leave the rest in the lab. Credibility is resilience plus reflection, not a spotless record.
-
-One more anchor
-Return to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.`,
+Leadership from 6/3 should include version numbers: what you embody today, what you are still testing. That sentence prevents pedestals and keeps line 3 welcome. After a trial, before teaching, ask: enough time to speak without dumping? Does the lesson hold outside private drama? If no, wait on the roof. If yes, teach with scars visible and self-pity absent. Keep a witness who knows unpolished chapters so you avoid a double life. People need scratch marks as much as polish. Offer what you can embody today; leave the rest in the lab. Credibility is resilience plus reflection, not a spotless record.`,
 
 };

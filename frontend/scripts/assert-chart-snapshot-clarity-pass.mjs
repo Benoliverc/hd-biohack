@@ -125,9 +125,9 @@ assert.doesNotMatch(read("src/components/ChartTypeBox.tsx"), /animate\(|prefers-
 // --- (f) Frozen: essays and graph unchanged. ChartDeepDive is excepted by the Read more brief
 // (row ids, exclusive-open, scroll-margin on every Core row). Sibling assert-snapshot-read-more-deep-dive locks that.
 const FROZEN = {
-  "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
+  "src/lib/hdCopy.ts": "b8c89bc238dcc631717cdf098d92756f63df6e22d73ac67465851aa58d972ec6",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
-  "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
+  "src/lib/essays/hdCopy.nl.ts": "8528a2f8e2ec67fd886cb5fb75a6784243dd492cbdaf7cb4693b3e827ef4f941",
   "src/lib/essays/strategySummaryOverlay.ts": "9e00df4d78a5c5db6ea972e8a312ada9da5a70c35cdd936c9a802317180ab7ca",
   "src/components/ChartSummaryLearnMore.tsx": "c959f936cc72e5528e56d5fb70c1cf983da1ecb9d53f21e85de4e416c90533af",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",

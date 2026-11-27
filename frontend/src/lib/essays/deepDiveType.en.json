@@ -3,7 +3,7 @@
     "Generator": [
       {
         "heading": "Lived meaning",
-        "body": "You are a Generator: your work energy comes alive when something in life is worth answering. You are here to build, make, and sustain what actually lights you up — not to invent a path in your head and push it into the world. Type names this energy and role. It is not a verdict on your personality, and it is not the same as your Strategy or your Authority, which have their own Core rows and are how you decide and move."
+        "body": "You are a Generator: your work energy comes alive when something in life is worth answering. You are here to build, make, and sustain what actually lights you up — not to invent a path in your head and push it into the world. Strategy and Authority describe how you act on it."
       },
       {
         "heading": "Energy and role",
@@ -21,7 +21,7 @@
     "Manifesting Generator": [
       {
         "heading": "Lived meaning",
-        "body": "You are a Manifesting Generator: you have Generator work energy, and once something is a true yes you can move quickly, skip steps, and hold more than one interest. That mix is the Type — not a license to launch from the mind, and not a claim that you must always be fast. Type names this energy and role. It is not a verdict on your personality, and it is not the same as your Strategy or your Authority, which have their own Core rows and are how you decide and move."
+        "body": "You are a Manifesting Generator: you have Generator work energy, and once something is a true yes you can move quickly, skip steps, and hold more than one interest. That mix is the Type — not a license to launch from the mind, and not a claim that you must always be fast. Strategy and Authority describe how you act on it."
       },
       {
         "heading": "Energy and role",
@@ -39,7 +39,7 @@
     "Manifestor": [
       {
         "heading": "Lived meaning",
-        "body": "You are a Manifestor: you are built to start from an inner urge, without waiting for the world to ask first. People often feel you coming, and that impact is part of the Type — not a demand that you become available to everyone, and not a claim that every urge must be followed at once. Type names this energy and role. It is not a verdict on your personality, and it is not the same as your Strategy or your Authority, which have their own Core rows and are how you decide and move."
+        "body": "You are a Manifestor: you are built to start from an inner urge, without waiting for the world to ask first. People often feel you coming, and that impact is part of the Type — not a demand that you become available to everyone, and not a claim that every urge must be followed at once. Strategy and Authority describe how you act on it."
       },
       {
         "heading": "Energy and role",
@@ -57,7 +57,7 @@
     "Projector": [
       {
         "heading": "Lived meaning",
-        "body": "You are a Projector: you tend to see people and systems with unusual clarity, and you are here to guide rather than to grind through every task yourself. That sight is most useful in rooms where there is a real invitation or recognition — not a rule that you must wait passively forever, and not a claim that you never do work. Type names this energy and role. It is not a verdict on your personality, and it is not the same as your Strategy or your Authority, which have their own Core rows and are how you decide and move."
+        "body": "You are a Projector: you tend to see people and systems with unusual clarity, and you are here to guide rather than to grind through every task yourself. That sight is most useful in rooms where there is a real invitation or recognition — not a rule that you must wait passively forever, and not a claim that you never do work. Strategy and Authority describe how you act on it."
       },
       {
         "heading": "Energy and role",
@@ -75,7 +75,7 @@
     "Reflector": [
       {
         "heading": "Lived meaning",
-        "body": "You are a Reflector: you sample and reflect the people and places around you, rather than running one fixed inner weather. That can be a gift of discernment — you may feel the health of a room or a place clearly. It is not a claim that you have no self, and not a diagnosis. Type names this energy and role. It is not the same as your Strategy or your Authority, which have their own Core rows and are how you decide and move."
+        "body": "You are a Reflector: you sample and reflect the people and places around you, rather than running one fixed inner weather. That can be a gift of discernment — you may feel the health of a room or a place clearly. It is not a claim that you have no self, and not a diagnosis. Strategy and Authority describe how you act on it."
       },
       {
         "heading": "Energy and role",
@@ -95,7 +95,7 @@
     "Generator": [
       {
         "heading": "Lived meaning",
-        "body": "{name} is a Generator: their work energy comes alive when something in life is worth answering. They are here to build, make, and sustain what actually lights them up — not to invent a path in their head and push it into the world. Type names this energy and role. It is not a verdict on their personality, and it is not the same as their Strategy or their Authority, which have their own Core rows and are how they decide and move."
+        "body": "{name} is a Generator: their work energy comes alive when something in life is worth answering. They are here to build, make, and sustain what actually lights them up — not to invent a path in their head and push it into the world. Strategy and Authority describe how {name} acts on it."
       },
       {
         "heading": "Energy and role",
@@ -113,7 +113,7 @@
     "Manifesting Generator": [
       {
         "heading": "Lived meaning",
-        "body": "{name} is a Manifesting Generator: they have Generator work energy, and once something is a true yes they can move quickly, skip steps, and hold more than one interest. That mix is the Type — not a license to launch from the mind, and not a claim that they must always be fast. Type names this energy and role. It is not a verdict on their personality, and it is not the same as their Strategy or their Authority, which have their own Core rows and are how they decide and move."
+        "body": "{name} is a Manifesting Generator: they have Generator work energy, and once something is a true yes they can move quickly, skip steps, and hold more than one interest. That mix is the Type — not a license to launch from the mind, and not a claim that they must always be fast. Strategy and Authority describe how {name} acts on it."
       },
       {
         "heading": "Energy and role",
@@ -131,7 +131,7 @@
     "Manifestor": [
       {
         "heading": "Lived meaning",
-        "body": "{name} is a Manifestor: they are built to start from an inner urge, without waiting for the world to ask first. People often feel them coming, and that impact is part of the Type — not a demand that they become available to everyone, and not a claim that every urge must be followed at once. Type names this energy and role. It is not a verdict on their personality, and it is not the same as their Strategy or their Authority, which have their own Core rows and are how they decide and move."
+        "body": "{name} is a Manifestor: they are built to start from an inner urge, without waiting for the world to ask first. People often feel them coming, and that impact is part of the Type — not a demand that they become available to everyone, and not a claim that every urge must be followed at once. Strategy and Authority describe how {name} acts on it."
       },
       {
         "heading": "Energy and role",
@@ -149,7 +149,7 @@
     "Projector": [
       {
         "heading": "Lived meaning",
-        "body": "{name} is a Projector: they tend to see people and systems with unusual clarity, and they are here to guide rather than to grind through every task themselves. That sight is most useful in rooms where there is a real invitation or recognition — not a rule that they must wait passively forever, and not a claim that they never do work. Type names this energy and role. It is not a verdict on their personality, and it is not the same as their Strategy or their Authority, which have their own Core rows and are how they decide and move."
+        "body": "{name} is a Projector: they tend to see people and systems with unusual clarity, and they are here to guide rather than to grind through every task themselves. That sight is most useful in rooms where there is a real invitation or recognition — not a rule that they must wait passively forever, and not a claim that they never do work. Strategy and Authority describe how {name} acts on it."
       },
       {
         "heading": "Energy and role",
@@ -167,7 +167,7 @@
     "Reflector": [
       {
         "heading": "Lived meaning",
-        "body": "{name} is a Reflector: they sample and reflect the people and places around them, rather than running one fixed inner weather. That can be a gift of discernment — they may feel the health of a room or a place clearly. It is not a claim that they have no self, and not a diagnosis. Type names this energy and role. It is not the same as their Strategy or their Authority, which have their own Core rows and are how they decide and move."
+        "body": "{name} is a Reflector: they sample and reflect the people and places around them, rather than running one fixed inner weather. That can be a gift of discernment — they may feel the health of a room or a place clearly. It is not a claim that they have no self, and not a diagnosis. Strategy and Authority describe how {name} acts on it."
       },
       {
         "heading": "Energy and role",
