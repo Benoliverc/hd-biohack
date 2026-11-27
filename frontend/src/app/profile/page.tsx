@@ -45,6 +45,7 @@ import { displayCenter } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { chartVoiceName } from "@/lib/chartVoice";
+import { writeChartTypeOpenIfNull } from "@/lib/chartTypeOpen";
 
 type Chart = Record<string, unknown>;
 type BusyMode = "preview" | "save" | null;
@@ -327,6 +328,11 @@ function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [busyMode, setBusyMode] = useState<BusyMode>(null);
   const [viewMode, setViewMode] = useState<ViewMode>(null);
+  /** The preview on screen was just calculated, so its Type box starts open. */
+  const [previewJustGenerated, setPreviewJustGenerated] = useState(false);
+  useEffect(() => {
+    if (viewMode !== "preview") setPreviewJustGenerated(false);
+  }, [viewMode]);
   const [savedForm, setSavedForm] = useState<FormSnapshot | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<number | null>(null);
   const [savedPeople, setSavedPeople] = useState<SavedChartRow[]>([]);
@@ -1081,6 +1087,7 @@ function ProfilePage() {
           }
         } else {
           // create-friend / create-self: always applyRow the new id (never fall back to store Me)
+          writeChartTypeOpenIfNull(activeUser.id, newId);
           const bindStore =
             kind === "self" && (!hasSelfSaved || natalChartId == null);
           applyRow(createdOrUpdated, { bindStore });
@@ -1089,6 +1096,7 @@ function ProfilePage() {
         setChart(res.chart);
         setPreviewTimeUnknown(timeUnknown);
         setViewMode("preview");
+        setPreviewJustGenerated(true);
       }
     } catch (e) {
       setError(mapSaveError(e instanceof Error ? e.message : String(e)));
@@ -1155,6 +1163,7 @@ function ProfilePage() {
           profile: String((res.chart as Chart)?.profile ?? ""),
           chart: res.chart as Record<string, unknown>,
         } satisfies SavedChartRow);
+      writeChartTypeOpenIfNull(activeUser.id, newId);
       applyRow(created, { bindStore: true });
       setFirstRunYouReveal(true);
     } catch {
@@ -2102,6 +2111,12 @@ function ProfilePage() {
                     key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
                     actualType={typeKey}
                     personName={chartPersonName}
+                    openStorageKey={
+                      user && viewMode === "saved" && selectedSavedRow
+                        ? { userId: user.id, chartId: selectedSavedRow.id }
+                        : undefined
+                    }
+                    initialOpen={viewMode === "preview" && previewJustGenerated}
                     onReadMoreInDeepDive={() => jumpToSection("deep-dive-type")}
                   />
                 }

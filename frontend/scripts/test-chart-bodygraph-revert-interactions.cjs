@@ -112,7 +112,7 @@ async function main() {
   window.history.replaceState(null, "", "#snapshot-centers");
   await flush();
   assert.equal(Boolean(byTest("snapshot-centers").props.open), true, "#snapshot-centers opens Centers to watch");
-  assert.equal(Boolean(typeDetails().props.open), false, "Type details close on navigation");
+  assert.equal(Boolean(typeDetails().props.open), true, "Type details keep their state on navigation; Preview resets");
   assert.ok(!text(r.root).includes("Preview — not your chart"), "Preview clears on navigation");
   assert.equal(Boolean(byTest("snapshot-how-you-decide").props.open), false, "hash-open closes the other Snapshot boxes");
   assert.equal(Boolean(byTest("snapshot-profile").props.open), false);
@@ -152,6 +152,6 @@ async function main() {
   await act(async () => button("Projector").props.onClick());
   assert.ok(text(r.root).includes("Preview — not their chart") && text(r.root).includes("Back to Kenji"));
   await act(async () => r.unmount());
-  console.log("PASS revert interactions: five boxes collapsed (Strategy merged into How you decide), Snapshot exclusive-open, Type independent, Type Read more link, Type-only presentation Preview (no URL/storage writes), navigation resets Type only, #snapshot-centers opens and closes the other Snapshot boxes, other-person voice.");
+  console.log("PASS revert interactions: five boxes collapsed (Strategy merged into How you decide), Snapshot exclusive-open, Type independent, Type Read more link, Type-only presentation Preview (no URL/storage writes), Type details keep their state on navigation and Preview resets, #snapshot-centers opens and closes the other Snapshot boxes, other-person voice.");
 }
 main().catch((e) => { console.error(e); process.exit(1); });

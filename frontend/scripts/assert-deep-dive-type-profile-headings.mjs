@@ -91,8 +91,8 @@ assert.match(page,/<ChartDeepDive\s+personName=\{snapshotPersonName\}/);
 assert.match(page,/value=\{<span className="min-w-0 break-words">\{profilePresentation\(profileStr\)\.value\}/);
 assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
 // Frozen copy and geometry hashes stay on main. Brief 17353706… lifts en/nl catalog pins
-// and ChartTypeBox for the Read more link. Scope change 27 Nov 2026 10:06 PM Bangkok:
-// de/es/fr catalogs stay at main 87bd4665 (no new aria-label keys). Part D re-pins ChartTypeBox.
+// and ChartTypeBox to its final bytes (Read more link, then Type-open memory).
+// Scope change 27 Nov 2026 10:06 PM Bangkok: de/es/fr catalogs stay at main 87bd4665.
 const frozen = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
@@ -100,7 +100,7 @@ const frozen = {
   "src/lib/hdProfileCombos.ts": "368e3032562c13cdefa1d2d41b0aafd82abe34e77e4c8650a59592e451eddf77",
   "src/lib/essays/hdProfileCombos.es.ts": "d82120dccc295a2e42ee35e5a06e3926fd5d4574fd4e002c396dc5103b4e752f",
   "src/lib/essays/hdProfileCombos.nl.ts": "1a4a15f87e73a685dfe029071d188b39e4a768e32965f740c21b1e154158db9e",
-  "src/components/ChartTypeBox.tsx": "b9bf5814366c73099d16ef81fc6efb316d4c8d1eba314497feaceceeb0e8bb6f",
+  "src/components/ChartTypeBox.tsx": "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
   "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
