@@ -102,11 +102,11 @@ const frozen = {
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
   "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/i18n/messages/en.ts": "6180071eee2bced37f94776cde8e5f25a989df90df9477cc3b87a81ec7d55362",
-  "src/lib/i18n/messages/de.ts": "4b54eca191738a962e450163a0922d21ce865b7487aabb9bc6dcde39042c506e",
-  "src/lib/i18n/messages/es.ts": "445bf4d6fd79ba7056003e6e1996a1c6248ca312a6073bfb3555fd157a1973c6",
-  "src/lib/i18n/messages/fr.ts": "28686e625ea41f5765beefaba53ceb382184c11fc27b21886e1dbada7613cba9",
-  "src/lib/i18n/messages/nl.ts": "a5045a7ef86ee312b71b1bd4264bd45567b4bfec1aa75d919640e3bd3a39d72d"
+  "src/lib/i18n/messages/en.ts": "98442878a46b340e31573238f33d3a696a9560785213d7669ba565a5abd9abed",
+  "src/lib/i18n/messages/de.ts": "b28fda84e3d01e45b85a94b4d38443836f19e6277bc3edceaa8a12fc0d7ea3d5",
+  "src/lib/i18n/messages/es.ts": "bf87e3048ed1bd80748040ccf068a43ed32e3fa4a8aa6214449be5c273798844",
+  "src/lib/i18n/messages/fr.ts": "ad0d39bdaf814fc339bb8d3339bc40a9953167fdd56255e9a44929bf3fa76088",
+  "src/lib/i18n/messages/nl.ts": "4b229892f8a70d37d910fa4e1471e6a284dba4b77f5b2732fa147a498d728126"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {

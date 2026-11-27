@@ -257,9 +257,12 @@ assert.ok(
   "KitFact CTA stays null",
 );
 assert.ok(
-  /useState\(false\);\s*\n\s*const \[baselineKitOpen/.test(biohack) ||
-    /const \[inventoryOpen, setInventoryOpen\] = useState\(false\)/.test(biohack),
-  "InventoryPanel stays closed by default",
+  /const \[shelfOpen, setShelfOpen\] = useState\(false\)/.test(biohack),
+  "the single Shelf starts closed in state and is not persisted open",
+);
+assert.ok(
+  !biohack.includes('data-testid="inventory-panel"'),
+  "no second Shelf inventory card",
 );
 assert.ok(!/setInventoryOpen\(true\).*shelfDeepLink|shelfDeepLink[\s\S]{0,200}setInventoryOpen\(true\)/.test(biohack),
   "deep-link does not auto-open InventoryPanel",
@@ -269,8 +272,8 @@ assert.ok(biohack.includes("loadProtocol({ rebuild: true })"), "add/remove still
 // Move stays above Shelf
 const iMove = biohack.indexOf("<TodaysMoveCard");
 const iShelf = biohack.indexOf('data-testid="shelf-disclosure"');
-const iIntent = biohack.indexOf('data-testid="intention-disclosure"');
-assert.ok(iMove > 0 && iShelf > iMove && iIntent > iShelf, "Move stays above Shelf, then Intention");
+assert.ok(iMove > 0 && iShelf > iMove, "Move stays above Shelf");
+assert.ok(!biohack.includes('data-testid="intention-disclosure"'), "Intention is not on Protocols");
 
 // Empty-shelf Protocols copy unchanged
 assert.ok(biohack.includes("page.protocols.addWhatYouOwn"), "Shelf · 0 · Add what you own stays");

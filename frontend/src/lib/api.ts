@@ -102,11 +102,6 @@ export type AuthSession = {
 };
 
 
-export type DailyIntention = {
-  day: string;
-  text: string;
-};
-
 export type ProtocolCompletionRow = {
   chart_id: number;
   day: string;
@@ -998,13 +993,6 @@ export const api = {
     req<User>(`/users/${userId}/settings`, {
       method: "PATCH",
       body: JSON.stringify(body),
-    }),
-  getIntention: (userId: number, day: string) =>
-    req<DailyIntention>(`/users/${userId}/intention?day=${encodeURIComponent(day)}`),
-  putIntention: (userId: number, day: string, text: string) =>
-    req<DailyIntention>(`/users/${userId}/intention`, {
-      method: "PUT",
-      body: JSON.stringify({ day, text }),
     }),
   listProtocolCompletions: (
     userId: number,

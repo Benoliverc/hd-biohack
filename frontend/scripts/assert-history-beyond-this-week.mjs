@@ -266,8 +266,10 @@ assert.match(biohack, /chartId=\{youChart\?\.id \?\? null\}/);
 const callIdx = biohack.indexOf("<WeekSkyCard");
 const natalCallIdx = biohack.indexOf("<NatalBaselineCard");
 const shelfIdx = biohack.indexOf('data-testid="shelf-disclosure"');
+const disclaimerIdx = biohack.indexOf('t("page.protocols.disclaimer")');
 assert.ok(callIdx > shelfIdx, "history is not above the Shelf");
 assert.ok(natalCallIdx > 0 && callIdx > natalCallIdx, "Natal baseline sits above WeekSkyCard");
+assert.ok(disclaimerIdx > callIdx, "This week is last on Protocols, before the disclaimer");
 
 // --- Copy, empty, retry ---
 // Language first-pass: leftover history.* keys are translated; pin each locale's strings.

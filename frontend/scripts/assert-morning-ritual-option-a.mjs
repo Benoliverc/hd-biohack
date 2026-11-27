@@ -23,12 +23,14 @@ const home = read("src/app/page.tsx");
 const todayInd = read("src/components/TodayIndication.tsx");
 const weather = read("src/components/protocols/WeatherStrip.tsx");
 
-// Move before Shelf / Intention in Protocols JSX
+// Move before the single Shelf. Intention is no longer on Protocols.
 const iMove = biohack.indexOf("<TodaysMoveCard");
 const iShelf = biohack.indexOf('data-testid="shelf-disclosure"');
-const iIntent = biohack.indexOf('data-testid="intention-disclosure"');
-if (iMove < 0 || iShelf < 0 || iIntent < 0) fail("missing Move / Shelf / Intention markers");
-if (!(iMove < iShelf && iShelf < iIntent)) fail("Move must precede Shelf disclosure, then Intention");
+if (iMove < 0 || iShelf < 0) fail("missing Move / Shelf markers");
+if (!(iMove < iShelf)) fail("Move must precede Shelf disclosure");
+if (biohack.includes('data-testid="intention-disclosure"')) {
+  fail("Intention disclosure must not return to Protocols");
+}
 
 // Single empty-kit ask: no KitFact empty CTA payload
 if (/cta=\{\s*inventory\.length === 0/.test(biohack)) {

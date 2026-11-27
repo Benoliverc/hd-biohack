@@ -47,7 +47,7 @@ assert.equal(
 );
 assert.equal(
   valueOf(en, "protocols.literacy.shelfIntention.body"),
-  "Shelf is what you own and what can feed today’s kit line. Intention is optional — a short note for the day, not a requirement. Neither one replaces the Move."
+  "Shelf is what you own and what can feed today’s kit line. It is the one place on Protocols to add or manage that cupboard. It does not replace the Move."
 );
 
 // New copy in all five locales

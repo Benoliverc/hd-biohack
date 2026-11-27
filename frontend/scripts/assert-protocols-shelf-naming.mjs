@@ -49,7 +49,10 @@ const shelfStart = biohack.indexOf('data-testid="shelf-disclosure"');
 assert.ok(shelfStart > 0, "shelf disclosure present");
 const shelfBlock = biohack.slice(shelfStart, biohack.indexOf("</details>", shelfStart) + 10);
 assert.match(shelfBlock, /t\("page\.protocols\.shelf"\)/);
-assert.match(shelfBlock, /<KitStrip/);
+assert.match(shelfBlock, /<InventoryPanel/);
+assert.doesNotMatch(shelfBlock, /<KitStrip/);
+assert.doesNotMatch(biohack, /<KitStrip/);
+assert.doesNotMatch(biohack, /data-testid="inventory-panel"/);
 assert.doesNotMatch(shelfBlock, /protocols\.yourKit/);
 assert.doesNotMatch(shelfBlock, /Your kit/);
 
@@ -68,12 +71,13 @@ for (const { id, src } of locales) {
 }
 assert.equal(valueFor(en, "protocols.yourKit"), "Your kit");
 
-// --- Editor and inventory banners use Shelf ---
-const invStart = biohack.indexOf('data-testid="inventory-panel"');
-assert.ok(invStart > 0, "inventory-panel present");
-const invOpen = biohack.lastIndexOf("function InventoryPanel", invStart);
-const invBlock = biohack.slice(invOpen, biohack.indexOf("\n}\n", invStart) + 3);
-assert.match(invBlock, /t\("page\.protocols\.shelf"\)/);
+// --- The single Shelf home is the editor. No second titled Shelf card. ---
+const invOpen = biohack.indexOf("function InventoryPanel");
+assert.ok(invOpen > 0, "Shelf editor present");
+const invBlock = biohack.slice(invOpen, biohack.indexOf("function LockedPaywallMock"));
+assert.match(invBlock, /data-testid="shelf-editor"/);
+assert.match(invBlock, /starter-/);
+assert.doesNotMatch(invBlock, /data-testid="inventory-panel"/);
 assert.doesNotMatch(invBlock, /Your kit/);
 assert.doesNotMatch(invBlock, /Add to kit/);
 assert.doesNotMatch(invBlock, /Loading kit/);
@@ -146,7 +150,10 @@ assert.equal(valueFor(en, "protocols.fromKit"), "From your kit");
 assert.equal(valueFor(en, "protocols.baselineKit"), "Baseline kit (always-on defaults)");
 assert.match(move, /t\("protocols\.todayKitPick"\)/);
 assert.match(move, /t\("protocols\.fromKit"\)/);
-assert.match(move, /t\("protocols\.baselineKit"\)/);
+assert.doesNotMatch(move, /data-testid="baseline-kit"/);
+const baselineCard = read("src/components/protocols/BaselineKitCard.tsx");
+assert.match(baselineCard, /t\("protocols\.baselineKit"\)/);
+assert.match(baselineCard, /data-testid="baseline-kit"/);
 assert.match(biohack, /t\("protocols\.fromKit"\)/);
 const sanitizeWhySrc = read("src/lib/sanitizeProtocolWhy.ts");
 assert.match(

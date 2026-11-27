@@ -21,19 +21,15 @@ function SlotGlyph({ slot }: { slot?: "morning" | "midday" | "evening" }) {
  */
 export function TodaysMoveCard({
   items,
-  baselineItems,
   completions,
   doneMap,
   onToggle,
   onNote,
   doneCount,
-  baselineDoneCount,
   moveComplete,
   completeFlash,
   doList,
   dontList,
-  baselineKitOpen,
-  onToggleBaseline,
   showNoKitFootnote,
   showUsualApplies,
   rotatedSlot,
@@ -42,19 +38,15 @@ export function TodaysMoveCard({
   todayMoveLogged = false,
 }: {
   items: CheckItem[];
-  baselineItems: CheckItem[];
   completions: DayCompletions;
   doneMap: Record<string, boolean>;
   onToggle: (it: CheckItem) => void;
   onNote: (id: string, note: string) => void;
   doneCount: number;
-  baselineDoneCount: number;
   moveComplete: boolean;
   completeFlash: boolean;
   doList: string[];
   dontList: string[];
-  baselineKitOpen: boolean;
-  onToggleBaseline: () => void;
   showNoKitFootnote?: boolean;
   /** Quiet line when usual covers the day and no ad-hoc kit pick. */
   showUsualApplies?: boolean;
@@ -68,7 +60,6 @@ export function TodaysMoveCard({
 }) {
   const { t } = useI18n();
   const pct = progressPct(doneCount, items.length);
-  const baselinePct = progressPct(baselineDoneCount, baselineItems.length);
   const pickRef = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
@@ -349,99 +340,6 @@ export function TodaysMoveCard({
               ))}
             </ul>
           </div>
-        </div>
-      )}
-
-      {baselineItems.length > 0 && (
-        <div className="rounded-xl border border-border/80 bg-elevated/50" data-testid="baseline-kit">
-          <button
-            type="button"
-            onClick={onToggleBaseline}
-            className="flex min-h-10 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-fg-secondary"
-            aria-expanded={baselineKitOpen}
-          >
-            <span>
-              {t("protocols.baselineKit")}
-              <span className="ml-1 text-fg-muted" data-testid="baseline-done-count">
-                · {baselineDoneCount}/{baselineItems.length}
-              </span>
-            </span>
-            <span>{baselineKitOpen ? t("protocols.hide") : t("protocols.show")}</span>
-          </button>
-          {baselineKitOpen && (
-            <div className="space-y-2 border-t border-border px-3 pb-3 pt-2">
-              <div
-                className="h-1.5 overflow-hidden rounded-full bg-sunken"
-                data-testid="baseline-progress"
-                role="progressbar"
-                aria-valuenow={baselinePct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={t("protocols.baselineProgress")}
-              >
-                <div
-                  className="h-full rounded-full bg-growth/70 transition-[width] duration-300 ease-out"
-                  style={{ width: `${baselinePct}%` }}
-                />
-              </div>
-              <ul className="space-y-2">
-                {baselineItems.map((it) => {
-                  const checked = Boolean(doneMap[it.id]);
-                  const note = completions[it.id]?.note || "";
-                  return (
-                    <li key={it.id}>
-                      <div className="rounded-lg border border-border/60 bg-elevated/80 px-2.5 py-2">
-                        <label className="flex cursor-pointer gap-2.5">
-                          <input
-                            type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--growth,theme(colors.emerald.600))]"
-                            checked={checked}
-                            onChange={() => onToggle(it)}
-                            data-testid={`protocol-check-${it.id}`}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span
-                              className={`type-body font-medium text-fg ${checked ? "line-through" : ""}`}
-                            >
-                              {it.label}
-                            </span>
-                            {it.sub && (
-                              <span className="mt-0.5 block type-caption text-fg-secondary">{it.sub}</span>
-                            )}
-                            {it.why && (
-                              <span className="mt-0.5 block type-caption text-fg-secondary">{it.why}</span>
-                            )}
-                          </span>
-                        </label>
-                        {checked && (
-                          <div className="mt-1.5 pl-6">
-                            <input
-                              type="text"
-                              maxLength={120}
-                              defaultValue={note}
-                              placeholder={t("protocols.optionalNote")}
-                              className="w-full rounded-lg border border-border bg-sunken px-2 py-1 text-xs text-fg placeholder:text-fg-muted"
-                              data-testid={`protocol-note-${it.id}`}
-                              onBlur={(e) => {
-                                if (e.target.value.trim() !== (note || "").trim()) {
-                                  onNote(it.id, e.target.value);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  (e.target as HTMLInputElement).blur();
-                                }
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
         </div>
       )}
     </section>

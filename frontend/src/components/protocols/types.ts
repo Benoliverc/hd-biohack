@@ -23,4 +23,8 @@ export type CheckItem = {
   /** Timed lead slot — glyph on Move rows. */
   slot?: "morning" | "midday" | "evening";
   kind: CompletionKind;
+  /** Baseline kit dose line. Omitted when the row is already covered today. */
+  dose?: string;
+  /** True when today's protocol already covers this Baseline kit row. */
+  covered?: boolean;
 };

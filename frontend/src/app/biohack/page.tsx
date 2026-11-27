@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, ChevronDown, Package } from "lucide-react";
+import { ChevronRight, Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
 import LiteracyCoach from "@/components/LiteracyCoach";
@@ -48,7 +48,7 @@ import {
 import {
   WeatherStrip,
   TodaysMoveCard,
-  KitStrip,
+  BaselineKitCard,
   STARTER_SUPPLEMENTS,
   type WhatsNew,
   type CheckItem,
@@ -64,6 +64,7 @@ type PlanItem = {
   in_inventory?: boolean;
   priority?: number;
   moment_chip?: string;
+  covered_by_today?: boolean;
 };
 
 
@@ -289,7 +290,6 @@ export default function BiohackPage() {
   const [kitStatus, setKitStatus] = useState<string | null>(null);
   const [focusInvId, setFocusInvId] = useState<number | null>(null);
   const [natalOpen, setNatalOpen] = useState(false);
-  const [inventoryOpen, setInventoryOpen] = useState(false);
   const [usualConfirmOpen, setUsualConfirmOpen] = useState(false);
   const [usualDraft, setUsualDraft] = useState<Record<number, boolean>>({});
   const [usualSaving, setUsualSaving] = useState(false);
@@ -298,9 +298,6 @@ export default function BiohackPage() {
   const [completions, setCompletions] = useState<DayCompletions>({});
   const [weekRows, setWeekRows] = useState<WeekCompletedRow[]>([]);
   const [completeFlash, setCompleteFlash] = useState(false);
-  const [intention, setIntention] = useState("");
-  const [intentionSaving, setIntentionSaving] = useState(false);
-  const inventoryRef = useRef<HTMLDivElement | null>(null);
   const shelfRef = useRef<HTMLDetailsElement | null>(null);
   const [shelfOpen, setShelfOpen] = useState(false);
   const shelfDefaultApplied = useRef(false);
@@ -520,7 +517,6 @@ export default function BiohackPage() {
     if (!user || !youChart) {
       setCompletions({});
       setWeekRows([]);
-      setIntention("");
       return;
     }
     const local = loadDayCompletions(user.id, youChart.id, dayKey);
@@ -533,10 +529,9 @@ export default function BiohackPage() {
     const to = weekKeys[6];
     (async () => {
       try {
-        const [dayRes, weekRes, intentionRes] = await Promise.all([
+        const [dayRes, weekRes] = await Promise.all([
           api.listProtocolCompletions(user.id, youChart.id, { day: dayKey }),
           api.listProtocolCompletions(user.id, youChart.id, { from, to }),
-          api.getIntention(user.id, dayKey),
         ]);
         if (cancelled) return;
         const merged = mergeServerCompletions(local, dayRes.items);
@@ -556,7 +551,6 @@ export default function BiohackPage() {
           saveDayCompletions(user.id, youChart.id, d, m);
         }
         setWeekRows(loadWeekCompleted(user.id, youChart.id, new Date(), protocolsTz));
-        setIntention(intentionRes.text || "");
       } catch {
         /* offline / API error — keep local */
       }
@@ -585,22 +579,6 @@ export default function BiohackPage() {
       queueMicrotask(() => refreshWeek());
     },
     [user, youChart, dayKey, refreshWeek, syncCompletionToServer]
-  );
-
-  const saveIntention = useCallback(
-    (text: string) => {
-      if (!user) return;
-      const trimmed = text.trim().slice(0, 200);
-      setIntention(trimmed);
-      setIntentionSaving(true);
-      void api
-        .putIntention(user.id, dayKey, trimmed)
-        .catch(() => {
-          /* keep local draft */
-        })
-        .finally(() => setIntentionSaving(false));
-    },
-    [user, dayKey]
   );
 
   const protocolReq = useRef(0);
@@ -748,7 +726,7 @@ export default function BiohackPage() {
       setInvName("");
       setFocusInvId(res.id);
       setInvFeedback(res.duplicate ? t("protocols.alreadyOnShelf", { name: res.name }) : t("protocols.addedName", { name: res.name }));
-      setInventoryOpen(true);
+      setShelfOpen(true);
       if (protocol) {
         const next = await loadProtocol({ rebuild: true });
         if (!res.duplicate && next) {
@@ -798,9 +776,13 @@ export default function BiohackPage() {
   };
 
   const openInventory = () => {
-    setInventoryOpen(true);
+    setShelfOpen(true);
+    if (shelfRef.current && !shelfRef.current.open) {
+      shelfRef.current.open = true;
+    }
     requestAnimationFrame(() => {
-      inventoryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = document.getElementById("shelf") ?? shelfRef.current;
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
 
@@ -887,13 +869,17 @@ export default function BiohackPage() {
     if (!daily) return [] as CheckItem[];
     const kit = (daily.baseline_kit as PlanItem[]) || [];
     return kit.map((row, i) => {
+      const covered = row.covered_by_today === true;
       const inInv = Boolean(row.in_inventory);
       return {
+        // Stable by position: daylight 0, caffeine 1, magnesium 2.
         id: `baseline:${i}`,
         label: bareItemName(row.item),
-        sub: row.when || undefined,
-        why: sanitizeWhy(row.why, inInv),
+        sub: covered ? undefined : row.when || undefined,
+        dose: covered ? undefined : row.dose_hint || undefined,
+        why: covered ? undefined : sanitizeWhy(row.why, inInv),
         inInventory: inInv,
+        covered,
         kind: "baseline" as const,
       };
     });
@@ -906,7 +892,8 @@ export default function BiohackPage() {
   const doneMap = useMemo(() => doneMapFromCompletions(completions), [completions]);
   const doneCount = checkItems.filter((it) => doneMap[it.id]).length;
   const moveComplete = checkItems.length > 0 && doneCount === checkItems.length;
-  const baselineDoneCount = baselineCheckItems.filter((it) => doneMap[it.id]).length;
+  const baselineTickable = baselineCheckItems.filter((it) => !it.covered);
+  const baselineDoneCount = baselineTickable.filter((it) => doneMap[it.id]).length;
 
   const onToggleItem = useCallback(
     (it: CheckItem) => {
@@ -1025,23 +1012,18 @@ export default function BiohackPage() {
         <WeatherStrip indication={indication} whatsNew={whatsNew} />
       )}
 
-      {/* Morning Ritual: Move first above the fold; shelf + intention deferred. */}
       {protocol && daily && (
         <TodaysMoveCard
           items={checkItems}
-          baselineItems={baselineCheckItems}
           completions={completions}
           doneMap={doneMap}
           onToggle={onToggleItem}
           onNote={saveNote}
           doneCount={doneCount}
-          baselineDoneCount={baselineDoneCount}
           moveComplete={moveComplete}
           completeFlash={completeFlash}
           doList={(daily.do as string[]) || []}
           dontList={(daily.dont as string[]) || []}
-          baselineKitOpen={baselineKitOpen}
-          onToggleBaseline={() => setBaselineKitOpen((v) => !v)}
           showNoKitFootnote={timedLeadsAllBehavior && inventory.length > 0 && !todayKitPick}
           showUsualApplies={Boolean(indication?.kit_usual_applies) && inventory.length > 0 && !todayKitPick}
           rotatedSlot={whatsNew?.rotated_slot || null}
@@ -1051,9 +1033,32 @@ export default function BiohackPage() {
         />
       )}
 
+      {protocol && (
+        <NatalBaselineCard
+          open={natalOpen}
+          onToggle={() => setNatalOpen((v) => !v)}
+          baseline={baseline}
+          labels={labels}
+        />
+      )}
+
       {protocol && daily ? (
         <LiteracyCoach variant="protocols" onJump={jumpToProtocolsSection} />
       ) : null}
+
+      {protocol && daily && (
+        <BaselineKitCard
+          items={baselineCheckItems}
+          completions={completions}
+          doneMap={doneMap}
+          onToggle={onToggleItem}
+          onNote={saveNote}
+          doneCount={baselineDoneCount}
+          totalCount={baselineTickable.length}
+          open={baselineKitOpen}
+          onToggleOpen={() => setBaselineKitOpen((v) => !v)}
+        />
+      )}
 
       {(protocol || youChart) && (
         <details
@@ -1088,13 +1093,21 @@ export default function BiohackPage() {
             </span>
           </summary>
           <div className="mt-3 space-y-3">
-            <KitStrip
-              count={inventory.length}
-              loading={inventoryLoading}
-              onEdit={openInventory}
-              onAddStarter={(name) => void addInv(name)}
+            <InventoryPanel
+              inventory={inventory}
+              inventoryLoading={inventoryLoading}
+              natalBindingLoading={resolvingYou}
+              invName={invName}
+              setInvName={setInvName}
               adding={adding}
-              disabled={!user || adding || inventoryLoading || resolvingYou}
+              removingId={removingId}
+              invFeedback={invFeedback}
+              focusInvId={focusInvId}
+              patchingUsualId={patchingUsualId}
+              user={Boolean(user)}
+              addInv={addInv}
+              removeInv={removeInv}
+              patchUsual={patchUsual}
             />
             <KitFactCallout
               fact={
@@ -1106,57 +1119,6 @@ export default function BiohackPage() {
             />
           </div>
         </details>
-      )}
-
-      {protocol && daily && (
-        <details
-          className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
-          data-testid="intention-disclosure"
-        >
-          <summary className="cursor-pointer list-none text-sm font-medium text-fg marker:content-none [&::-webkit-details-marker]:hidden">
-            <span className="inline-flex flex-wrap items-center gap-2">
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
-              <span>{t("page.protocols.intention")}</span>
-              <span className="text-xs font-normal text-fg-secondary">
-                · {intention.trim()
-                  ? t("page.protocols.intentionSet")
-                  : t("page.protocols.intentionOptional")}
-              </span>
-            </span>
-          </summary>
-          <div className="mt-3">
-            <DailyIntentionField
-              value={intention}
-              saving={intentionSaving}
-              onCommit={saveIntention}
-              embedded
-            />
-          </div>
-        </details>
-      )}
-
-      {protocol && (
-        <NatalBaselineCard
-          open={natalOpen}
-          onToggle={() => setNatalOpen((v) => !v)}
-          baseline={baseline}
-          labels={labels}
-        />
-      )}
-
-      {protocol && weekly && (
-        <WeekSkyCard
-          theme={String(weekly.theme || "")}
-          skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
-          weekRows={weekRows}
-          weekLabel={(() => {
-            const weekPart = weekRangeLabelPart(protocolsTz);
-            return t(weekPart.key, weekPart.params);
-          })()}
-          userId={user?.id ?? null}
-          chartId={youChart?.id ?? null}
-          timeZone={protocolsTz}
-        />
       )}
 
       {usualConfirmOpen && inventory.length > 0 ? (
@@ -1180,7 +1142,7 @@ export default function BiohackPage() {
                     onClick={() =>
                       setUsualDraft((d) => ({ ...d, [it.id]: !d[it.id] }))
                     }
-                    className={`min-h-10 rounded-full border px-3 py-1.5 text-xs ${
+                    className={`min-h-11 rounded-full border px-3 py-1.5 text-xs ${
                       on
                         ? "border-growth bg-growth-soft text-growth-ink"
                         : "border-border bg-sunken text-fg"
@@ -1198,7 +1160,7 @@ export default function BiohackPage() {
               data-testid="usual-confirm-save"
               disabled={usualSaving}
               onClick={() => void saveUsualConfirm()}
-              className="min-h-10 rounded-xl border border-growth bg-growth-soft px-3 py-2 text-sm font-medium text-growth-ink disabled:opacity-50"
+              className="min-h-11 rounded-xl border border-growth bg-growth-soft px-3 py-2 text-sm font-medium text-growth-ink disabled:opacity-50"
             >
               {t("usual.confirmDone")}
             </button>
@@ -1207,7 +1169,7 @@ export default function BiohackPage() {
               data-testid="usual-confirm-skip"
               disabled={usualSaving}
               onClick={dismissUsualConfirm}
-              className="min-h-10 rounded-xl border border-border px-3 py-2 text-sm text-fg-secondary disabled:opacity-50"
+              className="min-h-11 rounded-xl border border-border px-3 py-2 text-sm text-fg-secondary disabled:opacity-50"
             >
               {t("usual.confirmSkip")}
             </button>
@@ -1215,26 +1177,20 @@ export default function BiohackPage() {
         </aside>
       ) : null}
 
-      <div ref={inventoryRef}>
-        <InventoryPanel
-          open={inventoryOpen}
-          onToggle={() => setInventoryOpen((v) => !v)}
-          inventory={inventory}
-          inventoryLoading={inventoryLoading}
-          natalBindingLoading={resolvingYou}
-          invName={invName}
-          setInvName={setInvName}
-          adding={adding}
-          removingId={removingId}
-          invFeedback={invFeedback}
-          focusInvId={focusInvId}
-          patchingUsualId={patchingUsualId}
-          user={Boolean(user)}
-          addInv={addInv}
-          removeInv={removeInv}
-          patchUsual={patchUsual}
+      {protocol && weekly && (
+        <WeekSkyCard
+          theme={String(weekly.theme || "")}
+          skyNote={String(weekly.sky_note || protocol.daily_directive || "")}
+          weekRows={weekRows}
+          weekLabel={(() => {
+            const weekPart = weekRangeLabelPart(protocolsTz);
+            return t(weekPart.key, weekPart.params);
+          })()}
+          userId={user?.id ?? null}
+          chartId={youChart?.id ?? null}
+          timeZone={protocolsTz}
         />
-      </div>
+      )}
 
       <p className="text-xs text-energy-ink/90">
         {t("page.protocols.disclaimer")}
@@ -1313,58 +1269,6 @@ function ProtocolsHeader({
         </p>
       )}
     </header>
-  );
-}
-
-/* ─── Daily intention ───────────────────────────────────────────────────── */
-
-function DailyIntentionField({
-  value,
-  saving,
-  onCommit,
-  embedded = false,
-}: {
-  value: string;
-  saving: boolean;
-  onCommit: (text: string) => void;
-  embedded?: boolean;
-}) {
-  const { t } = useI18n();
-  const [draft, setDraft] = useState(value);
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  return (
-    <section
-      className={embedded ? "space-y-0" : "rounded-2xl border border-border bg-elevated p-4"}
-      data-testid="daily-intention"
-    >
-      <label
-        htmlFor="daily-intention-input"
-        className="block text-sm font-semibold text-fg"
-      >
-        {t("page.protocols.intentionLabel")}
-        <span className="ml-2 text-xs font-normal text-fg-secondary">optional</span>
-      </label>
-      <input
-        id="daily-intention-input"
-        type="text"
-        maxLength={200}
-        value={draft}
-        disabled={saving}
-        placeholder={t("page.protocols.intentionPlaceholder")}
-        data-testid="daily-intention-input"
-        className="mt-2 min-h-11 w-full rounded-xl border border-border bg-sunken px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted"
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          if (draft.trim() !== (value || "").trim()) onCommit(draft);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        }}
-      />
-    </section>
   );
 }
 
@@ -1448,6 +1352,15 @@ function WeekSkyCard({
   timeZone?: string | null;
 }) {
   const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const rowDisplay = (r: WeekCompletedRow) => {
+    const evening = isEveningCloseCompletion({ itemId: r.id, kind: r.kind });
+    const display = evening ? eveningCloseDisplay(r.label) : null;
+    return {
+      title: display ? t(display.titleKey) : r.label,
+      answer: display?.answerKey != null ? t(display.answerKey) : null,
+    };
+  };
   const isTodayKitRow = (r: WeekCompletedRow) =>
     r.kind === "kit" || r.id.startsWith("today-kit:");
   const moveRows = weekRows.filter((r) => r.kind === "move" && !isTodayKitRow(r));
@@ -1462,13 +1375,33 @@ function WeekSkyCard({
   const groupedDays = weekKeys
     .filter((day) => (rowsByDay.get(day)?.length ?? 0) > 0)
     .map((day) => ({ day, rows: rowsByDay.get(day) || [] }));
+  const weekQualifier = theme.trim() || weekLabel;
 
   return (
-    <section
-      className="space-y-3 rounded-2xl border border-border bg-elevated p-5"
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
       data-testid="week-plan"
     >
-      <h2 className="text-lg font-semibold text-energy-ink">{t("page.protocols.thisWeek")}</h2>
+      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 marker:content-none [&::-webkit-details-marker]:hidden">
+        <ChevronRight
+          className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90"
+          aria-hidden
+        />
+        <span className="min-w-0 flex-1 truncate text-sm">
+          <span className="font-semibold text-fg">{t("page.protocols.thisWeek")}</span>
+          {weekQualifier ? (
+            <span className="font-normal text-fg-secondary"> · {weekQualifier}</span>
+          ) : null}
+        </span>
+        {weekRows.length > 0 ? (
+          <span className="shrink-0 text-xs font-normal text-fg-secondary" data-testid="week-line-count">
+            {t("page.protocols.checkedShort", { n: weekRows.length })}
+          </span>
+        ) : null}
+      </summary>
+      <div className="mt-3 space-y-3">
       {theme && (
         <p className="type-body text-fg" data-testid="week-theme">
           {theme}
@@ -1476,7 +1409,7 @@ function WeekSkyCard({
       )}
       {skyNote && (
         <details className="rounded-xl border border-border bg-sunken/40 px-4 py-3" data-testid="week-sky-note">
-          <summary className="cursor-pointer list-none type-chip uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center type-chip uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden>▸</span>
               {t("page.protocols.skyNoteThisWeek")}
@@ -1490,20 +1423,16 @@ function WeekSkyCard({
         className="rounded-xl border border-border bg-elevated/80 px-4 py-3"
         data-testid="week-completed"
       >
-        <details className="group">
-          <summary className="flex min-h-12 cursor-pointer list-none flex-wrap items-center justify-between gap-2 marker:content-none [&::-webkit-details-marker]:hidden">
-            <span className="inline-flex min-w-0 items-center gap-2">
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
-              <span className="type-chip uppercase tracking-wide text-growth-ink">
-                {t("page.protocols.completedThisWeek")}
-              </span>
+          <div className="flex min-h-12 flex-wrap items-center justify-between gap-2">
+            <span className="type-chip uppercase tracking-wide text-growth-ink">
+              {t("page.protocols.completedThisWeek")}
             </span>
             <span className="type-caption text-fg-secondary" data-testid="week-completed-count">
               {weekRows.length > 0
                 ? t("page.protocols.completedCount", { n: weekRows.length, weekLabel })
                 : t("page.protocols.completedNoneClosed", { weekLabel })}
             </span>
-          </summary>
+          </div>
           {weekRows.length === 0 ? (
             <p className="mt-2 type-body text-fg-secondary" data-testid="week-completed-empty">
               {t("page.protocols.completedEmpty")}
@@ -1517,14 +1446,7 @@ function WeekSkyCard({
                   </p>
                   <ul className="mt-1.5 space-y-1.5">
                     {rows.map((r) => {
-                      const evening = isEveningCloseCompletion({
-                        itemId: r.id,
-                        kind: r.kind,
-                      });
-                      const display = evening ? eveningCloseDisplay(r.label) : null;
-                      const title = display ? t(display.titleKey) : r.label;
-                      const answer =
-                        display?.answerKey != null ? t(display.answerKey) : null;
+                      const { title, answer } = rowDisplay(r);
                       return (
                       <li
                         key={`${r.day}:${r.id}`}
@@ -1564,7 +1486,6 @@ function WeekSkyCard({
               {moveRows.length} move · {baselineRows.length} baseline · synced to your account
             </p>
           )}
-        </details>
         {userId && chartId ? (
           <div className="mt-3">
             <EarlierWeeksHistory
@@ -1578,7 +1499,8 @@ function WeekSkyCard({
           </div>
         ) : null}
       </div>
-    </section>
+      </div>
+    </details>
   );
 }
 
@@ -1617,7 +1539,7 @@ function NatalBaselineCard({
   return (
     <div
       id="natal-baseline-card"
-      className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-growth/40 bg-growth-soft/40"
+      className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)] rounded-2xl border border-growth bg-growth-soft shadow-soft"
       data-testid="natal-baseline-card"
     >
       <button
@@ -1627,7 +1549,10 @@ function NatalBaselineCard({
         aria-expanded={open}
       >
         <span>
-          <span className="block text-sm font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
+          <span className="type-chip uppercase tracking-wide text-growth-ink">
+            {t("page.protocols.startingProtocol")}
+          </span>
+          <span className="block text-lg font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
           <span className="block type-caption text-fg-secondary">{baselineLabel}</span>
           {natalCountCaption ? (
             <span className="block type-caption text-fg-muted">{natalCountCaption}</span>
@@ -1673,8 +1598,6 @@ function NatalBaselineCard({
 /* ─── Inventory ─────────────────────────────────────────────────────────── */
 
 function InventoryPanel({
-  open,
-  onToggle,
   inventory,
   inventoryLoading,
   natalBindingLoading,
@@ -1690,8 +1613,6 @@ function InventoryPanel({
   removeInv,
   patchUsual,
 }: {
-  open: boolean;
-  onToggle: () => void;
   inventory: InvItem[];
   inventoryLoading: boolean;
   natalBindingLoading: boolean;
@@ -1711,32 +1632,14 @@ function InventoryPanel({
   ) => Promise<void>;
 }) {
   const { t } = useI18n();
-  const count = inventory.length;
   return (
-    <div className="rounded-2xl border border-border bg-elevated" data-testid="inventory-panel">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left"
-        aria-expanded={open}
-      >
-        <span className="inline-flex items-center gap-2 text-sm font-semibold text-fg">
-          <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
-          {t("page.protocols.shelf")}{count > 0 ? ` (${count})` : ""}
-        </span>
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-fg-secondary">
-          {open ? t("protocols.hide") : t("protocols.show")}
-          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
-        </span>
-      </button>
-      {open && (
-        <div className="border-t border-border px-4 pb-4 pt-3">
+    <div data-testid="shelf-editor">
           <p className="mb-3 text-xs text-fg-muted">
             {t("protocols.shelfHelp")}
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             <input
-              className="min-w-[12rem] flex-1 rounded-lg border border-border bg-sunken px-3 py-2 text-sm"
+              className="min-h-11 min-w-[12rem] flex-1 rounded-lg border border-border bg-sunken px-3 py-2 text-sm"
               placeholder={t("protocols.addSupplementPlaceholder")}
               value={invName}
               disabled={!user || adding || inventoryLoading || natalBindingLoading}
@@ -1752,7 +1655,7 @@ function InventoryPanel({
               type="button"
               disabled={!user || adding || inventoryLoading || natalBindingLoading || !invName.trim()}
               onClick={() => void addInv()}
-              className="min-h-10 rounded-xl border border-border px-3 py-2 text-sm hover:border-growth disabled:opacity-50"
+              className="min-h-11 rounded-xl border border-border px-3 py-2 text-sm hover:border-growth disabled:opacity-50"
             >
               {adding ? t("protocols.adding") : t("protocols.addToShelf")}
             </button>
@@ -1773,7 +1676,7 @@ function InventoryPanel({
                     disabled={!user || adding}
                     data-testid={`starter-${name.toLowerCase().replace(/\s+/g, "-")}`}
                     onClick={() => void addInv(name)}
-                    className="min-h-10 rounded-full border border-growth/40 bg-growth-soft px-3 py-2 text-xs text-growth hover:border-growth disabled:opacity-50"
+                    className="min-h-11 rounded-full border border-growth/40 bg-growth-soft px-3 py-2 text-xs text-growth hover:border-growth disabled:opacity-50"
                   >
                     + {name}
                   </button>
@@ -1811,7 +1714,7 @@ function InventoryPanel({
                             usual_when: !usual ? undefined : "",
                           })
                         }
-                        className={`min-h-9 rounded-full border px-2.5 py-1 text-xs ${
+                        className={`min-h-11 rounded-full border px-2.5 py-1 text-xs ${
                           usual
                             ? "border-growth bg-growth-soft text-growth-ink"
                             : "border-border text-fg-secondary"
@@ -1824,7 +1727,7 @@ function InventoryPanel({
                         aria-label={t("protocols.removeItem", { name: it.name })}
                         disabled={busy}
                         onClick={() => void removeInv(it)}
-                        className="inline-flex h-8 w-8 min-h-8 items-center justify-center rounded-full text-fg-muted hover:bg-elevated hover:text-danger disabled:opacity-50"
+                        className="inline-flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-full text-fg-muted hover:bg-elevated hover:text-danger disabled:opacity-50"
                       >
                         {removingId === it.id ? "…" : "×"}
                       </button>
@@ -1842,7 +1745,7 @@ function InventoryPanel({
                                 usual_when: it.usual_when === slot ? "" : slot,
                               })
                             }
-                            className={`min-h-8 rounded-full border px-2 py-0.5 type-caption ${
+                            className={`min-h-11 rounded-full border px-2 py-0.5 type-caption ${
                               it.usual_when === slot
                                 ? "border-growth bg-growth-soft text-growth-ink"
                                 : "border-border text-fg-secondary"
@@ -1862,8 +1765,6 @@ function InventoryPanel({
               })}
             </ul>
           )}
-        </div>
-      )}
     </div>
   );
 }

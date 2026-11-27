@@ -36,16 +36,20 @@ assert.ok(
   "package.json wires assert:protocols-this-week-natal-prominence",
 );
 
-// --- Unlocked body order: Shelf → Intention → Natal → This week ---
-const shelfIdx = biohack.indexOf('data-testid="shelf-disclosure"');
-const intentionIdx = biohack.indexOf('data-testid="intention-disclosure"');
+// --- Unlocked body order: Move, Natal, coach, Baseline kit, Shelf, This week last ---
+const moveIdx = biohack.indexOf("<TodaysMoveCard");
 const natalCallIdx = biohack.indexOf("<NatalBaselineCard");
+const coachIdx = biohack.indexOf('<LiteracyCoach variant="protocols"');
+const baselineIdx = biohack.indexOf("<BaselineKitCard");
+const shelfIdx = biohack.indexOf('data-testid="shelf-disclosure"');
 const weekCallIdx = biohack.indexOf("<WeekSkyCard");
+const disclaimerIdx = biohack.indexOf('t("page.protocols.disclaimer")');
 const weekPlanIdx = biohack.indexOf('data-testid="week-plan"');
-assert.ok(shelfIdx > 0, "shelf-disclosure present");
-assert.ok(intentionIdx > shelfIdx, "Intention after Shelf");
-assert.ok(natalCallIdx > intentionIdx, "Natal baseline after Intention");
-assert.ok(weekCallIdx > natalCallIdx, "This week after Natal baseline");
+assert.ok(moveIdx > 0 && natalCallIdx > moveIdx, "Natal sits under Today’s Move");
+assert.ok(coachIdx > natalCallIdx, "How to use sits after Natal");
+assert.ok(baselineIdx > coachIdx && shelfIdx > baselineIdx, "Baseline kit then the single Shelf");
+assert.ok(weekCallIdx > shelfIdx && disclaimerIdx > weekCallIdx, "This week is last before the disclaimer");
+assert.ok(!biohack.includes('data-testid="intention-disclosure"'), "Intention is off Protocols");
 assert.ok(weekPlanIdx > 0, "week-plan present");
 
 // --- Natal baseline default-collapsed + closed-row overview ---
@@ -58,8 +62,7 @@ assert.match(biohack, /page\.protocols\.natalBaselineFallback/);
 assert.match(biohack, /page\.protocols\.natalCountEmphasize/);
 assert.match(biohack, /page\.protocols\.natalCountIncrease/);
 assert.match(biohack, /page\.protocols\.natalCountEase/);
-assert.match(biohack, /border-growth\/40/);
-assert.match(biohack, /bg-growth-soft\/40/);
+assert.match(biohack, /page\.protocols\.startingProtocol/);
 assert.match(biohack, /min-h-12/);
 
 const natalFnStart = biohack.indexOf("function NatalBaselineCard");
@@ -68,6 +71,11 @@ const natalFnEnd = biohack.indexOf("\nfunction ", natalFnStart + 1);
 const natalFn = biohack.slice(natalFnStart, natalFnEnd > 0 ? natalFnEnd : undefined);
 assert.match(natalFn, /baselineLabel/);
 assert.match(natalFn, /natalCountCaption/);
+assert.match(natalFn, /border border-growth bg-growth-soft shadow-soft/);
+assert.match(natalFn, /text-lg font-semibold text-growth-ink/);
+assert.match(natalFn, /type-chip uppercase tracking-wide text-growth-ink/);
+assert.doesNotMatch(natalFn, /border-growth\/40 bg-growth-soft\/40/);
+assert.doesNotMatch(natalFn, /text-sm font-semibold text-growth-ink/);
 assert.doesNotMatch(natalFn, /Always-on for this chart/);
 assert.ok(
   natalFn.indexOf("aria-expanded={open}") > 0 &&
@@ -85,7 +93,9 @@ assert.match(weekFn, /data-testid="week-theme"/);
 assert.match(weekFn, /data-testid="week-sky-note"/);
 assert.match(weekFn, /page\.protocols\.skyNoteThisWeek/);
 assert.match(weekFn, /data-testid="week-completed"/);
-assert.match(weekFn, /<details className="group">/);
+assert.match(weekFn, /const \[open, setOpen\] = useState\(false\)/);
+assert.match(weekFn, /open=\{open\}/);
+assert.doesNotMatch(weekFn, /<details className="group">/);
 assert.match(weekFn, /min-h-12/);
 assert.match(weekFn, /page\.protocols\.completedThisWeek/);
 assert.match(weekFn, /page\.protocols\.completedCount/);
@@ -110,12 +120,18 @@ assert.ok(
   "sky note stays a fold outside the completed disclosure",
 );
 
-// Heading + theme are not inside the completed <details>
-const completedDetails = weekFn.indexOf('<details className="group">');
-assert.ok(completedDetails > 0, "completed disclosure present");
+// The whole card is one disclosure. Completed list opens with the parent.
+const completedIdx = weekFn.indexOf('data-testid="week-completed"');
+assert.ok(completedIdx > 0, "completed list present");
 assert.ok(
-  weekFn.indexOf('t("page.protocols.thisWeek")') < completedDetails,
-  "This week heading stays outside completed disclosure",
+  weekFn.indexOf('t("page.protocols.thisWeek")') < completedIdx,
+  "This week title is the closed line, not inside the completed list",
+);
+assert.ok(
+  !/data-testid="week-completed"[\s\S]*<details/.test(
+    weekFn.slice(completedIdx, weekFn.indexOf('testId="week-history"')),
+  ),
+  "completed list is open with the parent, not a second disclosure",
 );
 
 // --- No Show-up / week-of-dots strip on Protocols ---
