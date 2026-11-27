@@ -29,8 +29,8 @@ import {
   snapshotAuthorityOtherPlain,
   snapshotCenterOtherTip,
   snapshotCentersOtherHelp,
-  snapshotProfileOtherLine,
 } from "@/lib/essays/snapshotOtherPersonCopy";
+import { snapshotProfileLine } from "@/lib/essays/snapshotProfileVoice";
 import {
   SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT,
   isEnvironmentName,
@@ -301,7 +301,6 @@ function ProfilePage() {
     AUTHORITY_PLAIN,
     AUTHORITY_COPY,
     centersToWatch,
-    profilePlainLine,
   } = useHdCopy();
   const {
     user,
@@ -2143,9 +2142,7 @@ function ProfilePage() {
                 >
                   <SnapshotProfileBody
                     profile={profileStr}
-                    copy={snapshotPersonName
-                      ? snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)
-                      : profilePlainLine(profileStr)}
+                    copy={snapshotProfileLine(profileStr, locale, snapshotPersonName)}
                   />
                   <ReadMoreInDeepDive
                     label={t("chart.people.readMoreInDeepDive")}

@@ -124,7 +124,8 @@ assert.match(
 );
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 for (const call of [
-  "snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)",
+  // Brief 17353706…: Profile briefs open through snapshotProfileLine.
+  "snapshotProfileLine(profileStr, locale, snapshotPersonName)",
   "snapshotStrategyOtherCopy(strategyStr, locale, snapshotPersonName)",
   "snapshotAuthorityOtherPlain(authorityStr, locale, snapshotPersonName)",
   "SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER[locale]",
