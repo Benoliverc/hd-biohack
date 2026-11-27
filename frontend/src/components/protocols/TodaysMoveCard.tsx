@@ -28,8 +28,6 @@ export function TodaysMoveCard({
   doneCount,
   moveComplete,
   completeFlash,
-  doList,
-  dontList,
   showNoKitFootnote,
   showUsualApplies,
   rotatedSlot,
@@ -45,8 +43,6 @@ export function TodaysMoveCard({
   doneCount: number;
   moveComplete: boolean;
   completeFlash: boolean;
-  doList: string[];
-  dontList: string[];
   showNoKitFootnote?: boolean;
   /** Quiet line when usual covers the day and no ad-hoc kit pick. */
   showUsualApplies?: boolean;
@@ -317,31 +313,6 @@ export function TodaysMoveCard({
           {t("protocols.noKitMatch")}
         </p>
       ) : null}
-
-      {(doList.length > 0 || dontList.length > 0) && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border bg-sunken/50 p-3">
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-growth-ink">
-              {t("protocols.do")}
-            </h3>
-            <ul className="list-disc space-y-1 pl-4 type-body text-fg-secondary">
-              {doList.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="rounded-xl border border-energy/40 bg-energy/10 p-3">
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-energy-ink">
-              {t("protocols.dont")}
-            </h3>
-            <ul className="list-disc space-y-1 pl-4 type-body text-fg-secondary">
-              {dontList.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

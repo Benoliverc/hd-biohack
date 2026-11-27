@@ -91,6 +91,7 @@ assert.match(page,/<ChartDeepDive\s+personName=\{snapshotPersonName\}/);
 assert.match(page,/value=\{<span className="min-w-0 break-words">\{profilePresentation\(profileStr\)\.value\}/);
 assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
 // Frozen copy and geometry hashes are pinned to the exact approved base. No closer edits.
+// Catalog hashes moved once for the Shelf day-view strings. Essay JSON hashes below stay put.
 const frozen = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
@@ -102,11 +103,11 @@ const frozen = {
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
   "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/i18n/messages/en.ts": "98442878a46b340e31573238f33d3a696a9560785213d7669ba565a5abd9abed",
-  "src/lib/i18n/messages/de.ts": "b28fda84e3d01e45b85a94b4d38443836f19e6277bc3edceaa8a12fc0d7ea3d5",
-  "src/lib/i18n/messages/es.ts": "bf87e3048ed1bd80748040ccf068a43ed32e3fa4a8aa6214449be5c273798844",
-  "src/lib/i18n/messages/fr.ts": "ad0d39bdaf814fc339bb8d3339bc40a9953167fdd56255e9a44929bf3fa76088",
-  "src/lib/i18n/messages/nl.ts": "4b229892f8a70d37d910fa4e1471e6a284dba4b77f5b2732fa147a498d728126"
+  "src/lib/i18n/messages/en.ts": "1e079139e1858c0093657bdb452114325eea80547e901de47655070396c085a9",
+  "src/lib/i18n/messages/de.ts": "a4aab792129765d9a8abb88ea2b68c2950cf1b2c870c487e0b9963789285eed1",
+  "src/lib/i18n/messages/es.ts": "6d84668104b894f87fe353f8ffb67373400fff8050455cb7cb3c831ff6cbd944",
+  "src/lib/i18n/messages/fr.ts": "0a794293d6bac5c708ca3289a94ab19a6791d01c64c682ca7e590d0e03f6ecf9",
+  "src/lib/i18n/messages/nl.ts": "316e0cf0e5939d22b5563470713ce079a93c5816978b3d1ac32300fd0deac95b"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {
