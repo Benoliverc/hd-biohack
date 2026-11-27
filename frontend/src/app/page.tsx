@@ -77,7 +77,7 @@ export default function HomePage() {
         ) : (
           <>
             <h1
-              className="mb-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl md:leading-tight"
+              className="mb-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl md:leading-tight display-serif"
               data-testid={greeting ? "home-greeting" : "home-title"}
             >
               {greeting

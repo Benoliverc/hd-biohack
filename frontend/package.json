@@ -80,6 +80,7 @@
     "assert:locales-en-nl-only": "npx tsx scripts/assert-locales-en-nl-only.mjs",
     "assert:snapshot-read-more-deep-dive": "npx tsx scripts/assert-snapshot-read-more-deep-dive.mjs",
     "assert:chart-profile-personalization": "npx tsx scripts/assert-chart-profile-personalization.mjs",
+    "assert:scoped-display-serif": "npx tsx scripts/assert-scoped-display-serif.mjs",
     "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs"
   },
   "dependencies": {

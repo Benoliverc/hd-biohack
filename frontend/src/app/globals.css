@@ -234,6 +234,17 @@ body > * {
   line-height: 1.25;
   letter-spacing: -0.025em;
 }
+/* Signed-in display serif: --font-display is defined only under AuthGate's protected scope. */
+.type-display,
+.type-title,
+.display-serif {
+  font-family: var(--font-display, inherit);
+  font-optical-sizing: auto;
+}
+.display-serif-scope .type-title,
+.display-serif-scope .display-serif {
+  letter-spacing: normal;
+}
 .type-section {
   font-size: 1.125rem; /* 18px */
   font-weight: 600;
