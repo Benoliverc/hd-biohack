@@ -910,9 +910,10 @@ function SoulUnlockedContent() {
                     <p className="mt-3 max-w-2xl type-body text-fg-secondary">
                       {partnerCopy.body}
                     </p>
-                    <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
-                      <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        {t("soul.chrome.whyItFeels")}
+                    <details className="disclosure group mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
+                      <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 type-caption font-semibold text-fg-secondary outline-none marker:content-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
+                        <span aria-hidden data-disclosure-chevron className="inline-block text-fg-muted">▸</span>
+                        <span>{t("soul.chrome.whyItFeels")}</span>
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{partnerCopy.why}</p>
                     </details>
@@ -943,9 +944,10 @@ function SoulUnlockedContent() {
                     <p className="mt-2 max-w-2xl type-body text-fg-secondary">
                       {friendCopy.body}
                     </p>
-                    <details className="mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
-                      <summary className="cursor-pointer type-caption font-semibold text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        {t("soul.chrome.whyItFeels")}
+                    <details className="disclosure group mt-3 rounded-xl border border-border bg-sunken/40 px-3 py-2">
+                      <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 type-caption font-semibold text-fg-secondary outline-none marker:content-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
+                        <span aria-hidden data-disclosure-chevron className="inline-block text-fg-muted">▸</span>
+                        <span>{t("soul.chrome.whyItFeels")}</span>
                       </summary>
                       <p className="mt-2 text-xs text-fg-secondary">{friendCopy.why}</p>
                     </details>

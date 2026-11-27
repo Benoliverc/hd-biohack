@@ -80,7 +80,8 @@
     "assert:locales-en-nl-only": "npx tsx scripts/assert-locales-en-nl-only.mjs",
     "assert:snapshot-read-more-deep-dive": "npx tsx scripts/assert-snapshot-read-more-deep-dive.mjs",
     "assert:chart-profile-personalization": "npx tsx scripts/assert-chart-profile-personalization.mjs",
-    "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs"
+    "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs",
+    "assert:one-disclosure-pattern": "npx tsx scripts/assert-one-disclosure-pattern.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
