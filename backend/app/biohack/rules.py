@@ -1216,8 +1216,9 @@ def _build_actionable_plans(
     )
 
     # Demoted always-on hygiene — not the hero lead trio.
-    # Bank supplements in Baseline kit appear at most once per day: if a timed
-    # lead or Today's kit pick already covers that supplement, skip the row.
+    # The same three defaults every day. If a timed lead or Today's kit pick
+    # already covers Magnesium, keep the row and mark it covered so Protocols
+    # can show it without a second tick or a second clock time.
     baseline_kit: list[dict] = [
         _plan_item(
             "Within 30 min of waking",
@@ -1249,8 +1250,14 @@ def _build_actionable_plans(
     covered_rows: list[dict | None] = [morning, midday, evening]
     if today_kit:
         covered_rows.append(today_kit)
-    if not _baseline_kit_supplement_covered(mag_row, covered_rows):
-        baseline_kit.append(mag_row)
+    if _baseline_kit_supplement_covered(mag_row, covered_rows):
+        mag_row = {
+            **mag_row,
+            "covered_by_today": True,
+            "when": "",
+            "dose_hint": "",
+        }
+    baseline_kit.append(mag_row)
 
     do: list[str] = []
     dont: list[str] = []

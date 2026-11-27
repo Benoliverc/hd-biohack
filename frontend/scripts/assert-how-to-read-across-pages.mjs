@@ -233,7 +233,7 @@ const protoBank = bankRegion(hdCopy, "export const PROTOCOLS_LITERACY_I18N", "];
 const protoSteps = stepBlocks(protoBank);
 assert.deepEqual(
   protoSteps.map((s) => catalogValue(en, s.titleKey)),
-  ["Today's Move".replace("'", apo), "Shelf and Intention", "Natal and This week"],
+  [`Today${apo}s Move`, "Shelf", "Natal and This week"],
   "Protocols titles are locked English",
 );
 assert.deepEqual(
@@ -245,9 +245,13 @@ assert.ok(biohack.includes('variant="protocols"'), "Protocols page mounts the co
 assert.ok(biohack.includes("<LiteracyCoach"), "Protocols How to use uses LiteracyCoach");
 assert.ok(!/setOpen\(true\)/.test(coach) || !/useEffect\([\s\S]{0,200}setOpen\(true\)/.test(coach), "no auto-open");
 const moveCardIdx = biohack.indexOf("<TodaysMoveCard");
+const natalIdx = biohack.indexOf("<NatalBaselineCard");
 const protoCoachIdx = biohack.indexOf('<LiteracyCoach variant="protocols"');
 const shelfIdx = biohack.indexOf('data-testid="shelf-disclosure"');
-assert.ok(moveCardIdx > 0 && protoCoachIdx > moveCardIdx && shelfIdx > protoCoachIdx, "Protocols chip sits under Today's Move, before Shelf");
+assert.ok(
+  moveCardIdx > 0 && natalIdx > moveCardIdx && protoCoachIdx > natalIdx && shelfIdx > protoCoachIdx,
+  "Protocols chip sits after Natal baseline and before Shelf",
+);
 assert.ok(biohack.includes('id="natal-baseline-card"'), "natal-baseline-card has a matching id");
 assert.ok(todaysMoveCard.includes('id="todays-move"'), "todays-move has a matching id");
 assert.ok(header.includes('pathname === "/biohack"'), "header control can show on /biohack");
