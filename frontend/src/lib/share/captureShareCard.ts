@@ -3,9 +3,21 @@ import {
   ShareBaselineCard,
   type ShareBaselineCardProps,
 } from "@/components/share/ShareBaselineCard";
+import { I18nLocaleRoot, readDocumentLocale, type Locale } from "@/lib/i18n";
 import { SHARE_SIZES, type ShareAspect } from "./palette";
 import { rasterizeOffscreenCard } from "./rasterizeCard";
 import { shareCardImage } from "./shareCardImage";
+
+export function buildShareCardElement(
+  props: ShareBaselineCardProps,
+  locale: Locale = readDocumentLocale(),
+) {
+  return createElement(
+    I18nLocaleRoot,
+    { locale },
+    createElement(ShareBaselineCard, props),
+  );
+}
 
 export async function captureAndShareBaseline(
   props: ShareBaselineCardProps,
@@ -13,7 +25,7 @@ export async function captureAndShareBaseline(
 ): Promise<"shared" | "downloaded" | "clipboard"> {
   const aspect: ShareAspect = props.aspect;
   const size = SHARE_SIZES[aspect];
-  const element = createElement(ShareBaselineCard, props);
+  const element = buildShareCardElement(props);
   const blob = await rasterizeOffscreenCard(element, size);
 
   const stem =

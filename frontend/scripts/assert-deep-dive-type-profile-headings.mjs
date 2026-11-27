@@ -83,16 +83,16 @@ assert.match(dd,/title="Profile" subtitle=\{profilePresentation\(profile\)\.valu
 assert.match(dd,/\{profileLearnMore\(profile\)\}/,'existing combo resolver remains');
 assert.match(dd,/scrollMarginTop: "var\(--chart-scroll-mt\)"/);
 assert.match(dd,/if \(!details.open\) return/);
-assert.match(dd,/top < stickyBottom/);
+assert.match(dd,/top - stickyBottom/);
 assert.match(dd,/<h3 className="font-semibold">\{heading\}<\/h3>/);
 assert.match(dd,/<p className="mt-1 font-normal">\{body\}<\/p>/);
 const page=read('src/app/profile/page.tsx');
 assert.match(page,/<ChartDeepDive\s+personName=\{snapshotPersonName\}/);
 assert.match(page,/value=\{<span className="min-w-0 break-words">\{profilePresentation\(profileStr\)\.value\}/);
 assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
-// Frozen copy and geometry hashes are pinned to the exact approved base. No closer edits.
-// Catalog hashes moved for Shelf day-view strings, then for protocols.moveLoggedOnToday.
-// Essay JSON hashes below stay put.
+// Frozen copy and geometry hashes stay on main. Brief 17353706… lifts en/nl catalog pins
+// and ChartTypeBox to its final bytes (Read more link, then Type-open memory).
+// Scope change 27 Nov 2026 10:06 PM Bangkok: de/es/fr catalogs stay at main 87bd4665.
 const frozen = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
@@ -100,15 +100,15 @@ const frozen = {
   "src/lib/hdProfileCombos.ts": "368e3032562c13cdefa1d2d41b0aafd82abe34e77e4c8650a59592e451eddf77",
   "src/lib/essays/hdProfileCombos.es.ts": "d82120dccc295a2e42ee35e5a06e3926fd5d4574fd4e002c396dc5103b4e752f",
   "src/lib/essays/hdProfileCombos.nl.ts": "1a4a15f87e73a685dfe029071d188b39e4a768e32965f740c21b1e154158db9e",
-  "src/components/ChartTypeBox.tsx": "a677803ac66fffaea4b09002b8002ba1914462a924876270fe1f501fd931530d",
+  "src/components/ChartTypeBox.tsx": "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
   "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
-  "src/lib/i18n/messages/en.ts": "71360a26517d8b70b731de4fd456a1f5f1d22c6e2c7bb1550a277d82048a06f0",
+  "src/lib/i18n/messages/en.ts": "1393c886695b595325dacac0805b3fb7c9c8e6667a01c36762625904e568c312",
   "src/lib/i18n/messages/de.ts": "dada3ac0614ba4d01a580c7d7d579316ae4d99372f0fdfa44eec3fd111f67f9f",
   "src/lib/i18n/messages/es.ts": "8fc6e78052efad2b30201021ebf4265c5d59f6bea1855d47e0e91810c523732e",
   "src/lib/i18n/messages/fr.ts": "9c2b4166fe4d19bc78ab0562f7050fff75b01e9203944fac5543a730b418edff",
-  "src/lib/i18n/messages/nl.ts": "c19b620e6665b0d6a939f088020617419b125ade756bffe7812806bc6594cfa8"
+  "src/lib/i18n/messages/nl.ts": "f1f7ff683fbc157549670a2867fab8527b33210f7a55f2a3efeb00be4c5c15e9"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {

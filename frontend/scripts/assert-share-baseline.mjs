@@ -5,6 +5,8 @@
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -123,6 +125,132 @@ for (const [name, src] of [
   const keys = keysOf(src);
   const missing = shareKeys.filter((k) => !keys.includes(k));
   if (missing.length) fail(`${name} missing ${missing.join(", ")}`);
+}
+
+if (
+  !/"assert:share-baseline": "npx tsx scripts\/assert-share-baseline\.mjs"/.test(
+    pkgJson,
+  )
+) {
+  fail("package.json missing assert:share-baseline");
+}
+
+const capture = read("src/lib/share/captureShareCard.ts");
+const i18nSrc = read("src/lib/i18n/I18nProvider.tsx");
+const i18nBarrel = read("src/lib/i18n/index.ts");
+
+function extractFunction(src, name) {
+  const sig = src.search(new RegExp(`export function ${name}\\b`));
+  if (sig < 0) return null;
+  const rest = src.slice(sig + name.length);
+  const next = rest.search(/\nexport\s+(?:function|type|const|\{)/);
+  return next < 0 ? src.slice(sig) : src.slice(sig, sig + name.length + next);
+}
+
+const localeRootFn = extractFunction(i18nSrc, "I18nLocaleRoot");
+const providerFn = extractFunction(i18nSrc, "I18nProvider");
+if (!localeRootFn) fail("I18nLocaleRoot missing from I18nProvider.tsx");
+if (/document\.documentElement\.lang/.test(localeRootFn)) {
+  fail("I18nLocaleRoot must not touch document.documentElement.lang");
+}
+if (!providerFn || !/document\.documentElement\.lang/.test(providerFn)) {
+  fail("I18nProvider must still set document.documentElement.lang");
+}
+if (!/I18nLocaleRoot/.test(i18nBarrel) || !/readDocumentLocale/.test(i18nBarrel)) {
+  fail("lib/i18n/index.ts must re-export I18nLocaleRoot and readDocumentLocale");
+}
+if (!/I18nLocaleRoot/.test(capture) || !/from ["']@\/lib\/i18n["']/.test(capture)) {
+  fail("captureShareCard must import I18nLocaleRoot from @/lib/i18n");
+}
+if (
+  !/createElement\(\s*I18nLocaleRoot/.test(capture) ||
+  !/createElement\(\s*ShareBaselineCard/.test(capture)
+) {
+  fail("capture must wrap ShareBaselineCard in I18nLocaleRoot");
+}
+
+const captureCode = capture.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+const rasterAt = captureCode.search(/rasterizeOffscreenCard\s*\(/);
+if (rasterAt < 0) fail("rasterizeOffscreenCard call missing");
+const rasterCall = captureCode.slice(rasterAt).match(
+  /rasterizeOffscreenCard\s*\(\s*([^,\s)]+)/,
+);
+if (!rasterCall) fail("rasterizeOffscreenCard call missing");
+const rasterArg = rasterCall[1];
+if (rasterArg === "createElement") {
+  if (
+    /rasterizeOffscreenCard\s*\(\s*createElement\(\s*ShareBaselineCard/.test(
+      captureCode,
+    )
+  ) {
+    fail("bare ShareBaselineCard passed straight to rasterizeOffscreenCard");
+  }
+  if (
+    !/rasterizeOffscreenCard\s*\(\s*createElement\(\s*I18nLocaleRoot/.test(
+      captureCode,
+    )
+  ) {
+    fail("rasterizeOffscreenCard must receive an I18nLocaleRoot wrap");
+  }
+} else {
+  const assign = captureCode.match(
+    new RegExp(`(?:const|let|var)\\s+${rasterArg}\\s*=\\s*([^;]+)`),
+  );
+  if (!assign) fail(`cannot find assignment of rasterize argument ${rasterArg}`);
+  const rhs = assign[1];
+  if (
+    /createElement\(\s*ShareBaselineCard/.test(rhs) &&
+    !/I18nLocaleRoot/.test(rhs)
+  ) {
+    fail("bare ShareBaselineCard passed straight to rasterizeOffscreenCard");
+  }
+  if (!/buildShareCardElement|I18nLocaleRoot/.test(rhs)) {
+    fail("rasterize input must be the I18nLocaleRoot wrap");
+  }
+}
+
+globalThis.React = React;
+const { ShareBaselineCard } = await import(
+  "../src/components/share/ShareBaselineCard.tsx"
+);
+const { buildShareCardElement } = await import(
+  "../src/lib/share/captureShareCard.ts"
+);
+
+const natalFixture = {
+  variant: "natal",
+  aspect: "story",
+  typeLabel: "Projector",
+  profileLabel: "1/3",
+  strategyLabel: "Wait for the Invitation",
+  graph: {
+    definedCenters: ["Spleen", "Sacral"],
+    channels: [{ gates: [57, 34], name: "The Power" }],
+  },
+};
+
+let bareThrew = false;
+try {
+  renderToStaticMarkup(React.createElement(ShareBaselineCard, natalFixture));
+} catch (err) {
+  bareThrew = true;
+  const message = err instanceof Error ? `${err.message}\n${err.stack || ""}` : String(err);
+  if (!message.includes("useI18n must be used within I18nProvider")) {
+    fail(`bare ShareBaselineCard error missing provider message: ${message}`);
+  }
+}
+if (!bareThrew) {
+  fail("bare ShareBaselineCard must throw useI18n must be used within I18nProvider");
+}
+
+const enHtml = renderToStaticMarkup(buildShareCardElement(natalFixture, "en"));
+if (!enHtml.includes("data-share-card")) {
+  fail("wrapped en card missing data-share-card");
+}
+
+const nlHtml = renderToStaticMarkup(buildShareCardElement(natalFixture, "nl"));
+if (!nlHtml.includes("Human Design-lichaamsgrafiek")) {
+  fail("nl card missing Dutch aria Human Design-lichaamsgrafiek");
 }
 
 console.log("OK: share-baseline assertions passed");

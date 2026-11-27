@@ -1,5 +1,7 @@
 export {
   I18nProvider,
+  I18nLocaleRoot,
+  readDocumentLocale,
   useI18n,
   translate,
   LOCALES,

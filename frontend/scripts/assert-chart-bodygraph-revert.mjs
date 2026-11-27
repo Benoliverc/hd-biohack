@@ -53,10 +53,13 @@ assert.equal(
   "BodyGraph differs from f0d542d only by the afterSvg slot",
 );
 
-// Brief 94b01b1a… permits only Type full row, voice gate, sticky-safe opening and Profile subtitle.
-// Sibling assert-deep-dive-type-profile-headings locks the new behavior and unchanged essays.
-assert.equal(sha(read("src/components/ChartDeepDive.tsx")),
-  "39f24b4f0262e8d0727aaa535bdd435bc2384326c4d92c85393aa333ba496c68", "Deep dive frozen after scoped Type/Profile heading amendment");
+// Brief 94b01b1a… added the Type row and Profile subtitle. Brief cb9f2727… (Read more) excepts
+// ChartDeepDive for row ids, exclusive-open, and scroll-margin. Essays stay frozen above.
+// Sibling assert-snapshot-read-more-deep-dive locks the new row map.
+assert.match(read("src/components/ChartDeepDive.tsx"), /id="deep-dive-type"/);
+assert.match(read("src/components/ChartDeepDive.tsx"), /id="deep-dive-strategy"/);
+assert.match(read("src/components/ChartDeepDive.tsx"), /id="deep-dive-profile"/);
+assert.match(read("src/components/ChartDeepDive.tsx"), /id="deep-dive-definition"/);
 
 // --- Today's module is gone ---
 for (const rel of [
