@@ -34,7 +34,10 @@ assert.equal(state(3, 1, true, false), "loggedOnToday");
 assert.equal(state(3, 2, false, false), "progress");
 assert.equal(state(3, 3, false, false), "complete");
 assert.equal(state(3, 3, true, false), "complete");
-assert.equal(state(3, 0, false, true), "complete");
+assert.equal(state(3, 3, false, true), "complete");
+assert.equal(state(3, 0, false, true), "progress");
+assert.equal(state(3, 2, false, true), "progress");
+assert.equal(state(3, 2, true, true), "loggedOnToday");
 assert.equal(state(0, 0, true, false), "empty");
 
 assert.equal(
@@ -57,6 +60,10 @@ assert.match(
   biohack,
   /todayMoveLogged=\{isTodayMoveDone\(completions, indication\?\.move_item_id\)\}/,
 );
+const toggleAt = biohack.indexOf("const onToggleItem");
+assert.ok(toggleAt >= 0, "onToggleItem missing");
+const toggleChunk = biohack.slice(toggleAt, toggleAt + 1600);
+assert.match(toggleChunk, /else if \(!nowComplete\)[\s\S]*setCompleteFlash\(false\)/);
 assert.doesNotMatch(biohack, /WeatherStrip/);
 assert.doesNotMatch(biohack, /protocols-weather/);
 assert.doesNotMatch(biohack, /weather-full-sky-link/);

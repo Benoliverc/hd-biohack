@@ -936,6 +936,10 @@ export default function BiohackPage() {
           if (flashTimer.current) clearTimeout(flashTimer.current);
           setCompleteFlash(true);
           flashTimer.current = setTimeout(() => setCompleteFlash(false), 3200);
+        } else if (!nowComplete) {
+          if (flashTimer.current) clearTimeout(flashTimer.current);
+          flashTimer.current = null;
+          setCompleteFlash(false);
         }
         return next;
       });
