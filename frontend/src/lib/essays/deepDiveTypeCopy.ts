@@ -1,11 +1,8 @@
 import type { Locale } from "@/lib/i18n/types";
 import en from "./deepDiveType.en.json";
-import de from "./deepDiveType.de.json";
-import es from "./deepDiveType.es.json";
-import fr from "./deepDiveType.fr.json";
 import nl from "./deepDiveType.nl.json";
 
-const TYPE_ESSAYS = { en, de, es, fr, nl } satisfies Record<Locale, typeof en>;
+const TYPE_ESSAYS = { en, nl } satisfies Record<Locale, typeof en>;
 export type DeepDiveType = keyof typeof en.self;
 
 function isDeepDiveType(value: string): value is DeepDiveType {

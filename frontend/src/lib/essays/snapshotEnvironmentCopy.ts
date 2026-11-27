@@ -6,11 +6,11 @@
  * (Baseline's name for the traditional HD Environment 'Kitchens').
  * Budget (short copy only; the caveat is extra): <= 80 words and <= 500 characters.
  */
-import type { Locale } from "@/lib/i18n";
+import type { Locale, LocaleCopy } from "@/lib/i18n/types";
 
 export { SNAPSHOT_COPY_MAX_CHARS, SNAPSHOT_COPY_MAX_WORDS } from "./snapshotShortCopy";
 
-type ByLocale = Record<Locale, string>;
+type ByLocale = LocaleCopy;
 
 export const ENVIRONMENT_NAMES = ["Caves", "Markets", "Workshops", "Mountains", "Valleys", "Shores"] as const;
 export type EnvironmentName = (typeof ENVIRONMENT_NAMES)[number];

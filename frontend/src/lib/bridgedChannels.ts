@@ -70,9 +70,6 @@ export function bridgeMeaningKey(gates: number[] | undefined | null): MessageKey
 
 const LOCALE_TAGS: Record<Locale, string> = {
   en: "en-GB",
-  de: "de",
-  es: "es",
-  fr: "fr",
   nl: "nl",
 };
 

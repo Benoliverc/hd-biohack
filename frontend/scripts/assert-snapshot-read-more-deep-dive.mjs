@@ -21,41 +21,26 @@ const { ChartDisclosure, SnapshotExclusiveGroup } = await import("../src/compone
 const { I18nProvider } = await import("../src/lib/i18n/index.ts");
 const { translate } = await import("../src/lib/i18n/I18nProvider.tsx");
 
-const LOCALES = ["en", "de", "es", "fr", "nl"];
+const LOCALES = ["en", "nl"];
 const VISIBLE = {
   en: "Read more in Deep dive",
-  de: "Mehr dazu in Deep dive",
-  es: "Lee más en Deep dive",
-  fr: "Lis-en plus dans Deep dive",
   nl: "Lees meer in Deep dive",
 };
 const ARIA = {
   type: {
     en: "Read more about Type in Deep dive",
-    de: "Mehr dazu über Type in Deep dive",
-    es: "Lee más sobre Type en Deep dive",
-    fr: "Lis-en plus sur Type dans Deep dive",
     nl: "Lees meer over Type in Deep dive",
   },
   profile: {
     en: "Read more about Profile in Deep dive",
-    de: "Mehr dazu über Profile in Deep dive",
-    es: "Lee más sobre Profile en Deep dive",
-    fr: "Lis-en plus sur Profile dans Deep dive",
     nl: "Lees meer over Profile in Deep dive",
   },
   strategy: {
     en: "Read more about Strategy in Deep dive",
-    de: "Mehr dazu über Strategy in Deep dive",
-    es: "Lee más sobre Strategy en Deep dive",
-    fr: "Lis-en plus sur Strategy dans Deep dive",
     nl: "Lees meer over Strategy in Deep dive",
   },
   definition: {
     en: "Read more about Definition in Deep dive",
-    de: "Mehr dazu über Definition in Deep dive",
-    es: "Lee más sobre Definition en Deep dive",
-    fr: "Lis-en plus sur Definition dans Deep dive",
     nl: "Lees meer over Definition in Deep dive",
   },
 };
@@ -66,14 +51,11 @@ const ARIA_KEYS = {
   definition: "chart.people.readMoreAboutDefinitionInDeepDive",
 };
 
-// Scope change 27 Nov 2026 10:06 PM Bangkok (brief 17353706…): new aria-label keys are
-// English and Dutch only. de/es/fr stay byte-identical to main and fall back to English
-// through translate() (table[key] ?? catalogs.en[key]).
-const ARIA_LOCALES = ["en", "nl"];
+// English and Dutch catalogs only. A retired locale is not loaded and falls back to English.
 for (const l of LOCALES) {
   assert.equal(catalogs[l]["chart.people.readMoreInDeepDive"], VISIBLE[l], `${l} visible label`);
 }
-for (const l of ARIA_LOCALES) {
+for (const l of LOCALES) {
   for (const [dest, key] of Object.entries(ARIA_KEYS)) {
     assert.equal(catalogs[l][key], ARIA[dest][l], `${l} ${dest} aria-label`);
     assert.ok(ARIA[dest][l].includes("Deep dive"), `${l} ${dest} keeps Deep dive in English`);
@@ -84,12 +66,10 @@ for (const l of ARIA_LOCALES) {
   assert.equal(Object.keys(catalogs[l]).length, Object.keys(catalogs.en).length, `${l} catalog parity`);
 }
 for (const l of ["de", "es", "fr"]) {
+  assert.equal(translate(l, "chart.people.readMoreInDeepDive"), VISIBLE.en, `${l} visible label falls back to English`);
   for (const [dest, key] of Object.entries(ARIA_KEYS)) {
-    assert.equal(catalogs[l][key], undefined, `${l} does not add ${dest} aria-label`);
     assert.equal(translate(l, key), ARIA[dest].en, `${l} ${dest} falls back to English`);
   }
-  const missing = Object.keys(catalogs.en).filter((k) => catalogs[l][k] == null).sort();
-  assert.deepEqual(missing, Object.values(ARIA_KEYS).sort(), `${l} omits only the four new aria-labels`);
 }
 
 const link = renderToStaticMarkup(

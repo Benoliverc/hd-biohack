@@ -5,15 +5,16 @@
  * DE/FR follow today's you-voice coverage: their Profile / Authority / Centers bundles are English,
  * so other-person uses the English strings there too (translation is out of scope).
  * `{name}` is the person's display name (friendChipLabel, same as the Type box).
+ * Retired 27 Nov 2026: de/fr/es are not selectable and resolve to English.
  */
-import type { Locale } from "@/lib/i18n";
+import type { Locale, LocaleCopy } from "@/lib/i18n/types";
 import { withPersonName } from "./snapshotShortCopy";
 
 type BundleLocale = "en" | "es" | "nl";
 
-/** Which hdCopy bundle a UI locale reads (mirrors resolveHdCopy: de/fr use the English bundle). */
+/** Which hdCopy bundle a UI locale reads (mirrors resolveHdCopy: only nl is translated). */
 export function snapshotBundleLocale(locale: Locale): BundleLocale {
-  return locale === "es" || locale === "nl" ? locale : "en";
+  return locale === "nl" ? locale : "en";
 }
 
 export const SNAPSHOT_AUTHORITY_PLAIN_OTHER: Record<BundleLocale, Record<string, string>> = {
@@ -159,7 +160,7 @@ export function snapshotCenterOtherTip(center: string, locale: Locale, name: str
 }
 
 /** Locked Centers caption for other-person charts (official UX B1 amendment, 25 Nov 2026). */
-export const SNAPSHOT_CENTERS_HELP_OTHER: Record<Locale, string> = {
+export const SNAPSHOT_CENTERS_HELP_OTHER: LocaleCopy = {
   en: "Open centers — where {name} can pick up other people’s energy (energy leaks to notice).",
   de: "Offene Zentren — wo {name} die Energie anderer aufnehmen kann (Energielecks, die es zu bemerken gilt).",
   es: "Centros abiertos — donde {name} puede recoger la energía de otras personas (fugas de energía a notar).",

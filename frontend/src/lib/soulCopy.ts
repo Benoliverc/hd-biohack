@@ -2,14 +2,12 @@
 
 import { useCallback } from "react";
 import type { CopyPart } from "@/lib/api";
-import { esSoulReadings } from "@/lib/i18n/soulReadings/es";
 import { nlSoulReadings } from "@/lib/i18n/soulReadings/nl";
 import { useI18n } from "@/lib/i18n";
 
 type Params = Record<string, string | number>;
 
 const SOUL_READING_CATALOGS: Record<string, Record<string, string>> = {
-  es: esSoulReadings,
   nl: nlSoulReadings,
 };
 
@@ -143,11 +141,11 @@ function resolveComposed(locale: string, params: Params, fallback: string): stri
   return bits.length ? bits.join(" ") : fallback;
 }
 
-function isTranslatedLocale(locale: string): locale is "es" | "nl" {
-  return locale === "es" || locale === "nl";
+function isTranslatedLocale(locale: string): locale is "nl" {
+  return locale === "nl";
 }
 
-/** Nickname for a completed channel when locale is es or nl; otherwise the English fallback. */
+/** Nickname for a completed channel when locale is nl; otherwise the English fallback. */
 export function resolveSoulChannelNickname(
   locale: string,
   gates: Array<number | string> | string | null | undefined,
@@ -165,7 +163,7 @@ export function resolveSoulChannelNickname(
   return lookup(locale, `soul.read.channelName.${id}`) || fallback;
 }
 
-/** Resolve a Soul CopyPart for the current UI locale. Non-es/nl (and missing keys) fall back to the English API body. */
+/** Resolve a Soul CopyPart for the current UI locale. Non-nl (and missing keys) fall back to the English API body. */
 export function resolveSoulCopy(
   locale: string,
   part?: CopyPart | null,

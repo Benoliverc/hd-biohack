@@ -1,7 +1,6 @@
 /**
  * Snapshot Profile line briefs open with "You…" / "Je…" or the person's name.
- * English and Dutch only. de/es/fr keep today's Profile copy (scope change
- * 27 Nov 2026: those locales are leaving the app in a later PR).
+ * English and Dutch only. Retired de/fr/es resolve to the English leads.
  * Brief 17353706…. Names are inserted with a function replacer so "$&" stays literal.
  */
 import type { Locale } from "@/lib/i18n";
@@ -49,8 +48,8 @@ export const PROFILE_LEAD_OTHER: Record<LeadLocale, Record<LineNo, string>> = {
   },
 };
 
-function isLeadLocale(locale: Locale): locale is LeadLocale {
-  return locale === "en" || locale === "nl";
+function leadLocale(locale: Locale): LeadLocale {
+  return locale === "nl" ? "nl" : "en";
 }
 
 function insertName(template: string, name: string): string {
@@ -69,24 +68,19 @@ function withLead(paragraph: string, lead: string): string {
 }
 
 export function snapshotProfileLine(profile: string, locale: Locale, name?: string): string {
-  if (!isLeadLocale(locale)) {
-    return name
-      ? snapshotProfileOtherLine(profile, locale, name)
-      : resolveHdCopy(locale).profilePlainLine(profile);
-  }
-
+  const active = leadLocale(locale);
   const match = /^(\d)\s*\/\s*(\d)$/.exec(profile.trim());
   if (!match) {
-    if (!name) return resolveHdCopy(locale).profilePlainLine(profile);
-    return insertName(snapshotProfileOtherLine(profile, locale, "{name}"), name);
+    if (!name) return resolveHdCopy(active).profilePlainLine(profile);
+    return insertName(snapshotProfileOtherLine(profile, active, "{name}"), name);
   }
 
   const outward = Number(match[1]) as LineNo;
   const underneath = Number(match[2]) as LineNo;
-  const leads = name ? PROFILE_LEAD_OTHER[locale] : PROFILE_LEAD_SELF[locale];
+  const leads = name ? PROFILE_LEAD_OTHER[active] : PROFILE_LEAD_SELF[active];
   const base = name
-    ? snapshotProfileOtherLine(profile, locale, "{name}")
-    : resolveHdCopy(locale).profilePlainLine(profile);
+    ? snapshotProfileOtherLine(profile, active, "{name}")
+    : resolveHdCopy(active).profilePlainLine(profile);
   const parts = base.split("\n\n");
   if (parts.length >= 3 && leads[outward] && leads[underneath]) {
     parts[1] = withLead(parts[1], leads[outward]);

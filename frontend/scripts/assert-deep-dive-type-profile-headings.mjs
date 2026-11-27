@@ -15,7 +15,7 @@ const { profilePresentation } = await import('../src/lib/profilePresentation.ts'
 const { SnapshotProfileBody } = await import('../src/components/SnapshotProfileBody.tsx');
 const { resolveHdCopy } = await import('../src/lib/essays/resolveHdCopy.ts');
 const { snapshotProfileOtherLine } = await import('../src/lib/essays/snapshotOtherPersonCopy.ts');
-const locales = ['en','de','es','fr','nl'];
+const locales = ['en','nl'];
 const types = ['Generator','Manifesting Generator','Manifestor','Projector','Reflector'];
 const headings = [
  '1/3 — Investigator / Martyr', '1/4 — Investigator / Opportunist',
@@ -74,7 +74,7 @@ for(const invalid of ['', '9/1','1/9','x','5/']) {
  assert.deepEqual(profilePresentation(invalid).sections,[]);
  assert.ok(!profilePresentation(invalid).value.includes('?'));
 }
-assert.deepEqual(deepDiveTypeSections('unknown','fr'),[]);
+assert.deepEqual(deepDiveTypeSections('unknown','nl'),[]);
 const dd=read('src/components/ChartDeepDive.tsx');
 assert.doesNotMatch(dd,/deep-dive-type-pointer|TYPE_COPY/);
 assert.ok(dd.indexOf('<Accordion title="Type"') < dd.indexOf('<Accordion title="Strategy"'));
@@ -102,13 +102,13 @@ const frozen = {
   "src/lib/essays/hdProfileCombos.nl.ts": "1a4a15f87e73a685dfe029071d188b39e4a768e32965f740c21b1e154158db9e",
   "src/components/ChartTypeBox.tsx": "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
-  "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
-  "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/i18n/messages/en.ts": "c45f75c89a247258921c0154ffd591eee17184b9102c153ef5b034e2c9080df6",
+  "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
+  "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
+  "src/lib/i18n/messages/en.ts": "1393c886695b595325dacac0805b3fb7c9c8e6667a01c36762625904e568c312",
   "src/lib/i18n/messages/de.ts": "dada3ac0614ba4d01a580c7d7d579316ae4d99372f0fdfa44eec3fd111f67f9f",
   "src/lib/i18n/messages/es.ts": "8fc6e78052efad2b30201021ebf4265c5d59f6bea1855d47e0e91810c523732e",
   "src/lib/i18n/messages/fr.ts": "9c2b4166fe4d19bc78ab0562f7050fff75b01e9203944fac5543a730b418edff",
-  "src/lib/i18n/messages/nl.ts": "076967b9beb0a2d03c24dd69a7434cc52245e3e2de8f4391e6b808120b8545e4"
+  "src/lib/i18n/messages/nl.ts": "f1f7ff683fbc157549670a2867fab8527b33210f7a55f2a3efeb00be4c5c15e9"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {

@@ -240,7 +240,7 @@ assert.doesNotMatch(localeBlock, /flag|🏳️|🇺🇸|🇩🇪|🇪🇸|🇫�
 assert.doesNotMatch(page, /navigator\.language/);
 assert.doesNotMatch(page, /navigator\.languages/);
 assert.doesNotMatch(page, /preferred_locale/);
-assert.match(types, /"en", "nl", "de", "fr", "es"/);
+assert.match(types, /LOCALES = \["en", "nl"\] as const/);
 assert.match(provider, /hd-biohack:preferred-locale/);
 assert.match(provider, /const setLocale = useCallback/);
 assert.ok(

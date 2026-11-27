@@ -17,7 +17,7 @@ globalThis.React = React;
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (rel) => readFileSync(join(root, rel), "utf8");
 const sha = (t) => createHash("sha256").update(t).digest("hex");
-const LOCALES = ["en", "de", "es", "fr", "nl"];
+const LOCALES = ["en", "nl"];
 const copy = await import("../src/lib/essays/snapshotShortCopy.ts");
 const { catalogs } = await import("../src/lib/i18n/messages/index.ts");
 const { ChartDisclosure } = await import("../src/components/ChartDisclosure.tsx");
@@ -34,7 +34,7 @@ const OLD = [/Feel the gut yes first/, /Siente primero el sí del cuerpo/, /Voel
 const all = [];
 for (const map of [copy.SNAPSHOT_STRATEGY_COPY, copy.SNAPSHOT_DEFINITION_COPY])
   for (const [key, byLoc] of Object.entries(map)) {
-    assert.deepEqual(Object.keys(byLoc).sort(), [...LOCALES].sort(), `${key}: all five locales`);
+    for (const l of LOCALES) assert.equal(typeof byLoc[l], "string", `${key}: ${l}`);
     for (const l of LOCALES) {
       const s = byLoc[l];
       assert.ok(words(s) <= 80 && s.length <= 500, `${key} ${l}: ${words(s)}w / ${s.length}c within 80w / 500c`);
@@ -48,9 +48,6 @@ for (const map of [copy.SNAPSHOT_STRATEGY_COPY, copy.SNAPSHOT_DEFINITION_COPY])
 for (const l of LOCALES) all.push([l, copy.SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR[l]], [l, catalogs[l]["chart.people.readMoreInDeepDive"]]);
 for (const [l, s] of all) {
   for (const rx of OLD) assert.doesNotMatch(s, rx, `${l} old MG phrasing absent`);
-  if (l === "de") assert.doesNotMatch(s, /\b(Sie|Ihr|Ihnen|Ihre)\b/, `de du: ${s}`);
-  if (l === "fr") assert.doesNotMatch(s, /\b(vous|votre|vos)\b/i, `fr tu: ${s}`);
-  if (l === "es") assert.doesNotMatch(s, /\b(usted|ustedes|su|sus)\b/i, `es tú: ${s}`);
   if (l === "nl") assert.doesNotMatch(s, /\b(u|uw)\b/i, `nl je: ${s}`);
 }
 // Byte pin of the locked strings (brief tables); any edit must be a deliberate re-lock.
@@ -59,27 +56,12 @@ assert.equal(
   "0f9cf0b7dfc94cab35e4d56ca081dcb15e18dafd4e30a3abbaa1247aab955143",
   "locked Snapshot copy unchanged",
 );
-const POINTER = { en: "Read more in Deep dive", de: "Mehr dazu in Deep dive", es: "Lee más en Deep dive", fr: "Lis-en plus dans Deep dive", nl: "Lees meer in Deep dive" };
-// Scope change 27 Nov 2026 10:06 PM Bangkok (brief 17353706…): the four new Read more
-// aria-labels are en/nl only. de/es/fr catalogs stay at main and omit exactly these keys.
-const EN_NL_ONLY_ARIA = [
-  "chart.people.readMoreAboutTypeInDeepDive",
-  "chart.people.readMoreAboutProfileInDeepDive",
-  "chart.people.readMoreAboutStrategyInDeepDive",
-  "chart.people.readMoreAboutDefinitionInDeepDive",
-];
+const POINTER = { en: "Read more in Deep dive", nl: "Lees meer in Deep dive" };
 for (const l of LOCALES) {
   assert.equal(catalogs[l]["chart.people.readMoreInDeepDive"], POINTER[l], `${l} Deep dive pointer`);
   assert.equal(catalogs[l]["chart.people.authority"], "Authority", `${l} Authority stays English`);
   assert.equal(catalogs[l]["chart.people.strategy"], "Strategy", `${l} Strategy stays English`);
-  const enKeys = Object.keys(catalogs.en);
-  const locKeys = Object.keys(catalogs[l]);
-  if (l === "de" || l === "es" || l === "fr") {
-    const missing = enKeys.filter((k) => !locKeys.includes(k)).sort();
-    assert.deepEqual(missing, [...EN_NL_ONLY_ARIA].sort(), `${l} omits only the en/nl Read more aria-labels`);
-  } else {
-    assert.equal(locKeys.length, enKeys.length, `${l} catalog parity`);
-  }
+  assert.equal(Object.keys(catalogs[l]).length, Object.keys(catalogs.en).length, `${l} catalog parity`);
 }
 
 // --- (b) Default 5 connector: Emotional + respond only ---
@@ -125,9 +107,6 @@ assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive-definition"\)
 const title = (label, value) =>
   renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "x", label, value }, "B")).match(/<summary[^>]*>(.*?)<\/summary>/)[1].replace(/<[^>]+>/g, "");
 assert.equal(title(catalogs.en["chart.people.profile"], "6/2"), "Profile: 6/2");
-assert.equal(title(catalogs.de["chart.people.profile"], "6/2"), "Profil: 6/2");
-assert.equal(title(catalogs.es["chart.people.profile"], "6/2"), "Perfil: 6/2");
-assert.equal(title(catalogs.fr["chart.people.profile"], "6/2"), "Profil: 6/2");
 assert.equal(title(catalogs.nl["chart.people.profile"], "6/2"), "Profiel: 6/2");
 assert.equal(title(catalogs.en["chart.people.definition"], "Split"), "Definition: Split");
 assert.equal(title(catalogs.en["chart.people.howYouDecide"], "Emotional (Solar Plexus) · To Respond (then inform)"), "How you decide: Emotional (Solar Plexus) · To Respond (then inform)");

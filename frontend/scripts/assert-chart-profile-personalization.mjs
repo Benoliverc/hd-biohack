@@ -30,7 +30,7 @@ const { PROFILE_LEAD_SELF, PROFILE_LEAD_OTHER, snapshotProfileLine } = await imp
   "../src/lib/essays/snapshotProfileVoice.ts"
 );
 const { resolveHdCopy } = await import("../src/lib/essays/resolveHdCopy.ts");
-const { snapshotProfileOtherLine, SNAPSHOT_PROFILE_LINES_OTHER } = await import(
+const { SNAPSHOT_PROFILE_LINES_OTHER } = await import(
   "../src/lib/essays/snapshotOtherPersonCopy.ts"
 );
 const { profilePresentation } = await import("../src/lib/profilePresentation.ts");
@@ -217,13 +217,13 @@ for (const profile of PROFILES) {
   for (const locale of ["de", "es", "fr"]) {
     assert.equal(
       snapshotProfileLine(profile, locale),
-      resolveHdCopy(locale).profilePlainLine(profile),
-      `${locale} ${profile} self stays today's copy`,
+      snapshotProfileLine(profile, "en"),
+      `${locale} ${profile} falls back to the English line`,
     );
     assert.equal(
       snapshotProfileLine(profile, locale, "Kenji"),
-      snapshotProfileOtherLine(profile, locale, "Kenji"),
-      `${locale} ${profile} other stays today's copy`,
+      snapshotProfileLine(profile, "en", "Kenji"),
+      `${locale} ${profile} other falls back to the English line`,
     );
   }
 }
@@ -233,9 +233,9 @@ const FROZEN = {
   "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
   "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
-  "src/lib/essays/snapshotOtherPersonCopy.ts": "4f2b1758bb12e3ff9988f6167793c3d4dcd087b859a65f6ee30b981eb0a300be",
-  "src/lib/essays/resolveHdCopy.ts": "05cdd9b052e277ec8bdeac10cfcc1ddd09daa079f95355580f4f6719be40f58b",
-  "src/lib/essays/snapshotShortCopy.ts": "c6c98fa3e9a3fd3b1dc9ef8f091c22f50f8908ee3351ab86c195fdcc2394fadf",
+  "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
+  "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
+  "src/lib/essays/snapshotShortCopy.ts": "98bb7a4974cae8c533d6fe57fdcb72ec35dc1e5276dfbece891aacd5db4e5679",
   "src/lib/i18n/messages/de.ts": "dada3ac0614ba4d01a580c7d7d579316ae4d99372f0fdfa44eec3fd111f67f9f",
   "src/lib/i18n/messages/es.ts": "8fc6e78052efad2b30201021ebf4265c5d59f6bea1855d47e0e91810c523732e",
   "src/lib/i18n/messages/fr.ts": "9c2b4166fe4d19bc78ab0562f7050fff75b01e9203944fac5543a730b418edff",
@@ -368,7 +368,7 @@ assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "68a5139452c9de
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "1a8ed7d110c7453e707b700a05f98e3196c54bf60073802cd0219bffc4dd1ede");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "e8b2cd7865d672a55ff6868f7de20545c028808627b3e5e40ecaabb571a81a61");
 assert.equal(sha(read("src/components/TodayIndication.tsx")), "68a908ea51723fa753d3e1599949e859fbd0d436b198aed7ba43f2cb9711b8bb");
-assert.equal(sha(read("src/lib/bridgedChannels.ts")), "08b6cf7dd0f3583fa943c0c3fb5496703b966051ee771a471fc9f43fadd130d4");
+assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fe188cb7292bc5cb464da56ee6f2650f13053b61b184168fb612c508c76495ac");
 assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
 // assert-today-calm-pass.mjs differs from febe34f only by the globals.css pin lift above.
 assert.equal(sha(read("scripts/assert-today-calm-pass.mjs")), "392080a4eb19cacf5400e1de1adf4a5850717506ea8149447a57297835291aec");

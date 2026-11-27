@@ -4,12 +4,12 @@
  * Deep dive keeps STRATEGY_COPY / DEFINITION_COPY (summary + learnMore) unchanged.
  * Budget: each body <= 80 words and <= 500 characters.
  */
-import type { Locale } from "@/lib/i18n";
+import type { Locale, LocaleCopy } from "@/lib/i18n/types";
 
 export const SNAPSHOT_COPY_MAX_WORDS = 80;
 export const SNAPSHOT_COPY_MAX_CHARS = 500;
 
-type ByLocale = Record<Locale, string>;
+type ByLocale = LocaleCopy;
 
 export const SNAPSHOT_STRATEGY_COPY: Record<string, ByLocale> = {
   "To Respond": {
