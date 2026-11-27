@@ -126,7 +126,7 @@ const soulEs = loadSoulReadings("src/lib/i18n/soulReadings/es.ts", "esSoulReadin
 const soulNl = loadSoulReadings("src/lib/i18n/soulReadings/nl.ts", "nlSoulReadings");
 
 function resolveSoulCopyLite(locale, part, fallback = "") {
-  const catalogForLocale = locale === "es" ? soulEs : locale === "nl" ? soulNl : null;
+  const catalogForLocale = locale === "nl" ? soulNl : null;
   if (!catalogForLocale || !part?.key) return fallback;
   const tpl = catalogForLocale[part.key];
   if (!tpl) return fallback;
@@ -134,7 +134,7 @@ function resolveSoulCopyLite(locale, part, fallback = "") {
 }
 
 const LOCKED_LANGUAGE_HELP =
-  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Spanish and Dutch, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. Those long readings may still be in English in Deutsch and Français. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
+  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Dutch, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
 
 assert.equal(en["settings.languageHelp"], LOCKED_LANGUAGE_HELP, "en settings.languageHelp");
 assert.match(en["settings.languageHelp"], new RegExp(`Today${AP}s Move`));
@@ -163,9 +163,9 @@ const resolver = read("src/lib/essays/resolveHdCopy.ts");
 assert.match(resolver, /export function resolveHdCopy/);
 assert.match(resolver, /export function useHdCopy/);
 assert.match(resolver, /locale === "nl"/);
-assert.match(resolver, /locale === "es"/);
+assert.doesNotMatch(resolver, /locale === "es"/);
 assert.match(resolver, /from "@\/lib\/essays\/hdCopy\.nl"/);
-assert.match(resolver, /from "@\/lib\/essays\/hdCopy\.es"/);
+assert.doesNotMatch(resolver, /from "@\/lib\/essays\/hdCopy\.es"/);
 
 const channelEn = firstLevelExportKeys(read("src/lib/hdChannelCopy.ts"), "CHANNEL_COPY");
 const channelNl = firstLevelExportKeys(read("src/lib/essays/hdChannelCopy.nl.ts"), "CHANNEL_COPY");
@@ -233,10 +233,10 @@ assert.doesNotMatch(
 );
 
 const soulCopy = read("src/lib/soulCopy.ts");
-assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/es"/);
+assert.doesNotMatch(soulCopy, /from "@\/lib\/i18n\/soulReadings\/es"/);
 assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/nl"/);
 assert.match(soulCopy, /function isTranslatedLocale/);
-assert.match(soulCopy, /locale === "es" \|\| locale === "nl"/);
+assert.doesNotMatch(soulCopy, /locale === "es" \|\| locale === "nl"/);
 assert.match(soulCopy, /export function resolveSoulCopy/);
 assert.match(soulCopy, /export function useSoulCopy/);
 
@@ -306,9 +306,8 @@ for (const [name, item] of Object.entries(fixture)) {
   const nlOut = resolveSoulCopyLite("nl", item, item.en);
   const esOut = resolveSoulCopyLite("es", item, item.en);
   assert.ok(nlOut && nlOut.trim().length > 0, `${name} Dutch resolve is non-empty`);
-  assert.ok(esOut && esOut.trim().length > 0, `${name} Spanish resolve is non-empty`);
+  assert.equal(esOut, item.en, `${name} es falls back to the English body`);
   assert.notEqual(nlOut, item.en, `${name} Dutch is not the English fallback`);
-  assert.notEqual(esOut, item.en, `${name} Spanish is not the English fallback`);
   assert.notEqual(nlOut, esOut, `${name} Dutch is not the Spanish body`);
   assert.equal(resolveSoulCopyLite("en", item, item.en), item.en, `${name} en falls back to English body`);
   assert.equal(resolveSoulCopyLite("de", item, item.en), item.en, `${name} de falls back to English body`);
@@ -329,8 +328,7 @@ assert.match(namedNl, /Alex/);
 assert.doesNotMatch(namedNl, /loves/);
 assert.match(namedNl, /houdt/);
 const namedEs = resolveSoulCopyLite("es", fixture.namedLove, fixture.namedLove.en);
-assert.match(namedEs, /Alex/);
-assert.doesNotMatch(namedEs, /loves/);
+assert.equal(namedEs, fixture.namedLove.en, "es named love falls back to the English body");
 assert.notEqual(namedNl, namedEs);
 
 // Long-form must not be poured into main message catalogs
@@ -357,7 +355,7 @@ assert.equal(gitDiff("frontend/src/lib/essays/hdChannelCopy.es.ts").trim(), "", 
 assert.equal(gitDiff("frontend/src/lib/essays/hdProfileCombos.es.ts").trim(), "", "Spanish profile combos unchanged");
 
 const types = read("src/lib/i18n/types.ts");
-assert.match(types, /export const LOCALES = \["en", "nl", "de", "fr", "es"\] as const;/);
+assert.match(types, /export const LOCALES = \["en", "nl"\] as const;/);
 for (const loc of ["pt", "ko", "ja", "zh"]) {
   assert.doesNotMatch(types, new RegExp(`"${loc}"`));
   assert.ok(!existsSync(resolve(root, `src/lib/i18n/messages/${loc}.ts`)), `no ${loc} catalog`);

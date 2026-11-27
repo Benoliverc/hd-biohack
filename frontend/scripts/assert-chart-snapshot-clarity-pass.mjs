@@ -17,7 +17,7 @@ globalThis.React = React;
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (rel) => readFileSync(join(root, rel), "utf8");
 const sha = (t) => createHash("sha256").update(t).digest("hex");
-const LOCALES = ["en", "de", "es", "fr", "nl"];
+const LOCALES = ["en", "nl"];
 const copy = await import("../src/lib/essays/snapshotShortCopy.ts");
 const { catalogs } = await import("../src/lib/i18n/messages/index.ts");
 const { ChartDisclosure } = await import("../src/components/ChartDisclosure.tsx");
@@ -34,7 +34,7 @@ const OLD = [/Feel the gut yes first/, /Siente primero el sí del cuerpo/, /Voel
 const all = [];
 for (const map of [copy.SNAPSHOT_STRATEGY_COPY, copy.SNAPSHOT_DEFINITION_COPY])
   for (const [key, byLoc] of Object.entries(map)) {
-    assert.deepEqual(Object.keys(byLoc).sort(), [...LOCALES].sort(), `${key}: all five locales`);
+    for (const l of LOCALES) assert.equal(typeof byLoc[l], "string", `${key}: ${l}`);
     for (const l of LOCALES) {
       const s = byLoc[l];
       assert.ok(words(s) <= 80 && s.length <= 500, `${key} ${l}: ${words(s)}w / ${s.length}c within 80w / 500c`);
@@ -48,9 +48,6 @@ for (const map of [copy.SNAPSHOT_STRATEGY_COPY, copy.SNAPSHOT_DEFINITION_COPY])
 for (const l of LOCALES) all.push([l, copy.SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR[l]], [l, catalogs[l]["chart.people.readMoreInDeepDive"]]);
 for (const [l, s] of all) {
   for (const rx of OLD) assert.doesNotMatch(s, rx, `${l} old MG phrasing absent`);
-  if (l === "de") assert.doesNotMatch(s, /\b(Sie|Ihr|Ihnen|Ihre)\b/, `de du: ${s}`);
-  if (l === "fr") assert.doesNotMatch(s, /\b(vous|votre|vos)\b/i, `fr tu: ${s}`);
-  if (l === "es") assert.doesNotMatch(s, /\b(usted|ustedes|su|sus)\b/i, `es tú: ${s}`);
   if (l === "nl") assert.doesNotMatch(s, /\b(u|uw)\b/i, `nl je: ${s}`);
 }
 // Byte pin of the locked strings (brief tables); any edit must be a deliberate re-lock.
@@ -105,9 +102,6 @@ assert.match(snapshot, /onJump=\{\(\) => jumpToSection\("deep-dive"\)\}/, "point
 const title = (label, value) =>
   renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "x", label, value }, "B")).match(/<summary[^>]*>(.*?)<\/summary>/)[1].replace(/<[^>]+>/g, "");
 assert.equal(title(catalogs.en["chart.people.profile"], "6/2"), "Profile: 6/2");
-assert.equal(title(catalogs.de["chart.people.profile"], "6/2"), "Profil: 6/2");
-assert.equal(title(catalogs.es["chart.people.profile"], "6/2"), "Perfil: 6/2");
-assert.equal(title(catalogs.fr["chart.people.profile"], "6/2"), "Profil: 6/2");
 assert.equal(title(catalogs.nl["chart.people.profile"], "6/2"), "Profiel: 6/2");
 assert.equal(title(catalogs.en["chart.people.definition"], "Split"), "Definition: Split");
 assert.equal(title(catalogs.en["chart.people.howYouDecide"], "Emotional (Solar Plexus) · To Respond (then inform)"), "How you decide: Emotional (Solar Plexus) · To Respond (then inform)");

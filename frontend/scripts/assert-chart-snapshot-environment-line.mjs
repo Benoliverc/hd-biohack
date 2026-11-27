@@ -18,7 +18,7 @@ globalThis.React = React;
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (rel) => readFileSync(join(root, rel), "utf8");
 const sha = (t) => createHash("sha256").update(t).digest("hex");
-const LOCALES = ["en", "de", "es", "fr", "nl"];
+const LOCALES = ["en", "nl"];
 const NAMES = ["Caves", "Markets", "Workshops", "Mountains", "Valleys", "Shores"];
 const env = await import("../src/lib/essays/snapshotEnvironmentCopy.ts");
 const short = await import("../src/lib/essays/snapshotShortCopy.ts");
@@ -37,7 +37,7 @@ assert.ok(env.isEnvironmentName("Workshops") && !env.isEnvironmentName("Kitchens
 const userFacing = [];
 for (const name of NAMES) {
   const byLoc = env.SNAPSHOT_ENVIRONMENT_COPY[name];
-  assert.deepEqual(Object.keys(byLoc).sort(), [...LOCALES].sort(), `${name}: all five locales`);
+  for (const l of LOCALES) assert.equal(typeof byLoc[l], "string", `${name}: ${l}`);
   for (const l of LOCALES) {
     const s = byLoc[l];
     assert.ok(words(s) <= 80 && s.length <= 500, `${name} ${l}: ${words(s)}w / ${s.length}c within 80w / 500c`);
@@ -95,11 +95,12 @@ for (const l of LOCALES)
 const title = (value) =>
   renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "snapshot-environment", value, label: "Environment" }, "BODY"))
     .replace(/<[^>]+>/g, "").replace("BODY", "");
+const { resolveLocale } = await import("../src/lib/i18n/types.ts");
 assert.equal(title(env.snapshotEnvironmentValue("Mountains", "en", false)), "Environment: Mountains");
 assert.equal(title(env.snapshotEnvironmentValue("Workshops", "en", false)), "Environment: Workshops");
 assert.equal(title(env.snapshotEnvironmentValue("Mountains", "en", true)), "Environment: Mountains (approximate)");
-assert.equal(title(env.snapshotEnvironmentValue("Mountains", "de", true)), "Environment: Mountains (ungefähr)");
-assert.equal(title(env.snapshotEnvironmentValue("Workshops", "fr", true)), "Environment: Workshops (approximatif)");
+assert.equal(title(env.snapshotEnvironmentValue("Mountains", resolveLocale("de"), true)), "Environment: Mountains (approximate)");
+assert.equal(title(env.snapshotEnvironmentValue("Workshops", resolveLocale("fr"), true)), "Environment: Workshops (approximate)");
 const box = renderToStaticMarkup(React.createElement(ChartDisclosure, { testId: "snapshot-environment", value: "Shores", label: "Environment" }, "B"));
 assert.match(box, /^<details data-testid="snapshot-environment" class="rounded-xl border border-border bg-elevated px-3"><summary class="min-h-11 /, "collapsed, 44px summary");
 

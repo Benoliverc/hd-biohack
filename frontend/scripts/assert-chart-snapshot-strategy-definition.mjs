@@ -33,13 +33,16 @@ const LOCKED = {
 };
 const OLD = [/Feel the gut yes first/, /Siente primero el sí del cuerpo/, /Voel eerst het ja vanuit je buik/];
 
-// --- (h) MG Strategy summary: locked string per locale, old phrasing gone, learnMore untouched ---
-for (const [loc, want] of Object.entries(LOCKED)) {
+// --- (h) MG Strategy summary: locked string for en/nl; de/fr/es resolve to the English bundle ---
+for (const loc of ["en", "nl"]) {
   const copy = resolveHdCopy(loc);
-  assert.equal(copy.STRATEGY_COPY[MG].summary, want, `${loc} MG Strategy summary`);
+  assert.equal(copy.STRATEGY_COPY[MG].summary, LOCKED[loc], `${loc} MG Strategy summary`);
   for (const rx of OLD) assert.doesNotMatch(JSON.stringify(copy.STRATEGY_COPY), rx, `${loc} old MG phrasing`);
   for (const k of Object.keys(EN.STRATEGY_COPY)) assert.ok(copy.STRATEGY_COPY[k]?.summary, `${loc} ${k} summary`);
-  assert.equal(copy.TYPE_BATTERY, resolveHdCopy(loc === "de" || loc === "fr" ? "en" : loc).TYPE_BATTERY, `${loc} TYPE_BATTERY untouched`);
+  assert.equal(copy.TYPE_BATTERY, resolveHdCopy(loc).TYPE_BATTERY, `${loc} TYPE_BATTERY untouched`);
+}
+for (const loc of ["de", "fr", "es"]) {
+  assert.equal(resolveHdCopy(loc), resolveHdCopy("en"), `${loc} resolves to the English bundle`);
 }
 for (const loc of ["de", "fr"]) {
   const copy = resolveHdCopy(loc);
@@ -91,7 +94,8 @@ const body = (src, name) => {
   return src.slice(s, src.indexOf("\n}\n", s)).replace(name, "X");
 };
 assert.equal(body(read("src/components/ChartSummaryLearnMore.tsx"), "ChartSummaryLearnMore"), body(deepDive, "SummaryLearnMore"), "same markup as Deep dive SummaryLearnMore");
-for (const [loc, want] of Object.entries(LOCKED)) {
+for (const loc of ["en", "nl"]) {
+  const want = LOCKED[loc];
   const html = renderToStaticMarkup(React.createElement(ChartSummaryLearnMore, { info: resolveHdCopy(loc).STRATEGY_COPY[MG] }));
   assert.ok(html.startsWith(`<p class="mb-2 text-fg">${want.replace(/'/g, "&#x27;")}</p>`), `${loc} expanded Strategy leads with locked summary`);
 }

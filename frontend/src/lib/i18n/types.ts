@@ -1,13 +1,15 @@
-export const LOCALES = ["en", "nl", "de", "fr", "es"] as const;
+export const LOCALES = ["en", "nl"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LOCALE_NATIVE_LABELS: Record<Locale, string> = {
   en: "English",
   nl: "Nederlands",
-  de: "Deutsch",
-  fr: "Français",
-  es: "Español",
 };
+
+/** Retired 27 Nov 2026: not selectable; resolve to en; content files kept on disk, not loaded. */
+export const RETIRED_LOCALES = ["de", "fr", "es"] as const;
+export type RetiredLocale = (typeof RETIRED_LOCALES)[number];
+export type LocaleCopy<T = string> = Record<Locale, T> & Partial<Record<RetiredLocale, T>>;
 
 export const DEFAULT_LOCALE: Locale = "en";
 

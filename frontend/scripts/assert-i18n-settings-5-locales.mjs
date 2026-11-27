@@ -28,9 +28,6 @@ function keysOf(src) {
 const settings = read("src/app/settings/page.tsx");
 const en = read("src/lib/i18n/messages/en.ts");
 const nl = read("src/lib/i18n/messages/nl.ts");
-const de = read("src/lib/i18n/messages/de.ts");
-const fr = read("src/lib/i18n/messages/fr.ts");
-const es = read("src/lib/i18n/messages/es.ts");
 const types = read("src/lib/i18n/types.ts");
 const api = read("src/lib/api.ts");
 const header = read("src/components/Header.tsx");
@@ -45,21 +42,15 @@ const provider = read("src/lib/i18n/I18nProvider.tsx");
 if (!/data-testid="settings-language"/.test(settings)) fail("settings-language missing");
 if (!/data-testid="settings-lang-select"/.test(settings)) fail("settings-lang-select missing");
 if (!/preferred_locale/.test(api)) fail("api User missing preferred_locale");
-if (!/en.*nl.*de.*fr.*es/.test(types)) fail("LOCALES must list en nl de fr es");
+if (!/LOCALES = \["en", "nl"\] as const/.test(types)) fail('LOCALES must be exactly ["en", "nl"]');
 
 const enKeys = keysOf(en);
 const nlKeys = keysOf(nl);
-const deKeys = keysOf(de);
-const frKeys = keysOf(fr);
-const esKeys = keysOf(es);
 
 if (enKeys.length < 150) fail(`EN catalog too thin (${enKeys.length}); expected P0 expansion`);
 
 for (const [name, keys] of [
   ["nl", nlKeys],
-  ["de", deKeys],
-  ["fr", frKeys],
-  ["es", esKeys],
 ]) {
   const missing = enKeys.filter((k) => !keys.includes(k));
   const extra = keys.filter((k) => !enKeys.includes(k));
@@ -71,9 +62,6 @@ for (const [name, keys] of [
 for (const [name, src] of [
   ["en", en],
   ["nl", nl],
-  ["de", de],
-  ["fr", fr],
-  ["es", es],
 ]) {
   if (!/nav\.home/.test(src)) fail(`${name} missing nav.home`);
   if (!/settings\.languageTitle/.test(src)) fail(`${name} missing settings.languageTitle`);

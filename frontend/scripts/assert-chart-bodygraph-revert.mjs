@@ -143,7 +143,7 @@ assert.doesNotMatch(box, /color-mix|Preview|style=/);
 
 // --- i18n: Type/Preview kept in all five locales; removed module chrome gone ---
 const KEEP = ["typeDetails", "preview", "previewMine", "previewOther", "resetMine", "resetOther"];
-for (const locale of ["en", "de", "es", "fr", "nl"]) {
+for (const locale of ["en", "nl"]) {
   const messages = read(`src/lib/i18n/messages/${locale}.ts`);
   for (const key of KEEP) assert.ok(messages.includes(`"chart.bodygraphModule.${key}"`), `${locale} ${key}`);
   for (const type of ["Generator", "Manifesting Generator", "Manifestor", "Projector", "Reflector"])
@@ -156,7 +156,7 @@ const { catalogs } = await import("../src/lib/i18n/messages/index.ts");
 // Kept/reused chrome is localized (no new de/fr English fallback). Box labels reuse
 // existing keys, so this pass adds no new copy.
 for (const key of ["chart.bodygraphModule.typeDetails", "chart.bodygraphModule.preview", "chart.people.profile", "chart.people.howYouDecide", "chart.people.centersToWatch", "chart.people.bodygraph"])
-  for (const locale of ["de", "fr", "es", "nl"])
+  for (const locale of ["nl"])
     assert.notEqual(catalogs[locale][key], catalogs.en[key], `${locale} ${key} translated`);
 
 await import("./assert-chart-bodygraph-navigation.mjs");

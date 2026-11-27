@@ -55,7 +55,7 @@ function interpolate(template, params) {
 }
 
 function resolveSoulCopyLite(locale, part, fallback = "") {
-  const catalog = locale === "es" ? soulEs : locale === "nl" ? soulNl : null;
+  const catalog = locale === "nl" ? soulNl : null;
   if (!catalog || !part?.key) return fallback;
   const tpl = catalog[part.key];
   if (!tpl) return fallback;
@@ -151,7 +151,7 @@ function mustHave(loc, key) {
 
 // --- (a) leftover chrome actually translated ---
 const LOCKED_LANGUAGE_HELP =
-  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Spanish and Dutch, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. Those long readings may still be in English in Deutsch and Français. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
+  "UI language covers navigation, Settings, login, shell labels, Today, and Chart/Soul/Protocols chrome. In Dutch, Chart Deep Dive essays, Chart snapshot blurbs, and Soul readings are translated too. HD Type, Authority, and Center names, and feature names such as Today, Protocols, Chart, Soul, Move, Today’s Move, How to read, and Shelf, stay in English.";
 
 mustEqual("en", "settings.languageHelp", LOCKED_LANGUAGE_HELP);
 // typographic apostrophe in Today’s Move
@@ -605,7 +605,7 @@ for (const rel of Object.keys(essayFiles)) {
 
 const resolver = read("src/lib/essays/resolveHdCopy.ts");
 assert.match(resolver, /export function resolveHdCopy/);
-assert.match(resolver, /locale === "es"/);
+assert.doesNotMatch(resolver, /locale === "es"/);
 assert.match(resolver, /export function useHdCopy/);
 
 const channelEn = firstLevelExportKeys(read("src/lib/hdChannelCopy.ts"), "CHANNEL_COPY");
@@ -664,10 +664,10 @@ assert.doesNotMatch(
 );
 
 const soulCopy = read("src/lib/soulCopy.ts");
-assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/es"/);
+assert.doesNotMatch(soulCopy, /from "@\/lib\/i18n\/soulReadings\/es"/);
 assert.match(soulCopy, /from "@\/lib\/i18n\/soulReadings\/nl"/);
 assert.match(soulCopy, /function isTranslatedLocale/);
-assert.match(soulCopy, /locale === "es" \|\| locale === "nl"/);
+assert.doesNotMatch(soulCopy, /locale === "es" \|\| locale === "nl"/);
 assert.match(soulCopy, /export function resolveSoulCopy/);
 assert.match(soulCopy, /export function useSoulCopy/);
 
@@ -738,8 +738,7 @@ const fixture = {
 for (const [name, item] of Object.entries(fixture)) {
   assert.ok(soulEs[item.key], `catalog has ${item.key} (${name})`);
   const esOut = resolveSoulCopyLite("es", item, item.en);
-  assert.ok(esOut && esOut.trim().length > 0, `${name} Spanish resolve is non-empty`);
-  assert.notEqual(esOut, item.en, `${name} Spanish is not the English fallback`);
+  assert.equal(esOut, item.en, `${name} es falls back to the English body`);
   const nlOut = resolveSoulCopyLite("nl", item, item.en);
   assert.ok(nlOut && nlOut.trim().length > 0, `${name} Dutch resolve is non-empty`);
   assert.notEqual(nlOut, item.en, `${name} Dutch is not the English fallback`);
@@ -759,8 +758,7 @@ assert.equal(
   "missing Dutch key falls back to English body",
 );
 const named = resolveSoulCopyLite("es", fixture.namedLove, fixture.namedLove.en);
-assert.match(named, /Alex/);
-assert.doesNotMatch(named, /loves/);
+assert.equal(named, fixture.namedLove.en, "es named love falls back to the English body");
 
 // Long-form must not be poured into main message catalogs
 for (const loc of locales) {
@@ -783,7 +781,7 @@ assert.doesNotMatch(hdCopyDiff, /TYPE_COPY/, "TYPE_COPY English source not rewri
 assert.match(hdCopy, /You move fast once something is a real yes/);
 
 const types = read("src/lib/i18n/types.ts");
-assert.match(types, /export const LOCALES = \["en", "nl", "de", "fr", "es"\] as const;/);
+assert.match(types, /export const LOCALES = \["en", "nl"\] as const;/);
 for (const loc of ["pt", "ko", "ja", "zh"]) {
   assert.doesNotMatch(types, new RegExp(`"${loc}"`));
   assert.ok(!existsSync(resolve(root, `src/lib/i18n/messages/${loc}.ts`)), `no ${loc} catalog`);
