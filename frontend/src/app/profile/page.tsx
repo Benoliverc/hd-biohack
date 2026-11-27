@@ -44,6 +44,7 @@ import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import { displayCenter } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { youChipLabel } from "@/lib/youChipLabel";
+import { chartVoiceName } from "@/lib/chartVoice";
 
 type Chart = Record<string, unknown>;
 type BusyMode = "preview" | "save" | null;
@@ -1253,12 +1254,17 @@ function ProfilePage() {
   const hangingGates =
     (chart?.hanging_gates as Array<{ held?: number; missing?: number; channel?: string }>) || [];
   const watch = centersToWatch(undefinedCenters, 3);
-  // Other-person Snapshot copy uses the Type box gate: a friend slot, or a saved non-self chart.
-  const snapshotPersonName =
-    selectedSavedRow &&
-    (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
-      ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
-      : undefined;
+  // Brief 17353706…: "you" only on your own chart. Everyone else, including an unsaved preview, gets their name.
+  const chartPersonName = chartVoiceName({
+    selectedRow: selectedSavedRow,
+    viewMode,
+    isNewPersonUi,
+    saveAs,
+    hasSelfSaved,
+    friendName,
+    personFallback: t("chart.people.personFallback"),
+  });
+  const snapshotPersonName = chartPersonName;
   const typeKey = String(chart?.type || "");
   const profileStr = String(chart?.profile || "");
   const authorityStr = String(chart?.authority || "");
@@ -2096,10 +2102,7 @@ function ProfilePage() {
                   <ChartTypeBox
                     key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
                     actualType={typeKey}
-                    personName={selectedSavedRow &&
-                      (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
-                        ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
-                        : undefined}
+                    personName={chartPersonName}
                     onReadMoreInDeepDive={() => jumpToSection("deep-dive-type")}
                   />
                 }
@@ -2119,9 +2122,7 @@ function ProfilePage() {
                 profile={profileStr}
                 authority={authorityStr}
                 definition={definitionStr}
-                ownerName={
-                  snapshotPersonName || (user?.first_name || "").trim() || undefined
-                }
+                ownerName={chartPersonName}
               />
             </div>
 
