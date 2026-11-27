@@ -6,7 +6,7 @@
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import React from "react";
@@ -356,19 +356,21 @@ const deepDive = read("src/components/ChartDeepDive.tsx");
 assert.match(deepDive, /id="deep-dive-profile"/);
 
 // --- 7. Untouched v9, classic graph, and #158 files ---
+// Rebase onto febe34f (#158 merge): these pins are the post-#158 bytes. This branch does not edit them.
 assert.equal(sha(read("src/components/BodyGraph.tsx")), "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8");
 assert.equal(sha(read("src/lib/bodygraphGeometry.ts")), "cc8c5433776ee2e8758f95f868597a5821f8077eec8a92ec7bcb6cad15f1b743");
 assert.equal(sha(read("src/components/ChartBodygraph.tsx")), "1fe364d73c574a15106159dd77768e830a40dd26ab63222e48f1951abfc30617");
 assert.equal(sha(read("src/app/profile/chart-field-notes.css")), "ee151956c4b96d3458c6ea0306dd2f74ac59df0a00b3dd8f891089af0d00ecf9");
-assert.equal(sha(read("src/app/transits/page.tsx")), "cd139c56ac0894d4c73d736611e4a2db54b8ffa79be80eae420712b390732b3f");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "f0d525d24db9e43d45ef52d120125fbd274ce7a5f17f3791a2eec7488abd2ad5");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "5ae9b4d82f82f84cf57533a2dd37cae9bc0cf445b15c11af8cee02df986ac340");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "3d427205c7e7b7cf6914f69e80e99fdfe06ca7c3bb0641bd141f2c2d35addd29");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "c05c6c3d20584a594ca9140f3202b8cdbb1c3dccefd6bd4a3e9c095488426927");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "d0cbc70b0e926324198974bc48ad06eed4af3451a4e15cc9f66bdbc99eccee11");
-assert.equal(sha(read("src/components/TodayIndication.tsx")), "a12a5066dab30b8e35f17111ba8538e4e9a81b4475a4e87f5c369201b101e5e2");
-assert.equal(sha(read("src/lib/bridgedChannels.ts")), "d594a11d2efd228bd317868ef57923347230ed39cbca62e02cd5021faa922bc4");
-assert.ok(!existsSync(join(root, "src/lib/todayYourWay.ts")), "todayYourWay.ts is #158 and is not added here");
-assert.ok(!existsSync(join(root, "scripts/assert-today-calm-pass.mjs")), "assert-today-calm-pass is #158 and is not added here");
+assert.equal(sha(read("src/app/transits/page.tsx")), "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "dc89f81cbb1e24c7a8142418f755e13c07671b96a5246a5eb6e1ed21b5b5cf48");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "89569bea7884f3fdeef818a8331b2dd2d8ab0a1614901cfe1608bd0a7a6aa5fd");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "68a5139452c9de2e223276ff3e3ca13064ab21eef74479ab49518d52b8ba94cf");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "1a8ed7d110c7453e707b700a05f98e3196c54bf60073802cd0219bffc4dd1ede");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "e8b2cd7865d672a55ff6868f7de20545c028808627b3e5e40ecaabb571a81a61");
+assert.equal(sha(read("src/components/TodayIndication.tsx")), "68a908ea51723fa753d3e1599949e859fbd0d436b198aed7ba43f2cb9711b8bb");
+assert.equal(sha(read("src/lib/bridgedChannels.ts")), "08b6cf7dd0f3583fa943c0c3fb5496703b966051ee771a471fc9f43fadd130d4");
+assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
+// assert-today-calm-pass.mjs differs from febe34f only by the globals.css pin lift above.
+assert.equal(sha(read("scripts/assert-today-calm-pass.mjs")), "392080a4eb19cacf5400e1de1adf4a5850717506ea8149447a57297835291aec");
 
 console.log("PASS assert-chart-profile-personalization");
