@@ -115,15 +115,17 @@ assert.equal(
   "other-person Profile / Authority / Centers overlay unchanged",
 );
 // Page wiring: Type box gate, every Snapshot body switches, titles untouched.
+// Brief 17353706…: chartVoiceName feeds snapshotPersonName (you only on your own chart).
 const profile = read("src/app/profile/page.tsx");
 assert.match(
   profile,
-  /const snapshotPersonName =\s+selectedSavedRow &&\s+\(selectedSavedRow\.slot_kind === "friend" \|\| \(!isSelfRow\(selectedSavedRow\) && viewMode === "saved"\)\)\s+\? friendChipLabel\(selectedSavedRow, t\("chart\.people\.personFallback"\)\)\s+: undefined;/,
-  "same gate + name as the Type box",
+  /const chartPersonName = chartVoiceName\(\{[\s\S]*?\}\);\s*const snapshotPersonName = chartPersonName;/,
+  "chartVoiceName feeds snapshotPersonName",
 );
 const snapshot = profile.slice(profile.indexOf('id="snapshot"'), profile.indexOf("<ChartDeepDive"));
 for (const call of [
-  "snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)",
+  // Brief 17353706…: Profile briefs open through snapshotProfileLine.
+  "snapshotProfileLine(profileStr, locale, snapshotPersonName)",
   "snapshotStrategyOtherCopy(strategyStr, locale, snapshotPersonName)",
   "snapshotAuthorityOtherPlain(authorityStr, locale, snapshotPersonName)",
   "SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER[locale]",

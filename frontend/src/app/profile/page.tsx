@@ -14,7 +14,8 @@ import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { ChartBodygraph } from "@/components/ChartBodygraph";
 import "./chart-field-notes.css";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
-import { ChartDisclosure } from "@/components/ChartDisclosure";
+import { ChartDisclosure, SnapshotExclusiveGroup } from "@/components/ChartDisclosure";
+import { ReadMoreInDeepDive, type DeepDiveRowId } from "@/components/ReadMoreInDeepDive";
 import {
   SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR,
   SNAPSHOT_EMOTIONAL_RESPOND_CONNECTOR_OTHER,
@@ -28,8 +29,8 @@ import {
   snapshotAuthorityOtherPlain,
   snapshotCenterOtherTip,
   snapshotCentersOtherHelp,
-  snapshotProfileOtherLine,
 } from "@/lib/essays/snapshotOtherPersonCopy";
+import { snapshotProfileLine } from "@/lib/essays/snapshotProfileVoice";
 import {
   SNAPSHOT_ENVIRONMENT_APPROX_CAVEAT,
   isEnvironmentName,
@@ -43,6 +44,8 @@ import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import { displayCenter } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { youChipLabel } from "@/lib/youChipLabel";
+import { chartVoiceName } from "@/lib/chartVoice";
+import { writeChartTypeOpenIfNull } from "@/lib/chartTypeOpen";
 
 type Chart = Record<string, unknown>;
 type BusyMode = "preview" | "save" | null;
@@ -123,6 +126,23 @@ const DEEP_SECTION_IDS = new Set([
   "activations",
   "planets",
 ]);
+
+/** Core row hashes. Not domain aliases: each opens that row, not just the section. */
+const DEEP_DIVE_ROW_IDS = new Set<DeepDiveRowId>([
+  "deep-dive-type",
+  "deep-dive-profile",
+  "deep-dive-strategy",
+  "deep-dive-definition",
+]);
+
+function isDeepDiveRowId(id: string): id is DeepDiveRowId {
+  return DEEP_DIVE_ROW_IDS.has(id as DeepDiveRowId);
+}
+
+function motionScrollBehavior(): ScrollBehavior {
+  if (typeof window.matchMedia !== "function") return "smooth";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}
 
 function domainFromHash(hash: string): DeepDiveDomain | null {
   const h = hash.replace(/^#/, "");
@@ -206,23 +226,6 @@ async function scrollChartSectionIntoView(
   go(behavior);
 }
 
-/** Snapshot → Deep dive jump (default 7): jumps only; Deep dive rows stay as they are. */
-function SnapshotDeepDivePointer({ label, onJump }: { label: string; onJump: () => void }) {
-  return (
-    <a
-      href="#deep-dive"
-      data-testid="snapshot-deep-dive-pointer"
-      onClick={(event) => {
-        event.preventDefault();
-        onJump();
-      }}
-      className="mt-2 inline-flex min-h-11 items-center type-body text-growth underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-    >
-      {label}
-    </a>
-  );
-}
-
 function ChartSectionNav({
   onJump,
 }: {
@@ -299,7 +302,6 @@ function ProfilePage() {
     AUTHORITY_PLAIN,
     AUTHORITY_COPY,
     centersToWatch,
-    profilePlainLine,
   } = useHdCopy();
   const {
     user,
@@ -326,6 +328,11 @@ function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [busyMode, setBusyMode] = useState<BusyMode>(null);
   const [viewMode, setViewMode] = useState<ViewMode>(null);
+  /** The preview on screen was just calculated, so its Type box starts open. */
+  const [previewJustGenerated, setPreviewJustGenerated] = useState(false);
+  useEffect(() => {
+    if (viewMode !== "preview") setPreviewJustGenerated(false);
+  }, [viewMode]);
   const [savedForm, setSavedForm] = useState<FormSnapshot | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<number | null>(null);
   const [savedPeople, setSavedPeople] = useState<SavedChartRow[]>([]);
@@ -342,6 +349,8 @@ function ProfilePage() {
   /** True while DEMO_BIRTH is loaded into the form (never implied as "your" chart). */
   const [demoBirthActive, setDemoBirthActive] = useState(false);
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
+  /** Open Core row. Null means every Core row is closed. Not persisted. */
+  const [deepDiveRow, setDeepDiveRow] = useState<string | null>(null);
   const hadChartRef = useRef(false);
   const peopleFetchGen = useRef(0);
   /** Imperative selection for async refreshPeopleOnOpen (avoid stale Me overwrite after create). */
@@ -719,13 +728,30 @@ function ProfilePage() {
   }, [error, formDirtyVsSaved]);
 
   useEffect(() => {
-    const apply = () => {
-      const fromHash = domainFromHash(window.location.hash);
-      if (fromHash) setDeepDiveDomain(fromHash);
+    const apply = (scroll: boolean) => {
+      const raw = window.location.hash.replace(/^#/, "");
+      if (isDeepDiveRowId(raw)) {
+        setDeepDiveDomain("core");
+        setDeepDiveRow(raw);
+        if (scroll) {
+          void (async () => {
+            await waitTwoFrames();
+            await scrollChartSectionIntoView(raw, motionScrollBehavior());
+          })();
+        }
+        return;
+      }
+      const fromHash = domainFromHash(raw);
+      if (fromHash) {
+        setDeepDiveDomain(fromHash);
+        // Domain hashes switch tabs. They do not open a Core row.
+        if (fromHash !== "core") setDeepDiveRow(null);
+      }
     };
-    apply();
-    window.addEventListener("hashchange", apply);
-    return () => window.removeEventListener("hashchange", apply);
+    apply(false);
+    const onHash = () => apply(true);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
   // Avoid bfcache restoring a mid-page scroll before sticky heights exist.
@@ -738,15 +764,30 @@ function ProfilePage() {
     };
   }, []);
 
+  const chartNavKey = `${viewMode ?? "none"}:${editingChartId ?? "unsaved"}`;
+  const [seenNavKey, setSeenNavKey] = useState(chartNavKey);
+  if (seenNavKey !== chartNavKey) {
+    setSeenNavKey(chartNavKey);
+    const raw = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+    if (!isDeepDiveRowId(raw)) setDeepDiveRow(null);
+  }
+
   // After chart hydrates, honor deep-link hash once sticky stack heights are measured.
-  // Always scroll to #deep-dive for domain hashes (legacy #centers stubs can native-scroll early).
+  // Domain hashes scroll to #deep-dive. Row hashes scroll to that row and open it.
+  // A person switch or view-mode change starts rows closed unless a row hash is present.
   useEffect(() => {
     if (!chart) return;
     const raw = window.location.hash.replace(/^#/, "");
+    if (isDeepDiveRowId(raw)) {
+      setDeepDiveDomain("core");
+      setDeepDiveRow(raw);
+    } else {
+      setDeepDiveRow(null);
+      const fromHash = domainFromHash(raw);
+      if (fromHash) setDeepDiveDomain(fromHash);
+    }
     if (!raw) return;
-    const fromHash = domainFromHash(raw);
-    if (fromHash) setDeepDiveDomain(fromHash);
-    const targetId = DEEP_SECTION_IDS.has(raw) ? "deep-dive" : raw;
+    const targetId = isDeepDiveRowId(raw) ? raw : DEEP_SECTION_IDS.has(raw) ? "deep-dive" : raw;
     let cancelled = false;
     void (async () => {
       await waitTwoFrames();
@@ -759,7 +800,7 @@ function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [chart]);
+  }, [chart, chartNavKey]);
 
   const onCityChange = (
     city: string,
@@ -1046,6 +1087,7 @@ function ProfilePage() {
           }
         } else {
           // create-friend / create-self: always applyRow the new id (never fall back to store Me)
+          writeChartTypeOpenIfNull(activeUser.id, newId);
           const bindStore =
             kind === "self" && (!hasSelfSaved || natalChartId == null);
           applyRow(createdOrUpdated, { bindStore });
@@ -1054,6 +1096,7 @@ function ProfilePage() {
         setChart(res.chart);
         setPreviewTimeUnknown(timeUnknown);
         setViewMode("preview");
+        setPreviewJustGenerated(true);
       }
     } catch (e) {
       setError(mapSaveError(e instanceof Error ? e.message : String(e)));
@@ -1120,6 +1163,7 @@ function ProfilePage() {
           profile: String((res.chart as Chart)?.profile ?? ""),
           chart: res.chart as Record<string, unknown>,
         } satisfies SavedChartRow);
+      writeChartTypeOpenIfNull(activeUser.id, newId);
       applyRow(created, { bindStore: true });
       setFirstRunYouReveal(true);
     } catch {
@@ -1186,10 +1230,25 @@ function ProfilePage() {
   };
 
   const jumpToSection = (id: string, domain?: DeepDiveDomain) => {
-    if (domain) setDeepDiveDomain(domain);
+    const rowJump = isDeepDiveRowId(id);
+    if (rowJump) {
+      setDeepDiveDomain("core");
+      setDeepDiveRow(id);
+    } else if (domain) {
+      setDeepDiveDomain(domain);
+      if (domain !== "core") setDeepDiveRow(null);
+    }
     const url = `${window.location.pathname}${window.location.search}#${id}`;
     window.history.replaceState(null, "", url);
-    const targetId = DEEP_SECTION_IDS.has(id) ? "deep-dive" : id;
+    // Row ids are not domain aliases: scroll to the row, not only the section heading.
+    const targetId = rowJump ? id : DEEP_SECTION_IDS.has(id) ? "deep-dive" : id;
+    if (rowJump) {
+      void (async () => {
+        await waitTwoFrames();
+        await scrollChartSectionIntoView(targetId, motionScrollBehavior());
+      })();
+      return;
+    }
     void scrollChartSectionIntoView(targetId, "smooth");
   };
 
@@ -1203,12 +1262,17 @@ function ProfilePage() {
   const hangingGates =
     (chart?.hanging_gates as Array<{ held?: number; missing?: number; channel?: string }>) || [];
   const watch = centersToWatch(undefinedCenters, 3);
-  // Other-person Snapshot copy uses the Type box gate: a friend slot, or a saved non-self chart.
-  const snapshotPersonName =
-    selectedSavedRow &&
-    (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
-      ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
-      : undefined;
+  // Brief 17353706…: "you" only on your own chart. Everyone else, including an unsaved preview, gets their name.
+  const chartPersonName = chartVoiceName({
+    selectedRow: selectedSavedRow,
+    viewMode,
+    isNewPersonUi,
+    saveAs,
+    hasSelfSaved,
+    friendName,
+    personFallback: t("chart.people.personFallback"),
+  });
+  const snapshotPersonName = chartPersonName;
   const typeKey = String(chart?.type || "");
   const profileStr = String(chart?.profile || "");
   const authorityStr = String(chart?.authority || "");
@@ -2046,10 +2110,14 @@ function ProfilePage() {
                   <ChartTypeBox
                     key={`${viewMode}:${selectedSavedRow?.id ?? "unsaved"}:${searchParams.toString()}`}
                     actualType={typeKey}
-                    personName={selectedSavedRow &&
-                      (selectedSavedRow.slot_kind === "friend" || (!isSelfRow(selectedSavedRow) && viewMode === "saved"))
-                        ? friendChipLabel(selectedSavedRow, t("chart.people.personFallback"))
-                        : undefined}
+                    personName={chartPersonName}
+                    openStorageKey={
+                      user && viewMode === "saved" && selectedSavedRow
+                        ? { userId: user.id, chartId: selectedSavedRow.id }
+                        : undefined
+                    }
+                    initialOpen={viewMode === "preview" && previewJustGenerated}
+                    onReadMoreInDeepDive={() => jumpToSection("deep-dive-type")}
                   />
                 }
                 definedCenters={defined}
@@ -2068,9 +2136,7 @@ function ProfilePage() {
                 profile={profileStr}
                 authority={authorityStr}
                 definition={definitionStr}
-                ownerName={
-                  snapshotPersonName || (user?.first_name || "").trim() || undefined
-                }
+                ownerName={chartPersonName}
               />
             </div>
 
@@ -2082,6 +2148,7 @@ function ProfilePage() {
                   </p>
                 </div>
               )}
+              <SnapshotExclusiveGroup key={chartNavKey}>
               <div className="grid items-start gap-3 sm:grid-cols-2">
                 <ChartDisclosure
                   testId="snapshot-profile"
@@ -2090,9 +2157,14 @@ function ProfilePage() {
                 >
                   <SnapshotProfileBody
                     profile={profileStr}
-                    copy={snapshotPersonName
-                      ? snapshotProfileOtherLine(profileStr, locale, snapshotPersonName)
-                      : profilePlainLine(profileStr)}
+                    copy={snapshotProfileLine(profileStr, locale, snapshotPersonName)}
+                  />
+                  <ReadMoreInDeepDive
+                    label={t("chart.people.readMoreInDeepDive")}
+                    ariaLabel={t("chart.people.readMoreAboutProfileInDeepDive")}
+                    testId="snapshot-profile-deep-dive-pointer"
+                    rowId="deep-dive-profile"
+                    onJump={() => jumpToSection("deep-dive-profile")}
                   />
                 </ChartDisclosure>
                 <ChartDisclosure
@@ -2132,9 +2204,12 @@ function ProfilePage() {
                       {t("chart.timeUnknownCaveat")}
                     </p>
                   ) : null}
-                  <SnapshotDeepDivePointer
+                  <ReadMoreInDeepDive
                     label={t("chart.people.readMoreInDeepDive")}
-                    onJump={() => jumpToSection("deep-dive")}
+                    ariaLabel={t("chart.people.readMoreAboutStrategyInDeepDive")}
+                    testId="snapshot-how-you-decide-deep-dive-pointer"
+                    rowId="deep-dive-strategy"
+                    onJump={() => jumpToSection("deep-dive-strategy")}
                   />
                 </ChartDisclosure>
               </div>
@@ -2186,10 +2261,13 @@ function ProfilePage() {
                     ? snapshotDefinitionOtherCopy(definitionStr, locale, snapshotPersonName)
                     : snapshotDefinitionCopy(definitionStr, locale)) ?? definitionStr}
                 </p>
-                <SnapshotDeepDivePointer
-                    label={t("chart.people.readMoreInDeepDive")}
-                    onJump={() => jumpToSection("deep-dive")}
-                  />
+                <ReadMoreInDeepDive
+                  label={t("chart.people.readMoreInDeepDive")}
+                  ariaLabel={t("chart.people.readMoreAboutDefinitionInDeepDive")}
+                  testId="snapshot-definition-deep-dive-pointer"
+                  rowId="deep-dive-definition"
+                  onJump={() => jumpToSection("deep-dive-definition")}
+                />
               </ChartDisclosure>
 
               {environmentName && (
@@ -2211,17 +2289,24 @@ function ProfilePage() {
                   </p>
                 </ChartDisclosure>
               )}
+              </SnapshotExclusiveGroup>
             </div>
           </div>
           </div>
 
           <ChartDeepDive
             personName={snapshotPersonName}
+            key={chartNavKey}
             chart={chart}
             personality={personality}
             design={design}
             domain={deepDiveDomain}
-            onDomainChange={setDeepDiveDomain}
+            onDomainChange={(next) => {
+              setDeepDiveDomain(next);
+              if (next !== "core") setDeepDiveRow(null);
+            }}
+            openCoreRow={deepDiveRow}
+            onOpenCoreRow={setDeepDiveRow}
           />
         </>
       )}

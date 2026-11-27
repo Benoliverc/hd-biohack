@@ -274,17 +274,28 @@ assert.equal(
   "French alt uses typographic apostrophe in l’écran",
 );
 
-// catalog key parity for the two new keys (and overall login key sets)
+// catalog key parity for the two new keys (and overall login key sets).
+// Scope change 27 Nov 2026 10:06 PM Bangkok (brief 17353706…): de/es/fr omit the four
+// Read more aria-labels that exist in en and nl only.
+const EN_NL_ONLY_ARIA = [
+  "chart.people.readMoreAboutTypeInDeepDive",
+  "chart.people.readMoreAboutProfileInDeepDive",
+  "chart.people.readMoreAboutStrategyInDeepDive",
+  "chart.people.readMoreAboutDefinitionInDeepDive",
+];
 const enKeys = new Set(keysOf(en));
 for (const id of ["de", "es", "fr", "nl"]) {
   const keys = new Set(keysOf(catalogs[id]));
   for (const need of ["login.productStillCaption", "login.productStillAlt"]) {
     assert.ok(keys.has(need), `${id} has ${need}`);
   }
-  const missing = [...enKeys].filter((k) => !keys.has(k));
+  const allowed = id === "nl" ? [] : EN_NL_ONLY_ARIA;
+  const missing = [...enKeys].filter((k) => !keys.has(k) && !allowed.includes(k));
   const extra = [...keys].filter((k) => !enKeys.has(k));
+  const notOmitted = allowed.filter((k) => keys.has(k));
   assert.deepEqual(missing, [], `${id} missing catalog keys: ${missing.slice(0, 8).join(", ")}`);
   assert.deepEqual(extra, [], `${id} extra catalog keys: ${extra.slice(0, 8).join(", ")}`);
+  assert.deepEqual(notOmitted, [], `${id} should not carry en/nl-only aria keys`);
 }
 
 // --- layout.tsx title/description unchanged; openGraph/twitter; no metadata.icons ---

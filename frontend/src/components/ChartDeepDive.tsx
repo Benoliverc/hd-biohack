@@ -3,9 +3,12 @@
 import { useI18n } from "@/lib/i18n";
 import {
   useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 
@@ -34,37 +37,94 @@ function domainFromHash(hash: string): DeepDiveDomain | null {
   return null;
 }
 
+/** Layout effect in the browser (runs before paint); plain effect during server render. */
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * After any earlier row has collapsed, sit this summary just below the sticky stack.
+ * Measures the post-collapse position. Does not use scrollIntoView.
+ */
+function placeOpenedSummary(details: HTMLDetailsElement | null, summary: HTMLElement | null) {
+  if (!details || !summary || typeof summary.getBoundingClientRect !== "function") return;
+  if (!details.open) return;
+  const top = summary.getBoundingClientRect().top;
+  const stickyBottom = parseFloat(window.getComputedStyle(details).scrollMarginTop);
+  if (!Number.isFinite(stickyBottom)) return;
+  const drift = top - stickyBottom;
+  if (Math.abs(drift) >= 0.5 && typeof window.scrollBy === "function") {
+    window.scrollBy({ top: drift, left: 0, behavior: "instant" });
+  }
+}
+
 function Accordion({
+  id,
   title,
   subtitle,
   children,
-  defaultOpen = false,
+  open,
+  onOpenChange,
   testId,
 }: {
+  id?: string;
   title: string;
   subtitle?: string;
   children: ReactNode;
-  defaultOpen?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   testId?: string;
 }) {
   const { t } = useI18n();
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const summaryRef = useRef<HTMLElement>(null);
+  const pinTopRef = useRef<number | null>(null);
+  const anchorRef = useRef(false);
+
+  useBrowserLayoutEffect(() => {
+    const details = detailsRef.current;
+    const summary = summaryRef.current;
+    if (open && anchorRef.current) {
+      anchorRef.current = false;
+      placeOpenedSummary(details, summary);
+      return;
+    }
+    if (!open && pinTopRef.current !== null && summary && typeof summary.getBoundingClientRect === "function") {
+      const drift = summary.getBoundingClientRect().top - pinTopRef.current;
+      pinTopRef.current = null;
+      if (Math.abs(drift) >= 0.5 && typeof window.scrollBy === "function") {
+        window.scrollBy({ top: drift, left: 0, behavior: "instant" });
+      }
+    }
+  }, [open]);
+
+  const onSummaryClick = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    if (open) {
+      const summary = summaryRef.current;
+      if (summary && typeof summary.getBoundingClientRect === "function") {
+        pinTopRef.current = summary.getBoundingClientRect().top;
+      }
+      anchorRef.current = false;
+    } else {
+      pinTopRef.current = null;
+      anchorRef.current = true;
+    }
+    onOpenChange(!open);
+  };
+
   return (
     <details
-      open={defaultOpen}
+      ref={detailsRef}
+      id={id}
+      open={open}
       data-testid={testId}
-      style={testId === "deep-dive-type" ? { scrollMarginTop: "var(--chart-scroll-mt)" } : undefined}
-      onToggle={testId === "deep-dive-type" ? (event) => {
-        const details = event.currentTarget;
-        if (!details.open) return;
-        const top = details.getBoundingClientRect().top;
-        const stickyBottom = parseFloat(getComputedStyle(details).scrollMarginTop);
-        if (Number.isFinite(stickyBottom) && top < stickyBottom) {
-          window.scrollBy({ top: top - stickyBottom, behavior: "instant" });
-        }
-      } : undefined}
+      style={{ scrollMarginTop: "var(--chart-scroll-mt)" }}
       className="group rounded-xl border border-border bg-elevated open:bg-elevated"
     >
-      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-left marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary
+        ref={summaryRef}
+        onClick={onSummaryClick}
+        className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-left marker:content-none [&::-webkit-details-marker]:hidden"
+      >
         <div className="min-w-0 flex-1">
           <div className="font-medium text-fg">{title}</div>
           {subtitle && (
@@ -293,6 +353,8 @@ export function ChartDeepDive({
   design,
   domain,
   onDomainChange,
+  openCoreRow,
+  onOpenCoreRow,
 }: {
   chart: Chart;
   personName?: string;
@@ -301,6 +363,9 @@ export function ChartDeepDive({
   /** Controlled domain tab; falls back to hash / internal state when omitted. */
   domain?: DeepDiveDomain;
   onDomainChange?: (domain: DeepDiveDomain) => void;
+  /** Controlled Core row. Null leaves every Core row closed. Omitted uses internal state. */
+  openCoreRow?: string | null;
+  onOpenCoreRow?: (rowId: string | null) => void;
 }) {
   const { t, locale } = useI18n();
   const {
@@ -312,6 +377,20 @@ export function ChartDeepDive({
   } = useHdCopy();
   const [internalDomain, setInternalDomain] = useState<DeepDiveDomain>("core");
   const active = domain ?? internalDomain;
+  const coreControlled = openCoreRow !== undefined;
+  const [internalCore, setInternalCore] = useState<string | null>(null);
+  const coreOpen = coreControlled ? openCoreRow ?? null : internalCore;
+  const [channelOpen, setChannelOpen] = useState<string | null>(null);
+
+  const setCoreOpen = (id: string | null) => {
+    if (!coreControlled) setInternalCore(id);
+    onOpenCoreRow?.(id);
+  };
+
+  useEffect(() => {
+    if (active !== "channels") setChannelOpen(null);
+    if (active !== "core" && !coreControlled) setInternalCore(null);
+  }, [active, coreControlled]);
 
   const setDomain = (next: DeepDiveDomain) => {
     onDomainChange?.(next);
@@ -426,7 +505,10 @@ export function ChartDeepDive({
             <p className="text-xs text-fg-muted">
               {t("chart.deepDive.tapToExpand")}
             </p>
-            <Accordion title="Type" subtitle={hdType} testId="deep-dive-type">
+            <Accordion title="Type" subtitle={hdType} testId="deep-dive-type" id="deep-dive-type"
+              open={coreOpen === "deep-dive-type"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-type" : null)}
+            >
               {deepDiveTypeSections(hdType, locale, personName).map(({ heading, body }, index) => (
                 <section key={heading} className={index ? "mt-3" : undefined}>
                   <h3 className="font-semibold">{heading}</h3>
@@ -434,22 +516,38 @@ export function ChartDeepDive({
                 </section>
               ))}
             </Accordion>
-            <Accordion title="Strategy" subtitle={strategy}>
+            <Accordion title="Strategy" subtitle={strategy} testId="deep-dive-strategy" id="deep-dive-strategy"
+              open={coreOpen === "deep-dive-strategy"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-strategy" : null)}
+            >
               <SummaryLearnMore
                 info={STRATEGY_COPY[strategy]}
                 fallback={t("chart.deepDive.strategyBlurb")}
               />
             </Accordion>
-            <Accordion title={t("chart.deepDive.innerAuthority")} subtitle={authority}>
+            <Accordion
+              title={t("chart.deepDive.innerAuthority")}
+              subtitle={authority}
+              testId="deep-dive-inner-authority"
+              id="deep-dive-inner-authority"
+              open={coreOpen === "deep-dive-inner-authority"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-inner-authority" : null)}
+            >
               <SummaryLearnMore
                 info={AUTHORITY_COPY[authority]}
                 fallback={t("chart.deepDive.authorityBlurb")}
               />
             </Accordion>
-            <Accordion title="Profile" subtitle={profilePresentation(profile).value}>
+            <Accordion title="Profile" subtitle={profilePresentation(profile).value} testId="deep-dive-profile" id="deep-dive-profile"
+              open={coreOpen === "deep-dive-profile"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-profile" : null)}
+            >
               {profileLearnMore(profile)}
             </Accordion>
-            <Accordion title="Definition" subtitle={definition}>
+            <Accordion title="Definition" subtitle={definition} testId="deep-dive-definition" id="deep-dive-definition"
+              open={coreOpen === "deep-dive-definition"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-definition" : null)}
+            >
               <SummaryLearnMore
                 info={DEFINITION_COPY[definition]}
                 fallback={t("chart.deepDive.definitionBlurb")}
@@ -478,9 +576,11 @@ export function ChartDeepDive({
                   return (
                     <Accordion
                       key={`${g.join("-")}-${name}`}
+                      id={`deep-dive-channel-${g.join("-")}`}
                       title={`${g.join("–")} — ${name}`}
                       subtitle={centers || undefined}
-                      defaultOpen={channels.length === 1}
+                      open={channelOpen === `deep-dive-channel-${g.join("-")}`}
+                      onOpenChange={(next) => setChannelOpen(next ? `deep-dive-channel-${g.join("-")}` : null)}
                     >
                       {channelMeaning(g, name)}
                     </Accordion>
@@ -489,7 +589,13 @@ export function ChartDeepDive({
               </>
             )}
 
-            <Accordion title={t("chart.deepDive.activatedGates")} subtitle={t("chart.deepDive.gatesCount", { n: gates.length })}>
+            <Accordion
+              id="deep-dive-activated-gates"
+              title={t("chart.deepDive.activatedGates")}
+              subtitle={t("chart.deepDive.gatesCount", { n: gates.length })}
+              open={channelOpen === "deep-dive-activated-gates"}
+              onOpenChange={(next) => setChannelOpen(next ? "deep-dive-activated-gates" : null)}
+            >
               <div className="flex flex-wrap gap-1.5">
                 {gates.map((g) => (
                   <span
@@ -505,7 +611,13 @@ export function ChartDeepDive({
               </p>
             </Accordion>
 
-            <Accordion title={t("chart.deepDive.hangingGates")} subtitle={t("chart.deepDive.openHalves", { n: hanging.length })}>
+            <Accordion
+              id="deep-dive-hanging-gates"
+              title={t("chart.deepDive.hangingGates")}
+              subtitle={t("chart.deepDive.openHalves", { n: hanging.length })}
+              open={channelOpen === "deep-dive-hanging-gates"}
+              onOpenChange={(next) => setChannelOpen(next ? "deep-dive-hanging-gates" : null)}
+            >
               {hanging.length === 0 ? (
                 <p>{t("chart.deepDive.noHanging")}</p>
               ) : (

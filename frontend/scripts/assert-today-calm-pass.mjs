@@ -382,9 +382,11 @@ assert.equal(
   sha(read("src/lib/bodygraphGeometry.ts")),
   "cc8c5433776ee2e8758f95f868597a5821f8077eec8a92ec7bcb6cad15f1b743"
 );
+// Brief 17353706… carries #152's Deep dive scroll-margin into globals.css.
+// Rebase onto febe34f: lift this pin to those bytes. No other calm-pass edit.
 assert.equal(
   sha(read("src/app/globals.css")),
-  "3a174296ad9846d1d86221944dc0710284fa548ef781c1df1a4e38d29339e7f5"
+  "c2ae13bc34b582ddc369a5e7236796179b47878009743de5b7dc9118375eb2ff"
 );
 assert.equal(
   sha(read("src/app/biohack/page.tsx")),

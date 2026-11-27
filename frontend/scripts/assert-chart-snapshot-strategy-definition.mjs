@@ -76,7 +76,8 @@ assert.doesNotMatch(snapshot, /ChartSummaryLearnMore|learnMore/, "Snapshot no lo
 assert.match(snapshot, /testId="snapshot-how-you-decide"\s+value=\{`\$\{authorityStr\} · \$\{strategyStr\}`\}/);
 assert.match(snapshot, /testId="snapshot-profile"\s+value=\{<span[^>]*>\{profilePresentation\(profileStr\)\.value\}/, "brief 94b01b1a: Profile summary includes canonical names");
 assert.match(snapshot, /data-testid="chart-time-unknown-caveat"/, "caveat kept inside How you decide");
-// v9 replaces the classic Chart mount. Type box and the data props stay; the card is no longer byte-pinned.
+// Brief 17353706…: keep main's v9 structural matches. Drop #152's graph-card sha b5a68485…
+// (v9 already removed that byte pin).
 const card = profile.slice(profile.indexOf('id="bodygraph"'), profile.indexOf('id="snapshot"'));
 assert.match(card, /<ChartBodygraph\s+afterSvg=\{\s*<ChartTypeBox/, "Type box still under the Chart figure");
 assert.match(card, /definedCenters=\{defined\}/);

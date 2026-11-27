@@ -57,7 +57,8 @@ assert.match(en, /chart\.people\.theyreAType/);
 // The single Chart Type box keeps both voice branches (collapsible revert pass).
 const typeBox = read("src/components/ChartTypeBox.tsx");
 assert.match(profile, /<ChartTypeBox/);
-assert.match(profile, /personName=\{selectedSavedRow &&/);
+// Brief 17353706…: the inlined friend gate is chartVoiceName, passed as chartPersonName.
+assert.match(profile, /personName=\{chartPersonName\}/);
 assert.match(profile, /friendChipLabel\(selectedSavedRow, t\("chart\.people\.personFallback"\)\)/);
 assert.match(typeBox, /personName \? "otherLead" : "youLead"/);
 assert.match(typeBox, /personName \? "otherBody" : "youBody"/);

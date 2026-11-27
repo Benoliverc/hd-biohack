@@ -55,6 +55,14 @@ const esKeys = keysOf(es);
 
 if (enKeys.length < 150) fail(`EN catalog too thin (${enKeys.length}); expected P0 expansion`);
 
+// Scope change 27 Nov 2026 10:06 PM Bangkok (brief 17353706…): these four Read more
+// aria-labels exist in en and nl only. de/es/fr fall back to English at lookup time.
+const EN_NL_ONLY = new Set([
+  "chart.people.readMoreAboutTypeInDeepDive",
+  "chart.people.readMoreAboutProfileInDeepDive",
+  "chart.people.readMoreAboutStrategyInDeepDive",
+  "chart.people.readMoreAboutDefinitionInDeepDive",
+]);
 for (const [name, keys] of [
   ["nl", nlKeys],
   ["de", deKeys],
@@ -63,9 +71,14 @@ for (const [name, keys] of [
 ]) {
   const missing = enKeys.filter((k) => !keys.includes(k));
   const extra = keys.filter((k) => !enKeys.includes(k));
-  if (missing.length) fail(`${name} missing keys: ${missing.slice(0, 8).join(", ")}`);
+  const allowedMissing = name === "nl" ? [] : [...EN_NL_ONLY];
+  const unexpected = missing.filter((k) => !EN_NL_ONLY.has(k) || name === "nl");
+  const notOmitted = allowedMissing.filter((k) => !missing.includes(k));
+  if (unexpected.length) fail(`${name} missing keys: ${unexpected.slice(0, 8).join(", ")}`);
+  if (notOmitted.length) fail(`${name} should omit en/nl-only keys: ${notOmitted.join(", ")}`);
   if (extra.length) fail(`${name} extra keys: ${extra.slice(0, 8).join(", ")}`);
-  if (keys.length !== enKeys.length) fail(`${name} key count ${keys.length} != en ${enKeys.length}`);
+  const expectedCount = enKeys.length - allowedMissing.length;
+  if (keys.length !== expectedCount) fail(`${name} key count ${keys.length} != ${expectedCount}`);
 }
 
 for (const [name, src] of [

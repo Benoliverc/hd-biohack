@@ -3,6 +3,8 @@
 import { useEffect, useId, useState } from "react";
 import { observeChartNavigation } from "@/lib/observeChartNavigation";
 import { useI18n } from "@/lib/i18n";
+import { ReadMoreInDeepDive } from "@/components/ReadMoreInDeepDive";
+import { readChartTypeOpen, writeChartTypeOpen } from "@/lib/chartTypeOpen";
 
 const TYPES = [
   "Generator",
@@ -28,23 +30,43 @@ export type ChartTypeBoxProps = {
   actualType: string;
   /** Set when viewing someone else's chart: switches copy to their voice. */
   personName?: string;
+  /** Opens the actual chart Type row in Deep dive. Preview never changes the destination. */
+  onReadMoreInDeepDive?: () => void;
+  /** Per-user, per-chart fold memory. Absent on Share, tests, and a bare render. */
+  openStorageKey?: { userId: number; chartId: number };
+  /** When nothing is stored. A chart that was just generated passes true. */
+  initialOpen?: boolean;
 };
 
 /** The single Chart Type presentation: collapsed details plus presentation-only Preview. */
-export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
+export function ChartTypeBox({
+  actualType,
+  personName,
+  onReadMoreInDeepDive,
+  openStorageKey,
+  initialOpen,
+}: ChartTypeBoxProps) {
   const { t } = useI18n();
   const id = useId();
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [typeDetailsOpen, setTypeDetailsOpen] = useState(false);
+  // The box mounts only after the client has a chart, so this read is not an SSR paint.
+  const [typeDetailsOpen, setTypeDetailsOpen] = useState(() => {
+    if (openStorageKey) {
+      const stored = readChartTypeOpen(openStorageKey.userId, openStorageKey.chartId);
+      if (stored !== null) return stored;
+    }
+    return initialOpen ?? false;
+  });
   const [typeThemePreview, setTypeThemePreview] = useState<TypeName | null>(
     null,
   );
   useEffect(
     () =>
       observeChartNavigation(() => {
+        // Brief 17353706… part D: navigation no longer folds the Type box.
+        // #152's #deep-dive-type exception is superseded by that.
         setTypeThemePreview(null);
         setPreviewOpen(false);
-        setTypeDetailsOpen(false);
       }),
     [],
   );
@@ -78,7 +100,18 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
         open={typeDetailsOpen}
         onToggle={(event) => setTypeDetailsOpen(event.currentTarget.open)}
       >
-        <summary className="min-h-11 cursor-pointer py-2 pr-20 text-sm font-semibold text-fg">
+        <summary
+          className="min-h-11 cursor-pointer py-2 pr-20 text-sm font-semibold text-fg"
+          onClick={() => {
+            if (!openStorageKey) return;
+            // The visitor's own tap. Preview chips open details without writing.
+            writeChartTypeOpen(
+              openStorageKey.userId,
+              openStorageKey.chartId,
+              !typeDetailsOpen,
+            );
+          }}
+        >
           {personName && <span>{personName} · </span>}
           {/* Type stays an English feature name in every locale. */}
           <span>Type:</span>{" "}
@@ -102,6 +135,13 @@ export function ChartTypeBox({ actualType, personName }: ChartTypeBoxProps) {
         ) : (
           <h3 className="type-section text-fg">{actualType}</h3>
         )}
+        <ReadMoreInDeepDive
+          label={t("chart.people.readMoreInDeepDive")}
+          ariaLabel={t("chart.people.readMoreAboutTypeInDeepDive")}
+          testId="chart-type-deep-dive-pointer"
+          rowId="deep-dive-type"
+          onJump={() => onReadMoreInDeepDive?.()}
+        />
       </details>
       <div aria-live="polite">
         {typeThemePreview && (
