@@ -76,7 +76,8 @@
     "assert:chart-snapshot-environment-line": "npx tsx scripts/assert-chart-snapshot-environment-line.mjs",
     "assert:chart-snapshot-panel-fixes": "npx tsx scripts/assert-chart-snapshot-panel-fixes.mjs",
     "assert:deep-dive-type-profile-headings": "npx tsx scripts/assert-deep-dive-type-profile-headings.mjs",
-    "assert:today-calm-pass": "npx tsx scripts/assert-today-calm-pass.mjs"
+    "assert:today-calm-pass": "npx tsx scripts/assert-today-calm-pass.mjs",
+    "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
@@ -95,5 +96,10 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  }
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
