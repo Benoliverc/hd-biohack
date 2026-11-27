@@ -1,7 +1,7 @@
 /**
  * Chart Snapshot panel fixes (brief 2026-11-25, sha db2c99ba…, pinned to main aab6a29):
  * (1) mobile disclosure scroll pin + one shared sticky-stack offset, (2) other-person Snapshot copy
- * ×5 locales, (3) Deep dive "One more anchor" closer exactly once on all twelve profiles,
+ * ×5 locales, (3) Deep dive profile essays have no "One more anchor" / "Nog één anker" closer,
  * (4) concrete Valleys Environment copy (self + other-person).
  * Run: npx tsx scripts/assert-chart-snapshot-panel-fixes.mjs
  */
@@ -173,16 +173,16 @@ for (const l of ["en", "nl", "en"]) {
   }
 }
 
-// --- (3) Deep dive: closer exactly once on all twelve official profiles ---
-const CLOSER =
-  "One more anchor\nReturn to Strategy and Authority before you force this profile to perform. Profile describes flavour and pacing; it is not a license to override the body’s yes. Use the sections above as a mirror, not a script. Educational Human Design is a language for self-understanding — not medical advice, not a verdict, and not a reason to shame your timing.";
+// --- (3) Deep dive: no "One more anchor" closer on the twelve official profiles ---
 const OFFICIAL = ["1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6", "4/1", "5/1", "5/2", "6/2", "6/3"];
 assert.deepEqual(Object.keys(PROFILE_COMBO_ESSAYS).sort(), [...OFFICIAL].sort(), "twelve official combos");
 for (const key of OFFICIAL) {
   const essay = PROFILE_COMBO_ESSAYS[key];
-  assert.equal(essay.split(CLOSER).length - 1, 1, `${key}: closer exactly once`);
-  assert.equal((essay.match(/One more anchor/g) ?? []).length, 1, `${key}: one "One more anchor" heading`);
-  assert.ok(essay.trimEnd().endsWith(CLOSER), `${key}: closer is the last paragraph`);
+  assert.equal((essay.match(/One more anchor/g) ?? []).length, 0, `${key}: no "One more anchor"`);
+  const nlEssay = resolveHdCopy("nl").profileLearnMore(key);
+  assert.equal((nlEssay.match(/Nog één anker/g) ?? []).length, 0, `${key}: no "Nog één anker"`);
+  assert.doesNotMatch(essay, /Educational Human Design is a language/, `${key}: no English closer sentence`);
+  assert.doesNotMatch(nlEssay, /Educatieve Human Design is een taal/, `${key}: no Dutch closer sentence`);
   assert.equal(EN.profileLearnMore(key), essay, `${key}: Deep dive reads this essay`);
 }
 
@@ -196,4 +196,4 @@ assert.match(env.SNAPSHOT_ENVIRONMENT_COPY.Valleys.en, /This week, do at least o
 assert.match(env.SNAPSHOT_ENVIRONMENT_OTHER_COPY.Valleys.en, /^\{name\} settles best on low, busy ground[^]*A useful test: one working block this week/);
 assert.doesNotMatch(env.SNAPSHOT_ENVIRONMENT_COPY.Valleys.en, /news flow past/, "old Valleys copy gone");
 
-console.log("PASS assert-chart-snapshot-panel-fixes: one shared sticky offset (#snapshot, its boxes, #bodygraph, #deep-dive, #chart-type-box) + overflow-anchor none + scroll pin without scrollIntoView; other-person Snapshot copy ×5 locales (Type box gate, titles unchanged, locks, budgets); Deep dive closer exactly once ×12 profiles; concrete Valleys self + other-person.");
+console.log("PASS assert-chart-snapshot-panel-fixes: one shared sticky offset (#snapshot, its boxes, #bodygraph, #deep-dive, #chart-type-box) + overflow-anchor none + scroll pin without scrollIntoView; other-person Snapshot copy ×5 locales (Type box gate, titles unchanged, locks, budgets); Deep dive profile essays have no One more anchor closer ×12; concrete Valleys self + other-person.");

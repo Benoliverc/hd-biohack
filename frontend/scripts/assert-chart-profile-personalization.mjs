@@ -230,9 +230,9 @@ for (const profile of PROFILES) {
 
 // --- 4. Frozen copy, pinned to main 87bd4665 ---
 const FROZEN = {
-  "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
+  "src/lib/hdCopy.ts": "b8c89bc238dcc631717cdf098d92756f63df6e22d73ac67465851aa58d972ec6",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
-  "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
+  "src/lib/essays/hdCopy.nl.ts": "8528a2f8e2ec67fd886cb5fb75a6784243dd492cbdaf7cb4693b3e827ef4f941",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
   "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
   "src/lib/essays/snapshotShortCopy.ts": "98bb7a4974cae8c533d6fe57fdcb72ec35dc1e5276dfbece891aacd5db4e5679",
