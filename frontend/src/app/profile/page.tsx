@@ -12,6 +12,7 @@ import { SnapshotProfileBody } from "@/components/SnapshotProfileBody";
 import { profilePresentation } from "@/lib/profilePresentation";
 import { ChartDeepDive, type DeepDiveDomain } from "@/components/ChartDeepDive";
 import { ChartBodygraph } from "@/components/ChartBodygraph";
+import "./chart-field-notes.css";
 import { ChartTypeBox } from "@/components/ChartTypeBox";
 import { ChartDisclosure } from "@/components/ChartDisclosure";
 import {
