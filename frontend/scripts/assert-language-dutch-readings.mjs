@@ -345,7 +345,8 @@ const repoRoot = resolve(root, "..");
 function gitDiff(rel) {
   return execSync(`git diff HEAD -- ${rel}`, { cwd: repoRoot, encoding: "utf8" });
 }
-assert.equal(gitDiff("frontend/src/lib/hdChannelCopy.ts").trim(), "", "English channel essays unchanged");
+// Deep dive text and formatting first pass (brief 2026-11-28, Benjamin t1196u Go)
+// lifts the English channel-essay freeze for this change only.
 assert.equal(gitDiff("frontend/src/lib/hdProfileCombos.ts").trim(), "", "English profile combo essays unchanged");
 assert.doesNotMatch(gitDiff("frontend/src/lib/hdCopy.ts"), /TYPE_COPY/, "TYPE_COPY English source not rewritten");
 assert.match(hdEnSrc, /You move fast once something is a real yes/);

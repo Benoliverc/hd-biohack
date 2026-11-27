@@ -44,7 +44,8 @@ for (const l of locales) {
    const words=text.replaceAll('Juno $&','{name}').split(/\s+/).length;
    assert.ok(words>=200 && words<=320,`${l}/${type}/${name}: ${words} words`);
    assert.doesNotMatch(text,formal[l]);
-   for(const feature of ['Type','Strategy','Authority','Core']) assert.ok(text.includes(feature),`${l} ${feature}`);
+   for(const feature of ['Type','Strategy','Authority']) assert.ok(text.includes(feature),`${l} ${feature}`);
+   assert.doesNotMatch(text,/Core rows|Core-rijen|Type names this energy|Type benoemt/);
    assert.doesNotMatch(text,/\[\[|\]\]|\{name\}/);
    if(name) {assert.ok(text.includes(name));assert.doesNotMatch(text,second[l]);}
    else assert.doesNotMatch(text,/Juno/);
@@ -94,29 +95,29 @@ assert.match(page,/<SnapshotProfileBody\s+profile=\{profileStr\}/);
 // and ChartTypeBox to its final bytes (Read more link, then Type-open memory).
 // Scope change 27 Nov 2026 10:06 PM Bangkok: de/es/fr catalogs stay at main 87bd4665.
 const frozen = {
-  "src/lib/hdCopy.ts": "63c5acd82b0a65dc2d58a275a212f7a23025fffad56c30e93530c7851f016136",
+  "src/lib/hdCopy.ts": "b8c89bc238dcc631717cdf098d92756f63df6e22d73ac67465851aa58d972ec6",
   "src/lib/essays/hdCopy.es.ts": "895abfa6bb5270c546b8a96778e80eebb60c9215b8961a9a40eebfd3709451b6",
-  "src/lib/essays/hdCopy.nl.ts": "bd44bfc69afc237a978bc73586ec0af5aa474f7e6dfdd94f87c8970d3b8bd252",
-  "src/lib/hdProfileCombos.ts": "368e3032562c13cdefa1d2d41b0aafd82abe34e77e4c8650a59592e451eddf77",
+  "src/lib/essays/hdCopy.nl.ts": "8528a2f8e2ec67fd886cb5fb75a6784243dd492cbdaf7cb4693b3e827ef4f941",
+  "src/lib/hdProfileCombos.ts": "77c6ea4524a7cd80bcb2dea0b082c7ada4699cb53270e046ededb09b4e2257b4",
   "src/lib/essays/hdProfileCombos.es.ts": "d82120dccc295a2e42ee35e5a06e3926fd5d4574fd4e002c396dc5103b4e752f",
-  "src/lib/essays/hdProfileCombos.nl.ts": "1a4a15f87e73a685dfe029071d188b39e4a768e32965f740c21b1e154158db9e",
+  "src/lib/essays/hdProfileCombos.nl.ts": "49ca815a9109e0ca7117b8b1f7952f9525d01b9e6fcd2702d990fa8361b79da8",
   "src/components/ChartTypeBox.tsx": "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
   "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
-  "src/lib/i18n/messages/en.ts": "1393c886695b595325dacac0805b3fb7c9c8e6667a01c36762625904e568c312",
+  "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
   "src/lib/i18n/messages/de.ts": "dada3ac0614ba4d01a580c7d7d579316ae4d99372f0fdfa44eec3fd111f67f9f",
   "src/lib/i18n/messages/es.ts": "8fc6e78052efad2b30201021ebf4265c5d59f6bea1855d47e0e91810c523732e",
   "src/lib/i18n/messages/fr.ts": "9c2b4166fe4d19bc78ab0562f7050fff75b01e9203944fac5543a730b418edff",
-  "src/lib/i18n/messages/nl.ts": "f1f7ff683fbc157549670a2867fab8527b33210f7a55f2a3efeb00be4c5c15e9"
+  "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {
-  "en": "d94c49b21fd5581c4539e0eb7e06b63554c93eaeb93797d035d0de7a99e28b25",
+  "en": "942a37eb0ba3b4237cba25ec6100becf1824e631e287dd7d09413475156600f9",
   "de": "daf233ce063d70811b604fbf78c697b8f1e93fb78b1f0f901700a90de9174e91",
   "es": "7403e4daeed33204de5bd39bdbf0ab6d67061be6a410f9afee282ba8f14ba329",
   "fr": "a853f3b4a29dcbe483703c0014124d8e4ae0d219bb3fcca3b4fa5fa002362c30",
-  "nl": "e092103f91b103b3bec00cf9c8beb6b6d5317c2d595effbe49ee529d94a232af"
+  "nl": "69d9e354718f0e884137128f54ee0b91602d044d0fe93d63e13f997a20b7d216"
 };
 for(const [l,hash] of Object.entries(essayHashes)) assert.equal(sha(read(`src/lib/essays/deepDiveType.${l}.json`)),hash,`${l} locked essays`);
 console.log('PASS: 50 complete Type essays; 12 Profile headings × 5 locales × 2 voices; original briefs/combos/Type box frozen.');
