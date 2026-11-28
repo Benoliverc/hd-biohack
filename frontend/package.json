@@ -36,6 +36,7 @@
     "assert:soul-one-partner-control": "npx tsx scripts/assert-soul-one-partner-control.mjs",
     "assert:love-guidance-readability": "npx tsx scripts/assert-love-guidance-readability.mjs",
     "assert:love-guidance-language": "npx tsx scripts/assert-love-guidance-language.mjs",
+    "assert:partner-love-guidance-center-counts": "npx tsx scripts/assert-partner-love-guidance-center-counts.mjs",
     "assert:protocols-complete-state": "npx tsx scripts/assert-protocols-complete-state.mjs",
     "assert:protocols-move-complete-sky-strip": "npx tsx scripts/assert-protocols-move-complete-sky-strip.mjs",
     "assert:first-run-chart-path": "npx tsx scripts/assert-first-run-chart-path.mjs",

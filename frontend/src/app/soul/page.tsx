@@ -16,6 +16,9 @@ import { resolveSoulChannelNickname, useSoulCopy } from "@/lib/soulCopy";
 import { useApp } from "@/lib/store";
 import { readSessionToken } from "@/lib/session";
 import { displayCenter } from "@/lib/hdCopy";
+import { enSoulBadgeDescription } from "@/lib/i18n/soulReadings/enBadgeDescriptions";
+import { bothOpenDefinedTogether, soulCenterCounts } from "@/lib/soulCenterCounts";
+import { useTogetherCountText } from "@/components/soul/TogetherCountLine";
 import { ChevronDown } from "lucide-react";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
@@ -518,6 +521,10 @@ function SoulUnlockedContent() {
   }, [selectedFriend, removingPartner, user?.id]);
 
   const result = reading && reading.friendId === friendId ? reading.data : null;
+  const centerCounts = result
+    ? soulCenterCounts(result.conditioning_strip, result.composite)
+    : null;
+  const togetherCountText = useTogetherCountText(centerCounts);
 
   useEffect(() => {
     if (!user?.id || meId == null || friendId == null || meId === friendId) {
@@ -1000,21 +1007,24 @@ function SoulUnlockedContent() {
                     className="mt-4 space-y-3"
                     data-testid="soul-badges"
                   >
-                    {result.badges.map((b) => (
-                      <li
-                        key={b.id}
-                        data-testid={`soul-badge-${b.id}`}
-                        className="rounded-xl border border-growth/30 bg-growth/5 px-3 py-2.5"
-                      >
-                        <p className="text-xs font-semibold text-growth">{sc(b.label_part, b.label)}</p>
-                        {b.description ? (
-                          <p className="mt-1 type-body text-fg-secondary max-w-prose">{sc(b.description_part, b.description)}</p>
-                        ) : null}
-                        {b.detail ? (
-                          <p className="mt-1 type-caption text-fg-secondary">{sc(b.detail_part, b.detail)}</p>
-                        ) : null}
-                      </li>
-                    ))}
+                    {result.badges.map((b) => {
+                      const descriptionFallback = enSoulBadgeDescription(b.id) ?? b.description;
+                      return (
+                        <li
+                          key={b.id}
+                          data-testid={`soul-badge-${b.id}`}
+                          className="rounded-xl border border-growth/30 bg-growth/5 px-3 py-2.5"
+                        >
+                          <p className="text-xs font-semibold text-growth">{sc(b.label_part, b.label)}</p>
+                          {descriptionFallback ? (
+                            <p className="mt-1 type-body text-fg-secondary max-w-prose">{sc(b.description_part, descriptionFallback)}</p>
+                          ) : null}
+                          {b.detail ? (
+                            <p className="mt-1 type-caption text-fg-secondary">{sc(b.detail_part, b.detail)}</p>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
                 <p className="mt-4 type-caption text-fg-secondary" data-testid="soul-disclaimer">
@@ -1091,6 +1101,8 @@ function SoulUnlockedContent() {
                           yourType={result.self?.type}
                           theirType={result.friend?.type}
                           chapterActive={openChapter === "love"}
+                          togetherCountText={togetherCountText}
+                          compositeDefinedCenters={result.composite?.defined_centers ?? null}
                         />
                         {openChapter === "love" ? (
                           <button
@@ -1204,6 +1216,14 @@ function SoulUnlockedContent() {
                         className="space-y-3"
                         data-testid="soul-conditioning"
                       >
+                        {togetherCountText ? (
+                          <p
+                            className="type-body text-fg max-w-prose"
+                            data-testid="soul-centers-together-count"
+                          >
+                            {togetherCountText}
+                          </p>
+                        ) : null}
                         <ul className="space-y-2">
                           {result.conditioning_strip.map((row) => {
                             const arrow =
@@ -1213,7 +1233,13 @@ function SoulUnlockedContent() {
                                   ? t("soul.chrome.youToPerson")
                                   : row.direction === "both_defined"
                                     ? t("soul.chrome.bothDefined")
-                                    : t("soul.chrome.bothOpen");
+                                    : bothOpenDefinedTogether(
+                                          row.direction,
+                                          row.center,
+                                          result.composite?.defined_centers,
+                                        )
+                                      ? t("soul.chrome.bothOpenDefinedTogether")
+                                      : t("soul.chrome.bothOpen");
                             return (
                               <li
                                 key={row.center}

@@ -2,7 +2,12 @@
 
 import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { displayCenter } from "@/lib/hdCopy";
 import { useSoulCopy } from "@/lib/soulCopy";
+import {
+  definedTogetherCenterKey,
+  shouldSkipTheCurrent,
+} from "@/lib/soulCenterCounts";
 import type {
   SoulLoveGuidanceItem,
   SoulPartnerOverview,
@@ -21,6 +26,10 @@ type Props = {
    * with no inner subchapters, so this flag is unused.
    */
   chapterActive?: boolean;
+  /** Same sentence the Centers chapter renders. Null skips the Together line. */
+  togetherCountText: string | null;
+  /** Composite defined center keys. Null leaves bank copy unchanged. */
+  compositeDefinedCenters?: readonly string[] | null;
 };
 
 function hasText(value?: string | null): boolean {
@@ -52,29 +61,48 @@ function GuidanceBlock({
   itemTestIdPrefix,
   heading,
   items,
+  definedCenters,
 }: {
   testId: string;
   itemTestIdPrefix: string;
   heading: string;
   items: SoulLoveGuidanceItem[];
+  definedCenters: readonly string[] | null;
 }) {
+  const { t } = useI18n();
   const sc = useSoulCopy();
   if (!items.length) return null;
   return (
     <section className="pt-0" data-testid={testId}>
       <h3 className="text-sm font-semibold text-fg">{heading}</h3>
       <ul className="mt-3 space-y-3">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className="rounded-xl border border-border bg-elevated px-3.5 py-3"
-            data-testid={`${itemTestIdPrefix}-${item.id}`}
-          >
-            <p className="text-sm font-semibold text-fg">{sc(item.title_part, item.title)}</p>
-            <p className="mt-1.5 type-body text-fg max-w-prose">{sc(item.body_part, item.body)}</p>
-            <TryLine text={sc(item.try_part, item.try)} />
-          </li>
-        ))}
+        {items.map((item) => {
+          const centerKey = definedTogetherCenterKey(item.id, definedCenters);
+          const centerName = centerKey ? displayCenter(centerKey) : "";
+          return (
+            <li
+              key={item.id}
+              className="rounded-xl border border-border bg-elevated px-3.5 py-3"
+              data-testid={`${itemTestIdPrefix}-${item.id}`}
+            >
+              <p className="text-sm font-semibold text-fg">
+                {centerKey
+                  ? t("soul.partner.definedTogether.title", { center: centerName })
+                  : sc(item.title_part, item.title)}
+              </p>
+              <p className="mt-1.5 type-body text-fg max-w-prose">
+                {centerKey
+                  ? t("soul.partner.definedTogether.body")
+                  : sc(item.body_part, item.body)}
+              </p>
+              {centerKey ? (
+                <p className="mt-2 type-body text-fg max-w-prose">
+                  {t("soul.partner.definedTogether.try")}
+                </p>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -82,8 +110,8 @@ function GuidanceBlock({
 
 /**
  * Partner-only Love guidance. Mount only when friend.role === "partner"
- * and partner_overview is present. One open chapter: hook, decide, talk,
- * how you / they love, where you click / scrape, when it's hard.
+ * and partner_overview is present. One open chapter: hook, together count,
+ * decide, talk, how you / they love, where you click / scrape, when it's hard.
  */
 export default function PartnerOverviewCard({
   overview,
@@ -91,6 +119,8 @@ export default function PartnerOverviewCard({
   yourType,
   theirType,
   reasonLine,
+  togetherCountText,
+  compositeDefinedCenters = null,
 }: Props) {
   const { t } = useI18n();
   const sc = useSoulCopy();
@@ -127,8 +157,9 @@ export default function PartnerOverviewCard({
       : null;
   const harmonies = overview.harmonies ?? [];
   const frictions = overview.frictions ?? [];
+  const definedCenters = compositeDefinedCenters ?? null;
 
-  const hasCurrent = hasText(theCurrent);
+  const hasCurrent = hasText(theCurrent) && !shouldSkipTheCurrent(hook, theCurrent);
   const hasHowYouLove = hasText(howYouLove) || hasText(howTheyLove);
   const hasHarmonyFriction = harmonies.length > 0 || frictions.length > 0;
   const hasDecide = Boolean(decide);
@@ -140,6 +171,8 @@ export default function PartnerOverviewCard({
       : tenderSpots;
   const hardTry = hasText(clashTryText) ? clashTryText : tryThis;
   const hasWhenItsHard = hasText(hardWhy) || hasText(hardTry);
+  const hasMeetBand = hasDecide || hasCommunicate;
+  const hasClickBand = hasHarmonyFriction || hasWhenItsHard;
 
   return (
     <div
@@ -170,40 +203,52 @@ export default function PartnerOverviewCard({
           {theCurrent}
         </p>
       ) : null}
+      {togetherCountText ? (
+        <p
+          className="mt-4 type-body text-fg max-w-prose"
+          data-testid="soul-love-together-count"
+        >
+          {togetherCountText}
+        </p>
+      ) : null}
 
-      <div className="mt-5 space-y-4">
-        {hasDecide && decide ? (
-          <section
-            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-            data-testid="soul-love-decide"
-          >
-            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouDecide")}</h3>
-            <p className="mt-1.5 type-body text-fg max-w-prose">
-              {foldTitleIntoBody(decideTitle, decideBody)}
-            </p>
-            <TryLine text={decideTry} />
-          </section>
-        ) : null}
-
-        {hasCommunicate && communicate ? (
-          <section
-            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-            data-testid="soul-love-communicate"
-          >
-            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouTalk")}</h3>
-            <p className="mt-1.5 type-body text-fg max-w-prose">
-              {talkBody}
-            </p>
-            {hasText(talkVoice) ? (
-              <p
-                className="mt-1.5 type-body text-fg max-w-prose"
-                data-testid="soul-love-communicate-voice"
+      <div className="mt-5 space-y-6">
+        {hasMeetBand ? (
+          <div className="space-y-4">
+            {hasDecide && decide ? (
+              <section
+                className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+                data-testid="soul-love-decide"
               >
-                {talkVoice}
-              </p>
+                <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouDecide")}</h3>
+                <p className="mt-1.5 type-body text-fg max-w-prose">
+                  {foldTitleIntoBody(decideTitle, decideBody)}
+                </p>
+                <TryLine text={decideTry} />
+              </section>
             ) : null}
-            <TryLine text={talkTry} />
-          </section>
+
+            {hasCommunicate && communicate ? (
+              <section
+                className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+                data-testid="soul-love-communicate"
+              >
+                <h3 className="text-sm font-semibold text-fg">{t("soul.partner.howYouTalk")}</h3>
+                <p className="mt-1.5 type-body text-fg max-w-prose">
+                  {talkBody}
+                </p>
+                {hasText(talkVoice) ? (
+                  <p
+                    className="mt-1.5 type-body text-fg max-w-prose"
+                    data-testid="soul-love-communicate-voice"
+                  >
+                    {talkVoice}
+                  </p>
+                ) : null}
+                <TryLine text={talkTry} />
+              </section>
+            ) : null}
+          </div>
         ) : null}
 
         {hasHowYouLove ? (
@@ -233,42 +278,48 @@ export default function PartnerOverviewCard({
           </section>
         ) : null}
 
-        {hasHarmonyFriction ? (
-          <div className="space-y-5" data-testid="soul-love-click-scrape">
-            <GuidanceBlock
-              testId="soul-love-harmonies"
-              itemTestIdPrefix="soul-love-harmony"
-              heading={t("soul.partner.whereYouClick")}
-              items={harmonies}
-            />
-            <GuidanceBlock
-              testId="soul-love-frictions"
-              itemTestIdPrefix="soul-love-friction"
-              heading={t("soul.partner.whereItScrapes")}
-              items={frictions}
-            />
-          </div>
-        ) : null}
-
-        {hasWhenItsHard ? (
-          <section
-            className="rounded-xl border border-border bg-elevated px-4 py-3.5"
-            data-testid="soul-love-hard"
-          >
-            <h3 className="text-sm font-semibold text-fg">{t("soul.partner.whenItsHard")}</h3>
-            {hasText(hardWhy) ? (
-              <p
-                className="mt-1.5 type-body text-fg max-w-prose"
-                data-testid="soul-love-clash"
-              >
-                {hardWhy}
-              </p>
+        {hasClickBand ? (
+          <div className="space-y-4">
+            {hasHarmonyFriction ? (
+              <div className="space-y-4" data-testid="soul-love-click-scrape">
+                <GuidanceBlock
+                  testId="soul-love-harmonies"
+                  itemTestIdPrefix="soul-love-harmony"
+                  heading={t("soul.partner.whereYouClick")}
+                  items={harmonies}
+                  definedCenters={definedCenters}
+                />
+                <GuidanceBlock
+                  testId="soul-love-frictions"
+                  itemTestIdPrefix="soul-love-friction"
+                  heading={t("soul.partner.whereItScrapes")}
+                  items={frictions}
+                  definedCenters={definedCenters}
+                />
+              </div>
             ) : null}
-            <TryLine
-              text={hardTry}
-              testId={hasText(clashTryText) ? undefined : "soul-partner-try-this"}
-            />
-          </section>
+
+            {hasWhenItsHard ? (
+              <section
+                className="rounded-xl border border-border bg-elevated px-4 py-3.5"
+                data-testid="soul-love-hard"
+              >
+                <h3 className="text-sm font-semibold text-fg">{t("soul.partner.whenItsHard")}</h3>
+                {hasText(hardWhy) ? (
+                  <p
+                    className="mt-1.5 type-body text-fg max-w-prose"
+                    data-testid="soul-love-clash"
+                  >
+                    {hardWhy}
+                  </p>
+                ) : null}
+                <TryLine
+                  text={hardTry}
+                  testId={hasText(clashTryText) ? undefined : "soul-partner-try-this"}
+                />
+              </section>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </div>
