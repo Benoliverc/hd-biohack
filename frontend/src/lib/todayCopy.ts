@@ -216,6 +216,8 @@ export type AlsoTodayContext = {
   hasCompletes: boolean;
   bridgedChannels?: BridgedChannel[] | null;
   noveltyDay?: string | null;
+  /** Lead channel transit gate (`{m}` on the completes line). Absent means no completes lead. */
+  completesLeadGate?: number | null;
 };
 
 function partRefersToDailyGate(part: CopyPart, gate: number): boolean {
@@ -288,6 +290,14 @@ function selectAlsoTodayParts(
         out.push(named);
         namedUsed = true;
       }
+      continue;
+    }
+    if (
+      part.key === "today.skyStory.hangingPeek" &&
+      ctx.completesLeadGate != null &&
+      part.params?.gate != null &&
+      partRefersToDailyGate(part, ctx.completesLeadGate)
+    ) {
       continue;
     }
     if (part.key === "today.skyStory.tempCenters") {

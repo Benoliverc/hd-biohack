@@ -432,6 +432,9 @@ export default function TransitsPage() {
           </summary>
 
           <div className="mt-4 space-y-4">
+            <p className="type-caption text-fg-secondary" data-testid="conditioning-caption">
+              {t("today.conditioningCaptionFallback")}
+            </p>
             <div
               id="today-sun-earth"
               className="scroll-mt-[calc(var(--app-header-h,4.5rem)+0.75rem)]"

@@ -141,6 +141,7 @@ const EN_NL_ONLY = new Set([
   "today.tomorrow.sunStaysIn",
   "today.inYourChart",
   "today.alsoToday",
+  "today.comingUp",
   "today.skyStory.bridgeNamed",
   "today.skyStory.tempCentersOne",
 ]);

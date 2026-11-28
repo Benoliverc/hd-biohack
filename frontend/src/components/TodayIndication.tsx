@@ -482,7 +482,6 @@ export default function TodayIndication({
   const space = indication.preferred_space;
   const daily = indication.daily_signal;
   const vs = indication.vs_yesterday || [];
-  const caption = indication.conditioning_caption?.trim() || "";
   const energyLabel = localizeEnergyLabel(t, energy, indication.energy_label);
   const spaceLabel = localizeSpaceLabel(t, space, indication.preferred_space_label);
   const energySpaceHighlight = indication.energy_space_slot !== "quiet";
@@ -526,6 +525,7 @@ export default function TodayIndication({
     hasCompletes: skyPick != null,
     bridgedChannels,
     noveltyDay,
+    completesLeadGate: skyPick?.lead.transit_gates?.[0] ?? null,
   });
   const yourWay = yourWayKeys(natalType, natalAuthority);
 
@@ -1410,7 +1410,7 @@ export default function TodayIndication({
                   type="button"
                   data-testid="today-sky-completes-open"
                   onClick={() => onOpenSkyDetails("today-bridged-channels")}
-                  className="inline-flex min-h-11 items-center type-caption text-fg underline-offset-2 hover:underline"
+                  className="inline-flex min-h-11 items-center type-caption text-fg underline underline-offset-2 hover:underline"
                 >
                   {skyPick.more > 0
                     ? t("today.skyCompletes.more", { k: skyPick.more })
@@ -1449,7 +1449,7 @@ export default function TodayIndication({
 
           {vs.length > 0 ? (
             <details className="disclosure mt-3 group" data-testid="vs-yesterday">
-              <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+              <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
                 <span
                   aria-hidden
                   data-disclosure-chevron
@@ -1479,12 +1479,20 @@ export default function TodayIndication({
           ) : null}
 
           {tomorrowText && !upcomingOpen ? (
-            <p
-              className="mt-3 type-caption text-fg"
-              data-testid="sky-story-tomorrow"
-            >
-              {tomorrowText}
-            </p>
+            <div className="mt-3">
+              <p
+                className="mb-1 text-xs font-semibold tracking-wide text-fg-muted"
+                data-testid="today-coming-up"
+              >
+                {t("today.comingUp")}
+              </p>
+              <p
+                className="type-caption text-fg"
+                data-testid="sky-story-tomorrow"
+              >
+                {tomorrowText}
+              </p>
+            </div>
           ) : null}
 
           <div className={tomorrowText && !upcomingOpen ? "mt-1" : "mt-3"}>
@@ -1492,7 +1500,7 @@ export default function TodayIndication({
               type="button"
               aria-expanded={upcomingOpen}
               onClick={toggleUpcoming}
-              className="inline-flex min-h-9 items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg"
+              className="inline-flex min-h-9 items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold tracking-wide text-fg-muted transition hover:text-fg"
               data-testid="today-upcoming-toggle"
             >
               <span
@@ -1559,7 +1567,7 @@ export default function TodayIndication({
         </div>
       ) : vs.length > 0 ? (
         <details className="disclosure mb-3 group" data-testid="vs-yesterday">
-          <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold uppercase tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-0 py-1 text-xs font-semibold tracking-wide text-fg-muted transition hover:text-fg marker:content-none [&::-webkit-details-marker]:hidden">
             <span
               aria-hidden
               className="inline-block text-fg-muted transition-transform group-open:rotate-90"
@@ -1587,12 +1595,6 @@ export default function TodayIndication({
         </details>
       ) : null}
 
-      {caption ? (
-        <p className="mb-3 type-caption text-fg" data-testid="conditioning-caption">
-          {t("today.conditioningCaptionFallback")}
-        </p>
-      ) : null}
-
       {/* 3. Contextual literacy pulse — below Move + sky, above disclaimer */}
       {(() => {
         const pulse = contextualHdFact({
@@ -1608,7 +1610,7 @@ export default function TodayIndication({
             data-sky-keyed={pulse.skyKeyed ? "true" : "false"}
             data-literacy-field={pulse.field || undefined}
           >
-            <p className="mb-1 type-chip uppercase tracking-wide text-fg-secondary">
+            <p className="mb-1 type-chip tracking-wide text-fg-secondary">
               {t("today.hdFactLabel")}
             </p>
             <p className="text-sm text-fg-secondary" data-testid="hd-fact-text">
