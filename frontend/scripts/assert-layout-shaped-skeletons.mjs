@@ -202,12 +202,13 @@ assert.doesNotMatch(
   "session-pending branch is no longer the centered Loading line",
 );
 
-// --- 6. Untouched files, pinned to 6085a38 ---
+// --- 6. Untouched page files stay at their 6085a38 bytes. Message catalogs
+// were updated on main (ccdb757) and are pinned to those final bytes. ---
 const FROZEN = {
-  "src/lib/i18n/messages/en.ts": "1393c886695b595325dacac0805b3fb7c9c8e6667a01c36762625904e568c312",
-  "src/lib/i18n/messages/nl.ts": "f1f7ff683fbc157549670a2867fab8527b33210f7a55f2a3efeb00be4c5c15e9",
-  "src/lib/i18n/messages/todaySoul.en.ts": "dc89f81cbb1e24c7a8142418f755e13c07671b96a5246a5eb6e1ed21b5b5cf48",
-  "src/lib/i18n/messages/todaySoul.nl.ts": "e8b2cd7865d672a55ff6868f7de20545c028808627b3e5e40ecaabb571a81a61",
+  "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
+  "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec",
+  "src/lib/i18n/messages/todaySoul.en.ts": "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80",
+  "src/lib/i18n/messages/todaySoul.nl.ts": "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc",
   "src/app/page.tsx": "d3a5dec9bfa3e3fa983316a61e73bc81334f4f653c4a5d6f1bb60c65a24b0bd6",
   "src/app/biohack/page.tsx": "abe27ee37dc12f88a780298195bcd0803dede6b475013a10cc63fa77d097c203",
   "src/app/globals.css": "c2ae13bc34b582ddc369a5e7236796179b47878009743de5b7dc9118375eb2ff",
@@ -215,7 +216,7 @@ const FROZEN = {
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
 };
 for (const [rel, digest] of Object.entries(FROZEN)) {
-  assert.equal(sha(read(rel)), digest, `${rel} stays byte-identical to 6085a38`);
+  assert.equal(sha(read(rel)), digest, `${rel} pin`);
 }
 
 const skeletonSrc = read("src/components/PageSkeleton.tsx");
