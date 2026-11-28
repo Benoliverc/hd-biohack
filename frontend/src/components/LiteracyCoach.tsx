@@ -35,7 +35,29 @@ export type LiteracyCoachVariant = "chart" | "soul" | "today" | "protocols";
 type Props = {
   variant: LiteracyCoachVariant;
   onJump?: (targetId: string, meta?: LiteracyJumpMeta) => void;
+  /** Set on another person's Chart. Switches Chart How to read only. */
+  personName?: string;
 };
+
+/** Chart literacy bodies that describe the chart person. Viewer-instruction lines stay in those strings. */
+function chartOtherBodyKey(bodyKey: MessageKey): MessageKey {
+  switch (bodyKey) {
+    case "chart.literacy.definedOpen.body":
+      return "chart.literacy.definedOpen.body.other";
+    case "chart.literacy.channelsHanging.body":
+      return "chart.literacy.channelsHanging.body.other";
+    case "chart.literacy.legend.body":
+      return "chart.literacy.legend.body.other";
+    case "chart.literacy.typeStrategy.body":
+      return "chart.literacy.typeStrategy.body.other";
+    case "chart.literacy.centersWatch.body":
+      return "chart.literacy.centersWatch.body.other";
+    case "chart.literacy.deepDive.body":
+      return "chart.literacy.deepDive.body.other";
+    default:
+      return bodyKey;
+  }
+}
 
 const HISTORY_FLAG = "literacyReader";
 
@@ -291,8 +313,9 @@ function useLiteracyPortal(): HTMLElement | null {
   return target;
 }
 
-export default function LiteracyCoach({ variant, onJump }: Props) {
+export default function LiteracyCoach({ variant, onJump, personName }: Props) {
   const { t } = useI18n();
+  const chartOther = variant === "chart" && Boolean(personName);
   const storageKey = LITERACY_STORAGE_KEYS[variant];
   const banks: Record<LiteracyCoachVariant, readonly LiteracyStepI18n[]> = {
     chart: CHART_LITERACY_I18N,
@@ -303,7 +326,10 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
   const steps: LiteracyStep[] = banks[variant].map((step) => ({
     id: step.id,
     title: t(step.titleKey),
-    body: t(step.bodyKey),
+    body:
+      chartOther && personName
+        ? t(chartOtherBodyKey(step.bodyKey), { name: personName })
+        : t(step.bodyKey),
     jumpLabel: t(step.jumpKey),
     targetId: step.targetId,
     deepDiveTab: step.deepDiveTab,
@@ -328,7 +354,10 @@ export default function LiteracyCoach({ variant, onJump }: Props) {
     today: "nav.howToRead",
     protocols: "nav.howToUse",
   };
-  const title = t(titleKeys[variant]);
+  const title =
+    chartOther && personName
+      ? t("chart.literacy.howToReadTitle.other", { name: personName })
+      : t(titleKeys[variant]);
   const reopenLabel = t(reopenKeys[variant]);
 
   const titleDomId = useId();

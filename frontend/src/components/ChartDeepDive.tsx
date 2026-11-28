@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import { DeepDiveEssayBody } from "@/components/DeepDiveEssayBody";
+import { deepDiveAuthorityCopy, deepDiveStrategyCopy } from "@/lib/essays/deepDiveStrategyAuthorityCopy";
 import { deepDiveTypeSections } from "@/lib/essays/deepDiveTypeCopy";
 import { profilePresentation } from "@/lib/profilePresentation";
 import { displayCenter, type CenterKey } from "@/lib/hdCopy";
@@ -395,8 +396,6 @@ export function ChartDeepDive({
 }) {
   const { t, locale } = useI18n();
   const {
-    STRATEGY_COPY,
-    AUTHORITY_COPY,
     DEFINITION_COPY,
     profileLearnMore,
     channelMeaning,
@@ -558,7 +557,7 @@ export function ChartDeepDive({
               onOpenChange={(next) => setCoreOpen(next ? "deep-dive-strategy" : null)}
             >
               <SummaryLearnMore
-                info={STRATEGY_COPY[strategy]}
+                info={deepDiveStrategyCopy(strategy, locale, personName)}
                 fallback={t("chart.deepDive.strategyBlurb")}
               />
             </Accordion>
@@ -571,7 +570,7 @@ export function ChartDeepDive({
               onOpenChange={(next) => setCoreOpen(next ? "deep-dive-inner-authority" : null)}
             >
               <SummaryLearnMore
-                info={AUTHORITY_COPY[authority]}
+                info={deepDiveAuthorityCopy(authority, locale, personName)}
                 fallback={t("chart.deepDive.authorityBlurb")}
               />
             </Accordion>

@@ -289,13 +289,25 @@ const EN_NL_ONLY_DEEP_DIVE = [
   "chart.deepDive.footer",
   "chart.deepDive.otherPersonNote",
 ];
+// Other-person Chart header and How to read (brief other-person-chart-third-person).
+// de/es/fr catalogs stay frozen and resolve to English at lookup time.
+const EN_NL_ONLY_CHART_OTHER = [
+  "page.chart.h1.other",
+  "chart.literacy.howToReadTitle.other",
+  "chart.literacy.definedOpen.body.other",
+  "chart.literacy.channelsHanging.body.other",
+  "chart.literacy.legend.body.other",
+  "chart.literacy.typeStrategy.body.other",
+  "chart.literacy.centersWatch.body.other",
+  "chart.literacy.deepDive.body.other",
+];
 const enKeys = new Set(keysOf(en));
 for (const id of ["de", "es", "fr", "nl"]) {
   const keys = new Set(keysOf(catalogs[id]));
   for (const need of ["login.productStillCaption", "login.productStillAlt"]) {
     assert.ok(keys.has(need), `${id} has ${need}`);
   }
-  const allowed = id === "nl" ? [] : [...EN_NL_ONLY_ARIA, ...EN_NL_ONLY_DEEP_DIVE];
+  const allowed = id === "nl" ? [] : [...EN_NL_ONLY_ARIA, ...EN_NL_ONLY_DEEP_DIVE, ...EN_NL_ONLY_CHART_OTHER];
   const missing = [...enKeys].filter((k) => !keys.has(k) && !allowed.includes(k));
   const extra = [...keys].filter((k) => !enKeys.has(k));
   const notOmitted = allowed.filter((k) => keys.has(k));

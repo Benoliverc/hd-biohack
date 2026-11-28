@@ -2064,7 +2064,11 @@ function ProfilePage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="type-title">{t("page.chart.h1")}</h1>
+          <h1 className="type-title">
+            {chartPersonName
+              ? t("page.chart.h1.other", { name: chartPersonName })
+              : t("page.chart.h1")}
+          </h1>
           <p className="mt-1 type-meta">
             {t("chart.people.pageLead", { max: MAX_PEOPLE })}
           </p>
@@ -2161,6 +2165,7 @@ function ProfilePage() {
           <div className="order-2 sm:order-1">
           <LiteracyCoach
             variant="chart"
+            personName={chartPersonName}
             onJump={(targetId, meta) =>
               jumpToSection(targetId, meta?.deepDiveTab)
             }

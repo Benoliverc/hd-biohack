@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// Core row order is Type, Profile, Strategy, Inner Authority, Definition.
-const CHART_DEEP_DIVE_SHA_CORE_ORDER =
-  "fd9fe8b458c086c81f0fe2ea967a491693608c811f0cefd24adce18d99b0e3e4";
+// Core row order is Type, Profile, Strategy, Inner Authority, Definition, plus this PR's third-person Strategy/Authority copy.
+const CHART_DEEP_DIVE_SHA =
+  "227cb6e0e4bf35194f3cb86ae2cfcc6fc53061e07094bad4f4a1b12d8af59383";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -208,8 +208,8 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 }
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
-  CHART_DEEP_DIVE_SHA_CORE_ORDER,
-  "check 6: ChartDeepDive.tsx equals the core-order bytes",
+  CHART_DEEP_DIVE_SHA,
+  "check 6: ChartDeepDive.tsx equals the pinned bytes",
 );
 
 assert.match(
