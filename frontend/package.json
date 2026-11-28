@@ -88,7 +88,8 @@
     "assert:one-disclosure-pattern": "npx tsx scripts/assert-one-disclosure-pattern.mjs",
     "assert:layout-shaped-skeletons": "npx tsx scripts/assert-layout-shaped-skeletons.mjs",
     "assert:today-tomorrow-gate": "npx tsx scripts/assert-today-tomorrow-gate.mjs",
-    "assert:today-signal-structure": "npx tsx scripts/assert-today-signal-structure.mjs"
+    "assert:today-signal-structure": "npx tsx scripts/assert-today-signal-structure.mjs",
+    "assert:today-move-vs-yesterday": "npx tsx scripts/assert-today-move-vs-yesterday.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

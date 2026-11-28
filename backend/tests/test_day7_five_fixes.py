@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.checkin.prescription import MOMENT_MOVES, _cap_words, select_move_text
+from app.checkin.prescription import MOMENT_MOVES, _cap_words, _norm_move_text, select_move_text
 
 CONCRETE = ("Carve 20 minutes without chat.", "today.spaceMicro.alone")
 GENERIC = [_cap_words(t) for t in MOMENT_MOVES["borrowed_fuel"]]
@@ -61,13 +61,74 @@ def test_same_day_reload_keeps_served_headline():
         assert text == GENERIC[3]
 
 
-def test_unchanged_sky_keeps_last_headline_no_invented_sentence():
+def test_unchanged_sky_picks_catalog_line_not_yesterdays_headline():
+    """Unchanged sky picks an existing catalog line, never yesterday's served headline."""
     history = [_row("2026-11-23", GENERIC[0]), _row("2026-11-24", GENERIC[1])]
+    text, key = select_move_text(
+        "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
+        user_key="person-unchanged", sky_changed=False, concrete=CONCRETE,
+    )
+    assert text in GENERIC
+    assert text != GENERIC[1]
+    assert text != CONCRETE[0]
+    assert key.startswith("today.move.moment.borrowed_fuel.")
+
+
+def test_unchanged_sky_does_not_repeat_yesterdays_concrete_line():
+    nature = ("Walk outdoors briefly before screens pile up.", "today.spaceMicro.nature")
+    history = [_row("2026-11-24", nature[0])]
+    text, key = select_move_text(
+        "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
+        user_key="person-quiet", sky_changed=False, concrete=nature,
+    )
+    assert text in GENERIC
+    assert _norm_move_text(text) != _norm_move_text(nature[0])
+    assert key.startswith("today.move.moment.borrowed_fuel.")
+
+
+def test_new_day_never_repeats_most_recent_served_headline():
+    yesterday = GENERIC[2]
+    history = [_row("2026-11-24", yesterday)]
+    for changed in (True, False):
+        text, _ = select_move_text(
+            "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
+            user_key="person-either-sky", sky_changed=changed, concrete=CONCRETE,
+        )
+        assert _norm_move_text(text) != _norm_move_text(yesterday)
+
+
+def test_day10_nature_micro_was_yesterday_sky_changed_move_is_not_that_micro():
+    """Nature Space micro was yesterday's label; the sky moved; Move is another catalog line."""
+    nature = ("Walk outdoors briefly before screens pile up.", "today.spaceMicro.nature")
+    quiet = [_cap_words(t) for t in MOMENT_MOVES["quiet_sky"]]
+    history = [_row("2026-11-27", nature[0], moment="quiet_sky")]
+    text, key = select_move_text(
+        "quiet_sky", history=history, pro=True, day_key="2026-11-28",
+        user_key="person-day10", sky_changed=True, concrete=nature,
+    )
+    assert _norm_move_text(text) != _norm_move_text(nature[0])
+    assert text in quiet
+    assert key.startswith("today.move.moment.quiet_sky.")
+
+
+def test_same_day_reload_keeps_served_headline_when_sky_unchanged():
+    history = [_row("2026-11-25", GENERIC[1])]
     text, _ = select_move_text(
         "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
-        user_key="jules", sky_changed=False, concrete=CONCRETE,
+        user_key="person-reload", sky_changed=False, concrete=CONCRETE,
     )
     assert text == GENERIC[1]
+
+
+def test_yesterday_match_uses_norm_move_text():
+    raw = GENERIC[1].lower()
+    history = [_row("2026-11-24", raw)]
+    for changed in (False, True):
+        text, _ = select_move_text(
+            "borrowed_fuel", history=history, pro=True, day_key="2026-11-25",
+            user_key="person-norm", sky_changed=changed, concrete=CONCRETE,
+        )
+        assert _norm_move_text(text) != _norm_move_text(raw)
 
 
 def test_two_people_may_share_their_accurate_concrete_action():

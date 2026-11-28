@@ -367,7 +367,7 @@ assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "89569bea7884f3
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "68a5139452c9de2e223276ff3e3ca13064ab21eef74479ab49518d52b8ba94cf");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "1a8ed7d110c7453e707b700a05f98e3196c54bf60073802cd0219bffc4dd1ede");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "2c2dad2167eb0a0ba38276d84babe28268b731112404f22e95592b5e10f14f1e");
-assert.equal(sha(read("src/components/TodayIndication.tsx")), "691fecfb86631889a1c05a9f41417063289f0b0610e636d64e7e6f23b97f5eb8");
+assert.equal(sha(read("src/components/TodayIndication.tsx")), "7eea1a035c80c2008254745d1541741f295e958aabc68f4a087d36246a6ae61b");
 assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fa07365a9dfca177e7069666a9cd2c362c178da6a9ceb311a3cd2d83844f45fd");
 assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
 // assert-today-calm-pass.mjs differs from febe34f only by the globals.css pin lift above.

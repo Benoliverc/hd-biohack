@@ -365,15 +365,19 @@ def select_move_text(
 
     Account path (user_key set):
     - Same novelty day: keep the headline already served for this moment.
+    - On a new day_key the English headline is never _norm_move_text-equal to this
+      person's most recently served earlier-day headline, whether sky_changed is
+      true or false.
     - Sky changed: lead with this person's already-generated concrete action (the
-      Space line in Why this) unless it was their last headline, even when another
-      account has the same accurate action. Otherwise a moment line they have not had
-      lately, preferring one no other account was served in the window; if all were,
-      the one others saw longest ago, but never a generic line another account already
-      has today. With nothing fresh left, the line this person saw longest ago (never
-      yesterday's).
-    - Sky unchanged: keep the last headline when it is still a candidate; never
-      invent a new sentence for unchanged signals.
+      Space line) unless it was their last headline, even when another account has
+      the same accurate action. Otherwise a moment line they have not had lately,
+      preferring one no other account was served in the window; if all were, the one
+      others saw longest ago, but never a generic line another account already has
+      today. With nothing fresh left, the line this person saw longest ago (never
+      yesterday's). Do not use the last-resort candidate pool if it would return
+      yesterday's line while any other catalog candidate exists.
+    - Sky unchanged: pick an existing moment-catalog line that is not yesterday's
+      served headline. Never invent a new sentence.
     Without a concrete action the moment lines rotate on this person's history.
     Free / no-salt legacy path is unchanged.
     """
@@ -426,25 +430,29 @@ def select_move_text(
         for text in prior_texts:
             served.setdefault(_norm_move_text(text), "0000-00-00")
 
+    latest_day = max(served.values()) if served else ""
+    # Most recently served earlier-day headline. A new day must not repeat it.
+    yesterday_norms = {n for n, d in served.items() if latest_day and d == latest_day}
+    catalog = [c for c in cands if not c[2]]
+
+    def not_yesterday(c: tuple[str, str, bool]) -> bool:
+        return _norm_move_text(c[0]) not in yesterday_norms
+
     if not sky_changed:
-        if served:
-            latest = max(served.values())
-            for text, key, _ in cands:
-                if served.get(_norm_move_text(text)) == latest:
-                    return text, key
-        # No earlier headline to keep: this person's salted moment line.
-        idx = order[0]
-        return _cap_words(options[idx]), f"today.move.moment.{moment}.{idx}"
+        # Unchanged sky: an existing moment-catalog line, never yesterday's served
+        # headline, never an invented sentence. Same-day reloads returned above.
+        open_catalog = [c for c in catalog if not_yesterday(c)]
+        pool = open_catalog or catalog or cands
+        text, key, _ = pool[0]
+        return text, key
 
     def fresh(c: tuple[str, str, bool]) -> bool:
         return _norm_move_text(c[0]) not in served
 
     concrete_c = cands[0] if cands and cands[0][2] else None
-    latest_day = max(served.values()) if served else ""
-    yesterday_norms = {n for n, d in served.items() if d == latest_day}
     # The sky moved: this person's own concrete action leads unless it was their last
     # headline. Another account having the same accurate action is not a reason to drop it.
-    if concrete_c and _norm_move_text(concrete_c[0]) not in yesterday_norms:
+    if concrete_c and not_yesterday(concrete_c):
         return concrete_c[0], concrete_c[1]
     # Generic moment lines only below here. Another account already has this line today.
     today_blocked = {_norm_move_text(t) for t in (avoid_today_texts or []) if t}
@@ -460,11 +468,16 @@ def select_move_text(
         return text, key
     # Nothing fresh is free today: the line this person saw longest ago (never yesterday's),
     # skipping lines another account already has today when possible.
-    pool = [
-        c for c in cands
-        if _norm_move_text(c[0]) not in today_blocked
-        and _norm_move_text(c[0]) not in yesterday_norms
-    ] or [c for c in cands if _norm_move_text(c[0]) not in yesterday_norms] or cands
+    # Do not use the full candidate pool while another catalog line is not yesterday's.
+    non_yesterday = [c for c in cands if not_yesterday(c)]
+    catalog_open = [c for c in catalog if not_yesterday(c)]
+    pool = (
+        [c for c in non_yesterday if _norm_move_text(c[0]) not in today_blocked]
+        or non_yesterday
+        or catalog_open
+        or catalog
+        or cands
+    )
     text, key, _ = min(pool, key=lambda c: served.get(_norm_move_text(c[0]), ""))
     return text, key
 
