@@ -362,11 +362,11 @@ assert.equal(sha(read("src/lib/bodygraphGeometry.ts")), "cc8c5433776ee2e8758f95f
 assert.equal(sha(read("src/components/ChartBodygraph.tsx")), "1fe364d73c574a15106159dd77768e830a40dd26ab63222e48f1951abfc30617");
 assert.equal(sha(read("src/app/profile/chart-field-notes.css")), "ee151956c4b96d3458c6ea0306dd2f74ac59df0a00b3dd8f891089af0d00ecf9");
 assert.equal(sha(read("src/app/transits/page.tsx")), "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "dc89f81cbb1e24c7a8142418f755e13c07671b96a5246a5eb6e1ed21b5b5cf48");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "89569bea7884f3fdeef818a8331b2dd2d8ab0a1614901cfe1608bd0a7a6aa5fd");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "68a5139452c9de2e223276ff3e3ca13064ab21eef74479ab49518d52b8ba94cf");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "1a8ed7d110c7453e707b700a05f98e3196c54bf60073802cd0219bffc4dd1ede");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "e8b2cd7865d672a55ff6868f7de20545c028808627b3e5e40ecaabb571a81a61");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc");
 assert.equal(sha(read("src/components/TodayIndication.tsx")), "68a908ea51723fa753d3e1599949e859fbd0d436b198aed7ba43f2cb9711b8bb");
 assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fe188cb7292bc5cb464da56ee6f2650f13053b61b184168fb612c508c76495ac");
 assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
