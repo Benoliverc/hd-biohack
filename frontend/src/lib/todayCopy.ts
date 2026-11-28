@@ -1,4 +1,5 @@
-import type { CopyPart, DailySignal, TodayIndicationPayload } from "@/lib/api";
+import type { BridgedChannel, CopyPart, DailySignal, TodayIndicationPayload } from "@/lib/api";
+import { sortedGatePair } from "@/lib/bridgedChannels";
 import { catalogs, type MessageKey } from "@/lib/i18n/messages";
 
 type TFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
@@ -194,6 +195,137 @@ export function localizeSkyLines(
     return story.line_parts.map((part, i) => resolveCopy(t, part, story.lines[i] || ""));
   }
   return story.lines.slice(0, 4);
+}
+
+const MOON_LINE_KEYS = new Set([
+  "today.skyStory.moonMoved",
+  "today.skyStory.moonInGateLine",
+  "today.skyStory.moonInGate",
+  "today.skyStory.moonNewLine",
+  "today.skyStory.moonHolds",
+  "today.skyStory.moonInLabel",
+]);
+
+const UNNAMED_BRIDGE_KEYS = new Set([
+  "today.skyStory.bridgeOn",
+  "today.skyStory.bridgeActive",
+  "today.skyStory.bridgeDay",
+]);
+
+export type AlsoTodayContext = {
+  hasCompletes: boolean;
+  bridgedChannels?: BridgedChannel[] | null;
+  noveltyDay?: string | null;
+};
+
+function partRefersToDailyGate(part: CopyPart, gate: number): boolean {
+  const gateText = String(gate);
+  const params = part.params;
+  if (params?.gate != null && String(params.gate) === gateText) return true;
+  if (params?.label != null) {
+    const label = String(params.label);
+    if (label === gateText || label.startsWith(`${gateText}.`)) return true;
+  }
+  return false;
+}
+
+/** First channel that starts on noveltyDay, otherwise the first channel. Any kind. */
+function namedBridgePart(
+  channels: BridgedChannel[] | null | undefined,
+  noveltyDay: string | null | undefined
+): CopyPart | null {
+  const list = channels ?? [];
+  if (list.length === 0) return null;
+  const onDay =
+    typeof noveltyDay === "string" && noveltyDay.length > 0
+      ? list.find((channel) => channel.window_start === noveltyDay)
+      : undefined;
+  const channel = onDay ?? list[0];
+  const pair = sortedGatePair(channel.gates);
+  if (pair.length < 2 || pair[0] == null || pair[1] == null) return null;
+  return { key: "today.skyStory.bridgeNamed", params: { a: pair[0], b: pair[1] } };
+}
+
+function tempCenterPart(part: CopyPart, t: TFn): CopyPart | null {
+  const names = String(part.params?.centers ?? "")
+    .split(", ")
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (names.length === 0) return null;
+  if (names.length === 1) {
+    return { key: "today.skyStory.tempCentersOne", params: { center: names[0] } };
+  }
+  return {
+    key: "today.skyStory.tempCenters",
+    params: { centers: names.join(` ${t("chart.v9.and")} `) },
+  };
+}
+
+function selectAlsoTodayParts(
+  indication: TodayIndicationPayload,
+  t: TFn,
+  ctx: AlsoTodayContext
+): CopyPart[] {
+  const parts = indication.sky_story?.line_parts ?? [];
+  const daily = indication.daily_signal;
+  const moonHeadline = Boolean(daily && daily.planet === "Moon" && termSecondCaption(daily, t));
+  const out: CopyPart[] = [];
+  let named: CopyPart | null | undefined;
+  let namedUsed = false;
+  for (const part of parts) {
+    if (
+      MOON_LINE_KEYS.has(part.key) &&
+      moonHeadline &&
+      daily?.gate != null &&
+      partRefersToDailyGate(part, daily.gate)
+    ) {
+      continue;
+    }
+    if (UNNAMED_BRIDGE_KEYS.has(part.key)) {
+      if (ctx.hasCompletes) continue;
+      if (named === undefined) named = namedBridgePart(ctx.bridgedChannels, ctx.noveltyDay);
+      if (named && !namedUsed) {
+        out.push(named);
+        namedUsed = true;
+      }
+      continue;
+    }
+    if (part.key === "today.skyStory.tempCenters") {
+      const next = tempCenterPart(part, t);
+      if (next) out.push(next);
+      continue;
+    }
+    out.push(part);
+  }
+  return out;
+}
+
+/**
+ * Leftover sky facts under "Also today".
+ * Drops a Moon line already named in the signal headline, replaces an unnamed
+ * bridge with one named channel (or omits it), and retunes temporary centers.
+ * Caps at 4. Does not pad.
+ */
+export function alsoTodayLines(
+  indication: TodayIndicationPayload,
+  t: TFn,
+  ctx: AlsoTodayContext
+): string[] {
+  const story = indication.sky_story;
+  if (!story) return [];
+  if (!story.line_parts?.length) return localizeSkyLines(indication, t).slice(0, 4);
+  const parts = selectAlsoTodayParts(indication, t, ctx).slice(0, 4);
+  if (parts.length === 0) return [];
+  return localizeSkyLines(
+    {
+      ...indication,
+      sky_story: { ...story, line_parts: parts, lines: [] },
+    },
+    t
+  )
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 4);
 }
 
 function tomorrowGate(n: unknown): number | null {
