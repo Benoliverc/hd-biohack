@@ -226,6 +226,37 @@ html.dark .chart-v9::before,
   }
 }
 
+/* Complete defined channels only. Same ink as the stroke; the core of a mixed channel stays unfiltered. */
+@keyframes chart-v9-bridge-breathe {
+  from {
+    filter: drop-shadow(0 0 4px rgb(from var(--v9-bridge-glow) r g b / 0.20));
+  }
+  to {
+    filter: drop-shadow(0 0 7px rgb(from var(--v9-bridge-glow) r g b / 0.34));
+  }
+}
+
+.chart-v9-bridge {
+  --v9-bridge-glow: var(--v9-ink);
+  animation: chart-v9-bridge-breathe 6s ease-in-out infinite alternate;
+}
+
+.chart-v9-bridge-p {
+  --v9-bridge-glow: var(--v9-ink);
+}
+
+.chart-v9-bridge-d,
+.chart-v9-bridge-both {
+  --v9-bridge-glow: var(--v9-clay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-v9-bridge {
+    animation: none;
+    filter: drop-shadow(0 0 5px rgb(from var(--v9-bridge-glow) r g b / 0.26));
+  }
+}
+
 .chart-v9-highlight {
   stroke: #ffffff;
   stroke-opacity: 0.45;

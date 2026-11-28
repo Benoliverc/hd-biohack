@@ -471,7 +471,7 @@ assert.equal(
 );
 assert.equal(
   sha(read("src/components/ChartBodygraph.tsx")),
-  "4d097a0f5e94ca18fedf8ae09bf10e3add369578e237cdd293215829c9d92284"
+  "fa4fa464dfacc7eba4cc7f078e3553d837cca3ffa5fe0547cd680c76d4961429"
 );
 assert.equal(
   sha(read("../backend/app/checkin/novelty.py")),
