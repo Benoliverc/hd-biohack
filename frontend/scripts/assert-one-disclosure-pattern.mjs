@@ -76,8 +76,8 @@ const FROZEN_6085A38 = {
 };
 
 // Center-tap inspector adds controlled openCenter. Disclosure checks are unchanged.
-const CHART_DEEP_DIVE_SHA_ABD12A94 =
-  "0eed070899931c15d01fdbe763421ea8f87fa8e9aa75d477d51f36beb41a1474";
+const CHART_DEEP_DIVE_SHA =
+  "beca81a022de7beb2df9df3b456422d7b53a1ac074cff0257ef84ee21911b6d9";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -208,8 +208,8 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 }
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
-  CHART_DEEP_DIVE_SHA_ABD12A94,
-  "check 6: ChartDeepDive.tsx equals the center-tap inspector bytes",
+  CHART_DEEP_DIVE_SHA,
+  "check 6: ChartDeepDive.tsx equals the pinned bytes",
 );
 
 assert.match(

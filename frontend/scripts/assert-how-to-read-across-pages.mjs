@@ -147,6 +147,32 @@ assert.ok(coach.includes("soul.literacy.howToReadTitle"));
 assert.equal(catalogValue(en, "chart.literacy.howToReadTitle"), "How to read your chart");
 assert.equal(catalogValue(en, "soul.literacy.howToReadTitle"), "How to read Soul");
 
+// Other-person Chart: sibling .other keys exist; self Chart bodies stay second person.
+const nlCatalog = read("src/lib/i18n/messages/nl.ts");
+const chartOtherKeys = [
+  "chart.literacy.howToReadTitle.other",
+  "chart.literacy.definedOpen.body.other",
+  "chart.literacy.channelsHanging.body.other",
+  "chart.literacy.legend.body.other",
+  "chart.literacy.typeStrategy.body.other",
+  "chart.literacy.centersWatch.body.other",
+  "chart.literacy.deepDive.body.other",
+];
+for (const key of chartOtherKeys) {
+  assert.ok(catalogValue(en, key).includes("{name}"), `${key} names the chart person`);
+  assert.ok(nlCatalog.includes(`"${key}"`), `nl has ${key}`);
+}
+assert.match(catalogValue(en, "chart.literacy.definedOpen.body"), /always-on for you/);
+assert.match(catalogValue(en, "chart.literacy.legend.body"), /under your Bodygraph/);
+assert.match(catalogValue(en, "chart.literacy.typeStrategy.body"), new RegExp(`your body${apo}s yes`));
+assert.match(catalogValue(en, "chart.literacy.deepDive.body"), new RegExp(`when you${apo}re curious`));
+assert.match(catalogValue(en, "chart.literacy.legend.body"), new RegExp(`You don${apo}t need to memorize jargon`));
+assert.ok(coach.includes('variant === "chart" && Boolean(personName)'), "Chart voice switches only with personName");
+assert.ok(coach.includes("chart.literacy.howToReadTitle.other"));
+assert.doesNotMatch(coach, /soul\.literacy\.[A-Za-z.]+\.other/);
+assert.doesNotMatch(coach, /today\.literacy\.[A-Za-z.]+\.other/);
+assert.doesNotMatch(coach, /protocols\.literacy\.[A-Za-z.]+\.other/);
+
 const chartSteps = stepBlocks(bankRegion(hdCopy, "export const CHART_LITERACY_I18N", "export const SOUL_LITERACY_I18N"));
 assert.equal(chartSteps.length, 6, "six Chart steps");
 assert.deepEqual(

@@ -30,12 +30,17 @@ const FROZEN = {
   "src/lib/bodygraphGeometry.ts": "cc8c5433776ee2e8758f95f868597a5821f8077eec8a92ec7bcb6cad15f1b743",
   "src/components/share/ShareBaselineCard.tsx": "fdf24bb638d4c1b8930be2cbbe52387a7dcab790448ce6ccd3780595f260a298",
   "src/components/share/ShareBaselineButton.tsx": "1660a0daeb9e3631095243d3200d6641b0d2f72cac66962627e7d68f867e1d24",
-  "src/components/LiteracyCoach.tsx": "de1516e98e78401bb759597110698732876915f14339fe552ecafd0c2bdc9976",
   "src/components/Header.tsx": "daf1194b633f7343857073129ebea7717b1d3b8a64ffd0e4d8db0936401103b2",
   "src/components/AppShell.tsx": "7afd199dfefa8a0250585390505d61a40cc19012bcf6775ca96d263d4d1431cc",
 };
 for (const [rel, digest] of Object.entries(FROZEN))
   assert.equal(sha(read(rel)), digest, `${rel} stays byte-identical to f0d542d`);
+// Other-person Chart How to read switches on personName. This is the only lifted pin.
+assert.equal(
+  sha(read("src/components/LiteracyCoach.tsx")),
+  "d2964ac64b37dc88bfeee3c7914e9ccdaa836f1fe3086cf858f2e4a78ccd420f",
+  "LiteracyCoach re-pinned for Chart other-person voice",
+);
 
 // BodyGraph: f0d542d bytes plus ONLY the optional non-compact slot.
 const bodyGraph = read("src/components/BodyGraph.tsx");
