@@ -371,6 +371,6 @@ assert.equal(sha(read("src/components/TodayIndication.tsx")), "899ced3f902d8bda6
 assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fe188cb7292bc5cb464da56ee6f2650f13053b61b184168fb612c508c76495ac");
 assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
 // assert-today-calm-pass.mjs differs from febe34f only by the globals.css pin lift above.
-assert.equal(sha(read("scripts/assert-today-calm-pass.mjs")), "34dd40d2405d4fb80e101e20ed05651eb6a2f86b1cd9cb34496a3bee81eff89a");
+assert.equal(sha(read("scripts/assert-today-calm-pass.mjs")), "03fe306885452e866d03634503a63d068d00e386dbb8127c8c7d9507d8c0210c");
 
 console.log("PASS assert-chart-profile-personalization");

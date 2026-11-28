@@ -235,7 +235,7 @@ body > * {
   letter-spacing: -0.025em;
 }
 .type-statement {
-  font-size: 1.3125rem; /* 21px */
+  font-size: 1.5rem; /* 24px */
   font-weight: 500;
   line-height: 1.4;
 }
@@ -267,7 +267,7 @@ body > * {
   text-wrap: balance;
 }
 .display-serif-scope .type-statement {
-  font-size: 1.3125rem; /* 21px */
+  font-size: 1.5rem; /* 24px */
   line-height: 1.4;
   letter-spacing: 0.003em;
   text-wrap: pretty;

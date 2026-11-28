@@ -232,7 +232,7 @@ assert.equal(
 // --- 5. globals.css locked block; type size and weight unchanged; Tailwind untouched ---
 const css = read("src/app/globals.css");
 const lockedBlock = `.type-statement {
-  font-size: 1.3125rem; /* 21px */
+  font-size: 1.5rem; /* 24px */
   font-weight: 500;
   line-height: 1.4;
 }
@@ -264,7 +264,7 @@ const lockedBlock = `.type-statement {
   text-wrap: balance;
 }
 .display-serif-scope .type-statement {
-  font-size: 1.3125rem; /* 21px */
+  font-size: 1.5rem; /* 24px */
   line-height: 1.4;
   letter-spacing: 0.003em;
   text-wrap: pretty;
@@ -387,7 +387,7 @@ assert.equal(
 // --- 9. Tailwind gains only the type-statement token ---
 const tailwind = read("tailwind.config.ts");
 const statementToken =
-  '\n        "type-statement": ["1.3125rem", { lineHeight: "1.4", fontWeight: "500" }],';
+  '\n        "type-statement": ["1.5rem", { lineHeight: "1.4", fontWeight: "500" }],';
 assert.equal(tailwind.split(statementToken).length - 1, 1, "check 9: one type-statement token");
 assert.match(
   tailwind,
