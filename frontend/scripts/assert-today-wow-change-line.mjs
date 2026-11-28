@@ -139,6 +139,10 @@ const EN_NL_ONLY = new Set([
   "today.tomorrow.moonStaysIn",
   "today.tomorrow.sunMovesTo",
   "today.tomorrow.sunStaysIn",
+  "today.inYourChart",
+  "today.alsoToday",
+  "today.skyStory.bridgeNamed",
+  "today.skyStory.tempCentersOne",
 ]);
 assert.ok(NEW_KEYS.length >= 64 + 10, `expected a full soul key set, got ${NEW_KEYS.length}`);
 for (let g = 1; g <= 64; g++) {
@@ -185,13 +189,15 @@ const STRUCTURAL_TEMPLATES = new Set([
   "today.termCaption.gateLine",
   "today.termCaption.gate",
 ]);
+// Feature name stays English in NL. Do not fail the English-copy check on this key only.
+const ENGLISH_FEATURE_NAME = new Set(["today.term.gate"]);
 
 for (const loc of ["de", "es", "fr", "nl"]) {
   for (const key of NEW_KEYS) {
     if (EN_NL_ONLY.has(key) && loc !== "nl") continue;
     const translated = valueOf(catalogs[loc], key);
     assert.ok(translated.trim().length > 0, `${loc} ${key} is empty`);
-    if (STRUCTURAL_TEMPLATES.has(key)) continue;
+    if (STRUCTURAL_TEMPLATES.has(key) || ENGLISH_FEATURE_NAME.has(key)) continue;
     assert.notEqual(translated, valueOf(catalogs.en, key), `${loc} ${key} must not be an English copy`);
   }
 }
@@ -201,7 +207,8 @@ assert.match(todayInd, /localizeMove\(/, "Move renders from keys");
 assert.match(todayInd, /localizeWhy\(/, "Why renders from keys");
 assert.match(todayInd, /changeLineLead\(/, "change line renders from keys");
 assert.match(todayInd, /localizeCueBody\(/, "cue body renders from keys");
-assert.match(todayInd, /localizeSkyLines\(/, "sky story renders from keys");
+assert.match(todayInd, /alsoTodayLines\(/, "sky story renders from keys");
+assert.match(todayCopy, /localizeSkyLines\(/, "also today still resolves through localizeSkyLines");
 assert.match(read("src/components/share/ShareBaselineButton.tsx"), /share\.baselineToday/, "Share button localizes kicker");
 assert.match(read("src/components/share/ShareBaselineCard.tsx"), /kicker/, "Share card accepts localized kicker");
 

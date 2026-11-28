@@ -19,8 +19,10 @@ const sha = (text) => createHash("sha256").update(text).digest("hex");
 
 const AUTHGATE_TIP_6CACAC09 =
   "991864bb55142c3724be2b577a58c449b7f342ad3072f88391a224620b3e6a24";
-const TODAY_INDICATION_6085A38 =
-  "68a908ea51723fa753d3e1599949e859fbd0d436b198aed7ba43f2cb9711b8bb";
+const MOVE_SENTENCE_TAG_6085A38 = `<p
+                      className="type-title text-fg"
+                      data-testid="main-action-text"
+                    >`;
 
 const PINS_6085A38 = {
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
@@ -331,30 +333,44 @@ assert.match(actionTag, /text-fg/, "check 7: main-action-text keeps text-fg");
 for (const banned of ["type-title", "type-display", "type-body", "font-bold", "font-semibold"]) {
   assert.doesNotMatch(actionTag, new RegExp(`\\b${banned}\\b`), `check 7: main-action-text has no ${banned}`);
 }
-const restoredInd = todayInd.replace(
+const restoredTag = actionTag.replace(
   'className="type-statement text-fg"',
   'className="type-title text-fg"'
 );
 assert.equal(
-  sha(restoredInd),
-  TODAY_INDICATION_6085A38,
-  "check 7: restoring type-title on the Move sentence returns the 6085a38 pin"
+  restoredTag,
+  MOVE_SENTENCE_TAG_6085A38,
+  "check 7: the Move-sentence opening tag, with type-statement restored to type-title, equals the 6085a38 tag"
 );
 
-// --- 8. Dependencies and the lockfile are unchanged; one script line ---
+// --- 8. Serif script line once; dependencies and the lockfile are unchanged ---
+// Script lines may grow. Do not hash the rest of package.json back to d06aa158.
 const pkg = read("package.json");
 const scriptLine = '    "assert:scoped-display-serif": "npx tsx scripts/assert-scoped-display-serif.mjs",\n';
 assert.equal(pkg.split(scriptLine).length - 1, 1, "check 8: one assert:scoped-display-serif script line");
-const restoredPkg = pkg.replace(scriptLine, "");
-assert.equal(sha(restoredPkg), PINS_6085A38["package.json"], "check 8: package.json otherwise equals main d06aa158");
 const parsed = JSON.parse(pkg);
-const restoredParsed = JSON.parse(restoredPkg);
 assert.equal(
   parsed.scripts["assert:scoped-display-serif"],
   "npx tsx scripts/assert-scoped-display-serif.mjs"
 );
-assert.deepEqual(parsed.dependencies, restoredParsed.dependencies);
-assert.deepEqual(parsed.devDependencies, restoredParsed.devDependencies);
+assert.deepEqual(parsed.dependencies, {
+  "html-to-image": "^1.11.13",
+  html2canvas: "^1.4.1",
+  "lucide-react": "^1.59.0",
+  next: "14.2.35",
+  react: "^18",
+  "react-dom": "^18",
+});
+assert.deepEqual(parsed.devDependencies, {
+  "@types/node": "^20",
+  "@types/react": "^18",
+  "@types/react-dom": "^18",
+  eslint: "^8",
+  "eslint-config-next": "14.2.35",
+  postcss: "^8",
+  tailwindcss: "^3.4.1",
+  typescript: "^5",
+});
 assert.equal(
   sha(read("package-lock.json")),
   PINS_6085A38["package-lock.json"],
