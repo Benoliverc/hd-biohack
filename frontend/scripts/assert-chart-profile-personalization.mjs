@@ -359,8 +359,8 @@ assert.match(deepDive, /id="deep-dive-profile"/);
 // Rebase onto febe34f (#158 merge): these pins are the post-#158 bytes. This branch does not edit them.
 assert.equal(sha(read("src/components/BodyGraph.tsx")), "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8");
 assert.equal(sha(read("src/lib/bodygraphGeometry.ts")), "cc8c5433776ee2e8758f95f868597a5821f8077eec8a92ec7bcb6cad15f1b743");
-assert.equal(sha(read("src/components/ChartBodygraph.tsx")), "1fe364d73c574a15106159dd77768e830a40dd26ab63222e48f1951abfc30617");
-assert.equal(sha(read("src/app/profile/chart-field-notes.css")), "ee151956c4b96d3458c6ea0306dd2f74ac59df0a00b3dd8f891089af0d00ecf9");
+assert.equal(sha(read("src/components/ChartBodygraph.tsx")), "4d097a0f5e94ca18fedf8ae09bf10e3add369578e237cdd293215829c9d92284");
+assert.equal(sha(read("src/app/profile/chart-field-notes.css")), "8a88f5082c72aeda7bdd6f0c26adb9e870b210a5b98507d29b232d3c93ae16d0");
 assert.equal(sha(read("src/app/transits/page.tsx")), "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "89569bea7884f3fdeef818a8331b2dd2d8ab0a1614901cfe1608bd0a7a6aa5fd");

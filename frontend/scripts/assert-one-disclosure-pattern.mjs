@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// PR #166 bytes on main abd12a94. This branch does not rewrite the file.
+// Center-tap inspector adds controlled openCenter. Disclosure checks are unchanged.
 const CHART_DEEP_DIVE_SHA_ABD12A94 =
-  "1f81333c9d773c3de0162bb59bcecfb18ca63ab8a30ae396fe0ca8b2a6934f2e";
+  "0eed070899931c15d01fdbe763421ea8f87fa8e9aa75d477d51f36beb41a1474";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -209,7 +209,7 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
   CHART_DEEP_DIVE_SHA_ABD12A94,
-  "check 6: ChartDeepDive.tsx equals main abd12a94",
+  "check 6: ChartDeepDive.tsx equals the center-tap inspector bytes",
 );
 
 assert.match(
