@@ -49,6 +49,24 @@ assert.ok(
 assert.ok(removeHandler.includes("setRemovePartnerError"), "inline error on failure");
 assert.ok(removeHandler.includes("setRemovingPartner(false)"), "control re-enabled");
 
+function openingTagForTestId(src, testid) {
+  const needle = `data-testid="${testid}"`;
+  const i = src.indexOf(needle);
+  assert.ok(i > 0, `missing testid ${testid}`);
+  const start = src.lastIndexOf("<", i);
+  const end = src.indexOf(">", i);
+  assert.ok(start >= 0 && end > start, `locate opening tag for ${testid}`);
+  return src.slice(start, end + 1);
+}
+
+const personRoleTag = openingTagForTestId(page, "person-role-person");
+const personOnClickAt = personRoleTag.indexOf("onClick=");
+assert.ok(personOnClickAt >= 0, "Person segment has an onClick");
+assert.ok(
+  !personRoleTag.slice(personOnClickAt).includes("handleRemoveAsPartner"),
+  "Person segment onClick does not call handleRemoveAsPartner",
+);
+
 // Shown only in the already-Partner branch (alongside the reason line),
 // not in the Mark as Partner discovery prompt.
 const reasonStart = page.indexOf('data-testid="soul-love-guidance-reason"');
