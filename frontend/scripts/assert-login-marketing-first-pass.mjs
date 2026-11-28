@@ -283,13 +283,19 @@ const EN_NL_ONLY_ARIA = [
   "chart.people.readMoreAboutStrategyInDeepDive",
   "chart.people.readMoreAboutDefinitionInDeepDive",
 ];
+// Deep dive text first pass (brief 2026-11-28): these two keys are en/nl only.
+// de/es/fr catalogs stay unloaded and are not edited.
+const EN_NL_ONLY_DEEP_DIVE = [
+  "chart.deepDive.footer",
+  "chart.deepDive.otherPersonNote",
+];
 const enKeys = new Set(keysOf(en));
 for (const id of ["de", "es", "fr", "nl"]) {
   const keys = new Set(keysOf(catalogs[id]));
   for (const need of ["login.productStillCaption", "login.productStillAlt"]) {
     assert.ok(keys.has(need), `${id} has ${need}`);
   }
-  const allowed = id === "nl" ? [] : EN_NL_ONLY_ARIA;
+  const allowed = id === "nl" ? [] : [...EN_NL_ONLY_ARIA, ...EN_NL_ONLY_DEEP_DIVE];
   const missing = [...enKeys].filter((k) => !keys.has(k) && !allowed.includes(k));
   const extra = [...keys].filter((k) => !enKeys.has(k));
   const notOmitted = allowed.filter((k) => keys.has(k));

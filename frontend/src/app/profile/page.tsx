@@ -40,6 +40,11 @@ import {
 import { ShareBaselineButton } from "@/components/share/ShareBaselineButton";
 import { graphFromChart } from "@/lib/share/graphFromChart";
 import LiteracyCoach from "@/components/LiteracyCoach";
+import {
+  ChartAccountSkeleton,
+  ChartFormSkeleton,
+  ChartSkeleton,
+} from "@/components/PageSkeleton";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
 import { displayCenter } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
@@ -1575,11 +1580,7 @@ function ProfilePage() {
         </div>
       )}
 
-      {user && !formReady && (
-        <div className="rounded-xl border border-border bg-elevated px-4 py-3 text-sm text-fg-secondary">
-          {t("chart.people.loadingSavedChart")}
-        </div>
-      )}
+      {user && !formReady && <ChartFormSkeleton />}
 
       {user && formReady && (
         <div data-testid={stateBar.testId} className={stateBar.className}>
@@ -2015,9 +2016,9 @@ function ProfilePage() {
         ) : null}
       </div>
 
-      {(usersLoading || usersError || (!usersLoading && !user)) && (
+      {usersLoading && !usersError ? <ChartAccountSkeleton /> : null}
+      {(usersError || (!usersLoading && !user)) && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-energy/50 bg-energy/10 px-4 py-3 text-sm text-energy-ink">
-          {usersLoading && <span>{t("chart.people.loadingAccount")}</span>}
           {usersError && <span>{t("chart.people.accountLoadIssue", { error: usersError })}</span>}
           {!usersLoading && !user && <span>{t("chart.people.noDevUser")}</span>}
           {(usersError || (!usersLoading && !user)) && (
@@ -2316,7 +2317,7 @@ function ProfilePage() {
 
 export default function ProfilePageRoute() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ChartSkeleton />}>
       <ProfilePage />
     </Suspense>
   );

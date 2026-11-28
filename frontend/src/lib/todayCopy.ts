@@ -196,16 +196,31 @@ export function localizeSkyLines(
   return story.lines.slice(0, 4);
 }
 
+function tomorrowGate(n: unknown): number | null {
+  return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= 64 ? n : null;
+}
+
 export function localizeTomorrow(
   indication: TodayIndicationPayload,
   t: TFn
 ): string {
-  const kind = indication.sky_story?.tomorrow?.kind;
-  if (!kind) return "";
-  if (kind === "moon_leaves") return t("today.tomorrow.moonLeaves");
-  if (kind === "moon_holds") return t("today.tomorrow.moonHolds");
-  if (kind === "sun_theme_leaves") return t("today.tomorrow.sunThemeLeaves");
-  return t("today.tomorrow.sunThemeHolds");
+  const tm = indication.sky_story?.tomorrow;
+  const kind = tm?.kind;
+  if (!tm || !kind) return "";
+  if (kind === "moon_leaves") {
+    const g = tomorrowGate(tm.moon_gate_tomorrow);
+    return g ? t("today.tomorrow.moonMovesTo", { gate: g }) : t("today.tomorrow.moonLeaves");
+  }
+  if (kind === "moon_holds") {
+    const g = tomorrowGate(tm.moon_gate_tomorrow) ?? tomorrowGate(tm.moon_gate_today);
+    return g ? t("today.tomorrow.moonStaysIn", { gate: g }) : t("today.tomorrow.moonHolds");
+  }
+  if (kind === "sun_theme_leaves") {
+    const g = tomorrowGate(tm.sun_gate_tomorrow);
+    return g ? t("today.tomorrow.sunMovesTo", { gate: g }) : t("today.tomorrow.sunThemeLeaves");
+  }
+  const g = tomorrowGate(tm.sun_gate_tomorrow) ?? tomorrowGate(tm.sun_gate_today);
+  return g ? t("today.tomorrow.sunStaysIn", { gate: g }) : t("today.tomorrow.sunThemeHolds");
 }
 
 export const TODAY_LITERACY_I18N: {
