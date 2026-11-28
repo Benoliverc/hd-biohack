@@ -1093,7 +1093,7 @@ export default function BiohackPage() {
           >
             <summary className="cursor-pointer list-none marker:content-none [&::-webkit-details-marker]:hidden">
               <span className="flex min-h-11 items-center gap-2 pr-36">
-                <ChevronRight data-disclosure-chevron className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90" aria-hidden />
+                <ChevronRight data-disclosure-chevron className="h-4 w-4 shrink-0 text-fg-secondary transition-transform" aria-hidden />
                 <Package className="h-4 w-4 shrink-0 text-growth" aria-hidden />
                 <span className="min-w-0 text-sm font-semibold text-fg">{t("page.protocols.shelf")}</span>
               </span>
@@ -1371,12 +1371,13 @@ function WeekSkyCard({
     <details
       open={open}
       onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
-      className="group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
+      className="disclosure group rounded-2xl border border-border bg-elevated px-4 py-3 shadow-soft"
       data-testid="week-plan"
     >
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 marker:content-none [&::-webkit-details-marker]:hidden">
         <ChevronRight
-          className="h-4 w-4 shrink-0 text-fg-secondary transition-transform group-open:rotate-90"
+          data-disclosure-chevron
+          className="h-4 w-4 shrink-0 text-fg-secondary transition-transform"
           aria-hidden
         />
         <span className="min-w-0 flex-1 truncate text-sm">
@@ -1398,10 +1399,10 @@ function WeekSkyCard({
         </p>
       )}
       {skyNote && (
-        <details className="rounded-xl border border-border bg-sunken/40 px-4 py-3" data-testid="week-sky-note">
+        <details className="disclosure group rounded-xl border border-border bg-sunken/40 px-4 py-3" data-testid="week-sky-note">
           <summary className="flex min-h-11 cursor-pointer list-none items-center type-chip uppercase tracking-wide text-fg-secondary marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden>▸</span>
+              <span aria-hidden data-disclosure-chevron className="inline-block text-fg-muted">▸</span>
               {t("page.protocols.skyNoteThisWeek")}
             </span>
           </summary>
@@ -1538,20 +1539,27 @@ function NatalBaselineCard({
         className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left"
         aria-expanded={open}
       >
-        <span>
-          <span className="type-chip uppercase tracking-wide text-growth-ink">
-            {t("page.protocols.startingProtocol")}
+        <span className="flex min-w-0 items-center gap-2">
+          <ChevronRight
+            data-disclosure-chevron
+            data-open={open ? "true" : "false"}
+            className="h-4 w-4 shrink-0 text-fg-secondary"
+            aria-hidden
+          />
+          <span className="min-w-0">
+            <span className="type-chip uppercase tracking-wide text-growth-ink">
+              {t("page.protocols.startingProtocol")}
+            </span>
+            <span className="block text-lg font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
+            <span className="block type-caption text-fg-secondary">{baselineLabel}</span>
+            {natalCountCaption ? (
+              <span className="block type-caption text-fg-muted">{natalCountCaption}</span>
+            ) : null}
           </span>
-          <span className="block text-lg font-semibold text-growth-ink">{t("page.protocols.natalBaseline")}</span>
-          <span className="block type-caption text-fg-secondary">{baselineLabel}</span>
-          {natalCountCaption ? (
-            <span className="block type-caption text-fg-muted">{natalCountCaption}</span>
-          ) : null}
         </span>
-        <span className="shrink-0 text-xs text-fg-muted">{open ? t("protocols.hide") : t("protocols.show")}</span>
       </button>
       {open && (
-        <div className="space-y-3 border-t border-growth/30 px-4 pb-4 pt-3">
+        <div className="space-y-3 border-t border-growth/30 px-4 pb-4 pt-3 disclosure-panel">
           {baseline ? (
             <>
               <h3 className="text-base font-semibold text-growth-ink">

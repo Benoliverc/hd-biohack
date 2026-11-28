@@ -82,6 +82,7 @@
     "assert:snapshot-read-more-deep-dive": "npx tsx scripts/assert-snapshot-read-more-deep-dive.mjs",
     "assert:chart-profile-personalization": "npx tsx scripts/assert-chart-profile-personalization.mjs",
     "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs",
+    "assert:one-disclosure-pattern": "npx tsx scripts/assert-one-disclosure-pattern.mjs",
     "assert:layout-shaped-skeletons": "npx tsx scripts/assert-layout-shaped-skeletons.mjs",
     "assert:today-tomorrow-gate": "npx tsx scripts/assert-today-tomorrow-gate.mjs"
   },
