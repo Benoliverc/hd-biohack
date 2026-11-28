@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useMemo, useState, type ReactNode } from "react";
-import { displayCenter } from "@/lib/hdCopy";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { displayCenter, type CenterKey } from "@/lib/hdCopy";
+import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { useI18n } from "@/lib/i18n";
 import {
   CENTER_SHAPES,
@@ -44,6 +45,8 @@ const styles = {
   figure: "chart-v9-figure",
   svg: "chart-v9-svg",
   center: "chart-v9-center",
+  focus: "chart-v9-center-focus",
+  inspector: "chart-v9-inspector",
   highlight: "chart-v9-highlight",
   pill: "chart-v9-pill",
   pillOpen: "chart-v9-pill-open",
@@ -93,6 +96,11 @@ export type ChartBodygraphProps = {
   ownerName?: string;
   /** Sits under the figure and above the legend. Chart keeps one Type box here. */
   afterSvg?: ReactNode;
+  /** Controlled center for the inspector. Omit to keep selection inside this card. */
+  selectedCenter?: string | null;
+  onSelectCenter?: (center: string | null) => void;
+  /** "Read more in Deep dive" for the open inspector. */
+  onInspectDeepDive?: (center: string) => void;
   className?: string;
 };
 
@@ -137,11 +145,45 @@ export function ChartBodygraph({
   definition = "",
   ownerName,
   afterSvg,
+  selectedCenter,
+  onSelectCenter,
+  onInspectDeepDive,
   className = "",
 }: ChartBodygraphProps) {
   const { t } = useI18n();
   const uid = useId().replace(/:/g, "");
   const [focusCenter, setFocusCenter] = useState<string | null>(null);
+  const [internalCenter, setInternalCenter] = useState<string | null>(null);
+  const centerPathRefs = useRef<Record<string, SVGPathElement | null>>({});
+  const previousCenter = useRef<string | null>(null);
+  const selectRef = useRef<(next: string | null) => void>(() => {});
+  const controlled = selectedCenter !== undefined;
+  const activeCenter = (controlled ? selectedCenter : internalCenter) ?? null;
+  const select = (next: string | null) => {
+    if (!controlled) setInternalCenter(next);
+    onSelectCenter?.(next);
+  };
+  selectRef.current = select;
+  const activate = (key: string) => {
+    select(activeCenter === key ? null : key);
+  };
+
+  useEffect(() => {
+    const previous = previousCenter.current;
+    previousCenter.current = activeCenter;
+    if (previous && !activeCenter) centerPathRefs.current[previous]?.focus();
+  }, [activeCenter]);
+
+  useEffect(() => {
+    if (!activeCenter) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      selectRef.current(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeCenter]);
 
   const personalitySet = useMemo(() => new Set(nums(personalityGates)), [personalityGates]);
   const designSet = useMemo(() => new Set(nums(designGates)), [designGates]);
@@ -469,15 +511,34 @@ export function ChartBodygraph({
                     strokeWidth={isDef ? 1.1 : 0.9}
                     filter={isDef ? `url(#${uid}sh)` : undefined}
                     tabIndex={0}
-                    role="img"
+                    role="button"
                     aria-label={label}
+                    aria-pressed={activeCenter === key}
+                    ref={(node) => {
+                      centerPathRefs.current[key] = node;
+                    }}
                     onMouseEnter={() => setFocusCenter(key)}
                     onMouseLeave={() => setFocusCenter((c) => (c === key ? null : c))}
                     onFocus={() => setFocusCenter(key)}
                     onBlur={() => setFocusCenter((c) => (c === key ? null : c))}
+                    onClick={() => activate(key)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      activate(key);
+                    }}
                   >
                     <title>{label}</title>
                   </path>
+                  <path
+                    className={styles.focus}
+                    d={d}
+                    fill="none"
+                    stroke="var(--focus)"
+                    strokeWidth={2.2}
+                    pointerEvents="none"
+                    aria-hidden="true"
+                  />
                   {isDef ? (
                     <path className={styles.highlight} d={d} fill="none" strokeWidth={0.8} transform="translate(0,0.9)" />
                   ) : null}
@@ -561,6 +622,16 @@ export function ChartBodygraph({
           ) : null}
         </div>
 
+        {activeCenter ? (
+          <ChartCenterInspector
+            centerKey={activeCenter}
+            defined={defined.has(activeCenter)}
+            personName={name}
+            onClose={() => select(null)}
+            onDeepDive={() => onInspectDeepDive?.(activeCenter)}
+          />
+        ) : null}
+
         {afterSvg}
 
         {splitNote ? <p className={styles.note}>{splitNote}</p> : null}
@@ -596,6 +667,71 @@ export function ChartBodygraph({
         </div>
       </div>
     </section>
+  );
+}
+
+function ChartCenterInspector({
+  centerKey,
+  defined,
+  personName,
+  onClose,
+  onDeepDive,
+}: {
+  centerKey: string;
+  defined: boolean;
+  personName: string;
+  onClose: () => void;
+  onDeepDive: () => void;
+}) {
+  const { t } = useI18n();
+  const { CENTER_COPY } = useHdCopy();
+  const titleId = useId();
+  const copy = CENTER_COPY[centerKey as CenterKey];
+  if (!copy) return null;
+  return (
+    <div
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby={titleId}
+      data-testid="chart-center-inspector"
+      className={`${styles.inspector} mt-4 rounded-2xl border border-border bg-elevated p-4`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="type-caption uppercase tracking-wide text-fg-muted">
+            {defined ? t("chart.deepDive.defined") : t("chart.deepDive.open")}
+          </p>
+          <h3 id={titleId} className="mt-1 font-semibold text-fg">
+            {displayCenter(centerKey)}
+          </h3>
+        </div>
+        <button
+          type="button"
+          aria-label={t("literacy.chrome.close")}
+          onClick={onClose}
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-fg hover:bg-sunken"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <p className={`mt-2 text-xs ${defined ? "text-growth" : "text-fg-muted"}`}>
+        {defined ? t("chart.deepDive.definedConsistent") : t("chart.deepDive.openAmplifies")}
+      </p>
+      <p className="mt-2 type-body text-fg-secondary">{defined ? copy.defined : copy.open}</p>
+      <p className="mt-2 text-xs text-fg-muted">{t("chart.deepDive.bodyHint", { hint: copy.bodyHint })}</p>
+      {personName ? (
+        <p className="mt-3 text-xs text-fg-secondary">{t("chart.deepDive.otherPersonNote", { name: personName })}</p>
+      ) : null}
+      <button
+        type="button"
+        data-testid="chart-center-inspector-deep-dive"
+        onClick={onDeepDive}
+        className="mt-3 inline-flex min-h-11 items-center gap-1 type-caption text-growth underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        {t("chart.people.readMoreInDeepDive")}
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
   );
 }
 
