@@ -212,7 +212,7 @@ const FROZEN = {
   "src/lib/i18n/messages/todaySoul.nl.ts": "2c2dad2167eb0a0ba38276d84babe28268b731112404f22e95592b5e10f14f1e",
   "src/app/page.tsx": "2da3236bb90898826a75b9101dc59759c3f87fc400f05fba5715dd1ac9fd9a2a",
   "src/app/biohack/page.tsx": "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
-  "src/app/globals.css": "2762eff0da5f55e4029524fd45182425ca17945742f8069e725ae703d64da18f",
+  "src/app/globals.css": "2c9cc2fdd9650f26f517cf3265e18b6f366976be4c20ceb94cc27f74a8082195",
   "src/app/login/page.tsx": "854d24bc9e2161de26bbc7b667166c46034f3c9fd41e5b2adab2273ba16c0576",
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
 };

@@ -59,7 +59,7 @@ const LOCKFILE_SHA_6085A38 =
 // Resolved tree after the merge onto abd12a94. Main did not edit these two.
 const RESOLVED_SHA = {
   "src/app/globals.css":
-    "2762eff0da5f55e4029524fd45182425ca17945742f8069e725ae703d64da18f",
+    "2c9cc2fdd9650f26f517cf3265e18b6f366976be4c20ceb94cc27f74a8082195",
   "src/app/biohack/page.tsx":
     "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
 };
