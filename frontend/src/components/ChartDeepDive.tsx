@@ -547,6 +547,12 @@ export function ChartDeepDive({
                 </section>
               ))}
             </Accordion>
+            <Accordion title="Profile" subtitle={profilePresentation(profile).value} testId="deep-dive-profile" id="deep-dive-profile"
+              open={coreOpen === "deep-dive-profile"}
+              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-profile" : null)}
+            >
+              <DeepDiveEssayBody text={profileLearnMore(profile)} />
+            </Accordion>
             <Accordion title="Strategy" subtitle={strategy} testId="deep-dive-strategy" id="deep-dive-strategy"
               open={coreOpen === "deep-dive-strategy"}
               onOpenChange={(next) => setCoreOpen(next ? "deep-dive-strategy" : null)}
@@ -568,12 +574,6 @@ export function ChartDeepDive({
                 info={AUTHORITY_COPY[authority]}
                 fallback={t("chart.deepDive.authorityBlurb")}
               />
-            </Accordion>
-            <Accordion title="Profile" subtitle={profilePresentation(profile).value} testId="deep-dive-profile" id="deep-dive-profile"
-              open={coreOpen === "deep-dive-profile"}
-              onOpenChange={(next) => setCoreOpen(next ? "deep-dive-profile" : null)}
-            >
-              <DeepDiveEssayBody text={profileLearnMore(profile)} />
             </Accordion>
             <Accordion title="Definition" subtitle={definition} testId="deep-dive-definition" id="deep-dive-definition"
               open={coreOpen === "deep-dive-definition"}
