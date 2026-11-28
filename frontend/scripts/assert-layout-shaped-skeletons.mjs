@@ -210,9 +210,9 @@ const FROZEN = {
   "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec",
   "src/lib/i18n/messages/todaySoul.en.ts": "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80",
   "src/lib/i18n/messages/todaySoul.nl.ts": "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc",
-  "src/app/page.tsx": "0cbffcffd01a3f4a0175ee665ca68667bc017ef165bec8658211b42de6ec176d",
+  "src/app/page.tsx": "2da3236bb90898826a75b9101dc59759c3f87fc400f05fba5715dd1ac9fd9a2a",
   "src/app/biohack/page.tsx": "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
-  "src/app/globals.css": "8820b4aec5485738ebd0311afdb0f9b7c2d73c11f277ff4f52c2f5c95225fa1a",
+  "src/app/globals.css": "2762eff0da5f55e4029524fd45182425ca17945742f8069e725ae703d64da18f",
   "src/app/login/page.tsx": "854d24bc9e2161de26bbc7b667166c46034f3c9fd41e5b2adab2273ba16c0576",
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
 };

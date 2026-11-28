@@ -53,6 +53,7 @@ const config: Config = {
         "type-meta": ["0.875rem", { lineHeight: "1.5", fontWeight: "500" }],
         "type-caption": ["0.75rem", { lineHeight: "1.5", fontWeight: "500" }],
         "type-chip": ["0.75rem", { lineHeight: "1.5", fontWeight: "600" }],
+        "type-statement": ["1.3125rem", { lineHeight: "1.4", fontWeight: "500" }],
       },
     },
   },

@@ -386,7 +386,7 @@ assert.equal(
 // Rebase onto febe34f: lift this pin to those bytes. No other calm-pass edit.
 assert.equal(
   sha(read("src/app/globals.css")),
-  "8820b4aec5485738ebd0311afdb0f9b7c2d73c11f277ff4f52c2f5c95225fa1a"
+  "2762eff0da5f55e4029524fd45182425ca17945742f8069e725ae703d64da18f"
 );
 assert.equal(
   sha(read("src/app/biohack/page.tsx")),
