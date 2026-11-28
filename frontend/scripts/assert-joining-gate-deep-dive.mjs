@@ -236,7 +236,7 @@ const learnAt = deepDiveSrc.indexOf("<SummaryLearnMore", defAt);
 assert.ok(blockAt > 0 && defAt > 0 && blockAt < essayAt && learnAt > defAt && blockAt < learnAt, "check 3: block is above the essay");
 assert.match(deepDiveSrc, /joiningGateRows\.length > 0/, "check 3: block only when joins exist");
 const core = deepDiveSrc.slice(deepDiveSrc.indexOf('active === "core"'), deepDiveSrc.indexOf('active === "centers"'));
-const coreIds = ["deep-dive-type", "deep-dive-strategy", "deep-dive-inner-authority", "deep-dive-profile", "deep-dive-definition"];
+const coreIds = ["deep-dive-type", "deep-dive-profile", "deep-dive-strategy", "deep-dive-inner-authority", "deep-dive-definition"];
 let prev = -1;
 for (const id of coreIds) {
   const at = core.indexOf(`id="${id}"`);

@@ -3,8 +3,8 @@
  * Run: npx tsx scripts/assert-one-disclosure-pattern.mjs
  *
  * Lockfile and the unchanged Chart/Today files are the 6085a38 bytes.
- * ChartDeepDive is main abd12a94 (PR #166). globals.css and biohack/page.tsx
- * are this branch's resolved bytes; main abd12a94 did not edit them.
+ * ChartDeepDive is #170 Core order plus this PR’s joining-gate block.
+ * globals.css and biohack/page.tsx are the disclosure merge's resolved bytes; main abd12a94 did not edit them.
  * Motion stays in globals.css; no new dependency.
  */
 import assert from "node:assert/strict";
@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// Joining-gate block moves ChartDeepDive. Disclosure checks are unchanged.
+// ChartDeepDive is #170 Core order plus this PR’s joining-gate block.
 const CHART_DEEP_DIVE_SHA_ABD12A94 =
-  "1683693b4848d50579dc4cb3c333f77c9d61df6fb3244cec898c7b5c69069aa6";
+  "f3a9b36c897facf2691be602b448eb453f1313a5e07a49b829de4c1062a353e9";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -209,7 +209,7 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
   CHART_DEEP_DIVE_SHA_ABD12A94,
-  "check 6: ChartDeepDive.tsx equals the joining-gate bytes",
+  "check 6: ChartDeepDive.tsx is #170 Core order plus the joining-gate block",
 );
 
 assert.match(
