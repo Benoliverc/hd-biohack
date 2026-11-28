@@ -2,7 +2,10 @@
  * One disclosure pattern: shared chevron and a CSS-only open fade.
  * Run: npx tsx scripts/assert-one-disclosure-pattern.mjs
  *
- * Pins are the 6085a38 bytes. Motion stays in globals.css; no new dependency.
+ * Lockfile and the unchanged Chart/Today files are the 6085a38 bytes.
+ * ChartDeepDive is main abd12a94 (PR #166). globals.css and biohack/page.tsx
+ * are this branch's resolved bytes; main abd12a94 did not edit them.
+ * Motion stays in globals.css; no new dependency.
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -53,11 +56,17 @@ details.disclosure[open] > :not(summary),
 const LOCKFILE_SHA_6085A38 =
   "a6a9733cf7ab81eee53471a02cd27bc06e215ca57c290afd0b9fc94cdf191324";
 
+// Resolved tree after the merge onto abd12a94. Main did not edit these two.
+const RESOLVED_SHA = {
+  "src/app/globals.css":
+    "d188793365b21eca60a5959822f6b361b446589eafeeb13faf31fbab72322247",
+  "src/app/biohack/page.tsx":
+    "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
+};
+
 const FROZEN_6085A38 = {
   "src/components/ChartDisclosure.tsx":
     "ef4ff692ed470ae3cc32a6c3d1dcf3e633c62f1c6d1a7d77b1fe67f57b044eff",
-  "src/components/ChartDeepDive.tsx":
-    "f1e3580b4ac6d4e521bcbeae6c1749b71e0a13060adf69cbaa5a9cc0360f74d2",
   "src/components/ChartTypeBox.tsx":
     "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/TodayIndication.tsx":
@@ -65,6 +74,10 @@ const FROZEN_6085A38 = {
   "src/app/transits/page.tsx":
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
+
+// PR #166 bytes on main abd12a94. This branch does not rewrite the file.
+const CHART_DEEP_DIVE_SHA_ABD12A94 =
+  "1f81333c9d773c3de0162bb59bcecfb18ca63ab8a30ae396fe0ca8b2a6934f2e";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -80,6 +93,9 @@ assert.match(
   /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*animation:\s*none;[\s\S]*transition:\s*none !important;/,
   "check 1: prefers-reduced-motion sets animation none and transition none",
 );
+for (const [rel, hash] of Object.entries(RESOLVED_SHA)) {
+  assert.equal(sha(read(rel)), hash, `check 1: ${rel} matches the resolved tree`);
+}
 
 // --- 2. Button sections: chevron, no Show / Hide text ---
 function assertButtonSection(src, label) {
@@ -186,10 +202,15 @@ for (const name of depNames) {
 }
 assert.equal(sha(read("package-lock.json")), LOCKFILE_SHA_6085A38, "check 5: lockfile sha256 equals 6085a38");
 
-// --- 6. Chart, Today, and sky details stay the 6085a38 bytes ---
+// --- 6. Chart, Today, and sky details ---
 for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
   assert.equal(sha(read(rel)), hash, `check 6: ${rel} equals 6085a38`);
 }
+assert.equal(
+  sha(read("src/components/ChartDeepDive.tsx")),
+  CHART_DEEP_DIVE_SHA_ABD12A94,
+  "check 6: ChartDeepDive.tsx equals main abd12a94",
+);
 
 assert.match(
   read("package.json"),
