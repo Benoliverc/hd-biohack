@@ -330,7 +330,13 @@ export function ChartBodygraph({
       const label = title ? `${a}–${b} ${title}` : `${a}–${b}`;
       if (own === "both") {
         bridges.push(
-          <path key={`c-${key}`} d={curve.d} stroke="var(--v9-clay)" strokeWidth={CHANNEL_WEIGHT + BOTH_CASING_EXTRA}>
+          <path
+            key={`c-${key}`}
+            className="chart-v9-bridge chart-v9-bridge-both"
+            d={curve.d}
+            stroke="var(--v9-clay)"
+            strokeWidth={CHANNEL_WEIGHT + BOTH_CASING_EXTRA}
+          >
             <title>{label}</title>
           </path>,
           <path key={`k-${key}`} d={curve.d} stroke="var(--v9-ink)" strokeWidth={BOTH_CORE_WEIGHT} />,
@@ -339,6 +345,7 @@ export function ChartBodygraph({
         bridges.push(
           <path
             key={`f-${key}`}
+            className={own === "d" ? "chart-v9-bridge chart-v9-bridge-d" : "chart-v9-bridge chart-v9-bridge-p"}
             d={curve.d}
             stroke={own === "d" ? "var(--v9-clay)" : "var(--v9-ink)"}
             strokeWidth={CHANNEL_WEIGHT}
