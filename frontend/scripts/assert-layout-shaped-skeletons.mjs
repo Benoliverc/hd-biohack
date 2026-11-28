@@ -202,16 +202,17 @@ assert.doesNotMatch(
   "session-pending branch is no longer the centered Loading line",
 );
 
-// --- 6. Untouched page files stay at their 6085a38 bytes. Message catalogs
-// were updated on main (ccdb757) and are pinned to those final bytes. ---
+// --- 6. Files this skeleton pass does not edit stay pinned. Message catalogs
+// were updated on main (ccdb757). biohack/page.tsx and globals.css are
+// re-pinned to the disclosure-pattern bytes on the merged tree. ---
 const FROZEN = {
   "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
   "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec",
   "src/lib/i18n/messages/todaySoul.en.ts": "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80",
   "src/lib/i18n/messages/todaySoul.nl.ts": "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc",
   "src/app/page.tsx": "d3a5dec9bfa3e3fa983316a61e73bc81334f4f653c4a5d6f1bb60c65a24b0bd6",
-  "src/app/biohack/page.tsx": "abe27ee37dc12f88a780298195bcd0803dede6b475013a10cc63fa77d097c203",
-  "src/app/globals.css": "c2ae13bc34b582ddc369a5e7236796179b47878009743de5b7dc9118375eb2ff",
+  "src/app/biohack/page.tsx": "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
+  "src/app/globals.css": "d188793365b21eca60a5959822f6b361b446589eafeeb13faf31fbab72322247",
   "src/app/login/page.tsx": "854d24bc9e2161de26bbc7b667166c46034f3c9fd41e5b2adab2273ba16c0576",
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
 };
