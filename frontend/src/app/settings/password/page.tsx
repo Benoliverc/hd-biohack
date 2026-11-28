@@ -9,6 +9,7 @@ import { writeSessionToken } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { accountApiMessage } from "../accountApiMessage";
+import { SettingsSkeleton } from "@/components/PageSkeleton";
 
 export default function SettingsPasswordPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function SettingsPasswordPage() {
   );
 
   if (!sessionReady) {
-    return <p className="text-sm text-fg-muted">{t("common.loading")}</p>;
+    return <SettingsSkeleton />;
   }
 
   if (!user) {

@@ -132,6 +132,14 @@ assert.doesNotMatch(todayInd, /LiteracyCoach[\s\S]{0,80}step/, "TodayIndication 
 // i18n: all new soul keys present in five locales; non-English not English copies
 const enSoul = read("src/lib/i18n/messages/todaySoul.en.ts");
 const NEW_KEYS = keysOf(enSoul);
+// today-tomorrow-gate adds these four keys in English and Dutch only.
+// de/es/fr catalogs stay frozen and resolve to English at lookup time.
+const EN_NL_ONLY = new Set([
+  "today.tomorrow.moonMovesTo",
+  "today.tomorrow.moonStaysIn",
+  "today.tomorrow.sunMovesTo",
+  "today.tomorrow.sunStaysIn",
+]);
 assert.ok(NEW_KEYS.length >= 64 + 10, `expected a full soul key set, got ${NEW_KEYS.length}`);
 for (let g = 1; g <= 64; g++) {
   assert.ok(NEW_KEYS.includes(`today.gateCue.${g}`), `missing today.gateCue.${g}`);
@@ -163,6 +171,7 @@ const EN_LOCKED = {
 for (const [name, src] of Object.entries(catalogs)) {
   const keys = keysOf(src);
   for (const key of NEW_KEYS) {
+    if (EN_NL_ONLY.has(key) && name !== "en" && name !== "nl") continue;
     assert.ok(keys.includes(key), `${name} missing ${key}`);
   }
 }
@@ -179,6 +188,7 @@ const STRUCTURAL_TEMPLATES = new Set([
 
 for (const loc of ["de", "es", "fr", "nl"]) {
   for (const key of NEW_KEYS) {
+    if (EN_NL_ONLY.has(key) && loc !== "nl") continue;
     const translated = valueOf(catalogs[loc], key);
     assert.ok(translated.trim().length > 0, `${loc} ${key} is empty`);
     if (STRUCTURAL_TEMPLATES.has(key)) continue;

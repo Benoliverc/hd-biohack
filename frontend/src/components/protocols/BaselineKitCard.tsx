@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import type { DayCompletions } from "@/lib/protocolCompletions";
 import { progressPct } from "@/lib/protocolCompletions";
 import type { CheckItem } from "./types";
@@ -44,24 +45,31 @@ export function BaselineKitCard({
         className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left"
         aria-expanded={open}
       >
-        <span className="min-w-0">
-          <span className="block text-sm font-semibold text-fg">{t("protocols.baselineKit")}</span>
-          <span
-            className="mt-0.5 block type-caption text-fg-secondary"
-            data-testid="baseline-kit-caption"
-          >
-            {t("protocols.baselineKitSameEveryDay")}
+        <span className="flex min-w-0 items-center gap-2">
+          <ChevronRight
+            data-disclosure-chevron
+            data-open={open ? "true" : "false"}
+            className="h-4 w-4 shrink-0 text-fg-secondary"
+            aria-hidden
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-fg">{t("protocols.baselineKit")}</span>
+            <span
+              className="mt-0.5 block type-caption text-fg-secondary"
+              data-testid="baseline-kit-caption"
+            >
+              {t("protocols.baselineKitSameEveryDay")}
+            </span>
           </span>
         </span>
         <span className="inline-flex shrink-0 items-center gap-2 text-xs text-fg-muted">
           <span data-testid="baseline-done-count">
             {doneCount}/{totalCount}
           </span>
-          <span>{open ? t("protocols.hide") : t("protocols.show")}</span>
         </span>
       </button>
       {open && (
-        <div className="space-y-2 border-t border-border px-4 pb-4 pt-3">
+        <div className="space-y-2 border-t border-border px-4 pb-4 pt-3 disclosure-panel">
           <div
             className="h-1.5 overflow-hidden rounded-full bg-sunken"
             data-testid="baseline-progress"

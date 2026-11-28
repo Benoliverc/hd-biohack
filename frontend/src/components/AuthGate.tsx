@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
 import { clearSession, readSessionToken, readSessionUserId } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
+import { RouteSkeleton } from "@/components/PageSkeleton";
 import { displaySerif } from "@/lib/fonts/displaySerif";
 
 const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
@@ -64,11 +65,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   // Avoid flashing protected UI before we know session state
   if (!sessionReady && !isPublic) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
-        {t("auth.loading")}
-      </div>
-    );
+    return <RouteSkeleton pathname={pathname} label={t("auth.loading")} />;
   }
 
   if (!isPublic && (!readSessionUserId() || !readSessionToken()) && !user) {

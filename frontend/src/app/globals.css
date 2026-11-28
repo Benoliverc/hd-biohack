@@ -297,3 +297,29 @@ details.disclosure > summary [data-disclosure-chevron] {
 details.disclosure[open] > summary [data-disclosure-chevron] {
   transform: rotate(90deg);
 }
+
+/* One disclosure pattern: calm open fade, CSS only. */
+@keyframes disclosure-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: none; }
+}
+details.disclosure[open] > :not(summary),
+.disclosure-panel {
+  animation: disclosure-in 180ms ease-out;
+}
+[data-disclosure-chevron] {
+  transition: transform 150ms ease;
+}
+[data-disclosure-chevron][data-open="true"] {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  details.disclosure[open] > :not(summary),
+  .disclosure-panel {
+    animation: none;
+  }
+  [data-disclosure-chevron],
+  details.disclosure > summary [data-disclosure-chevron] {
+    transition: none !important;
+  }
+}

@@ -8,6 +8,7 @@ import { useApp } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { accountApiMessage } from "../accountApiMessage";
+import { SettingsSkeleton } from "@/components/PageSkeleton";
 
 export default function SettingsDeleteAccountPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function SettingsDeleteAccountPage() {
   );
 
   if (!sessionReady) {
-    return <p className="text-sm text-fg-muted">{t("common.loading")}</p>;
+    return <SettingsSkeleton />;
   }
 
   if (!user) {

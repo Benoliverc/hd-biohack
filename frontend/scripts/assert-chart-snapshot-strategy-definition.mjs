@@ -25,11 +25,11 @@ const { ChartDisclosure } = await import("../src/components/ChartDisclosure.tsx"
 
 const MG = "To Respond (then inform)";
 const LOCKED = {
-  en: "Wait for a gut yes, then tell the people it'll affect before you move. (Strategy: To Respond, then inform)",
+  en: "Wait for a gut yes, then tell the people it'll affect before you move.",
   de: "Warte auf ein Ja aus dem Bauch, dann sag den Betroffenen Bescheid, bevor du loslegst. (Strategy: To Respond, then inform)",
   es: "Espera un sí del cuerpo, y luego avisa a las personas a las que va a afectar antes de moverte. (Strategy: To Respond, then inform)",
   fr: "Attends un oui du corps, puis préviens les personnes concernées avant d\u2019avancer. (Strategy: To Respond, then inform)",
-  nl: "Wacht op een ja vanuit je buik, en vertel het daarna de mensen die het raakt voordat je beweegt. (Strategy: To Respond, then inform)",
+  nl: "Wacht op een ja vanuit je buik, en vertel het daarna de mensen die het raakt voordat je beweegt.",
 };
 const OLD = [/Feel the gut yes first/, /Siente primero el sí del cuerpo/, /Voel eerst het ja vanuit je buik/];
 

@@ -386,16 +386,16 @@ assert.equal(
 // Rebase onto febe34f: lift this pin to those bytes. No other calm-pass edit.
 assert.equal(
   sha(read("src/app/globals.css")),
-  "265abe009ba6d3aa4d694e22a58177acdda8aae21ba44bae92321f71a4844e5e"
+  "8820b4aec5485738ebd0311afdb0f9b7c2d73c11f277ff4f52c2f5c95225fa1a"
 );
 assert.equal(
   sha(read("src/app/biohack/page.tsx")),
-  "abe27ee37dc12f88a780298195bcd0803dede6b475013a10cc63fa77d097c203"
+  "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2"
 );
 
 const PROTOCOL_SHA = {
   "src/components/protocols/BaselineKitCard.tsx":
-    "785b052c0af855febf9d754174472a2fb805ba668775ebd4ab8a90aa8fa1a9b1",
+    "f1b3cf75e7bf6bd6209181bd9301ea95db133f41485b3a0ef3dd23a46448fee8",
   "src/components/protocols/KitStrip.tsx":
     "8568202b69f9e0998fb694b7d4488182f7860ad2bf336958ebc18b09e36b98ac",
   "src/components/protocols/ShelfDayView.tsx":

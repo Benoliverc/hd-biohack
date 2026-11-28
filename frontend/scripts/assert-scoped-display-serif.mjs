@@ -2,7 +2,8 @@
  * Signed-in Newsreader (or Source Serif 4) on page titles and the Home greeting.
  * Login, layout, and public routes stay Inter. Run: npx tsx scripts/assert-scoped-display-serif.mjs
  *
- * Pins are the bytes of main 6085a38a7c89e08a9db7eb49ca2ea518baf4875e.
+ * Untouched surfaces stay at 6085a38. package.json, AuthGate, and globals.css
+ * pins are main d06aa158 with this branch's delta removed. page.tsx is still 6085a38.
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -23,10 +24,10 @@ const PINS_6085A38 = {
   "src/components/Header.tsx": "daf1194b633f7343857073129ebea7717b1d3b8a64ffd0e4d8db0936401103b2",
   "tailwind.config.ts": "20a202ad9b8457cf998112ba8efdc3e84e6e1b2b686cc1ff06ed4ac9923ad172",
   "package-lock.json": "a6a9733cf7ab81eee53471a02cd27bc06e215ca57c290afd0b9fc94cdf191324",
-  "package.json": "059e8c1fb3da2eeaa0f044202f741c991d0b2a40855b24f8cd7d97391d0fccbd",
-  "src/components/AuthGate.tsx": "6a668915623d9ef3792fa18f8e4ac0bd1f7356d649df4474d335557cbeb11608",
+  "package.json": "cff66e7f72372f3d5f3743b328ad9848f3939412b6df0f3637433dce4d83dee4",
+  "src/components/AuthGate.tsx": "f7c04fb5379b08d0e0e4732792fc5b0ae08b212373a76bea80c5010514af9e50",
   "src/app/page.tsx": "d3a5dec9bfa3e3fa983316a61e73bc81334f4f653c4a5d6f1bb60c65a24b0bd6",
-  "src/app/globals.css": "c2ae13bc34b582ddc369a5e7236796179b47878009743de5b7dc9118375eb2ff",
+  "src/app/globals.css": "d188793365b21eca60a5959822f6b361b446589eafeeb13faf31fbab72322247",
 };
 
 function stripComments(src) {
@@ -157,11 +158,7 @@ assert.match(wrappedClass, /contents/);
 
 const branches = [
   `  if (!sessionReady && !isPublic) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-fg-muted">
-        {t("auth.loading")}
-      </div>
-    );
+    return <RouteSkeleton pathname={pathname} label={t("auth.loading")} />;
   }`,
   `  if (!isPublic && (!readSessionUserId() || !readSessionToken()) && !user) {
     return (
@@ -180,7 +177,7 @@ const branches = [
 ];
 for (const block of branches) {
   const at = gate.indexOf(block);
-  assert.ok(at >= 0 && at < publicAt, "check 4: other AuthGate branches match the 6085a38 copies");
+  assert.ok(at >= 0 && at < publicAt, "check 4: other AuthGate branches match the merged tree");
 }
 const importLine = 'import { displaySerif } from "@/lib/fonts/displaySerif";\n';
 assert.equal(gate.split(importLine).length - 1, 1, "check 4: one displaySerif import");
@@ -193,7 +190,7 @@ const restoredGate = gate
 assert.equal(
   sha(restoredGate),
   PINS_6085A38["src/components/AuthGate.tsx"],
-  "check 4: AuthGate outside the protected return is byte-identical to 6085a38"
+  "check 4: AuthGate outside the protected return is byte-identical to main d06aa158"
 );
 
 // --- 5. globals.css locked block; type size and weight unchanged; Tailwind untouched ---
@@ -237,7 +234,7 @@ assert.equal(css.split(lockedBlock).length - 1, 1, "check 5: locked block appear
 assert.equal(
   sha(css.replace(lockedBlock, "")),
   PINS_6085A38["src/app/globals.css"],
-  "check 5: globals.css is otherwise byte-identical to 6085a38"
+  "check 5: globals.css outside the locked block is byte-identical to main d06aa158"
 );
 assert.equal(
   sha(read("tailwind.config.ts")),
@@ -271,7 +268,7 @@ const pkg = read("package.json");
 const scriptLine = '    "assert:scoped-display-serif": "npx tsx scripts/assert-scoped-display-serif.mjs",\n';
 assert.equal(pkg.split(scriptLine).length - 1, 1, "check 7: one assert:scoped-display-serif script line");
 const restoredPkg = pkg.replace(scriptLine, "");
-assert.equal(sha(restoredPkg), PINS_6085A38["package.json"], "check 7: package.json otherwise unchanged");
+assert.equal(sha(restoredPkg), PINS_6085A38["package.json"], "check 7: package.json otherwise equals main d06aa158");
 const parsed = JSON.parse(pkg);
 const restoredParsed = JSON.parse(restoredPkg);
 assert.equal(
