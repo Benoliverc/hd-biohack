@@ -21,8 +21,10 @@ const sha = (text) => createHash("sha256").update(text).digest("hex");
 
 const AUTHGATE_TIP_6CACAC09 =
   "991864bb55142c3724be2b577a58c449b7f342ad3072f88391a224620b3e6a24";
-const TODAY_INDICATION_6085A38 =
-  "68a908ea51723fa753d3e1599949e859fbd0d436b198aed7ba43f2cb9711b8bb";
+const MOVE_SENTENCE_TAG_6085A38 = `<p
+                      className="type-title text-fg"
+                      data-testid="main-action-text"
+                    >`;
 
 const PINS_6085A38 = {
   "src/app/layout.tsx": "62913d0a4dded828b641d0fcf5d03bb0b269051cf5d5035ab0b2e045d5df9274",
@@ -332,14 +334,14 @@ assert.match(actionTag, /text-fg/, "check 7: main-action-text keeps text-fg");
 for (const banned of ["type-title", "type-display", "type-body", "font-bold", "font-semibold"]) {
   assert.doesNotMatch(actionTag, new RegExp(`\\b${banned}\\b`), `check 7: main-action-text has no ${banned}`);
 }
-const restoredInd = todayInd.replace(
+const restoredTag = actionTag.replace(
   'className="type-statement text-fg"',
   'className="type-title text-fg"'
 );
 assert.equal(
-  sha(restoredInd),
-  TODAY_INDICATION_6085A38,
-  "check 7: restoring type-title on the Move sentence returns the 6085a38 pin"
+  restoredTag,
+  MOVE_SENTENCE_TAG_6085A38,
+  "check 7: the Move-sentence opening tag, with type-statement restored to type-title, equals the 6085a38 tag"
 );
 
 // --- 8. Dependencies and the lockfile are unchanged; one script line ---

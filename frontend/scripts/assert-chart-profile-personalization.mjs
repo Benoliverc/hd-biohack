@@ -362,13 +362,13 @@ assert.equal(sha(read("src/lib/bodygraphGeometry.ts")), "cc8c5433776ee2e8758f95f
 assert.equal(sha(read("src/components/ChartBodygraph.tsx")), "4d097a0f5e94ca18fedf8ae09bf10e3add369578e237cdd293215829c9d92284");
 assert.equal(sha(read("src/app/profile/chart-field-notes.css")), "8a88f5082c72aeda7bdd6f0c26adb9e870b210a5b98507d29b232d3c93ae16d0");
 assert.equal(sha(read("src/app/transits/page.tsx")), "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.en.ts")), "8ee99ae08e41fa619a3b7bb3617dea63eadb8a6a0304a12859f56c07d37ce9c2");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.de.ts")), "89569bea7884f3fdeef818a8331b2dd2d8ab0a1614901cfe1608bd0a7a6aa5fd");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.es.ts")), "68a5139452c9de2e223276ff3e3ca13064ab21eef74479ab49518d52b8ba94cf");
 assert.equal(sha(read("src/lib/i18n/messages/todaySoul.fr.ts")), "1a8ed7d110c7453e707b700a05f98e3196c54bf60073802cd0219bffc4dd1ede");
-assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc");
-assert.equal(sha(read("src/components/TodayIndication.tsx")), "899ced3f902d8bda6ac6ceb5682398a2350d28f4a1ff4bd5445bccc38631296c");
-assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fe188cb7292bc5cb464da56ee6f2650f13053b61b184168fb612c508c76495ac");
+assert.equal(sha(read("src/lib/i18n/messages/todaySoul.nl.ts")), "2c2dad2167eb0a0ba38276d84babe28268b731112404f22e95592b5e10f14f1e");
+assert.equal(sha(read("src/components/TodayIndication.tsx")), "691fecfb86631889a1c05a9f41417063289f0b0610e636d64e7e6f23b97f5eb8");
+assert.equal(sha(read("src/lib/bridgedChannels.ts")), "fa07365a9dfca177e7069666a9cd2c362c178da6a9ceb311a3cd2d83844f45fd");
 assert.equal(sha(read("src/lib/todayYourWay.ts")), "26977fb88989466a0496a1c59f55f1f20764721de134c40f16e666bc0e9c4c34");
 // assert-today-calm-pass.mjs differs from febe34f only by the globals.css pin lift above.
 assert.equal(sha(read("scripts/assert-today-calm-pass.mjs")), "03fe306885452e866d03634503a63d068d00e386dbb8127c8c7d9507d8c0210c");

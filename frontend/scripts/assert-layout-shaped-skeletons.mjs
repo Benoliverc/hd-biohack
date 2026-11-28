@@ -208,8 +208,8 @@ assert.doesNotMatch(
 const FROZEN = {
   "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
   "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec",
-  "src/lib/i18n/messages/todaySoul.en.ts": "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80",
-  "src/lib/i18n/messages/todaySoul.nl.ts": "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc",
+  "src/lib/i18n/messages/todaySoul.en.ts": "8ee99ae08e41fa619a3b7bb3617dea63eadb8a6a0304a12859f56c07d37ce9c2",
+  "src/lib/i18n/messages/todaySoul.nl.ts": "2c2dad2167eb0a0ba38276d84babe28268b731112404f22e95592b5e10f14f1e",
   "src/app/page.tsx": "2da3236bb90898826a75b9101dc59759c3f87fc400f05fba5715dd1ac9fd9a2a",
   "src/app/biohack/page.tsx": "56bf53d2ee929dbf244c33b4d26328b6d7b07e37772131a60bc848ad7de4dfd2",
   "src/app/globals.css": "2c9cc2fdd9650f26f517cf3265e18b6f366976be4c20ceb94cc27f74a8082195",
