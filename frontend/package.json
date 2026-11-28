@@ -87,7 +87,8 @@
     "assert:share-baseline": "npx tsx scripts/assert-share-baseline.mjs",
     "assert:one-disclosure-pattern": "npx tsx scripts/assert-one-disclosure-pattern.mjs",
     "assert:layout-shaped-skeletons": "npx tsx scripts/assert-layout-shaped-skeletons.mjs",
-    "assert:today-tomorrow-gate": "npx tsx scripts/assert-today-tomorrow-gate.mjs"
+    "assert:today-tomorrow-gate": "npx tsx scripts/assert-today-tomorrow-gate.mjs",
+    "assert:today-signal-structure": "npx tsx scripts/assert-today-signal-structure.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
