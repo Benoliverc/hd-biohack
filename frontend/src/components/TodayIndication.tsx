@@ -564,7 +564,7 @@ export default function TodayIndication({
                     </button>
                     ) : null}
                     <p
-                      className="type-title text-fg"
+                      className="type-statement text-fg"
                       data-testid="main-action-text"
                     >
                       {moveText}

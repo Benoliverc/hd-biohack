@@ -59,7 +59,7 @@ const actionTextIdx = todayInd.indexOf('data-testid="main-action-text"');
 assert.ok(actionTextIdx > 0, "main-action-text present");
 const actionOpen = todayInd.lastIndexOf("<p", actionTextIdx);
 const actionTag = todayInd.slice(actionOpen, todayInd.indexOf(">", actionTextIdx) + 1);
-assert.match(actionTag, /type-title/, "main-action-text uses type-title");
+assert.match(actionTag, /type-statement/, "main-action-text uses type-statement");
 assert.doesNotMatch(actionTag, /type-display/, "main-action-text does not use type-display");
 assert.doesNotMatch(actionTag, /type-body/, "main-action-text does not use type-body");
 const actionBlock = todayInd.slice(actionOpen, actionOpen + 400);
@@ -72,6 +72,7 @@ assert.match(moveLabel, /text-xs font-semibold uppercase tracking-wide text-grow
 for (const id of ["today-show-up", "today-when", "main-action-why-details"]) {
   const block = sliceAround(todayInd, `data-testid="${id}"`, 0, 500);
   assert.doesNotMatch(block, /type-title/, `${id} must not use type-title`);
+  assert.doesNotMatch(block, /type-statement/, `${id} must not use type-statement`);
 }
 
 // --- 44px tick ---

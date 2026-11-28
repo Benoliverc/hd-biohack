@@ -6,6 +6,7 @@ import { useApp } from "@/lib/store";
 import { clearSession, readSessionToken, readSessionUserId } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
 import { RouteSkeleton } from "@/components/PageSkeleton";
+import { displaySerif } from "@/lib/fonts/displaySerif";
 
 const PUBLIC_PATHS = new Set(["/login", "/reset-password", "/privacy"]);
 
@@ -83,5 +84,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  if (isPublic) return <>{children}</>;
+  return <div className={`${displaySerif.variable} display-serif-scope contents`}>{children}</div>;
 }

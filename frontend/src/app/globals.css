@@ -234,6 +234,44 @@ body > * {
   line-height: 1.25;
   letter-spacing: -0.025em;
 }
+.type-statement {
+  font-size: 1.3125rem; /* 21px */
+  font-weight: 500;
+  line-height: 1.4;
+}
+/* Signed-in display serif: --font-display is defined only under AuthGate's protected scope. */
+.display-serif-scope .type-display,
+.display-serif-scope .type-title,
+.display-serif-scope .type-statement,
+.display-serif-scope .display-serif {
+  font-family: var(--font-display, inherit);
+  font-weight: 500;
+  font-synthesis-weight: none;
+  font-optical-sizing: auto;
+  letter-spacing: 0;
+}
+.display-serif-scope .type-display {
+  font-size: 2.125rem; /* 34px */
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+@media (min-width: 768px) {
+  .display-serif-scope .type-display {
+    font-size: 2.625rem; /* 42px */
+  }
+}
+.display-serif-scope .type-title {
+  font-size: 1.75rem; /* 28px */
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.display-serif-scope .type-statement {
+  font-size: 1.3125rem; /* 21px */
+  line-height: 1.4;
+  letter-spacing: 0.003em;
+  text-wrap: pretty;
+}
 .type-section {
   font-size: 1.125rem; /* 18px */
   font-weight: 600;
