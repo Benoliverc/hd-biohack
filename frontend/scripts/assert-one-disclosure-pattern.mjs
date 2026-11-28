@@ -70,9 +70,9 @@ const FROZEN_6085A38 = {
   "src/components/ChartTypeBox.tsx":
     "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/TodayIndication.tsx":
-    "691fecfb86631889a1c05a9f41417063289f0b0610e636d64e7e6f23b97f5eb8",
+    "e6eeeef1e44398795dd4229ec9414004545a7beb461f3a8280abeedb9fe74d84",
   "src/app/transits/page.tsx":
-    "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
+    "6cc9cb4ad12ca2debd8b30b2b65a6c23fb637cda8f90c1878ca74ba679afd187",
 };
 
 // Core row order is Type, Profile, Strategy, Inner Authority, Definition.

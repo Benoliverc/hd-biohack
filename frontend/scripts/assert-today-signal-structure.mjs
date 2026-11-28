@@ -59,8 +59,54 @@ function channel(partial) {
 const todayInd = read("src/components/TodayIndication.tsx");
 const todayCopy = read("src/lib/todayCopy.ts");
 const bridged = read("src/lib/bridgedChannels.ts");
+const transits = read("src/app/transits/page.tsx");
 const enSoul = read("src/lib/i18n/messages/todaySoul.en.ts");
 const nlSoul = read("src/lib/i18n/messages/todaySoul.nl.ts");
+
+function openingTag(src, marker) {
+  const at = src.indexOf(marker);
+  assert.ok(at > 0, `missing ${marker}`);
+  const open = src.lastIndexOf("<", at);
+  let i = open + 1;
+  let brace = 0;
+  let quote = null;
+  while (i < src.length) {
+    const ch = src[i];
+    if (quote) {
+      if (ch === "\\") {
+        i += 2;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      i += 1;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      quote = ch;
+      i += 1;
+      continue;
+    }
+    if (ch === "{") {
+      brace += 1;
+      i += 1;
+      continue;
+    }
+    if (ch === "}") {
+      brace = Math.max(0, brace - 1);
+      i += 1;
+      continue;
+    }
+    if (ch === ">" && brace === 0) return src.slice(open, i + 1);
+    i += 1;
+  }
+  assert.fail(`unterminated tag around ${marker}`);
+}
+
+function classTokens(tag) {
+  const match = tag.match(/className="([^"]*)"/);
+  assert.ok(match, `className missing in ${tag}`);
+  return match[1].split(/\s+/);
+}
 
 // --- 1. Headline templates ---
 assert.equal(translate("en", "today.termCaption.full"), FULL);
@@ -334,6 +380,8 @@ assert.equal(translate("en", "today.inYourChart"), "In your chart today");
 assert.equal(translate("nl", "today.inYourChart"), "In jouw chart vandaag");
 assert.equal(translate("en", "today.alsoToday"), "Also today");
 assert.equal(translate("nl", "today.alsoToday"), "Ook vandaag");
+assert.equal(translate("en", "today.comingUp"), "Coming up");
+assert.equal(translate("nl", "today.comingUp"), "Komt eraan");
 assert.equal(
   translate("nl", "today.skyCompletes.line", { m: 1, a: 1, b: 8, name: "Inspiration", centerA: "Identity", centerB: "Throat" }),
   `De Gate 1 van vandaag maakt je Channel 1${EN_DASH}8, Inspiration, compleet en verbindt Identity en Throat.`
@@ -428,6 +476,72 @@ assert.deepEqual(
   []
 );
 
+const hangingLead = { key: "today.skyStory.hangingPeek", params: { gate: 1, center: "Throat" } };
+const hangingOther = { key: "today.skyStory.hangingPeek", params: { gate: 62, center: "Throat" } };
+const leadCtx = {
+  hasCompletes: true,
+  bridgedChannels: [ch18],
+  noveltyDay: "2026-11-28",
+  completesLeadGate: 1,
+};
+assert.deepEqual(
+  alsoTodayLines(indication({ signal: null, parts: [hangingLead, sun9] }), tEn, leadCtx),
+  ["Sun and Earth turned to Gate 9."],
+  "drops hanging peek that names the completes lead gate and keeps Sun/Earth"
+);
+assert.deepEqual(
+  alsoTodayLines(
+    indication({
+      signal: null,
+      parts: [hangingLead, { key: "today.skyStory.tempCenters", params: { centers: "Spleen" } }],
+    }),
+    tEn,
+    leadCtx
+  ),
+  ["Spleen is lit for today only."],
+  "keeps other leftovers when hanging peek names the completes lead"
+);
+assert.deepEqual(
+  alsoTodayLines(indication({ signal: null, parts: [hangingLead] }), tEn, leadCtx),
+  [],
+  "returns [] when hanging peek was the only leftover"
+);
+assert.deepEqual(
+  alsoTodayLines(indication({ signal: null, parts: [hangingOther, sun9] }), tEn, leadCtx),
+  ["Hanging pressure peeks at Gate 62 (Throat).", "Sun and Earth turned to Gate 9."],
+  "keeps hanging peek when the gate differs"
+);
+assert.deepEqual(
+  alsoTodayLines(
+    indication({ signal: null, parts: [hangingLead] }),
+    tEn,
+    { hasCompletes: true, bridgedChannels: [ch18], noveltyDay: "2026-11-28" }
+  ),
+  ["Hanging pressure peeks at Gate 1 (Throat)."],
+  "keeps hanging peek when completesLeadGate is absent"
+);
+assert.deepEqual(
+  alsoTodayLines(
+    indication({ signal: null, parts: [hangingLead] }),
+    tEn,
+    { hasCompletes: false, bridgedChannels: [], noveltyDay: null, completesLeadGate: null }
+  ),
+  ["Hanging pressure peeks at Gate 1 (Throat)."],
+  "keeps hanging peek when there is no completes lead"
+);
+assert.deepEqual(
+  alsoTodayLines(
+    indication({
+      signal: null,
+      parts: [{ key: "today.skyStory.hangingPeek", params: { center: "Throat" } }],
+    }),
+    tEn,
+    leadCtx
+  ),
+  ["Hanging pressure peeks at Gate {gate} (Throat)."],
+  "keeps hanging peek when the gate param is missing"
+);
+
 // --- 6. Block order and untouched wiring ---
 const order = [
   'data-testid="main-action"',
@@ -436,6 +550,7 @@ const order = [
   'data-testid="today-sky-completes"',
   'data-testid="sky-story"',
   'data-testid="vs-yesterday"',
+  'data-testid="today-coming-up"',
   'data-testid="sky-story-tomorrow"',
   'data-testid="today-upcoming-toggle"',
 ];
@@ -445,6 +560,82 @@ for (const id of order) {
   assert.ok(at > cursor, `${id} stays in order`);
   cursor = at;
 }
+const comingAt = todayInd.indexOf('data-testid="today-coming-up"');
+const tomorrowAt = todayInd.indexOf('data-testid="sky-story-tomorrow"');
+assert.equal(
+  (todayInd.slice(comingAt, tomorrowAt).match(/data-testid=/g) || []).length,
+  1,
+  "today-coming-up is immediately before sky-story-tomorrow"
+);
+const comingTag = openingTag(todayInd, 'data-testid="today-coming-up"');
+const comingTokens = classTokens(comingTag);
+assert.deepEqual(
+  comingTokens.filter((token) => token !== "mb-1"),
+  ["text-xs", "font-semibold", "tracking-wide", "text-fg-muted"]
+);
+assert.equal(comingTokens.includes("uppercase"), false);
+assert.equal(comingTokens.includes("mb-1"), true);
+assert.match(todayInd, /t\("today\.comingUp"\)/);
+assert.equal(todayInd.includes('data-testid="conditioning-caption"'), false);
+assert.equal(todayInd.includes("conditioningCaptionFallback"), false);
+assert.equal(todayInd.includes("conditioning_caption"), false);
+assert.match(
+  todayInd,
+  /completesLeadGate: skyPick\?\.lead\.transit_gates\?\.\[0\] \?\? null/
+);
+
+const ctaTokens = classTokens(openingTag(todayInd, 'data-testid="today-sky-completes-open"'));
+for (const token of ["underline", "underline-offset-2", "min-h-11", "type-caption", "text-fg", "hover:underline"]) {
+  assert.ok(ctaTokens.includes(token), `completes CTA opening tag includes ${token}`);
+}
+
+const detailsAt = transits.indexOf('data-testid="today-sky-details"');
+const bodyAt = transits.indexOf('className="mt-4 space-y-4"', detailsAt);
+const captionAt = transits.indexOf('data-testid="conditioning-caption"', bodyAt);
+const sunAt = transits.indexOf('id="today-sun-earth"', bodyAt);
+assert.ok(
+  detailsAt > 0 && bodyAt > detailsAt && captionAt > bodyAt && sunAt > captionAt,
+  "conditioning-caption is the first quiet line inside today-sky-details, before Sun / Earth"
+);
+const quiet = transits.slice(bodyAt, sunAt);
+assert.match(quiet, /type-caption text-fg-secondary/);
+assert.match(quiet, /t\("today\.conditioningCaptionFallback"\)/);
+assert.equal((quiet.match(/data-testid=/g) || []).length, 1);
+
+let vsFrom = 0;
+const vsSummaries = [];
+while (true) {
+  const at = todayInd.indexOf('data-testid="vs-yesterday"', vsFrom);
+  if (at < 0) break;
+  const summaryAt = todayInd.indexOf("<summary", at);
+  assert.ok(summaryAt > at, "Vs yesterday summary follows its details");
+  vsSummaries.push(classTokens(todayInd.slice(summaryAt, todayInd.indexOf(">", summaryAt) + 1)));
+  vsFrom = at + 1;
+}
+assert.equal(vsSummaries.length, 2, "both Vs yesterday summaries");
+for (const tokens of vsSummaries) {
+  assert.equal(tokens.includes("uppercase"), false, "Vs yesterday summary has no uppercase");
+  for (const token of ["text-xs", "font-semibold", "tracking-wide", "text-fg-muted"]) {
+    assert.ok(tokens.includes(token), `Vs yesterday summary keeps ${token}`);
+  }
+}
+const toggleTokens = classTokens(openingTag(todayInd, 'data-testid="today-upcoming-toggle"'));
+assert.equal(toggleTokens.includes("uppercase"), false, "Next 7 days toggle has no uppercase");
+for (const token of ["text-xs", "font-semibold", "tracking-wide", "text-fg-muted"]) {
+  assert.ok(toggleTokens.includes(token), `Next 7 days toggle keeps ${token}`);
+}
+const factCall = todayInd.indexOf('{t("today.hdFactLabel")}');
+const factOpen = todayInd.lastIndexOf("<p", factCall);
+const factTokens = classTokens(todayInd.slice(factOpen, todayInd.indexOf(">", factCall) + 1));
+assert.equal(factTokens.includes("uppercase"), false, "fact label has no uppercase");
+assert.ok(factTokens.includes("type-chip"));
+assert.ok(factTokens.includes("text-fg-secondary"));
+const moveCall = todayInd.indexOf('{t("today.move")}');
+const moveOpen = todayInd.lastIndexOf("<h3", moveCall);
+assert.match(todayInd.slice(moveOpen, todayInd.indexOf(">", moveCall) + 1), /\buppercase\b/);
+const signalCall = todayInd.indexOf('{t("today.newSignal")}');
+const signalOpen = todayInd.lastIndexOf("<p", signalCall);
+assert.match(todayInd.slice(signalOpen, todayInd.indexOf(">", signalCall) + 1), /\buppercase\b/);
 assert.match(todayInd, /alsoTodayLines\(/);
 assert.match(todayInd, /aria-labelledby="today-also-today"/);
 assert.match(todayInd, /data-testid="today-also-today"/);

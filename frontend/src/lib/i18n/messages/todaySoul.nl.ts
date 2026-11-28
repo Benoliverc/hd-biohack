@@ -324,6 +324,7 @@ export const todaySoulMessages = {
   "today.yourWay.authority.lunar": "en geef je grote keuzes een volle maancyclus",
   "today.inYourChart": "In jouw chart vandaag",
   "today.alsoToday": "Ook vandaag",
+  "today.comingUp": "Komt eraan",
   "today.skyCompletes.line": "De Gate {m} van vandaag maakt je Channel {a}–{b}, {name}, compleet en verbindt {centerA} en {centerB}.",
   "today.skyCompletes.open": "Zie het in Sky details",
   "today.skyCompletes.more": "Zie {k} meer in Sky details",
