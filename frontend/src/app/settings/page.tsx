@@ -9,6 +9,7 @@ import { DEFAULT_PROTOCOLS_TZ } from "@/lib/protocolCompletions";
 import { detectDeviceTimezone } from "@/lib/deviceTimezone";
 import { useI18n, translate, type Locale } from "@/lib/i18n";
 import { Languages, Clock, UserRound, KeyRound, ChevronRight } from "lucide-react";
+import { SettingsSkeleton } from "@/components/PageSkeleton";
 
 function SettingsList() {
   const router = useRouter();
@@ -131,7 +132,7 @@ function SettingsList() {
     deviceTz || user?.preferred_timezone?.trim() || DEFAULT_PROTOCOLS_TZ;
 
   if (!sessionReady) {
-    return <p className="text-sm text-fg-muted">{t("common.loading")}</p>;
+    return <SettingsSkeleton />;
   }
 
   if (!user) {
@@ -315,7 +316,7 @@ function SettingsList() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-fg-muted">…</p>}>
+    <Suspense fallback={<SettingsSkeleton />}>
       <SettingsList />
     </Suspense>
   );

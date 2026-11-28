@@ -19,6 +19,7 @@ import { displayCenter } from "@/lib/hdCopy";
 import { ChevronDown } from "lucide-react";
 import LiteracyCoach from "@/components/LiteracyCoach";
 import { BiohackingEntitlementGate } from "@/components/BiohackingEntitlementGate";
+import { SoulSkeleton } from "@/components/PageSkeleton";
 import PartnerOverviewCard from "@/components/soul/PartnerOverviewCard";
 import PartnerNuanceBlock from "@/components/soul/PartnerNuanceBlock";
 import SoulChapterCard from "@/components/soul/SoulChapterCard";
@@ -608,12 +609,7 @@ function SoulUnlockedContent() {
   return (
     <div className="space-y-6" data-testid="soul-unlocked">
       {!sessionReady || chartsLoading || Boolean(!user && readSessionToken()) ? (
-        <div
-          className="rounded-2xl border border-border bg-elevated p-5"
-          data-testid="soul-loading"
-        >
-          <p className="type-body text-fg-secondary">{t("soul.chrome.loadingCharts")}</p>
-        </div>
+        <SoulSkeleton data-testid="soul-loading" />
       ) : chartsError ? (
         <p className="text-sm text-danger" data-testid="soul-charts-error">
           {chartsError}
