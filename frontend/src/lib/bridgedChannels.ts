@@ -1,5 +1,4 @@
 import type { BridgedChannel, TransitPlanet } from "@/lib/api";
-import { displayCenter } from "@/lib/hdCopy";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -229,6 +228,14 @@ export function skyCompletesPick(
   return { lead: completesToday ?? eligible[0], more: eligible.length - 1 };
 }
 
+/** Everyday center names for the sky-completes sentence only. */
+function everydayCenter(key: string): string {
+  if (key === "G") return "Identity";
+  if (key === "Heart") return "Heart";
+  if (key === "Solar_Plexus") return "Solar Plexus";
+  return key.replace(/_/g, " ");
+}
+
 /** One personal sentence: the sky's gate completes a channel you already hold. */
 export function skyCompletesText(channel: BridgedChannel, t: TFn): string {
   const [a, b] = sortedGatePair(channel.gates);
@@ -237,7 +244,7 @@ export function skyCompletesText(channel: BridgedChannel, t: TFn): string {
     a: a ?? "",
     b: b ?? "",
     name: channel.name,
-    centerA: displayCenter(channel.centers?.[0] ?? ""),
-    centerB: displayCenter(channel.centers?.[1] ?? ""),
+    centerA: everydayCenter(channel.centers?.[0] ?? ""),
+    centerB: everydayCenter(channel.centers?.[1] ?? ""),
   });
 }

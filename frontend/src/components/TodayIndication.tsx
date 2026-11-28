@@ -52,13 +52,13 @@ import {
   type MessageKey,
 } from "@/lib/i18n";
 import {
+  alsoTodayLines,
   changeLineLead,
   localizeCueBody,
   localizeDisclaimer,
   localizeDrivers,
   localizeMicro,
   localizeMove,
-  localizeSkyLines,
   localizeTomorrow,
   localizeWhy,
   termSecondCaption,
@@ -506,7 +506,6 @@ export default function TodayIndication({
     hasEnergySpaceValues && (energySpaceHighlight || skyWeatherChanged);
   const changeTerms = termSecondCaption(daily, t);
   const cueBody = localizeCueBody(daily, t);
-  const skyLines = localizeSkyLines(indication, t);
   const tomorrowText = localizeTomorrow(indication, t);
   const moveId = indication.move_item_id || "today-move";
   const moveDone = Boolean(completions[moveId]?.done);
@@ -523,6 +522,11 @@ export default function TodayIndication({
       inventoryStatus === "ready" &&
       inventoryCount > 0);
   const skyPick = skyCompletesPick(bridgedChannels, noveltyDay);
+  const alsoLines = alsoTodayLines(indication, t, {
+    hasCompletes: skyPick != null,
+    bridgedChannels,
+    noveltyDay,
+  });
   const yourWay = yourWayKeys(natalType, natalAuthority);
 
   return (
@@ -1393,6 +1397,13 @@ export default function TodayIndication({
               data-testid="today-sky-completes"
               data-gates={bridgeChannelSlug(skyPick.lead.gates)}
             >
+              <p
+                id="today-in-your-chart"
+                className="mb-1 text-xs font-semibold tracking-wide text-fg-muted"
+                data-testid="today-in-your-chart"
+              >
+                {t("today.inYourChart")}
+              </p>
               <p className="text-sm text-fg">{skyCompletesText(skyPick.lead, t)}</p>
               {onOpenSkyDetails ? (
                 <button
@@ -1409,21 +1420,30 @@ export default function TodayIndication({
             </div>
           ) : null}
 
-          {skyLines.length ? (
+          {alsoLines.length ? (
             <div
-              className="mt-3 space-y-1.5"
+              className="mt-3"
               data-testid="sky-story"
-              aria-label={t("today.skyStory")}
+              aria-labelledby="today-also-today"
             >
-              {skyLines.slice(0, 4).map((line, i) => (
-                <p
-                  key={`${i}-${line.slice(0, 24)}`}
-                  className="text-sm leading-relaxed text-fg"
-                  data-testid="sky-story-line"
-                >
-                  {line}
-                </p>
-              ))}
+              <p
+                id="today-also-today"
+                className="mb-1 text-xs font-semibold tracking-wide text-fg-muted"
+                data-testid="today-also-today"
+              >
+                {t("today.alsoToday")}
+              </p>
+              <div className="space-y-1.5">
+                {alsoLines.map((line, i) => (
+                  <p
+                    key={`${i}-${line.slice(0, 24)}`}
+                    className="text-sm text-fg"
+                    data-testid="sky-story-line"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
           ) : null}
 
