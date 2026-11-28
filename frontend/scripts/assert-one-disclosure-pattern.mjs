@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// Center-tap inspector adds controlled openCenter. Disclosure checks are unchanged.
+// Joining-gate block moves ChartDeepDive. Disclosure checks are unchanged.
 const CHART_DEEP_DIVE_SHA_ABD12A94 =
-  "0eed070899931c15d01fdbe763421ea8f87fa8e9aa75d477d51f36beb41a1474";
+  "1683693b4848d50579dc4cb3c333f77c9d61df6fb3244cec898c7b5c69069aa6";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -209,7 +209,7 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
   CHART_DEEP_DIVE_SHA_ABD12A94,
-  "check 6: ChartDeepDive.tsx equals the center-tap inspector bytes",
+  "check 6: ChartDeepDive.tsx equals the joining-gate bytes",
 );
 
 assert.match(

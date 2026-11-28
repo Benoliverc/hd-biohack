@@ -2207,6 +2207,13 @@ function ProfilePage() {
                 selectedCenter={selectedCenter}
                 onSelectCenter={onSelectCenter}
                 onInspectDeepDive={onInspectCenter}
+                onOpenJoiningGate={() => {
+                  if (selectedCenter) {
+                    setSelectedCenter(null);
+                    replaceCenterParam(null);
+                  }
+                  jumpToSection("deep-dive-definition");
+                }}
               />
             </div>
 

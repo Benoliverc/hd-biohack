@@ -206,8 +206,8 @@ assert.doesNotMatch(
 // were updated on main (ccdb757). biohack/page.tsx and globals.css are
 // re-pinned to the disclosure-pattern bytes on the merged tree. ---
 const FROZEN = {
-  "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
-  "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec",
+  "src/lib/i18n/messages/en.ts": "08509229b4824354e75cddc108c17328ea717d0da8930a4f8d0032dfc3591db3",
+  "src/lib/i18n/messages/nl.ts": "97f7a76f6dfb2ed2fd1d3c59eed2c81caf7de1664d0cc48f3c1f7370a96eb861",
   "src/lib/i18n/messages/todaySoul.en.ts": "9962171f58268f98b1652ef65c0e86da56e7b903a5c7bc67f464c99e8586ae80",
   "src/lib/i18n/messages/todaySoul.nl.ts": "49bfe323322af3f7504c1e4bd62c6c62fa8cab92bf1fa81116cea5c71c3b53cc",
   "src/app/page.tsx": "2da3236bb90898826a75b9101dc59759c3f87fc400f05fba5715dd1ac9fd9a2a",

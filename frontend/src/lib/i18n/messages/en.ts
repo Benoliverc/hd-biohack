@@ -930,7 +930,7 @@ export const messages = {
   'chart.v9.gateToGate': 'Gate to gate',
   'chart.v9.bothBridgeHint': 'Ink core in a clay casing',
   'chart.v9.hangingGate': 'Hanging gate',
-  'chart.v9.hangingHint': 'You hold one end; it fades',
+  'chart.v9.hangingHint': 'You hold one end; the sky or another person completes it.',
   'chart.v9.joiningGate': 'Joining gate',
   'chart.v9.joiningHint': 'Would join your split',
   'chart.v9.and': 'and',

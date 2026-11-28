@@ -14,9 +14,19 @@ import {
 
 import { DeepDiveEssayBody } from "@/components/DeepDiveEssayBody";
 import { deepDiveTypeSections } from "@/lib/essays/deepDiveTypeCopy";
+import {
+  joiningGateDeepDiveCopy,
+  type JoiningGateSpec,
+} from "@/lib/essays/joiningGateDeepDive";
 import { profilePresentation } from "@/lib/profilePresentation";
 import { displayCenter, type CenterKey } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
+import {
+  GATE_TO_CENTER,
+  definitionAreas,
+  joiningGates,
+  type GraphChannel,
+} from "@/lib/bodygraphGeometryV2";
 
 type Chart = Record<string, unknown>;
 
@@ -164,6 +174,61 @@ function SummaryLearnMore({
           </p>
         ))}
     </>
+  );
+}
+
+function finiteGates(values: unknown[]): number[] {
+  const out: number[] = [];
+  for (const value of values) {
+    const gate = Number(value);
+    if (Number.isFinite(gate) && gate > 0) out.push(gate);
+  }
+  return out;
+}
+
+/** Held-end area, then missing-end area, using the same labels as the v9 note. */
+function joiningGateSpecs(
+  definedCenters: string[],
+  channels: GraphChannel[],
+  activated: number[],
+): JoiningGateSpec[] {
+  const areas = definitionAreas(definedCenters, channels);
+  return joiningGates(definedCenters, channels, activated).flatMap((join) => {
+    const heldCenter = GATE_TO_CENTER[join.from];
+    const missingCenter = GATE_TO_CENTER[join.to];
+    const heldArea = heldCenter ? areas.find((area) => area.includes(heldCenter)) : undefined;
+    const missingArea = missingCenter ? areas.find((area) => area.includes(missingCenter)) : undefined;
+    if (!heldArea || !missingArea) return [];
+    return [
+      {
+        gate: join.gate,
+        areaA: heldArea.map((center) => displayCenter(center)).join(" + "),
+        areaB: missingArea.map((center) => displayCenter(center)).join(" + "),
+      },
+    ];
+  });
+}
+
+function JoiningGateBlock({
+  personName,
+  gates,
+}: {
+  personName?: string;
+  gates: JoiningGateSpec[];
+}) {
+  const { t, locale } = useI18n();
+  const copy = joiningGateDeepDiveCopy(locale, personName, gates);
+  return (
+    <section data-testid="deep-dive-joining-gate" className="mb-3">
+      <h3 className="font-semibold">{t("chart.v9.joiningGate")}</h3>
+      <p className="mt-1 font-normal">{copy.what}</p>
+      {copy.specifics.map((paragraph, index) => (
+        <p key={`${gates[index]?.gate ?? index}-${index}`} className="mt-3 font-normal">
+          {paragraph}
+        </p>
+      ))}
+      <p className="mt-3 font-normal">{copy.why}</p>
+    </section>
   );
 }
 
@@ -434,8 +499,14 @@ export function ChartDeepDive({
     return () => window.removeEventListener("hashchange", apply);
   }, [domain]);
 
-  const defined = new Set((chart.defined_centers as string[]) || []);
+  const definedCenters = (chart.defined_centers as string[]) || [];
+  const defined = new Set(definedCenters);
   const channels = (chart.channels as Array<Record<string, unknown>>) || [];
+  const graphChannels: GraphChannel[] = channels.map((ch) => ({
+    gates: Array.isArray(ch.gates) ? (ch.gates as number[]) : undefined,
+    centers: Array.isArray(ch.centers) ? (ch.centers as string[]) : undefined,
+    name: typeof ch.name === "string" ? ch.name : undefined,
+  }));
   const hanging = (chart.hanging_gates as Array<Record<string, unknown>>) || [];
   const gates = ((chart.activated_gates as number[]) || []).slice().sort((a, b) => a - b);
   const hdType = String(chart.type || "");
@@ -443,6 +514,14 @@ export function ChartDeepDive({
   const authority = String(chart.authority || "");
   const profile = String(chart.profile || "");
   const definition = String(chart.definition || "");
+  const activated = Array.from(
+    new Set([
+      ...finiteGates((chart.activated_gates as number[]) || []),
+      ...finiteGates(personality.map((row) => row.gate)),
+      ...finiteGates(design.map((row) => row.gate)),
+    ]),
+  );
+  const joiningGateRows = joiningGateSpecs(definedCenters, graphChannels, activated);
 
   const selectTab = (tab: (typeof DOMAIN_TABS)[number]) => {
     setDomain(tab.id);
@@ -579,6 +658,9 @@ export function ChartDeepDive({
               open={coreOpen === "deep-dive-definition"}
               onOpenChange={(next) => setCoreOpen(next ? "deep-dive-definition" : null)}
             >
+              {joiningGateRows.length > 0 ? (
+                <JoiningGateBlock personName={personName} gates={joiningGateRows} />
+              ) : null}
               <SummaryLearnMore
                 info={DEFINITION_COPY[definition]}
                 fallback={t("chart.deepDive.definitionBlurb")}
