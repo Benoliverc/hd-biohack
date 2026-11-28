@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { DeepDiveEssayBody } from "@/components/DeepDiveEssayBody";
 import { deepDiveTypeSections } from "@/lib/essays/deepDiveTypeCopy";
 import { profilePresentation } from "@/lib/profilePresentation";
 import { displayCenter, type CenterKey } from "@/lib/hdCopy";
@@ -444,6 +445,11 @@ export function ChartDeepDive({
         <div>
           <h2 className="text-lg font-semibold text-fg">{t("chart.deepDive.title")}</h2>
           <p className="text-xs text-fg-muted">{t("chart.deepDive.subtitle")}</p>
+          {personName ? (
+            <p className="mt-1 text-xs text-fg-secondary" data-testid="deep-dive-other-person-note">
+              {t("chart.deepDive.otherPersonNote", { name: personName })}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -542,7 +548,7 @@ export function ChartDeepDive({
               open={coreOpen === "deep-dive-profile"}
               onOpenChange={(next) => setCoreOpen(next ? "deep-dive-profile" : null)}
             >
-              {profileLearnMore(profile)}
+              <DeepDiveEssayBody text={profileLearnMore(profile)} />
             </Accordion>
             <Accordion title="Definition" subtitle={definition} testId="deep-dive-definition" id="deep-dive-definition"
               open={coreOpen === "deep-dive-definition"}
@@ -582,7 +588,7 @@ export function ChartDeepDive({
                       open={channelOpen === `deep-dive-channel-${g.join("-")}`}
                       onOpenChange={(next) => setChannelOpen(next ? `deep-dive-channel-${g.join("-")}` : null)}
                     >
-                      {channelMeaning(g, name)}
+                      <DeepDiveEssayBody text={channelMeaning(g, name)} />
                     </Accordion>
                   );
                 })}
@@ -651,6 +657,7 @@ export function ChartDeepDive({
           </div>
         )}
       </div>
+      <p className="type-caption text-fg-muted" data-testid="deep-dive-footer">{t("chart.deepDive.footer")}</p>
     </section>
   );
 }

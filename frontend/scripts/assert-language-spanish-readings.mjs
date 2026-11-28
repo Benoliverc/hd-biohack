@@ -297,18 +297,18 @@ const ITEM1 = {
     nl: "Poort {gate}",
   },
   "chart.deepDive.gateLine": {
-    en: "Gate.Line",
+    en: "Gate · line",
     de: "Tor.Linie",
     es: "Puerta.Línea",
     fr: "Porte.Ligne",
-    nl: "Poort.Lijn",
+    nl: "Poort · lijn",
   },
   "chart.deepDive.lon": {
-    en: "Lon°",
+    en: "Degree",
     de: "Länge°",
     es: "Long.°",
     fr: "Long.°",
-    nl: "Leng.°",
+    nl: "Graad",
   },
   "chart.deepDive.gatesCount": {
     en: "{n} gates",
