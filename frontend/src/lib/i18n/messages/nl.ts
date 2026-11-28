@@ -929,7 +929,7 @@ export const messages = {
   'chart.v9.gateToGate': 'Poort naar poort',
   'chart.v9.bothBridgeHint': 'Inktkern in een kleihuls',
   'chart.v9.hangingGate': 'Hanging gate',
-  'chart.v9.hangingHint': 'Je houdt één uiteinde vast; het vervaagt',
+  'chart.v9.hangingHint': 'Je houdt één uiteinde vast; de hemel of een ander persoon maakt het af.',
   'chart.v9.joiningGate': 'Joining gate',
   'chart.v9.joiningHint': 'Zou je splitsing verbinden',
   'chart.v9.and': 'en',

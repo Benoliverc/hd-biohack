@@ -3,7 +3,7 @@
  * Run: npx tsx scripts/assert-one-disclosure-pattern.mjs
  *
  * Lockfile and the unchanged Chart/Today files are the 6085a38 bytes.
- * ChartDeepDive is the core-order bytes (Type, Profile, Strategy, Inner Authority, Definition).
+ * ChartDeepDive is #170 Core order plus this PR’s joining-gate block.
  * globals.css and biohack/page.tsx are the disclosure merge's resolved bytes; main abd12a94 did not edit them.
  * Motion stays in globals.css; no new dependency.
  */
@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// Core row order is Type, Profile, Strategy, Inner Authority, Definition.
-const CHART_DEEP_DIVE_SHA_CORE_ORDER =
-  "fd9fe8b458c086c81f0fe2ea967a491693608c811f0cefd24adce18d99b0e3e4";
+// ChartDeepDive is #170 Core order plus this PR’s joining-gate block.
+const CHART_DEEP_DIVE_SHA_ABD12A94 =
+  "f3a9b36c897facf2691be602b448eb453f1313a5e07a49b829de4c1062a353e9";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
@@ -208,8 +208,8 @@ for (const [rel, hash] of Object.entries(FROZEN_6085A38)) {
 }
 assert.equal(
   sha(read("src/components/ChartDeepDive.tsx")),
-  CHART_DEEP_DIVE_SHA_CORE_ORDER,
-  "check 6: ChartDeepDive.tsx equals the core-order bytes",
+  CHART_DEEP_DIVE_SHA_ABD12A94,
+  "check 6: ChartDeepDive.tsx is #170 Core order plus the joining-gate block",
 );
 
 assert.match(

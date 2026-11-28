@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { displayCenter, type CenterKey } from "@/lib/hdCopy";
+import { joiningGateLinkLabel } from "@/lib/essays/joiningGateDeepDive";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -101,6 +102,8 @@ export type ChartBodygraphProps = {
   onSelectCenter?: (center: string | null) => void;
   /** "Read more in Deep dive" for the open inspector. */
   onInspectDeepDive?: (center: string) => void;
+  /** Split-note joining gate. Opens Deep dive Definition. */
+  onOpenJoiningGate?: () => void;
   className?: string;
 };
 
@@ -148,6 +151,7 @@ export function ChartBodygraph({
   selectedCenter,
   onSelectCenter,
   onInspectDeepDive,
+  onOpenJoiningGate,
   className = "",
 }: ChartBodygraphProps) {
   const { t } = useI18n();
@@ -410,14 +414,8 @@ export function ChartBodygraph({
         : `${areaLabels.slice(0, -1).join(", ")}, ${andWord} ${areaLabels[areaLabels.length - 1]}`;
   const areaCountKey =
     areas.length <= 2 ? "chart.v9.areasTwo" : areas.length === 3 ? "chart.v9.areasThree" : areas.length === 4 ? "chart.v9.areasFour" : "chart.v9.areasMany";
-  const splitNote =
-    areas.length >= 2
-      ? `${t(areaCountKey, { areas: areasText, n: String(areas.length) })} ${
-          joins.length
-            ? t("chart.v9.splitWouldJoin", { gates: joins.map((j) => j.gate).join(", ") })
-            : t("chart.v9.splitNoJoin")
-        }`
-      : "";
+  const splitAreas =
+    areas.length >= 2 ? t(areaCountKey, { areas: areasText, n: String(areas.length) }) : "";
 
   const focusDefined = focusCenter ? defined.has(focusCenter) : false;
   const name = (ownerName || "").trim();
@@ -634,7 +632,16 @@ export function ChartBodygraph({
 
         {afterSvg}
 
-        {splitNote ? <p className={styles.note}>{splitNote}</p> : null}
+        {splitAreas ? (
+          <p className={styles.note}>
+            {splitAreas}{" "}
+            {joins.length ? (
+              <WouldJoinSentence gates={joins.map((join) => join.gate)} onOpen={onOpenJoiningGate} />
+            ) : (
+              t("chart.v9.splitNoJoin")
+            )}
+          </p>
+        ) : null}
 
         <h3 className={styles.kicker}>{t("chart.v9.centers")}</h3>
         <div className={styles.grid}>
@@ -667,6 +674,71 @@ export function ChartBodygraph({
         </div>
       </div>
     </section>
+  );
+}
+
+function JoiningGateLink({
+  gate,
+  onOpen,
+  children,
+}: {
+  gate: number;
+  onOpen?: () => void;
+  children: ReactNode;
+}) {
+  const { locale } = useI18n();
+  return (
+    <a
+      href="#deep-dive-definition"
+      data-testid={`chart-v9-joining-gate-${gate}`}
+      aria-label={joiningGateLinkLabel(locale, gate)}
+      onClick={(event) => {
+        if (!onOpen) return;
+        event.preventDefault();
+        onOpen();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== " " || !onOpen) return;
+        event.preventDefault();
+        onOpen();
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+/** Each gate number is its own link. Visible wording stays chart.v9.splitWouldJoin. */
+function WouldJoinSentence({ gates, onOpen }: { gates: number[]; onOpen?: () => void }) {
+  const { t } = useI18n();
+  const parts = t("chart.v9.splitWouldJoin", { gates: "\u0000" }).split("\u0000");
+  const before = parts[0] ?? "";
+  const after = parts[1] ?? "";
+  if (gates.length === 1) {
+    const gate = gates[0];
+    return (
+      <>
+        <JoiningGateLink gate={gate} onOpen={onOpen}>
+          {before}
+          {gate}
+        </JoiningGateLink>
+        {after}
+      </>
+    );
+  }
+  return (
+    <>
+      {before}
+      {gates.map((gate, index) => (
+        <Fragment key={`${gate}-${index}`}>
+          {index > 0 ? ", " : null}
+          <JoiningGateLink gate={gate} onOpen={onOpen}>
+            {gate}
+          </JoiningGateLink>
+        </Fragment>
+      ))}
+      {after}
+    </>
   );
 }
 

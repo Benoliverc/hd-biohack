@@ -89,6 +89,11 @@ const coreRowAt = coreRowIds.map(id => {
 for (let i = 1; i < coreRowAt.length; i++) {
  assert.ok(coreRowAt[i - 1] < coreRowAt[i], `Core row order ${coreRowIds[i - 1]} before ${coreRowIds[i]}`);
 }
+const definitionAt = coreRowAt[coreRowAt.length - 1];
+const joiningUse = dd.indexOf('<JoiningGateBlock', definitionAt);
+const definitionEssayAt = dd.indexOf('DEFINITION_COPY[definition]', definitionAt);
+assert.match(dd, /data-testid="deep-dive-joining-gate"/);
+assert.ok(joiningUse > definitionAt && definitionEssayAt > joiningUse, 'Joining gate block is inside Definition, the last Core row, above the essay');
 assert.match(dd,/deepDiveTypeSections\(hdType, locale, personName\)/);
 assert.match(dd,/title="Profile" subtitle=\{profilePresentation\(profile\)\.value\}/);
 assert.match(dd,/\{profileLearnMore\(profile\)\}/,'existing combo resolver remains');
@@ -115,11 +120,11 @@ const frozen = {
   "src/components/BodyGraph.tsx": "8f9380005b90a2b6e34190650a599c248d79e84e13c99e15ea9086d5b3dd2da8",
   "src/lib/essays/snapshotOtherPersonCopy.ts": "a146f37cdd159d430de72e8c9d925654d5c17a5db70aa17e74b35a1795b75864",
   "src/lib/essays/resolveHdCopy.ts": "32466a4cc54502412783bfb36398f263d4af93734f4080b0d4df60aa006967b1",
-  "src/lib/i18n/messages/en.ts": "c5c35d1f10e21444dc0ec299c060b03d76cabea092a5d545aefd22e1e0bf7022",
+  "src/lib/i18n/messages/en.ts": "08509229b4824354e75cddc108c17328ea717d0da8930a4f8d0032dfc3591db3",
   "src/lib/i18n/messages/de.ts": "dada3ac0614ba4d01a580c7d7d579316ae4d99372f0fdfa44eec3fd111f67f9f",
   "src/lib/i18n/messages/es.ts": "8fc6e78052efad2b30201021ebf4265c5d59f6bea1855d47e0e91810c523732e",
   "src/lib/i18n/messages/fr.ts": "9c2b4166fe4d19bc78ab0562f7050fff75b01e9203944fac5543a730b418edff",
-  "src/lib/i18n/messages/nl.ts": "e4d349c65ee0ce5683f262646b1f0d2c27e7af3d715db5cfc9b0cfa0194102ec"
+  "src/lib/i18n/messages/nl.ts": "97f7a76f6dfb2ed2fd1d3c59eed2c81caf7de1664d0cc48f3c1f7370a96eb861"
 };
 for(const [path,hash] of Object.entries(frozen)) assert.equal(sha(read(path)),hash,`${path} frozen`);
 const essayHashes = {

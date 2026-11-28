@@ -458,7 +458,7 @@ assert.match(todayInd, /localizeTomorrow\(/);
 assert.equal(todayInd.split('className="type-statement text-fg"').length - 1, 1);
 assert.equal(todayInd.split("uppercase").length > 1, true);
 
-// --- 7. Untouched chart files, displayCenter, and novelty ---
+// --- 7. displayCenter, frozen graph files, and novelty. ChartBodygraph is the joining-gate bytes. ---
 assert.equal(displayCenter("G"), "G / Identity");
 assert.equal(displayCenter("Heart"), "Ego / Heart");
 assert.equal(
@@ -471,7 +471,7 @@ assert.equal(
 );
 assert.equal(
   sha(read("src/components/ChartBodygraph.tsx")),
-  "4d097a0f5e94ca18fedf8ae09bf10e3add369578e237cdd293215829c9d92284"
+  "debc7c17f69a3ba153f6366def2ae8de43f258ddc9596b57a9b6c078dc94a5e5"
 );
 assert.equal(
   sha(read("../backend/app/checkin/novelty.py")),
