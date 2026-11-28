@@ -341,20 +341,34 @@ assert.equal(
   "check 7: restoring type-title on the Move sentence returns the 6085a38 pin"
 );
 
-// --- 8. Dependencies and the lockfile are unchanged; one script line ---
+// --- 8. Serif script line once; dependencies and the lockfile are unchanged ---
+// Script lines may grow. Do not hash the rest of package.json back to d06aa158.
 const pkg = read("package.json");
 const scriptLine = '    "assert:scoped-display-serif": "npx tsx scripts/assert-scoped-display-serif.mjs",\n';
 assert.equal(pkg.split(scriptLine).length - 1, 1, "check 8: one assert:scoped-display-serif script line");
-const restoredPkg = pkg.replace(scriptLine, "");
-assert.equal(sha(restoredPkg), PINS_6085A38["package.json"], "check 8: package.json otherwise equals main d06aa158");
 const parsed = JSON.parse(pkg);
-const restoredParsed = JSON.parse(restoredPkg);
 assert.equal(
   parsed.scripts["assert:scoped-display-serif"],
   "npx tsx scripts/assert-scoped-display-serif.mjs"
 );
-assert.deepEqual(parsed.dependencies, restoredParsed.dependencies);
-assert.deepEqual(parsed.devDependencies, restoredParsed.devDependencies);
+assert.deepEqual(parsed.dependencies, {
+  "html-to-image": "^1.11.13",
+  html2canvas: "^1.4.1",
+  "lucide-react": "^1.59.0",
+  next: "14.2.35",
+  react: "^18",
+  "react-dom": "^18",
+});
+assert.deepEqual(parsed.devDependencies, {
+  "@types/node": "^20",
+  "@types/react": "^18",
+  "@types/react-dom": "^18",
+  eslint: "^8",
+  "eslint-config-next": "14.2.35",
+  postcss: "^8",
+  tailwindcss: "^3.4.1",
+  typescript: "^5",
+});
 assert.equal(
   sha(read("package-lock.json")),
   PINS_6085A38["package-lock.json"],
