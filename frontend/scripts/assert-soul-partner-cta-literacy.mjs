@@ -156,8 +156,8 @@ const roleControl = blockWithTestId(page, "person-role-control", "data-testid=\"
 assert.ok(roleControl.includes('data-testid="person-role-partner"'), "toggle includes Partner");
 const removeBtn = openingTagWithTestId(page, "soul-remove-as-partner");
 const quietChrome =
-  "inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60";
-assert.ok(removeBtn.includes(quietChrome), "Remove chrome (unchanged) is the same secondary");
+  "inline-flex min-h-11 items-center text-sm font-medium text-fg-secondary underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60";
+assert.ok(removeBtn.includes(quietChrome), "Remove chrome is the locked quiet text button");
 
 const pickersAt = page.indexOf('data-testid="soul-pickers"');
 const markAt = page.indexOf('data-testid="soul-mark-partner-row"');
