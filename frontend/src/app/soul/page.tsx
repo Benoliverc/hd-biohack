@@ -726,7 +726,7 @@ function SoulUnlockedContent() {
                 type="button"
                 disabled={markingPartner || removingPartner || !selectedFriend}
                 onClick={() => {
-                  if (isPartnerSelected) void handleRemoveAsPartner();
+                  if (isPartnerSelected) return;
                 }}
                 className={`min-h-10 rounded-lg px-3 py-2 text-sm ${
                   !isPartnerSelected
@@ -778,7 +778,7 @@ function SoulUnlockedContent() {
                   type="button"
                   disabled={removingPartner || !selectedFriend}
                   onClick={() => void handleRemoveAsPartner()}
-                  className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm font-medium text-fg hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-fg-secondary underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   data-testid="soul-remove-as-partner"
                 >
                   {removingPartner ? t("soul.chrome.removing") : t("soul.chrome.removePartner")}
