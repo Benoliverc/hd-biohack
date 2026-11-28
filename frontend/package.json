@@ -9,6 +9,7 @@
     "lint": "next lint",
     "assert:chart-bodygraph-revert": "npx tsx scripts/assert-chart-bodygraph-revert.mjs",
     "assert:chart-bodygraph-v9": "npx tsx scripts/assert-chart-bodygraph-v9.mjs",
+    "assert:chart-center-tap-inspector": "npx tsx scripts/assert-chart-center-tap-inspector.mjs",
     "assert:gate-spacing": "npx tsx scripts/assert-gate-spacing.mjs",
     "assert:resets-in-account-tz": "npx tsx scripts/assert-resets-in-account-tz.mjs",
     "assert:device-timezone-follow": "npx tsx scripts/assert-device-timezone-follow.mjs",

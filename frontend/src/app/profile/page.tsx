@@ -46,7 +46,7 @@ import {
   ChartSkeleton,
 } from "@/components/PageSkeleton";
 import { formatTimezoneLabel, toTimeInputValue } from "@/lib/timezone";
-import { displayCenter } from "@/lib/hdCopy";
+import { displayCenter, type CenterKey } from "@/lib/hdCopy";
 import { useHdCopy } from "@/lib/essays/resolveHdCopy";
 import { youChipLabel } from "@/lib/youChipLabel";
 import { chartVoiceName } from "@/lib/chartVoice";
@@ -292,6 +292,42 @@ function ChartSectionNav({
   );
 }
 
+const CENTER_BY_SLUG = {
+  head: "Head",
+  ajna: "Ajna",
+  throat: "Throat",
+  g: "G",
+  heart: "Heart",
+  solar_plexus: "Solar_Plexus",
+  sacral: "Sacral",
+  spleen: "Spleen",
+  root: "Root",
+} as const satisfies Record<string, CenterKey>;
+
+function centerKeyFromSlug(slug: string | null): CenterKey | null {
+  if (!slug || !Object.prototype.hasOwnProperty.call(CENTER_BY_SLUG, slug)) return null;
+  return CENTER_BY_SLUG[slug as keyof typeof CENTER_BY_SLUG];
+}
+
+function isCenterKey(value: string | null): value is CenterKey {
+  return value != null && (Object.values(CENTER_BY_SLUG) as string[]).includes(value);
+}
+
+function slugFromCenterKey(key: CenterKey): string {
+  const pair = (Object.entries(CENTER_BY_SLUG) as [string, CenterKey][]).find(([, center]) => center === key);
+  return pair?.[0] ?? "head";
+}
+
+function replaceCenterParam(slug: string | null) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (slug) url.searchParams.set("center", slug);
+  else url.searchParams.delete("center");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (next !== current) window.history.replaceState(null, "", next);
+}
+
 function ProfilePage() {
   const { t, locale } = useI18n();
   const searchParams = useSearchParams();
@@ -356,6 +392,15 @@ function ProfilePage() {
   const [deepDiveDomain, setDeepDiveDomain] = useState<DeepDiveDomain>("core");
   /** Open Core row. Null means every Core row is closed. Not persisted. */
   const [deepDiveRow, setDeepDiveRow] = useState<string | null>(null);
+  /** Center inspector on the v9 figure. Synced to ?center= while the chart is on screen. */
+  const [selectedCenter, setSelectedCenter] = useState<CenterKey | null>(() =>
+    centerKeyFromSlug(searchParams.get("center")),
+  );
+  /** Centers matrix row opened from the inspector. Filter stays "all" while this is set. */
+  const [openCenter, setOpenCenter] = useState<CenterKey | null>(null);
+  const centerQuery = searchParams.get("center");
+  const centerSearchKey = searchParams.toString();
+  const appliedCenterSearch = useRef<string | null>(null);
   const hadChartRef = useRef(false);
   const peopleFetchGen = useRef(0);
   /** Imperative selection for async refreshPeopleOnOpen (avoid stale Me overwrite after create). */
@@ -390,6 +435,13 @@ function ProfilePage() {
       appliedEditYouQueryRef.current = false;
     }
   }, [requestedPersonId, searchParams]);
+
+  useEffect(() => {
+    if (!chart) return;
+    if (appliedCenterSearch.current === centerSearchKey) return;
+    appliedCenterSearch.current = centerSearchKey;
+    setSelectedCenter(centerKeyFromSlug(centerQuery));
+  }, [chart, centerSearchKey, centerQuery]);
 
   const refreshPeople = useCallback(async (userId: number) => {
     const rows = await api.charts(userId);
@@ -1255,6 +1307,20 @@ function ProfilePage() {
       return;
     }
     void scrollChartSectionIntoView(targetId, "smooth");
+  };
+
+  const onSelectCenter = (next: string | null) => {
+    const center = isCenterKey(next) ? next : null;
+    setSelectedCenter(center);
+    replaceCenterParam(center ? slugFromCenterKey(center) : null);
+  };
+
+  const onInspectCenter = (center: string) => {
+    if (!isCenterKey(center)) return;
+    setOpenCenter(center);
+    setSelectedCenter(null);
+    replaceCenterParam(null);
+    jumpToSection("deep-dive", "centers");
   };
 
   const personality = (chart?.personality as Array<Record<string, unknown>>) || [];
@@ -2138,6 +2204,9 @@ function ProfilePage() {
                 authority={authorityStr}
                 definition={definitionStr}
                 ownerName={chartPersonName}
+                selectedCenter={selectedCenter}
+                onSelectCenter={onSelectCenter}
+                onInspectDeepDive={onInspectCenter}
               />
             </div>
 
@@ -2308,6 +2377,8 @@ function ProfilePage() {
             }}
             openCoreRow={deepDiveRow}
             onOpenCoreRow={setDeepDiveRow}
+            openCenter={openCenter}
+            onOpenCenter={setOpenCenter}
           />
         </>
       )}
