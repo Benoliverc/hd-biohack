@@ -70,7 +70,7 @@ const FROZEN_6085A38 = {
   "src/components/ChartTypeBox.tsx":
     "f7996a40bd54c6c64efe5ddab4be725111c1ef7b496f91c500f0480f160baea4",
   "src/components/TodayIndication.tsx":
-    "691fecfb86631889a1c05a9f41417063289f0b0610e636d64e7e6f23b97f5eb8",
+    "7eea1a035c80c2008254745d1541741f295e958aabc68f4a087d36246a6ae61b",
   "src/app/transits/page.tsx":
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };

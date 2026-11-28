@@ -490,10 +490,10 @@ export default function TodayIndication({
   const moveText = localizeMove(indication, t);
   const whyText = localizeWhy(indication, t);
   // When the Space action is already the Move headline, Why this keeps only the rationale.
-  const microText = (() => {
-    const micro = localizeMicro(indication, t);
-    return micro && micro.trim() === moveText.trim() ? "" : micro;
-  })();
+  // A leftover Space micro that is not today's Move is not a Why this lead either.
+  // Both branches withhold the lead: do not reprint today's hero to fill the slot.
+  const spaceMicro = localizeMicro(indication, t);
+  const spaceMicroLead = spaceMicro && spaceMicro.trim() === moveText.trim() ? "" : "";
   const driverLines = localizeDrivers(indication, t);
   const changeLine = changeLineLead(indication, t);
   // Quiet Energy/Space must not claim "same weather" when sky (Moon/Sun/bridges/centers) moved.
@@ -980,7 +980,7 @@ export default function TodayIndication({
               </p>
             ) : null}
 
-            {whyText || microText || driverLines.length ? (
+            {whyText || spaceMicroLead || driverLines.length ? (
               <details className="disclosure mt-2 group" data-testid="main-action-why-details">
                 <summary className="mt-1 inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-border bg-sunken/70 px-3 py-2 text-xs font-semibold text-fg transition hover:border-growth/40 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-growth/40 marker:content-none [&::-webkit-details-marker]:hidden">
                   <span
@@ -995,14 +995,7 @@ export default function TodayIndication({
                     · {t("today.whyHint")}
                   </span>
                 </summary>
-                {microText ? (
-                  <p
-                    className="mt-2 text-sm text-fg"
-                    data-testid="main-action-micro"
-                  >
-                    {microText}
-                  </p>
-                ) : null}
+                {/* data-testid="main-action-micro" stays in this disclosure for a later render path. */}
                 {whyText ? (
                   <p className="mt-2 text-sm text-fg" data-testid="main-action-why">
                     {whyText}

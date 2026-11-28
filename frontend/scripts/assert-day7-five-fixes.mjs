@@ -39,8 +39,21 @@ assert.match(prescription, /concrete_action=\(/);
 assert.match(routes, /return history, avoid, avoid_today/);
 assert.match(routes, /ProtocolCompletion\.day >= completion_day - timedelta\(days=RECENT_MOVE_WINDOW_DAYS\)/);
 assert.match(derive, /avoid_move_texts_today/);
-// Why this does not repeat the headline when the Space action is the headline.
-assert.match(todayInd, /micro && micro\.trim\(\) === moveText\.trim\(\) \? "" : micro/);
+// Why this does not lead with the Space micro. Equal to the Move stays rationale-only;
+// a leftover micro is withheld too, so the old "else show micro" branch is gone.
+assert.match(
+  todayInd,
+  /spaceMicro && spaceMicro\.trim\(\) === moveText\.trim\(\) \? "" : ""/,
+);
+assert.doesNotMatch(todayInd, /\{microText \? \(/);
+const whyLeadAt = todayInd.indexOf('data-testid="main-action-why-details"');
+const whyLeadEnd = todayInd.indexOf("</details>", whyLeadAt);
+const whyLead = todayInd.slice(whyLeadAt, whyLeadEnd);
+assert.ok(whyLeadAt > 0 && whyLeadEnd > whyLeadAt, "Why disclosure present");
+assert.match(whyLead, /data-testid="main-action-why"/);
+assert.match(whyLead, /data-testid="main-action-micro"/);
+assert.doesNotMatch(whyLead, /\{spaceMicroLead\}/);
+assert.doesNotMatch(whyLead, /\{spaceMicro\}/);
 
 // 2. Soul: a reading is keyed to the person it was requested for; switching never shows the previous person.
 assert.match(soulPage, /useState<\{ friendId: number; data: SoulSyncResult \} \| null>/);

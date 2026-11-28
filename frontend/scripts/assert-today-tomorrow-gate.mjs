@@ -196,7 +196,7 @@ for (const [key, en, nl] of OLD_KEYS) {
 const todayInd = read("src/components/TodayIndication.tsx");
 assert.equal(
   sha(todayInd),
-  "691fecfb86631889a1c05a9f41417063289f0b0610e636d64e7e6f23b97f5eb8",
+  "7eea1a035c80c2008254745d1541741f295e958aabc68f4a087d36246a6ae61b",
   "TodayIndication.tsx stays pinned",
 );
 assert.match(todayInd, /localizeTomorrow\(indication, t\)/);
