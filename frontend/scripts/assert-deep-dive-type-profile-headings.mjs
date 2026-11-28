@@ -78,7 +78,17 @@ for(const invalid of ['', '9/1','1/9','x','5/']) {
 assert.deepEqual(deepDiveTypeSections('unknown','nl'),[]);
 const dd=read('src/components/ChartDeepDive.tsx');
 assert.doesNotMatch(dd,/deep-dive-type-pointer|TYPE_COPY/);
-assert.ok(dd.indexOf('<Accordion title="Type"') < dd.indexOf('<Accordion title="Strategy"'));
+const coreRowIds = ['deep-dive-type','deep-dive-profile','deep-dive-strategy','deep-dive-inner-authority','deep-dive-definition'];
+const coreRowAt = coreRowIds.map(id => {
+ const needle = `id="${id}"`;
+ const at = dd.indexOf(needle);
+ assert.ok(at >= 0, `${id} present`);
+ assert.equal(dd.indexOf(needle, at + needle.length), -1, `${id} is unique`);
+ return at;
+});
+for (let i = 1; i < coreRowAt.length; i++) {
+ assert.ok(coreRowAt[i - 1] < coreRowAt[i], `Core row order ${coreRowIds[i - 1]} before ${coreRowIds[i]}`);
+}
 assert.match(dd,/deepDiveTypeSections\(hdType, locale, personName\)/);
 assert.match(dd,/title="Profile" subtitle=\{profilePresentation\(profile\)\.value\}/);
 assert.match(dd,/\{profileLearnMore\(profile\)\}/,'existing combo resolver remains');

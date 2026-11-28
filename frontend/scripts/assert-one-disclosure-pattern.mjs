@@ -3,8 +3,8 @@
  * Run: npx tsx scripts/assert-one-disclosure-pattern.mjs
  *
  * Lockfile and the unchanged Chart/Today files are the 6085a38 bytes.
- * ChartDeepDive is main abd12a94 (PR #166). globals.css and biohack/page.tsx
- * are this branch's resolved bytes; main abd12a94 did not edit them.
+ * ChartDeepDive is the core-order bytes (Type, Profile, Strategy, Inner Authority, Definition).
+ * globals.css and biohack/page.tsx are the disclosure merge's resolved bytes; main abd12a94 did not edit them.
  * Motion stays in globals.css; no new dependency.
  */
 import assert from "node:assert/strict";
@@ -75,9 +75,9 @@ const FROZEN_6085A38 = {
     "32379668ae081b642c42dd61b245b896bf73deddddc87e518e77a418d49a0cfd",
 };
 
-// Center-tap inspector adds controlled openCenter. Disclosure checks are unchanged.
+// Core row order is Type, Profile, Strategy, Inner Authority, Definition, plus this PR's third-person Strategy/Authority copy.
 const CHART_DEEP_DIVE_SHA =
-  "beca81a022de7beb2df9df3b456422d7b53a1ac074cff0257ef84ee21911b6d9";
+  "227cb6e0e4bf35194f3cb86ae2cfcc6fc53061e07094bad4f4a1b12d8af59383";
 
 // --- 1. Locked CSS after the byte-identical chevron rule ---
 const css = read("src/app/globals.css");
