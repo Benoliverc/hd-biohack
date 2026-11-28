@@ -187,7 +187,7 @@ html.dark .chart-v9::before,
 }
 
 .chart-v9-center {
-  cursor: default;
+  cursor: pointer;
 }
 
 .chart-v9-center:focus {
@@ -195,7 +195,35 @@ html.dark .chart-v9::before,
 }
 
 .chart-v9-center:focus-visible {
+  outline: none;
+}
+
+.chart-v9-center-focus {
+  fill: none;
+  stroke: var(--focus);
   stroke-width: 2.2px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.chart-v9-center:focus-visible + .chart-v9-center-focus,
+.chart-v9-center[aria-pressed="true"] + .chart-v9-center-focus {
+  opacity: 1;
+}
+
+.chart-v9-inspector {
+  animation: chart-v9-inspector-in 180ms ease-out;
+}
+
+@keyframes chart-v9-inspector-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-v9-inspector {
+    animation: none;
+  }
 }
 
 .chart-v9-highlight {

@@ -3,8 +3,10 @@
  * and the Today Move sentence. Login and public routes stay Inter.
  * Run: npx tsx scripts/assert-scoped-display-serif.mjs
  *
- * Untouched surfaces stay at 6085a38. package.json, AuthGate (with the serif
- * delta removed), and globals.css (with the locked block removed) are main d06aa158.
+ * Untouched surfaces stay at 6085a38. AuthGate (with the serif delta removed)
+ * and globals.css (with the locked block removed) are main d06aa158.
+ * package.json dependencies, devDependencies, and the lockfile stay pinned.
+ * The scripts block is not pinned, so a later assert:* line can land.
  * AuthGate itself is byte-identical to tip 6cacac09.
  */
 import assert from "node:assert/strict";
@@ -31,7 +33,6 @@ const PINS_6085A38 = {
   "src/components/Header.tsx": "daf1194b633f7343857073129ebea7717b1d3b8a64ffd0e4d8db0936401103b2",
   "tailwind.config.ts": "20a202ad9b8457cf998112ba8efdc3e84e6e1b2b686cc1ff06ed4ac9923ad172",
   "package-lock.json": "a6a9733cf7ab81eee53471a02cd27bc06e215ca57c290afd0b9fc94cdf191324",
-  "package.json": "cff66e7f72372f3d5f3743b328ad9848f3939412b6df0f3637433dce4d83dee4",
   "src/components/AuthGate.tsx": "f7c04fb5379b08d0e0e4732792fc5b0ae08b212373a76bea80c5010514af9e50",
   "src/app/page.tsx": "d3a5dec9bfa3e3fa983316a61e73bc81334f4f653c4a5d6f1bb60c65a24b0bd6",
   "src/app/globals.css": "d188793365b21eca60a5959822f6b361b446589eafeeb13faf31fbab72322247",
@@ -342,19 +343,41 @@ assert.equal(
 );
 
 // --- 8. Dependencies and the lockfile are unchanged; one script line ---
+// The scripts block is not hashed. Later assert:* lines must not turn this check red.
 const pkg = read("package.json");
 const scriptLine = '    "assert:scoped-display-serif": "npx tsx scripts/assert-scoped-display-serif.mjs",\n';
 assert.equal(pkg.split(scriptLine).length - 1, 1, "check 8: one assert:scoped-display-serif script line");
-const restoredPkg = pkg.replace(scriptLine, "");
-assert.equal(sha(restoredPkg), PINS_6085A38["package.json"], "check 8: package.json otherwise equals main d06aa158");
 const parsed = JSON.parse(pkg);
-const restoredParsed = JSON.parse(restoredPkg);
 assert.equal(
   parsed.scripts["assert:scoped-display-serif"],
   "npx tsx scripts/assert-scoped-display-serif.mjs"
 );
-assert.deepEqual(parsed.dependencies, restoredParsed.dependencies);
-assert.deepEqual(parsed.devDependencies, restoredParsed.devDependencies);
+assert.deepEqual(
+  parsed.dependencies,
+  {
+    "html-to-image": "^1.11.13",
+    html2canvas: "^1.4.1",
+    "lucide-react": "^1.59.0",
+    next: "14.2.35",
+    react: "^18",
+    "react-dom": "^18",
+  },
+  "check 8: dependencies unchanged"
+);
+assert.deepEqual(
+  parsed.devDependencies,
+  {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    eslint: "^8",
+    "eslint-config-next": "14.2.35",
+    postcss: "^8",
+    tailwindcss: "^3.4.1",
+    typescript: "^5",
+  },
+  "check 8: devDependencies unchanged"
+);
 assert.equal(
   sha(read("package-lock.json")),
   PINS_6085A38["package-lock.json"],

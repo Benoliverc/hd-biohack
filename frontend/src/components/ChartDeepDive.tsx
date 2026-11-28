@@ -215,16 +215,36 @@ const CENTER_SLOTS: { key: CenterKey; style: CSSProperties }[] = [
   { key: "Root", style: { gridColumn: 2, gridRow: 6 } },
 ];
 
-function CentersMatrix({ defined }: { defined: Set<string> }) {
+function CentersMatrix({
+  defined,
+  openCenter,
+  onOpenCenter,
+}: {
+  defined: Set<string>;
+  openCenter?: CenterKey | null;
+  onOpenCenter?: (center: CenterKey | null) => void;
+}) {
   const { t } = useI18n();
   const { CENTER_COPY } = useHdCopy();
+  const controlled = openCenter !== undefined;
   const [filter, setFilter] = useState<CenterFilter>("all");
-  const [expanded, setExpanded] = useState<CenterKey | null>(null);
+  const [internalExpanded, setInternalExpanded] = useState<CenterKey | null>(null);
+  const expanded = controlled ? openCenter ?? null : internalExpanded;
+  const activeFilter: CenterFilter = openCenter ? "all" : filter;
+
+  useEffect(() => {
+    if (openCenter) setFilter("all");
+  }, [openCenter]);
+
+  const setExpanded = (next: CenterKey | null) => {
+    if (!controlled) setInternalExpanded(next);
+    onOpenCenter?.(next);
+  };
 
   const matchesFilter = (key: CenterKey) => {
     const isDefined = defined.has(key);
-    if (filter === "defined") return isDefined;
-    if (filter === "open") return !isDefined;
+    if (activeFilter === "defined") return isDefined;
+    if (activeFilter === "open") return !isDefined;
     return true;
   };
 
@@ -254,7 +274,7 @@ function CentersMatrix({ defined }: { defined: Set<string> }) {
               setExpanded(null);
             }}
             className={`min-h-9 rounded-full border px-3 py-1.5 text-xs transition ${
-              filter === id
+              activeFilter === id
                 ? "border-growth bg-growth-soft text-growth-ink ring-2 ring-growth/30"
                 : "border-border bg-sunken text-fg-muted hover:border-growth/50 hover:text-fg"
             }`}
@@ -356,6 +376,8 @@ export function ChartDeepDive({
   onDomainChange,
   openCoreRow,
   onOpenCoreRow,
+  openCenter,
+  onOpenCenter,
 }: {
   chart: Chart;
   personName?: string;
@@ -367,6 +389,9 @@ export function ChartDeepDive({
   /** Controlled Core row. Null leaves every Core row closed. Omitted uses internal state. */
   openCoreRow?: string | null;
   onOpenCoreRow?: (rowId: string | null) => void;
+  /** Controlled Centers row. Null leaves every center collapsed. Omitted uses internal state. */
+  openCenter?: CenterKey | null;
+  onOpenCenter?: (center: CenterKey | null) => void;
 }) {
   const { t, locale } = useI18n();
   const {
@@ -562,7 +587,9 @@ export function ChartDeepDive({
           </div>
         )}
 
-        {active === "centers" && <CentersMatrix defined={defined} />}
+        {active === "centers" && (
+          <CentersMatrix defined={defined} openCenter={openCenter} onOpenCenter={onOpenCenter} />
+        )}
 
         {active === "channels" && (
           <div className="space-y-2">
