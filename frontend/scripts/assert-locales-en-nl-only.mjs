@@ -136,7 +136,25 @@ assert.doesNotMatch(nl["settings.languageHelp"], /Spanish|Spaans|Deutsch|França
 const routes = readFileSync(join(repo, "backend/app/api/routes.py"), "utf8");
 assert.match(routes, /SUPPORTED_LOCALES = frozenset\(\{"en", "nl", "de", "fr", "es"\}\)/);
 const base = execSync("git merge-base HEAD origin/main", { cwd: repo, encoding: "utf8" }).trim();
-assert.equal(execSync(`git diff ${base} -- backend`, { cwd: repo, encoding: "utf8" }), "");
+// Language lock still rejects any other backend path. These two files are the
+// Today Move selection change and may differ from merge-base.
+const allowedBackend = new Set([
+  "backend/app/checkin/prescription.py",
+  "backend/tests/test_day7_five_fixes.py",
+]);
+const backendPaths = execSync(`git diff --name-only ${base} -- backend`, {
+  cwd: repo,
+  encoding: "utf8",
+})
+  .split("\n")
+  .map((line) => line.trim())
+  .filter(Boolean);
+const unexpectedBackend = backendPaths.filter((path) => !allowedBackend.has(path));
+assert.deepEqual(
+  unexpectedBackend,
+  [],
+  `backend diff outside Move selection: ${unexpectedBackend.join(", ")}`,
+);
 
 assert.match(
   read("package.json"),
